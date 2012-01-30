@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../layout/backend.html"/>
+  <head>
+    <title>${survey.title}</title>
+  </head>
+  <body>
+    <nav>
+      <ul>
+        <li class="current"><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
+        <li><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
+        <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
+        <li><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>${survey.title}</h1>
+      </hgroup>
+      <ul>
+        <li><p>Question Sheets</p><p>${len(survey.qsheets)}</p></li>
+        <li><p>Data items</p><p>${len(survey.data_items)}</p></li>
+        <li><p>Control items</p><p>${len(survey.control_items)}</p></li>
+      </ul>
+    </article>
+  </body>
+</html>

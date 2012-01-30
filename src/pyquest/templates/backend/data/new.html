@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - Data - Add</title>
+  </head>
+  <body>
+    <nav class="level-1">
+      <ul>
+        <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
+        <li class="current"><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
+        <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
+        <li><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>Add</h1>
+      </hgroup>
+      <form action="${r.route_url('survey.data.new', sid=survey.id, did=data_item.id)}" method="post">
+        ${h.form.csrf_token(r.session.get_csrf_token())}
+        <dl>
+          <dt>Control</dt>
+          <dd>${h.form.checkbox('control', 'false', ('true', 'false'), e)}</dd>
+          <py:for each="attribute in data_item.attributes">
+            <dt>${h.text.title(attribute.key)}</dt>
+            <dd>${h.form.text_field(attribute.key, '', e)}</dd>
+          </py:for>
+        </dl>
+        <ul class="buttons">
+          <li>${h.form.button("Don't add")}</li>
+          <li>${h.form.submit('Add')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" py:strip="True">
+  <head py:match="head">
+    <title>${select('title/text()')}</title>
+  </head>
+  <body py:match="body">
+    <header>
+      <ul py:if="r.session.peek_flash('info') or r.session.peek_flash('warn') or r.session.peek_flash('auth')" class="flash">
+        <li py:for="flash in r.session.pop_flash('info')" class="info">${flash}</li>
+        <li py:for="flash in r.session.pop_flash('warn')" class="warn">${flash}</li>
+        <li py:for="flash in r.session.pop_flash('auth')" class="warn">${flash}</li>
+      </ul>
+    </header>
+    ${select('*')}
+    <footer>
+    </footer>
+  </body>
+</html>

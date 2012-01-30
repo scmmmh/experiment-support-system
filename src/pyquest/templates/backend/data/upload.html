@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - Data - Upload</title>
+  </head>
+  <body>
+    <nav class="level-1">
+      <ul>
+        <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
+        <li class="current"><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
+        <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
+        <li><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>Upload</h1>
+      </hgroup>
+      <form action="${r.route_url('survey.data.upload', sid=survey.id)}" method="post" enctype="multipart/form-data">
+        ${h.form.csrf_token(r.session.get_csrf_token())}
+        <p>Please select the CSV (comma-separated-value) file that contains the data you wish to upload:</p>
+        <dl>
+          <dt>File</dt>
+          <dd>${h.form.file_input('source_file', e)}</dd>
+        </dl>
+        <ul class="buttons">
+          <li>${h.form.button("Don't add")}</li>
+          <li>${h.form.submit('Add')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+
+syntax: regexp
+^PyQuestionnaire\.egg-info$
+syntax: regexp
+^virtualenv$
+syntax: regexp
+\.ini$
+syntax: regexp
+\.db$
+syntax: regexp
+^src/PyQuestionnaire\.egg-info$

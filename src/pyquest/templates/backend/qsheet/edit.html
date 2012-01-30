@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - ${qsheet.title} - Edit</title>
+  </head>
+  <body>
+    <nav class="level-2">
+      <ul>
+        <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
+        <li><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
+        <li class="current"><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
+        <li><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
+      </ul>
+    </nav>
+    <nav class="level-2">
+      <ul>
+        <li><a href="${r.route_url('survey.qsheet', sid=survey.id)}">Pages</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>Edit - ${qsheet.title}</h1>
+      </hgroup>
+      <form action="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" method="post">
+        ${h.form.csrf_token(r.session.get_csrf_token())}
+        <dl>
+          <dt>Title</dt>
+          <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
+          <dt>Content</dt>
+          <dd>${h.form.textarea('content', qsheet.content, e)}</dd>
+        </dl>
+        <ul class="buttons">
+          <li>${h.form.button("Don't update")}</li>
+          <li>${h.form.submit('Update')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>

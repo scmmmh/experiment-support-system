@@ -1,0 +1,24 @@
+#Tue Jan 24 12:40:48 GMT 2012
+eclipse.preferences.version=1
+encoding//src/pyquest/__init__.py=utf-8
+encoding//src/pyquest/helpers/__init__.py=utf-8
+encoding//src/pyquest/helpers/auth.py=utf-8
+encoding//src/pyquest/helpers/qsheet.py=utf-8
+encoding//src/pyquest/helpers/user.py=utf-8
+encoding//src/pyquest/models.py=utf-8
+encoding//src/pyquest/renderer.py=utf-8
+encoding//src/pyquest/scripts/__init__.py=utf-8
+encoding//src/pyquest/scripts/populate.py=utf-8
+encoding//src/pyquest/tests.py=utf-8
+encoding//src/pyquest/views/__init__.py=utf-8
+encoding//src/pyquest/views/acquire.py=utf-8
+encoding//src/pyquest/views/backend/__init__.py=utf-8
+encoding//src/pyquest/views/backend/data.py=utf-8
+encoding//src/pyquest/views/backend/qsheet.py=utf-8
+encoding//src/pyquest/views/backend/survey.py=utf-8
+encoding//src/pyquest/views/user.py=utf-8
+encoding//src/pywebtools/__init__.py=utf-8
+encoding//src/pywebtools/auth.py=utf-8
+encoding//src/pywebtools/form.py=utf-8
+encoding//src/pywebtools/text.py=utf-8
+encoding//virtualenv/lib/python2.7/site-packages/Genshi-0.6-py2.7.egg/genshi/builder.py=utf-8

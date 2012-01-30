@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - Pages</title>
+  </head>
+  <body>
+    <nav class="level-1">
+      <ul>
+        <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
+        <li><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
+        <li class="current"><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
+        <li><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
+      </ul>
+    </nav>
+    <nav class="level-2">
+      <ul>
+        <li class="current"><a href="${r.route_url('survey.qsheet', sid=survey.id)}">Pages</a></li>
+      </ul>
+    </nav>
+    <nav class="level-3">
+      <ul>
+        <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}">New page</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>${survey.title} - Pages</h1>
+      </hgroup>
+      <ol>
+        <li py:for="qsheet in survey.qsheets"><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a> (<a href="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}">delete</a>)</li>
+      </ol>
+    </article>
+  </body>
+</html>

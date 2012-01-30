@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - Data - Clear all data</title>
+  </head>
+  <body>
+    <nav class="level-1">
+      <ul>
+        <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
+        <li class="current"><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
+        <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
+        <li><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>Clear all data</h1>
+      </hgroup>
+      <form action="${r.route_url('survey.data.clear', sid=survey.id)}" method="post">
+        ${h.form.csrf_token(r.session.get_csrf_token())}
+        <p>Please confirm that you wish to clear all data.</p>
+        <ul class="buttons">
+          <li>${h.form.button("Don't clear")}</li>
+          <li>${h.form.submit('Clear')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>
