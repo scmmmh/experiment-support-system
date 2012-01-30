@@ -71,6 +71,21 @@ def main(argv=sys.argv):
   <pq:option value="bit" title="A bit"/>
   <pq:option value="no" title="No"/>
 </pq:choice>
+<pq:multichoice name="likes" title="What do you like doing at the weekend?">
+  <pq:option value="walking" title="Walking"/>
+  <pq:option value="eating" title="Eating"/>
+  <pq:option value="drinking" title="Drinking"/>
+  <pq:option value="dancing" title="Dancing"/>
+</pq:multichoice>
+<pq:multichoice_group name="" title="What do you do when?">
+  <pq:option value="weekend" title="During the week - daytime"/>
+  <pq:option value="weekend" title="During the week - evenings"/>
+  <pq:option value="weekend" title="Weekend"/>
+  <pq:multichoice name="" title="Reading books"/>
+  <pq:multichoice name="" title="Surfing the internet"/>
+  <pq:multichoice name="" title="Telephoning"/>
+  <pq:multichoice name="" title="Sleeping"/>
+</pq:multichoice_group>
 """)
         survey.qsheets.append(qsheet)
         data_item = DataItem(order=1, control=False)
