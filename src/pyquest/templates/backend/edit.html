@@ -26,11 +26,11 @@
         ${h.form.csrf_token(r.session.get_csrf_token())}
         <dl>
           <dt>Title</dt>
-          <dd>${h.form.text_field('title', survey.title, e)}</dd>
+          <dd>${h.form.text_field('title', survey.title, e, class_='span-12')}</dd>
         </dl>
-        <ul class="buttons">
-          <li>${h.form.button("Don't update")}</li>
-          <li>${h.form.submit('Update')}</li>
+        <ul class="buttons span-12">
+          <li>${h.form.button("Don't update", class_='button')}</li>
+          <li>${h.form.submit('Update', class_='button')}</li>
         </ul>
       </form>
     </article>

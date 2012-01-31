@@ -5,7 +5,7 @@
     <title>${survey.title}</title>
   </head>
   <body>
-    <nav>
+    <nav class="level-1">
       <ul>
         <li class="current"><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
         <li><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
@@ -17,10 +17,10 @@
       <hgroup>
         <h1>${survey.title}</h1>
       </hgroup>
-      <ul>
-        <li><p>Question Sheets</p><p>${len(survey.qsheets)}</p></li>
-        <li><p>Data items</p><p>${len(survey.data_items)}</p></li>
-        <li><p>Control items</p><p>${len(survey.control_items)}</p></li>
+      <ul class="no-symbol">
+        <li class="span-4"><p><strong>Question Sheets</strong></p><p>${len(survey.qsheets)}</p></li>
+        <li class="span-4"><p><strong>Data items</strong></p><p>${len(survey.data_items)}</p></li>
+        <li class="span-4"><p><strong>Control items</strong></p><p>${len(survey.control_items)}</p></li>
       </ul>
     </article>
   </body>

@@ -24,23 +24,25 @@
       <hgroup>
         <h1>Data</h1>
       </hgroup>
-      <table>
-        <tr py:if="survey.data_items">
-          <th>Control</th>
-          <th py:for="attribute in survey.data_items[0].attributes">${h.text.title(attribute.key)}</th>
-          <th>Action</th>
-        </tr>
-        <tr py:for="item in survey.all_items">
-          <td>${item.control}</td>
-          <td py:for="attribute in item.attributes">${attribute.value}</td>
-          <td>
-            <ul>
-              <li><a href="${r.route_url('survey.data.edit', sid=survey.id, did=item.id)}">Edit</a></li>
-              <li><a href="${r.route_url('survey.data.delete', sid=survey.id, did=item.id)}">Delete</a></li>
-            </ul>
-          </td>
-        </tr>
-      </table>
+      <div class="span-24" style="overflow:auto;height:600px;">
+        <table>
+          <tr py:if="survey.data_items">
+            <th>Control</th>
+            <th py:for="attribute in survey.data_items[0].attributes">${h.text.title(attribute.key)}</th>
+            <th>Action</th>
+          </tr>
+          <tr py:for="item in survey.all_items">
+            <td>${item.control}</td>
+            <td py:for="attribute in item.attributes">${attribute.value}</td>
+            <td>
+              <ul class="inline no-symbol">
+                <li><a href="${r.route_url('survey.data.edit', sid=survey.id, did=item.id)}" class="button">Edit</a></li>
+                <li><a href="${r.route_url('survey.data.delete', sid=survey.id, did=item.id)}" class="button">Delete</a></li>
+              </ul>
+            </td>
+          </tr>
+        </table>
+      </div>
     </article>
   </body>
 </html>

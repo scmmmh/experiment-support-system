@@ -28,11 +28,11 @@
           <dt>Title</dt>
           <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
           <dt>Content</dt>
-          <dd>${h.form.textarea('content', qsheet.content, e)}</dd>
+          <dd>${h.form.textarea('content', qsheet.content, e, class_='span-22')}</dd>
         </dl>
-        <ul class="buttons">
-          <li>${h.form.button("Don't update")}</li>
-          <li>${h.form.submit('Update')}</li>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't update", class_='button')}</li>
+          <li>${h.form.submit('Update', class_='button')}</li>
         </ul>
       </form>
     </article>

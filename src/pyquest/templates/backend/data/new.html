@@ -24,12 +24,12 @@
           <dd>${h.form.checkbox('control', 'false', ('true', 'false'), e)}</dd>
           <py:for each="attribute in data_item.attributes">
             <dt>${h.text.title(attribute.key)}</dt>
-            <dd>${h.form.text_field(attribute.key, '', e)}</dd>
+            <dd>${h.form.text_field(attribute.key, '', e, class_='span-12')}</dd>
           </py:for>
         </dl>
-        <ul class="buttons">
-          <li>${h.form.button("Don't add")}</li>
-          <li>${h.form.submit('Add')}</li>
+        <ul class="buttons span-12">
+          <li>${h.form.button("Don't add", class_='button')}</li>
+          <li>${h.form.submit('Add', class_='button')}</li>
         </ul>
       </form>
     </article>

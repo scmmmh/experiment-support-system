@@ -6,3 +6,4 @@ def init(config):
     backend.init(config)
     config.add_route('user.login', '/users/login')
     config.add_route('survey.run', '/surveys/{sid}/run/{qsid}')
+    config.add_static_view(name='static.files', path='pyquest:static')
