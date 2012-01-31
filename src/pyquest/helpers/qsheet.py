@@ -203,11 +203,11 @@ def rating_input(element, item):
     add_title(element, tags)
     rows = []
     choices = extract_choices(element)
-    rows.append(tag.tr(map(lambda (_, t): tag.th(t), choices)))
-    rows.append(tag.tr(map(lambda (v, _): tag.td(tag.input(type='radio',
+    rows.append(tag.thead(tag.tr(map(lambda (_, t): tag.th(t), choices))))
+    rows.append(tag.tbody(tag.tr(map(lambda (v, _): tag.td(tag.input(type='radio',
                                                            name='item-1.%s' % (element.attrib['name']),
                                                            value=v)),
-                           choices)))
+                           choices))))
     tags.append(tag.table(rows))
     return tag.section(tags, class_='question rating')
 
@@ -218,7 +218,6 @@ def rating_group(element, item):
     add_title(element, tags)
     choices = extract_choices(element)
     rows = []
-    rows.append(tag.tr(tag.th(), map(lambda (_, t): tag.th(t), choices)))
     for rating in element:
         if rating.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
             if 'name' in rating.attrib:
@@ -228,7 +227,8 @@ def rating_group(element, item):
                                                                            name='item-1.%s.%s' % (element.attrib['name'], rating.attrib['name']),
                                                                            value=v)),
                                            choices)))
-    tags.append(tag.table(rows))
+    tags.append(tag.table(tag.thead(tag.tr(tag.th(), map(lambda (_, t): tag.th(t), choices))),
+                          tag.tbody(rows)))
     return tag.section(tags, class_='question rating-group')
 
 def choice(element, item):
@@ -270,7 +270,6 @@ def multichoice_group(element, item):
     add_title(element, tags)
     rows = []
     choices = extract_choices(element)
-    rows.append(tag.tr(tag.th(''), map(lambda (_, t): tag.th(t), choices)))
     for choice in element:
         if choice.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
             if 'name' in element.attrib:
@@ -282,5 +281,6 @@ def multichoice_group(element, item):
                 for idx, (v, _) in enumerate(choices):
                     columns.append(tag.td(tag.input(type='checkbox', id='item-1.%s-%i' % (element.attrib['name'], idx), name='item-1.%s-%i' % (element.attrib['name'], idx), value=v)))
                 rows.append(tag.tr(columns))
-    tags.append(tag.table(rows))
+    tags.append(tag.table(tag.thead(tag.tr(tag.th(''), map(lambda (_, t): tag.th(t), choices))),
+                          tag.tbody(rows)))
     return tag.section(tags, class_='question multichoice-grid')
