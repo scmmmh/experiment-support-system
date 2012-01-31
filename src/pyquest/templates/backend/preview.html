@@ -2,26 +2,32 @@
 <html xmlns:py="http://genshi.edgewall.org/">
   <head>
     <title>${survey.title}</title>
+    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/screen.css')}"/>
+    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
   </head>
   <body>
-    <nav>
-      <ul>
-        <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
-        <li><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
-        <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
-        <li class="current"><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
-      </ul>
-    </nav>
-    <hgroup>
-      <h1>${survey.title}</h1>
-    </hgroup>
-    <section py:for="qsheet in survey.qsheets">
+    <div class="container">
+      <nav class="level-1">
+        <ul>
+          <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
+          <li><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
+          <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
+          <li class="current"><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="survey">
       <hgroup>
-        <h2>${qsheet.title}</h2>
+        <h1>${survey.title}</h1>
       </hgroup>
-      <form action="" method="post">
-        ${h.qsheet.display(example, qsheet.content)}
-      </form>
-    </section>
+      <section py:for="qsheet in survey.qsheets">
+        <hgroup>
+          <h2>${qsheet.title}</h2>
+        </hgroup>
+        <form action="" method="post">
+          ${h.qsheet.display(example, qsheet.content)}
+        </form>
+      </section>
+    </div>
   </body>
 </html>
