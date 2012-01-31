@@ -17,11 +17,22 @@
       <hgroup>
         <h1>${survey.title}</h1>
       </hgroup>
-      <ul class="no-symbol">
-        <li class="span-4"><p><strong>Question Sheets</strong></p><p>${len(survey.qsheets)}</p></li>
-        <li class="span-4"><p><strong>Data items</strong></p><p>${len(survey.data_items)}</p></li>
-        <li class="span-4"><p><strong>Control items</strong></p><p>${len(survey.control_items)}</p></li>
-      </ul>
+      <table>
+        <thead>
+          <tr>
+            <th>Question Sheets</th>
+            <th>Data Items</th>
+            <th>Control Items</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${len(survey.qsheets)}</td>
+            <td>${len(survey.data_items)}</td>
+            <td>${len(survey.control_items)}</td>
+          </tr>
+        </tbody>
+      </table>
     </article>
   </body>
 </html>
