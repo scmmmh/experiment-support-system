@@ -54,6 +54,7 @@ pre, code, tt {font:1em 'andale mono', 'lucida console', monospace;line-height:1
 li ul, li ol {margin:0;}
 ul.no-symbol > li, ol.no-symbol > li, li.no-symbol {list-style-type:none;}
 ul.inline > li, ol.inline > li, li.inline {display:inline-block;}
+ul.no-margin, ol.no-margin {margin:0;padding:0;}
 ul, ol {margin:0 1.5em 1.5em 0;padding-left:1.5em;}
 ul {list-style-type:disc;}
 ol {list-style-type:decimal;}
@@ -267,9 +268,11 @@ hr.space {background:#fff;color:#fff;visibility:hidden;}
 .clear {clear:both;}
 
 /* application */
-nav ul {margin:0;padding: 0;}
-nav ul li {list-style-type:none;display:inline;padding:0.5em 0.3em;margin:0 0.5em;}
+nav ul {margin:0.3em 0;padding:0;}
+nav ul li {list-style-type:none;display:inline-block;padding:0.3em 0.8em;margin:0;background-color:#c3d9ff;}
 nav ul li a {text-decoration:none;}
+nav ul li.current {background-color:#0066cc;}
+nav ul li.current a {color:#ffffff;}
 nav.level-1 ul li a {font-size:1.5em;font-weight:bold;}
 nav.level-2 ul li a {font-size:1.2em;font-weight:bold;}
 nav.level-3 ul li a {font-size:1em;font-weight:bold;}

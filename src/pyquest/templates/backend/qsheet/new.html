@@ -15,7 +15,12 @@
     </nav>
     <nav class="level-2">
       <ul>
-        <li><a href="${r.route_url('survey.qsheet', sid=survey.id)}">Pages</a></li>
+        <li class="current"><a href="${r.route_url('survey.qsheet', sid=survey.id)}">Pages</a></li>
+      </ul>
+    </nav>
+    <nav class="level-3">
+      <ul>
+        <li class="current"><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}">New page</a></li>
       </ul>
     </nav>
     <article>
