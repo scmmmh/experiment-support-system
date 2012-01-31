@@ -1,0 +1,18 @@
+/* backend */
+nav ul {padding:0;margin:0;}
+nav ul li {list-style-type:none;display:inline-block;}
+nav ul li a {text-decoration:none;display:inline-block;padding:0.3em 0.8em;}
+nav.level-1 ul {padding:0.5em 1em 0 2em;border-bottom:2px solid #0066cc;}
+nav.level-1 ul li {margin:0 1em 0 0;}
+nav.level-1 ul li a {font-size:1.5em;font-weight:bold;background-color:#c3d9ff;border-left:2px solid #0066cc;border-top:2px solid #0066cc;border-right:2px solid #0066cc;}
+nav.level-1 ul li.current a, nav.level-1 ul li a:hover {color:#ffffff;background-color:#0066cc;}
+nav.level-2 ul {padding:0 1em 0 3em;background-color:#c3d9ff;}
+nav.level-2 ul li a {font-size:1.2em;font-weight:bold;}
+nav.level-2 ul li.current a, nav.level-2 ul li a:hover {background-color:#0066cc;color:#ffffff;}
+nav.level-3 ul {padding:0 1em 0 4em;border-top:1px solid #0066cc;background-color:#c3d9ff;}
+nav.level-3 ul li a {font-size:1em;font-weight:bold;}
+nav.level-3 ul li.current a, nav.level-3 ul li a:hover {font-size:1em;font-weight:bold;background-color:#0066cc;color:#ffffff;}
+article {margin-top:1em;}
+ul.buttons {margin:0;padding:0;text-align:right;}
+ul.buttons li {list-style-type:none;display:inline-block;}
+footer {font-size:0.8em;text-align:center;padding:0.5em 4em;margin:2em 140px 0 140px;border-top:1px dashed #0066cc;}

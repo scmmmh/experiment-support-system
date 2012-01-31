@@ -1,0 +1,5 @@
+/* frontend */
+section.question table {width:auto;}
+section.question thead th {text-align:center;}
+section.question tbody th {font-style:italic;font-weight:normal;}
+section.question td {width:45px;height:45px;text-align:center;}

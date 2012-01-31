@@ -222,7 +222,7 @@ def rating_group(element, item):
         if rating.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
             if 'name' in rating.attrib:
                 if 'title' in rating.attrib:
-                    rows.append(tag.tr(tag.td(rating.attrib['title']),
+                    rows.append(tag.tr(tag.th(rating.attrib['title']),
                                        map(lambda (v, _): tag.td(tag.input(type='radio',
                                                                            name='item-1.%s.%s' % (element.attrib['name'], rating.attrib['name']),
                                                                            value=v)),
@@ -275,9 +275,9 @@ def multichoice_group(element, item):
             if 'name' in element.attrib:
                 columns = []
                 if 'title' in choice.attrib:
-                    columns.append(tag.td(choice.attrib['title']))
+                    columns.append(tag.th(choice.attrib['title']))
                 else:
-                    columns.append(tag.td())
+                    columns.append(tag.th())
                 for idx, (v, _) in enumerate(choices):
                     columns.append(tag.td(tag.input(type='checkbox', id='item-1.%s-%i' % (element.attrib['name'], idx), name='item-1.%s-%i' % (element.attrib['name'], idx), value=v)))
                 rows.append(tag.tr(columns))
