@@ -120,7 +120,7 @@ def number_input(element, item):
         return None
     tags = []
     add_title(element, tags)
-    attr = {'name': 'item-1.%s' % (element.attrib['name'])}
+    attr = {'name': 'item.%i.%s' % (item['did'], element.attrib['name'])}
     if 'min_value' in element.attrib:
         attr['min'] = substitute(element.attrib['min_value'], item)
     if 'max_value' in element.attrib:
@@ -137,7 +137,7 @@ def email_input(element, item):
     tags = []
     add_title(element, tags)
     tags.append(tag.input(type='email',
-                          name='item-1.%s' % (element.attrib['name'])))
+                          name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question email')
     
 def url_input(element, item):
@@ -146,7 +146,7 @@ def url_input(element, item):
     tags = []
     add_title(element, tags)
     tags.append(tag.input(type='url',
-                          name='item-1.%s' % (element.attrib['name'])))
+                          name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question url')
     
 def date_input(element, item):
@@ -155,7 +155,7 @@ def date_input(element, item):
     tags = []
     add_title(element, tags)
     tags.append(tag.input(type='date',
-                          name='item-1.%s' % (element.attrib['name'])))
+                          name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question url')
 
 def time_input(element, item):
@@ -164,7 +164,7 @@ def time_input(element, item):
     tags = []
     add_title(element, tags)
     tags.append(tag.input(type='time',
-                          name='item-1.%s' % (element.attrib['name'])))
+                          name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question time')
     
 def datetime_input(element, item):
@@ -173,7 +173,7 @@ def datetime_input(element, item):
     tags = []
     add_title(element, tags)
     tags.append(tag.input(type='datetime',
-                          name='item-1.%s' % (element.attrib['name'])))
+                          name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question datetime')
         
 def month_input(element, item):
@@ -182,7 +182,7 @@ def month_input(element, item):
     tags = []
     add_title(element, tags)
     tags.append(tag.input(type='month',
-                          name='item-1.%s' % (element.attrib['name'])))
+                          name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question month')
 
 def short_text_input(element, item):
@@ -191,7 +191,7 @@ def short_text_input(element, item):
     tags = []
     add_title(element, tags)
     tags.append(tag.input(type='text',
-                          name='item-1.%s' % (element.attrib['name'])))
+                          name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question short-text')
 
 def long_text_input(element, item):
@@ -199,7 +199,7 @@ def long_text_input(element, item):
         return None
     tags = []
     add_title(element, tags)
-    tags.append(tag.textarea(name='item-1.%s' % (element.attrib['name'])))
+    tags.append(tag.textarea(name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question long-text')
 
 def rating_input(element, item):
@@ -211,9 +211,9 @@ def rating_input(element, item):
     choices = extract_choices(element)
     rows.append(tag.thead(tag.tr(map(lambda (_, t): tag.th(t), choices))))
     rows.append(tag.tbody(tag.tr(map(lambda (v, _): tag.td(tag.input(type='radio',
-                                                           name='item-1.%s' % (element.attrib['name']),
-                                                           value=v)),
-                           choices))))
+                                                                     name='item.%i.%s' % (item['did'], element.attrib['name']),
+                                                                     value=v)),
+                                     choices))))
     tags.append(tag.table(rows))
     return tag.section(tags, class_='question rating')
 
@@ -230,7 +230,7 @@ def rating_group(element, item):
                 if 'title' in rating.attrib:
                     rows.append(tag.tr(tag.th(rating.attrib['title']),
                                        map(lambda (v, _): tag.td(tag.input(type='radio',
-                                                                           name='item-1.%s.%s' % (element.attrib['name'], rating.attrib['name']),
+                                                                           name='item.%i.%s.%s' % (item['did'], element.attrib['name'], rating.attrib['name']),
                                                                            value=v)),
                                            choices)))
     tags.append(tag.table(tag.thead(tag.tr(tag.th(), map(lambda (_, t): tag.th(t), choices))),
@@ -242,11 +242,15 @@ def listchoice(element, item):
         return None
     tags = []
     add_title(element, tags)
-    list = []
+    items = []
     for idx, (value, title) in enumerate(extract_choices(element)):
-        list.append(tag.li(tag.input(type='radio', id='item-1.%s-%i' % (element.attrib['name'], idx), name='item-1.%s' % (element.attrib['name']), value=value),
-                           tag.label(title, for_='item-1.%s-%i' % (element.attrib['name'], idx))))
-    tags.append(tag.ul(list))
+        items.append(tag.li(tag.input(type='radio',
+                                      id='item.%i.%s-%i' % (item['did'], element.attrib['name'], idx),
+                                      name='item.%i.%s' % (item['did'], element.attrib['name']),
+                                      value=value),
+                            tag.label(title,
+                                      for_='item.%i.%s-%i' % (item['did'], element.attrib['name'], idx))))
+    tags.append(tag.ul(items))
     return tag.section(tags, class_='question listchoice')
 
 def selectchoice(element, item):
@@ -256,7 +260,8 @@ def selectchoice(element, item):
     add_title(element, tags)
     choices = map(lambda (v, t): tag.option(t, value=v), extract_choices(element))
     choices.insert(0, tag.option('--- Please choose ---', value='--no-choice--'))
-    tags.append(tag.select(choices, name=element.attrib['name']))
+    tags.append(tag.select(choices,
+                           name='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question selectchoice')
 
 def multichoice(element, item):
@@ -267,11 +272,14 @@ def multichoice(element, item):
     choices = extract_choices(element)
     items = []
     for idx, (v, t) in enumerate(choices):
-        item = []
-        item.append(tag.input(type='checkbox', id='item-1.%s-%i' % (element.attrib['name'], idx), name='item-1.%s-%i' % (element.attrib['name'], idx), value=v))
+        list_item = []
+        list_item.append(tag.input(type='checkbox',
+                                   id='item.%i.%s-%i' % (item['did'], element.attrib['name'], idx),
+                                   name='item.%i.%s' % (item['did'], element.attrib['name']),
+                                   value=v))
         if t != '':
-            item.append(tag.label(t, for_='item-1.%s-%i' % (element.attrib['name'], idx)))
-        items.append(tag.li(item))
+            list_item.append(tag.label(t, for_='item.%i.%s-%i' % (item['did'], element.attrib['name'], idx)))
+        items.append(tag.li(list_item))
     tags.append(tag.ul(items))
     return tag.section(tags, class_='question multichoice')
 
@@ -290,8 +298,10 @@ def multichoice_group(element, item):
                     columns.append(tag.th(choice.attrib['title']))
                 else:
                     columns.append(tag.th())
-                for idx, (v, _) in enumerate(choices):
-                    columns.append(tag.td(tag.input(type='checkbox', id='item-1.%s-%i' % (element.attrib['name'], idx), name='item-1.%s-%i' % (element.attrib['name'], idx), value=v)))
+                for (v, _) in choices:
+                    columns.append(tag.td(tag.input(type='checkbox',
+                                                    name='item.%i.%s.%s' % (item['did'], element.attrib['name'], choice.attrib['name']),
+                                                    value=v)))
                 rows.append(tag.tr(columns))
     tags.append(tag.table(tag.thead(tag.tr(tag.th(''), map(lambda (_, t): tag.th(t), choices))),
                           tag.tbody(rows)))
@@ -302,10 +312,13 @@ def confirm(element, item):
         return None
     tags = []
     add_title(element, tags)
-    tags.append(tag.input(type='hidden', name='item-1.%s' % (element.attrib['name']), value='false'))
-    tags.append(tag.input(type='checkbox', id='item-1.%s' % (element.attrib['name']), name='item-1.%s' % (element.attrib['name']), value='true'))
+    tags.append(tag.input(type='checkbox',
+                          id='item.%i.%s' % (item['did'], element.attrib['name']),
+                          name='item.%i.%s' % (item['did'], element.attrib['name']),
+                          value='true'))
     if 'title' in element.attrib:
-        tags.append(tag.label(element.attrib['title'], for_='item-1.%s' % (element.attrib['name'])))
+        tags.append(tag.label(element.attrib['title'],
+                              for_='item.%i.%s' % (item['did'], element.attrib['name'])))
     return tag.section(tags, class_='question confirm')
     
 def ranking(element, item):
@@ -316,7 +329,10 @@ def ranking(element, item):
     choices = extract_choices(element)
     items = []
     for value, title in choices:
-        items.append(tag.li(tag.select([tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(choices))], id='item-1.%s.%s' % (element.attrib['name'], value), name='item-1.%s.%s' % (element.attrib['name'], value)),
-                            tag.label(title, for_='item-1.%s.%s' % (element.attrib['name'], value))))
+        items.append(tag.li(tag.select(tag.option('--', value='--no-choice--'),
+                                       [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(choices))],
+                                       id='item.%i.%s.%s' % (item['did'], element.attrib['name'], value),
+                                       name='item.%i.%s.%s' % (item['did'], element.attrib['name'], value)),
+                            tag.label(title, for_='item.%i.%s.%s' % (item['did'], element.attrib['name'], value))))
     tags.append(tag.ul(items))
     return tag.section(tags, class_='question ranking')

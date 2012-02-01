@@ -6,7 +6,7 @@ Created on 23 Jan 2012
 '''
 import transaction
 
-from formencode import Schema, validators, api
+from formencode import Schema, validators, api, variabledecode
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 
@@ -70,8 +70,9 @@ def preview(request):
     user = current_user(request)
     if survey:
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
-            example = {}
+            example = {'did': -1}
             if survey.all_items:
+                example['did'] = survey.all_items[0].id
                 for attr in survey.all_items[0].attributes:
                     example[attr.key] = attr.value
             return {'survey': survey,
