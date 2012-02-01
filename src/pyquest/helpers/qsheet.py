@@ -56,12 +56,18 @@ def process(element, item):
         return rating_input(element, item)
     elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating_group':
         return rating_group(element, item)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}choice':
-        return choice(element, item)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}listchoice':
+        return listchoice(element, item)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}selectchoice':
+        return selectchoice(element, item)
     elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
         return multichoice(element, item)
     elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice_group':
         return multichoice_group(element, item)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}confirm':
+        return confirm(element, item)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}ranking':
+        return ranking(element, item)
     else:
         children = [substitute(element.text, item)]
         for child in element:
@@ -231,21 +237,27 @@ def rating_group(element, item):
                           tag.tbody(rows)))
     return tag.section(tags, class_='question rating-group')
 
-def choice(element, item):
+def listchoice(element, item):
     if 'name' not in element.attrib:
         return None
     tags = []
     add_title(element, tags)
-    if len(element) == 0:
-        tags.append(tag.input(type='hidden', name='item-1.%s' % (element.attrib['name']), value='false'))
-        tags.append(tag.input(type='checkbox', id='item-1.%s' % (element.attrib['name']), name='item-1.%s' % (element.attrib['name']), value='true'))
-        if 'title' in element.attrib:
-            tags.append(tag.label(element.attrib['title'], for_='item-1.%s' % (element.attrib['name'])))
-    else:
-        choices = map(lambda (v, t): tag.option(t, value=v), extract_choices(element))
-        choices.insert(0, tag.option('--- Please choose ---', value='--no-choice--'))
-        tags.append(tag.select(choices, name=element.attrib['name']))
-    return tag.section(tags, class_='question choice')
+    list = []
+    for idx, (value, title) in enumerate(extract_choices(element)):
+        list.append(tag.li(tag.input(type='radio', id='item-1.%s-%i' % (element.attrib['name'], idx), name='item-1.%s' % (element.attrib['name']), value=value),
+                           tag.label(title, for_='item-1.%s-%i' % (element.attrib['name'], idx))))
+    tags.append(tag.ul(list))
+    return tag.section(tags, class_='question listchoice')
+
+def selectchoice(element, item):
+    if 'name' not in element.attrib:
+        return None
+    tags = []
+    add_title(element, tags)
+    choices = map(lambda (v, t): tag.option(t, value=v), extract_choices(element))
+    choices.insert(0, tag.option('--- Please choose ---', value='--no-choice--'))
+    tags.append(tag.select(choices, name=element.attrib['name']))
+    return tag.section(tags, class_='question selectchoice')
 
 def multichoice(element, item):
     if 'name' not in element.attrib:
@@ -284,3 +296,27 @@ def multichoice_group(element, item):
     tags.append(tag.table(tag.thead(tag.tr(tag.th(''), map(lambda (_, t): tag.th(t), choices))),
                           tag.tbody(rows)))
     return tag.section(tags, class_='question multichoice-grid')
+
+def confirm(element, item):
+    if 'name' not in element.attrib:
+        return None
+    tags = []
+    add_title(element, tags)
+    tags.append(tag.input(type='hidden', name='item-1.%s' % (element.attrib['name']), value='false'))
+    tags.append(tag.input(type='checkbox', id='item-1.%s' % (element.attrib['name']), name='item-1.%s' % (element.attrib['name']), value='true'))
+    if 'title' in element.attrib:
+        tags.append(tag.label(element.attrib['title'], for_='item-1.%s' % (element.attrib['name'])))
+    return tag.section(tags, class_='question confirm')
+    
+def ranking(element, item):
+    if 'name' not in element.attrib:
+        return None
+    tags = []
+    add_title(element, tags)
+    choices = extract_choices(element)
+    items = []
+    for value, title in choices:
+        items.append(tag.li(tag.select([tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(choices))], id='item-1.%s.%s' % (element.attrib['name'], value), name='item-1.%s.%s' % (element.attrib['name'], value)),
+                            tag.label(title, for_='item-1.%s.%s' % (element.attrib['name'], value))))
+    tags.append(tag.ul(items))
+    return tag.section(tags, class_='question ranking')

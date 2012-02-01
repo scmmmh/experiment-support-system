@@ -65,27 +65,37 @@ def main(argv=sys.argv):
 <pq:time name="wakeup_time" title="When did you wake up today?"/>
 <pq:short_text name="name" title="What is your name?"/>
 <pq:long_text name="interests" title="Please briefly describe yourself"/>
-<pq:choice name="help" title="Do you need help?"/>
-<pq:choice name="tv" title="Do you like TV?">
+<pq:selectchoice name="help" title="Do you need help?">
+  <pq:option value="yes" title="Yes"/>
+  <pq:option value="no" title="No"/>
+</pq:selectchoice>
+<pq:listchoice name="tv" title="Do you like TV?">
   <pq:option value="yes" title="Yes"/>
   <pq:option value="bit" title="A bit"/>
   <pq:option value="no" title="No"/>
-</pq:choice>
+</pq:listchoice>
 <pq:multichoice name="likes" title="What do you like doing at the weekend?">
   <pq:option value="walking" title="Walking"/>
   <pq:option value="eating" title="Eating"/>
   <pq:option value="drinking" title="Drinking"/>
   <pq:option value="dancing" title="Dancing"/>
 </pq:multichoice>
-<pq:multichoice_group name="" title="What do you do when?">
-  <pq:option value="weekend" title="During the week - daytime"/>
-  <pq:option value="weekend" title="During the week - evenings"/>
+<pq:multichoice_group name="doing" title="What do you do when?">
+  <pq:option value="daytime" title="During the week - daytime"/>
+  <pq:option value="evening" title="During the week - evenings"/>
   <pq:option value="weekend" title="Weekend"/>
-  <pq:multichoice name="" title="Reading books"/>
-  <pq:multichoice name="" title="Surfing the internet"/>
-  <pq:multichoice name="" title="Telephoning"/>
-  <pq:multichoice name="" title="Sleeping"/>
+  <pq:multichoice name="books" title="Reading books"/>
+  <pq:multichoice name="internet" title="Surfing the internet"/>
+  <pq:multichoice name="telephone" title="Telephoning"/>
+  <pq:multichoice name="sleep" title="Sleeping"/>
 </pq:multichoice_group>
+<pq:confirm name="terms" title="Please confirm that you agree to the terms."/>
+<pq:ranking name="importance" title="Please rank the following items">
+  <pq:option value="cat" title="Cat"/>
+  <pq:option value="dog" title="Dog"/>
+  <pq:option value="mouse" title="Mouse"/>
+  <pq:option value="bird" title="Bird"/>
+</pq:ranking>
 """)
         survey.qsheets.append(qsheet)
         data_item = DataItem(order=1, control=False)
