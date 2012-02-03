@@ -20,7 +20,8 @@ requires = [
     'lxml',
     'formencode',
     'pyramid_beaker',
-    'pycryptopp'
+    'pycryptopp',
+    'nose'
     ]
 
 setup(name='PyQuestionnaire',
@@ -41,7 +42,7 @@ setup(name='PyQuestionnaire',
       package_dir = {'': 'src'},
       include_package_data=True,
       zip_safe=False,
-      test_suite='pyquest',
+      test_suite='nose.collector',
       install_requires = requires,
       entry_points = """\
       [paste.app_factory]
