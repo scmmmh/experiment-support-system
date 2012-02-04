@@ -7,3 +7,5 @@ syntax: regexp
 \.db$
 syntax: regexp
 ^src/PyQuestionnaire\.egg-info$
+syntax: regexp
+^production\.ini$
