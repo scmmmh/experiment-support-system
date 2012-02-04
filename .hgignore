@@ -4,8 +4,6 @@ syntax: regexp
 syntax: regexp
 ^virtualenv$
 syntax: regexp
-\.ini$
-syntax: regexp
 \.db$
 syntax: regexp
 ^src/PyQuestionnaire\.egg-info$
