@@ -218,7 +218,7 @@ def listchoice(element, item):
 @question('selectchoice')
 def selectchoice(element, item):
     choices = map(lambda (v, t): tag.option(t, value=v), extract_choices(element))
-    choices.insert(0, tag.option('--- Please choose ---', value='--no-choice--'))
+    choices.insert(0, tag.option('--- Please choose ---', value=''))
     return tag.select(choices,
                       name='items.%i.%s' % (item['did'], element.attrib['name']))
 
@@ -277,7 +277,7 @@ def ranking(element, item):
     choices = extract_choices(element)
     items = []
     for value, title in choices:
-        items.append(tag.li(tag.select(tag.option('--', value='--no-choice--'),
+        items.append(tag.li(tag.select(tag.option('--', value=''),
                                        [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(choices))],
                                        id='items.%i.%s.%s' % (item['did'], element.attrib['name'], value),
                                        name='items.%i.%s.%s' % (item['did'], element.attrib['name'], value)),

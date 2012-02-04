@@ -145,7 +145,7 @@ def selectchoice_test():
     """Tests that the selectchoice element is generated correctly."""
     element = fromstring('<pq:selectchoice name="choose" title="Please choose" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"><pq:option value="1" title="First"/><pq:option value="2" title="Middle"/><pq:option value="3" title="Last"/></pq:selectchoice>')
     tags = selectchoice(element, {'did': 1})
-    eq_('<section class="question selectchoice"><hgroup><h1>Please choose</h1></hgroup><select name="items.1.choose"><option value="--no-choice--">--- Please choose ---</option><option value="1">First</option><option value="2">Middle</option><option value="3">Last</option></select></section>',
+    eq_('<section class="question selectchoice"><hgroup><h1>Please choose</h1></hgroup><select name="items.1.choose"><option value="">--- Please choose ---</option><option value="1">First</option><option value="2">Middle</option><option value="3">Last</option></select></section>',
         tags.generate().render('xhtml'))
 
 def multichoice_test():
@@ -185,6 +185,6 @@ def ranking_test():
     """Tests that the ranking element is generated correctly."""
     element = fromstring('<pq:ranking name="importance" title="Please rank the following items" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"><pq:option value="cat" title="Cat"/><pq:option value="dog" title="Dog"/><pq:option value="mouse" title="Mouse"/></pq:ranking>')
     tags = ranking(element, {'did': 1})
-    eq_('<section class="question ranking"><hgroup><h1>Please rank the following items</h1></hgroup><ul><li><select name="items.1.importance.cat" id="items.1.importance.cat"><option value="--no-choice--">--</option><option value="0">1</option><option value="1">2</option><option value="2">3</option></select><label for="items.1.importance.cat">Cat</label></li><li><select name="items.1.importance.dog" id="items.1.importance.dog"><option value="--no-choice--">--</option><option value="0">1</option><option value="1">2</option><option value="2">3</option></select><label for="items.1.importance.dog">Dog</label></li><li><select name="items.1.importance.mouse" id="items.1.importance.mouse"><option value="--no-choice--">--</option><option value="0">1</option><option value="1">2</option><option value="2">3</option></select><label for="items.1.importance.mouse">Mouse</label></li></ul></section>',
+    eq_('<section class="question ranking"><hgroup><h1>Please rank the following items</h1></hgroup><ul><li><select name="items.1.importance.cat" id="items.1.importance.cat"><option value="">--</option><option value="0">1</option><option value="1">2</option><option value="2">3</option></select><label for="items.1.importance.cat">Cat</label></li><li><select name="items.1.importance.dog" id="items.1.importance.dog"><option value="">--</option><option value="0">1</option><option value="1">2</option><option value="2">3</option></select><label for="items.1.importance.dog">Dog</label></li><li><select name="items.1.importance.mouse" id="items.1.importance.mouse"><option value="">--</option><option value="0">1</option><option value="1">2</option><option value="2">3</option></select><label for="items.1.importance.mouse">Mouse</label></li></ul></section>',
         tags.generate().render('xhtml'))
     
