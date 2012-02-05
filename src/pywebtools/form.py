@@ -7,10 +7,20 @@ Created on 23 Jan 2012
 from genshi.builder import tag
 
 def error_wrapper(content, field, e):
-    if e and e.error_dict and field in e.error_dict:
-        return tag.div(content,
-                       tag.p(e.error_dict[field], class_='error-explanation'),
-                       class_="error")
+    if e and e.error_dict:
+        if isinstance(field, list):
+            for field in field:
+                if field in e.error_dict:
+                    return tag.div(content,
+                                   tag.p(e.error_dict[field], class_='error-explanation'),
+                                   class_="error")
+            return content
+        elif field in e.error_dict:
+            return tag.div(content,
+                           tag.p(e.error_dict[field], class_='error-explanation'),
+                           class_="error")
+        else:
+            return content
     else:
         return content
 
@@ -22,6 +32,27 @@ def csrf_token(token):
 
 def text_field(name, text, e, **attr):
     return error_wrapper(tag.input(type='text', name=name, value=text, **attr), name, e)
+
+def number_field(name, text, e, **attr):
+    return error_wrapper(tag.input(type='number', name=name, value=text, **attr), name, e)
+
+def email_field(name, text, e, **attr):
+    return error_wrapper(tag.input(type='email', name=name, value=text, **attr), name, e)
+
+def url_field(name, text, e, **attr):
+    return error_wrapper(tag.input(type='url', name=name, value=text, **attr), name, e)
+
+def date_field(name, text, e, **attr):
+    return error_wrapper(tag.input(type='date', name=name, value=text, **attr), name, e)
+
+def time_field(name, text, e, **attr):
+    return error_wrapper(tag.input(type='time', name=name, value=text, **attr), name, e)
+
+def datetime_field(name, text, e, **attr):
+    return error_wrapper(tag.input(type='datetime', name=name, value=text, **attr), name, e)
+
+def month_field(name, text, e, **attr):
+    return error_wrapper(tag.input(type='month', name=name, value=text, **attr), name, e)
 
 def password_field(name, e, **attr):
     return error_wrapper(tag.input(type='password', name=name, **attr), name, e)

@@ -4,15 +4,20 @@ Created on 23 Jan 2012
 
 @author: mhall
 '''
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import transaction
 
-from formencode import Schema, validators, api, variabledecode
+from formencode import Schema, validators, api
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey)
 from pyquest.renderer import render
+from pyquest.validation import PageSchema, flatten_invalid
 
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -70,7 +75,7 @@ def preview(request):
     user = current_user(request)
     if survey:
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
-            example = {'did': -1}
+            example = {'did': 0}
             if survey.all_items:
                 example['did'] = survey.all_items[0].id
                 for attr in survey.all_items[0].attributes:

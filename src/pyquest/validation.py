@@ -196,7 +196,7 @@ class DateTimeValidator(FancyValidator):
                     return 12
         raise Invalid('Invalid validation type', value, state)
 
-class RatingValidator(FancyValidator):
+class RankingValidator(FancyValidator):
     
     messages = {'out-of-range': 'You must rank all values between %(min)i and %(max)i.'}
     
@@ -205,17 +205,13 @@ class RatingValidator(FancyValidator):
         self.values = values
         
     def _to_python(self, value, state):
-        print '------'
-        print self.not_empty
-        print '--%s--' % self.if_missing
-        print '--%s--' % value
-        print self.if_missing == value
         if not self.not_empty and value == self.if_missing:
             return {}
         for key in self.values:
             if key not in value:
                 raise Invalid('You must rank all items', value, state)
         result = {}
+        ranks = [idx for idx in xrange(0, len(self.values))]
         for (key, value) in value.items():
             try:
                 rank = int(value)
@@ -223,6 +219,10 @@ class RatingValidator(FancyValidator):
                 raise Invalid('You must rank all items', value, state)
             if rank < 0 or rank >= len(self.values):
                 raise Invalid(self.message('out-of-range', state, min=1, max=len(self.values)), value, state)
+            if rank not in ranks:
+                raise Invalid('Each ranking may only be set for one item', value, state)
+            else:
+                ranks.remove(rank)
             result[key] = rank
         return result
     
@@ -274,7 +274,7 @@ class DynamicSchema(Schema):
             elif value['type'] == 'boolean':
                 self.add_field(key, augment(validators.StringBool(), value, missing_value=False))
             elif value['type'] == 'all_in_list':
-                self.add_field(key, augment(RatingValidator(value['values']), value))
+                self.add_field(key, augment(RankingValidator(value['values']), value))
             
 class PageSchema(Schema):
     
@@ -283,7 +283,23 @@ class PageSchema(Schema):
         items_schema = Schema()
         for item in items:
             if 'did' in item:
-                items_schema.add_field(unicode(item['did']), DynamicSchema(qsheet_schema['fields']))
+                items_schema.add_field(unicode(item['did']), DynamicSchema(qsheet_schema))
         self.add_field('items', items_schema)
     
     pre_validators = [variabledecode.NestedVariables()]
+
+def flatten_invalid(ie):
+    def flatten_dict(e):
+        result = {}
+        for (key, value) in e.error_dict.items():
+            if value.error_dict:
+                for (key2, value2) in flatten_dict(value).items():
+                    result['%s.%s' % (key, key2)] = value2
+            else:
+                result[key] = unicode(value)
+        return result
+    print flatten_dict(ie)
+    return Invalid('Unfortunately not all your answers were acceptable',
+                   ie.value,
+                   ie.state,
+                   error_dict=flatten_dict(ie))

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>${survey.title}</title>
+    <title>${survey.title} - ${qsheet.title}</title>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/screen.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
@@ -21,15 +21,14 @@
     <article class="survey">
       <hgroup>
         <h1>${survey.title}</h1>
+        <h2>${qsheet.title}</h2>
       </hgroup>
-      <section py:for="qsheet in survey.qsheets">
-        <hgroup>
-          <h2><a href="${r.route_url('survey.preview.qsheet', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h2>
-        </hgroup>
-        <form action="${r.route_url('survey.preview', sid=survey.id)}" method="post">
-          ${h.qsheet.display(example, qsheet.content, e)}
-        </form>
-      </section>
+      <form action="${r.route_url('survey.preview.qsheet', sid=survey.id, qsid=qsheet.id)}" method="post">
+        ${h.qsheet.display(example, qsheet.content, e)}
+        <ul class="buttons span-22">
+          <li>${h.form.submit('Test validation', class_='button')}</li>
+        </ul>
+      </form>
     </article>
   </body>
 </html>

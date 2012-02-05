@@ -3,7 +3,7 @@ import random
 import hashlib
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
-                        Table, DateTime, Boolean, func, and_)
+                        Table, DateTime, Boolean, func, Text)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (scoped_session, sessionmaker, relationship)
 from zope.sqlalchemy import ZopeTransactionExtension
@@ -117,6 +117,7 @@ class QSheet(Base):
     order = Column(Integer)
     title = Column(Unicode)
     content = Column(UnicodeText)
+    schema = Column(Text)
     
 class DataItem(Base):
     
