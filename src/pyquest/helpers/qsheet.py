@@ -134,39 +134,39 @@ def number_input(element, item, e):
         attr['max'] = substitute(element.attrib['max_value'], item)
     if 'step' in element.attrib:
         attr['step'] = substitute(element.attrib['step'], item)
-    return form.number_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e, **attr)
+    return tag.p(form.number_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e, **attr))
 
 @question('email')
 def email_input(element, item, e):
-    return form.email_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e)
+    return tag.p(form.email_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e))
     
 @question('url')
 def url_input(element, item, e):
-    return form.url_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e)
+    return tag.p(form.url_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e))
 
 @question('date')
 def date_input(element, item, e):
-    return form.date_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e)
+    return tag.p(form.date_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e))
 
 @question('time')
 def time_input(element, item, e):
-    return form.time_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e)
+    return tag.p(form.time_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e))
 
 @question('datetime')
 def datetime_input(element, item, e):
-    return form.datetime_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e)
+    return tag.p(form.datetime_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e))
         
 @question('month')
 def month_input(element, item, e):
-    return form.month_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e)
+    return tag.p(form.month_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e))
 
 @question('short_text')
 def short_text_input(element, item, e):
-    return form.text_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e)
+    return tag.p(form.text_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e))
 
 @question('long_text')
 def long_text_input(element, item, e):
-    return form.textarea('items.%i.%s' % (item['did'], element.attrib['name']), '', e)
+    return tag.p(form.textarea('items.%i.%s' % (item['did'], element.attrib['name']), '', e))
 
 @question('rating')
 def rating(element, item, e):
@@ -216,8 +216,8 @@ def listchoice(element, item, e):
 def selectchoice(element, item, e):
     choices = map(lambda (v, t): tag.option(t, value=v), extract_choices(element))
     choices.insert(0, tag.option('--- Please choose ---', value=''))
-    return form.error_wrapper(tag.select(choices,
-                                         name='items.%i.%s' % (item['did'], element.attrib['name'])),
+    return form.error_wrapper(tag.p(tag.select(choices,
+                                               name='items.%i.%s' % (item['did'], element.attrib['name']))),
                               'items.%i.%s' % (item['did'], element.attrib['name']),
                               e)
 
@@ -273,7 +273,7 @@ def confirm(element, item, e):
     elif 'title' in element.attrib:
         tags.append(tag.label(element.attrib['title'],
                               for_='items.%i.%s' % (item['did'], element.attrib['name'])))
-    return form.error_wrapper(tags, 'items.%i.%s' % (item['did'], element.attrib['name']), e)
+    return form.error_wrapper(tag.p(tags), 'items.%i.%s' % (item['did'], element.attrib['name']), e)
     
 @question('ranking')
 def ranking(element, item, e):
