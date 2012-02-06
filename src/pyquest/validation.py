@@ -216,7 +216,10 @@ class RankingValidator(FancyValidator):
             try:
                 rank = int(value)
             except ValueError:
-                raise Invalid('You must rank all items', value, state)
+                if self.not_empty:
+                    raise Invalid('You must rank all items', value, state)
+                else:
+                    continue
             if rank < 0 or rank >= len(self.values):
                 raise Invalid(self.message('out-of-range', state, min=1, max=len(self.values)), value, state)
             if rank not in ranks:
