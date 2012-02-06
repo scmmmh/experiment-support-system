@@ -284,5 +284,6 @@ def ranking(element, item, e):
                                        [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(choices))],
                                        id='items.%i.%s.%s' % (item['did'], element.attrib['name'], value),
                                        name='items.%i.%s.%s' % (item['did'], element.attrib['name'], value)),
-                            tag.label(title, for_='items.%i.%s.%s' % (item['did'], element.attrib['name'], value))))
+                            tag.label(title, for_='items.%i.%s.%s' % (item['did'], element.attrib['name'], value)),
+                            id='items.%i.%s_%s' % (item['did'], element.attrib['name'], value)))
     return form.error_wrapper(tag.ul(items), 'items.%i.%s' % (item['did'], element.attrib['name']), e)
