@@ -24,7 +24,8 @@ from pyquest.validation import (PageSchema, qsheet_to_schema, flatten_invalid,
 class QSheetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    content = XmlValidator()
+    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>', strip_wrapper=True)
+    schema = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>')
 
 class QSheetOrderSchema(Schema):
     qsid = foreach.ForEach(validators.Int())
@@ -54,6 +55,8 @@ def new_qsheet(request):
             if request.method == 'POST':
                 validator = QSheetSchema()
                 try:
+                    if 'content' in request.POST:
+                        request.POST['schema'] = '<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % request.POST['content']
                     params = validator.to_python(request.POST)
                     if params['csrf_token'] != request.session.get_csrf_token():
                         raise HTTPForbidden('Cross-site request forgery detected')
@@ -62,7 +65,7 @@ def new_qsheet(request):
                         qsheet = QSheet(survey_id=request.matchdict['sid'],
                                         title=params['title'],
                                         content=params['content'],
-                                        schema = pickle.dumps(qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % params['content'])))
+                                        schema = pickle.dumps(qsheet_to_schema(params['schema'])))
                         if len(survey.qsheets) > 0:
                             qsheet.order = dbsession.query(func.max(QSheet.order)).filter(QSheet.survey_id==survey.id).first()[0] + 1
                         else:
@@ -98,13 +101,15 @@ def edit_qsheet(request):
             if request.method == 'POST':
                 validator = QSheetSchema()
                 try:
+                    if 'content' in request.POST:
+                        request.POST['schema'] = '<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % request.POST['content']
                     params = validator.to_python(request.POST)
                     if params['csrf_token'] != request.session.get_csrf_token():
                         raise HTTPForbidden('Cross-site request forgery detected')
                     with transaction.manager:
                         qsheet.title = params['title']
                         qsheet.content = params['content']
-                        qsheet.schema = pickle.dumps(qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % params['content']))
+                        qsheet.schema = pickle.dumps(qsheet_to_schema(params['schema']))
                         dbsession.add(qsheet)
                     request.session.flash('Survey page updated', 'info')
                     raise HTTPFound(request.route_url('survey.qsheet.edit',
