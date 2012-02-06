@@ -24,11 +24,14 @@
       </hgroup>
       <section py:for="qsheet in survey.qsheets">
         <hgroup>
-          <h2><a href="${r.route_url('survey.preview.qsheet', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h2>
+          <h2><a href="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h2>
         </hgroup>
-        <form action="${r.route_url('survey.preview', sid=survey.id)}" method="post">
+        <form action="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" method="post">
           ${h.qsheet.display(example, qsheet.content, e)}
         </form>
+        <ul class="buttons span-22">
+          <li>${h.form.submit('Test validation', class_='button')}</li>
+        </ul>
       </section>
     </article>
   </body>
