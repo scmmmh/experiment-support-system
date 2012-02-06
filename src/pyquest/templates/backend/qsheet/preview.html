@@ -23,7 +23,7 @@
         <h1>${survey.title}</h1>
         <h2>${qsheet.title}</h2>
       </hgroup>
-      <form action="${r.route_url('survey.preview.qsheet', sid=survey.id, qsid=qsheet.id)}" method="post">
+      <form action="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" method="post">
         ${h.qsheet.display(example, qsheet.content, e)}
         <ul class="buttons span-22">
           <li>${h.form.submit('Test validation', class_='button')}</li>

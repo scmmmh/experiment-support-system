@@ -27,9 +27,25 @@
       <hgroup>
         <h1>${survey.title} - Pages</h1>
       </hgroup>
-      <ol>
-        <li py:for="qsheet in survey.qsheets"><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a><span style="display:inline-block;width:32px;">&nbsp;</span><a href="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}" class="button">delete</a></li>
-      </ol>
+      <table>
+        <thead>
+          <tr>
+            <th>Sheet</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr py:for="qsheet in survey.qsheets">
+            <td><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></td>
+            <td>
+              <ul class="no-symbol inline no-margin">
+                <li><a href="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" class="button">Preview</a></li>
+                <li><a href="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}" class="button">Delete</a></li>
+              </ul>
+            </td>
+           </tr>
+        </tbody>
+      </table>
     </article>
   </body>
 </html>

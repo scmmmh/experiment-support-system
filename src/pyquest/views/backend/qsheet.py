@@ -144,7 +144,7 @@ def delete_qsheet(request):
     else:
         raise HTTPNotFound()
 
-@view_config(route_name='survey.preview.qsheet')
+@view_config(route_name='survey.qsheet.preview')
 @render({'text/html': 'backend/qsheet/preview.html'})
 def preview_qsheet(request):
     dbsession = DBSession()
