@@ -11,6 +11,7 @@ except:
 import transaction
 
 from formencode import Schema, validators, api
+from lxml import etree
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 
@@ -22,11 +23,23 @@ from pyquest.validation import XmlValidator
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>')
-    schema = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>', strip_wrapper=False)
+    content = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>')
+    schema = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>', strip_wrapper=False)
 
 def create_schema(content):
-    return []
+    def process(element):
+        if element.tag == '{http://paths.sheffield.ac.uk/pyquest}survey':
+            return filter(lambda e: e, map(process, element))
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}qsheet':
+            if 'qsid' in element.attrib:
+                qsheet = {'qsid': element.attrib['qsid'],
+                          'type': 'single'}
+                if 'type' in element.attrib:
+                    qsheet['type'] = element.attrib['type']
+                return qsheet
+            else:
+                return None
+    return process(etree.fromstring(content))
     
 @view_config(route_name='survey.overview')
 @render({'text/html': 'backend/overview.html'})

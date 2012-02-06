@@ -34,8 +34,8 @@ def main(argv=sys.argv):
         user.groups.append(group)
         DBSession.add(user)
         survey = Survey(title='A test survey', content="""
-<pq:qsheet qid="1"/>
-<pq:qsheet qid="2" multiple="true"/>""")
+<pq:qsheet qsid="1"/>
+<pq:qsheet qsid="2" type="repeat"/>""")
         survey.owner = user
         qsheet = QSheet(title='Welcome', content="""<p>Thank you for participating
 in this survey, your time is much appreciated.</p>
