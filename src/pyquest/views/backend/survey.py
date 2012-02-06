@@ -17,11 +17,16 @@ from pyramid.view import view_config
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey)
 from pyquest.renderer import render
-from pyquest.validation import PageSchema, flatten_invalid
+from pyquest.validation import XmlValidator
 
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
+    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>')
+    schema = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>', strip_wrapper=False)
+
+def create_schema(content):
+    return []
     
 @view_config(route_name='survey.overview')
 @render({'text/html': 'backend/overview.html'})
@@ -47,11 +52,15 @@ def edit(request):
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
             if request.method == 'POST':
                 try:
+                    if 'content' in request.POST:
+                        request.POST['schema'] = request.POST['content']
                     params = SurveySchema().to_python(request.POST)
                     if params['csrf_token'] != request.session.get_csrf_token():
                         raise HTTPForbidden('Cross-site request forgery detected')
                     with transaction.manager:
                         survey.title = params['title']
+                        survey.content = params['content']
+                        survey.schema = pickle.dumps(create_schema(params['schema']))
                         dbsession.add(survey)
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.edit',

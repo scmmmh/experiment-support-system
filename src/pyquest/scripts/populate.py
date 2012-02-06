@@ -33,69 +33,32 @@ def main(argv=sys.argv):
         group.permissions.append(Permission(name='survey.edit-all'))
         user.groups.append(group)
         DBSession.add(user)
-        survey = Survey(title='A test survey')
+        survey = Survey(title='A test survey', content="""
+<pq:qsheet qid="1"/>
+<pq:qsheet qid="2" multiple="true"/>""")
         survey.owner = user
-        qsheet = QSheet(order=1, title='Sheet 1', content="""<p>${Text}</p>
-<p style="text-align:center;"><img src="${URL}" /></p>
-<p style="text-align:center;"><strong>Caption:</strong> ${Caption}</p>
-<pq:rating name="familiar" title="How familiar are you with the topic?" min_value="1" min_title="Not at all" max_value="9" max_title="Very"/>
-<pq:rating min="1" max="5" hide_extra_labels="true" name="appropriate" title="How appropriate is the image?"/>
-<pq:rating name="support" title="How well does the image support the core ideas of the paragraph?">
-  <pq:option value="1" title="Not at all"/>
+        qsheet = QSheet(title='Welcome', content="""<p>Thank you for participating
+in this survey, your time is much appreciated.</p>
+<p>Your data will be stored annonymously and in full compliance with the Data Protection Act.
+Your data will only be used for reasearch purposes and will not be shared with anyone outside
+the research group.</p>
+<pq:confirm name="informed_consent" title="Please confirm that you have understood this" label="I confirm" required="true"/>""")
+        survey.qsheets.append(qsheet)
+        qsheet = QSheet(title='Rate this URL', content="""<p>Please rate the content
+of the following url, based on its title</p>
+<dl>
+  <dt>Title</dt>
+  <dd>${title}</dd>
+  <dt>URL</dt>
+  <dd>${url}</dd>
+</dl>
+<pq:rating name="match" title="How well does the title match the URL?" required="true">
+  <pq:option title="Not at all" value="1"/>
   <pq:option value="2"/>
   <pq:option value="3"/>
   <pq:option value="4"/>
-  <pq:option value="5" title="Perfectly"/>
+  <pq:option title="Perfectly" value="1"/>
 </pq:rating>
-<pq:rating_group name="visual" title="About the image">
-  <pq:option value="1" title="Not at all"/>
-  <pq:option value="2"/>
-  <pq:option value="3"/>
-  <pq:option value="4"/>
-  <pq:option value="5" title="Very"/>
-  <pq:rating name="interest" title="How visually interesting is the image?"/>
-  <pq:rating name="click" title="How likely are you to click on the image to find out more?"/>
-</pq:rating_group>
-<pq:email name="email" title="Please provide your e-mail address" required="true"/>
-<pq:url name="url" title="My homepage"/>
-<pq:number name="age" title="How old are you?" min_value="18" max_value="72" step="1"/>
-<pq:date name="birthday" title="Please provide your birthday"/>
-<pq:month name="current_month" title="What is the current month?"/>
-<pq:datetime name="now" title="Provide the date and time you wish?"/>
-<pq:time name="wakeup_time" title="When did you wake up today?"/>
-<pq:short_text name="name" title="What is your name?"/>
-<pq:long_text name="interests" title="Please briefly describe yourself"/>
-<pq:selectchoice name="help" title="Do you need help?">
-  <pq:option value="yes" title="Yes"/>
-  <pq:option value="no" title="No"/>
-</pq:selectchoice>
-<pq:listchoice name="tv" title="Do you like TV?">
-  <pq:option value="yes" title="Yes"/>
-  <pq:option value="bit" title="A bit"/>
-  <pq:option value="no" title="No"/>
-</pq:listchoice>
-<pq:multichoice name="likes" title="What do you like doing at the weekend?">
-  <pq:option value="walking" title="Walking"/>
-  <pq:option value="eating" title="Eating"/>
-  <pq:option value="drinking" title="Drinking"/>
-  <pq:option value="dancing" title="Dancing"/>
-</pq:multichoice>
-<pq:multichoice_group name="doing" title="What do you do when?">
-  <pq:option value="daytime" title="During the week - daytime"/>
-  <pq:option value="evening" title="During the week - evenings"/>
-  <pq:option value="weekend" title="Weekend"/>
-  <pq:multichoice name="books" title="Reading books"/>
-  <pq:multichoice name="internet" title="Surfing the internet"/>
-  <pq:multichoice name="telephone" title="Telephoning"/>
-  <pq:multichoice name="sleep" title="Sleeping"/>
-</pq:multichoice_group>
-<pq:confirm name="terms" title="Please confirm that you agree to the terms."/>
-<pq:ranking name="importance" title="Please rank the following items">
-  <pq:option value="cat" title="Cat"/>
-  <pq:option value="dog" title="Dog"/>
-  <pq:option value="mouse" title="Mouse"/>
-  <pq:option value="bird" title="Bird"/>
-</pq:ranking>
 """)
         survey.qsheets.append(qsheet)
         data_item = DataItem(order=1, control=False)
