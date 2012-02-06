@@ -19,12 +19,12 @@ from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet)
 from pyquest.renderer import render
 from pyquest.validation import (PageSchema, qsheet_to_schema, flatten_invalid,
-                                ValidationState)
+                                ValidationState, XmlValidator)
 
 class QSheetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    content = validators.UnicodeString()
+    content = XmlValidator()
 
 @view_config(route_name='survey.qsheet')
 @render({'text/html': 'backend/qsheet/index.html'})

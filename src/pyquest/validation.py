@@ -239,7 +239,16 @@ class CsrfTokenValidator(FancyValidator):
                 raise Invalid('Invalid CSRF token', value, state)
         else:
             raise Invalid('Missing CSRF token', value, state)
-        
+
+class XmlValidator(FancyValidator):
+    
+    def _to_python(self, value, state):
+        try:
+            etree.fromstring('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % value)
+            return value
+        except etree.XMLSyntaxError as xse:
+            raise Invalid(unicode(xse), value, state)
+    
 class DynamicSchema(Schema):
     
     def __init__(self, source_schema, **kwargs):
