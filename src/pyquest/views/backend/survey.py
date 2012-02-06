@@ -30,16 +30,39 @@ def create_schema(content):
     def process(element):
         if element.tag == '{http://paths.sheffield.ac.uk/pyquest}survey':
             return filter(lambda e: e, map(process, element))
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}qsheet':
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}single':
             if 'qsid' in element.attrib:
                 qsheet = {'qsid': element.attrib['qsid'],
                           'type': 'single'}
-                if 'type' in element.attrib:
-                    qsheet['type'] = element.attrib['type']
                 return qsheet
             else:
                 return None
-    return process(etree.fromstring(content))
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}repeat':
+            if 'qsid' in element.attrib:
+                qsheet = {'qsid': element.attrib['qsid'],
+                          'type': 'repeat'}
+                for option in element:
+                    if 'name' in option.attrib and 'value' in option.attrib:
+                        if option.attrib['name'] == 'data_items':
+                            qsheet['data_items'] = option.attrib['value']
+                        elif option.attrib['name'] == 'data_items_count':
+                            qsheet['data_items_count'] = int(option.attrib['value'])
+                        elif option.attrib['name'] == 'control_items_count':
+                            qsheet['control_items_count'] = int(option.attrib['value'])
+                return qsheet
+            else:
+                return None
+    def link_qsheets(schema):
+        for idx, instr in enumerate(schema):
+            if instr['type'] == 'single':
+                if (idx + 1) < len(schema):
+                    instr['next_qsid'] = schema[idx + 1]['qsid']
+                else:
+                    instr['next_qsid'] = None
+            elif instr['type'] == 'repeat':
+                instr['next_qsid'] = instr['qsid']
+        return schema
+    return link_qsheets(process(etree.fromstring(content)))
     
 @view_config(route_name='survey.overview')
 @render({'text/html': 'backend/overview.html'})
