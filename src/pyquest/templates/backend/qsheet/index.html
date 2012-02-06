@@ -3,6 +3,21 @@
   <xi:include href="../../layout/backend.html"/>
   <head>
     <title>${survey.title} - Pages</title>
+    <script type="text/javascript">
+    $(document).ready(function() {
+    	$('table.sortable tbody').sortable({
+    		helper: function(e, ui) {
+    		    ui.children().each(function() {
+    		        $(this).width($(this).width());
+    		    });
+    		    return ui;
+    		},
+    		update: function(e, ui) {
+    			$.post('${r.route_url('survey.qsheet.order', sid=survey.id)}', $(this).sortable('serialize', {key: 'qsid'}));
+    		}
+    	}).disableSelection();
+    });
+    </script>
   </head>
   <body>
     <nav class="level-1">
@@ -27,7 +42,7 @@
       <hgroup>
         <h1>${survey.title} - Pages</h1>
       </hgroup>
-      <table>
+      <table class="sortable">
         <thead>
           <tr>
             <th>Sheet</th>
@@ -35,7 +50,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr py:for="qsheet in survey.qsheets">
+          <tr id="qsid_${qsheet.id}" py:for="qsheet in survey.qsheets">
             <td><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></td>
             <td>
               <ul class="no-symbol inline no-margin">

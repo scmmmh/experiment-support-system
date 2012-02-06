@@ -10,7 +10,7 @@ except:
     import pickle
 import transaction
 
-from formencode import Schema, validators, api
+from formencode import Schema, validators, api, foreach
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from sqlalchemy import and_, func
@@ -26,6 +26,9 @@ class QSheetSchema(Schema):
     title = validators.UnicodeString(not_empty=True)
     content = XmlValidator()
 
+class QSheetOrderSchema(Schema):
+    qsid = foreach.ForEach(validators.Int())
+
 @view_config(route_name='survey.qsheet')
 @render({'text/html': 'backend/qsheet/index.html'})
 def index(request):
@@ -39,7 +42,28 @@ def index(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
-    
+
+@view_config(route_name='survey.qsheet.order')
+@render({'application/json': ''})
+def order(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    user = current_user(request)
+    if survey:
+        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+            validator = QSheetOrderSchema()
+            try:
+                params = validator.to_python(request.POST)
+                with transaction.manager:
+                    for idx, qsid in enumerate(params['qsid']):
+                        qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==qsid,
+                                                                     QSheet.survey_id==request.matchdict['sid'])).first()
+                        if qsheet:
+                            qsheet.order = idx
+            except api.Invalid:
+                return {'status': 'invalid'}
+    return {'status': 'ok'}
+
 @view_config(route_name='survey.qsheet.new')
 @render({'text/html': 'backend/qsheet/new.html'})
 def new_qsheet(request):
