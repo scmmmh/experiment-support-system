@@ -315,7 +315,6 @@ def flatten_invalid(ie):
             else:
                 result[key] = unicode(value)
         return result
-    print flatten_dict(ie)
     return Invalid('Unfortunately not all your answers were acceptable',
                    ie.value,
                    ie.state,
