@@ -18,7 +18,8 @@ from sqlalchemy import and_, func
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet)
 from pyquest.renderer import render
-from pyquest.validation import PageSchema, qsheet_to_schema, flatten_invalid
+from pyquest.validation import (PageSchema, qsheet_to_schema, flatten_invalid,
+                                ValidationState)
 
 class QSheetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -54,6 +55,7 @@ def new_qsheet(request):
                     if params['csrf_token'] != request.session.get_csrf_token():
                         raise HTTPForbidden('Cross-site request forgery detected')
                     with transaction.manager:
+                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         qsheet = QSheet(survey_id=request.matchdict['sid'],
                                         title=params['title'],
                                         content=params['content'],
@@ -160,10 +162,10 @@ def preview_qsheet(request):
                 for attr in survey.all_items[0].attributes:
                     example[attr.key] = attr.value
             if request.method == 'POST':
-                schema = pickle.loads(str(survey.qsheets[0].schema))
+                schema = pickle.loads(str(qsheet.schema))
                 validator = PageSchema(schema, [example])
                 try:
-                    validator.to_python(request.POST)
+                    validator.to_python(request.POST, ValidationState(request=request))
                 except api.Invalid as ie:
                     ie = flatten_invalid(ie)
                     ie.params = request.POST
@@ -171,10 +173,9 @@ def preview_qsheet(request):
                             'qsheet': qsheet,
                             'example': example,
                             'e': ie}
-            else:
-                return {'survey': survey,
-                        'qsheet': qsheet,
-                        'example': example}
+            return {'survey': survey,
+                    'qsheet': qsheet,
+                    'example': example}
         else:
             redirect_to_login(request)
     else:

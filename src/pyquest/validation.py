@@ -228,7 +228,18 @@ class RankingValidator(FancyValidator):
                 ranks.remove(rank)
             result[key] = rank
         return result
+
+class CsrfTokenValidator(FancyValidator):
     
+    def _to_python(self, value, state):
+        if state:
+            try:
+                return state.request.session.get_csrf_token()
+            except AttributeError:
+                raise Invalid('Invalid CSRF token', value, state)
+        else:
+            raise Invalid('Missing CSRF token', value, state)
+        
 class DynamicSchema(Schema):
     
     def __init__(self, source_schema, **kwargs):
@@ -284,9 +295,12 @@ class PageSchema(Schema):
     def __init__(self, qsheet_schema, items):
         Schema.__init__(self)
         items_schema = Schema()
+        items_schema.add_field('ids', validators.OneOf(map(lambda i: unicode(i['did']), items), testValueList=True))
         for item in items:
             if 'did' in item:
-                items_schema.add_field(unicode(item['did']), DynamicSchema(qsheet_schema))
+                item_schema = DynamicSchema(qsheet_schema)
+                item_schema.add_field('csrf_token_', CsrfTokenValidator())
+                items_schema.add_field(unicode(item['did']), item_schema)
         self.add_field('items', items_schema)
     
     pre_validators = [variabledecode.NestedVariables()]
@@ -306,3 +320,14 @@ def flatten_invalid(ie):
                    ie.value,
                    ie.state,
                    error_dict=flatten_dict(ie))
+
+class ValidationState(object):
+    
+    def __init__(self, **kwargs):
+        self.key = None
+        self.full_dict = None
+        self.index = None
+        self.full_list = None
+        for (key, value) in kwargs.items():
+            self.__setattr__(key, value)
+        

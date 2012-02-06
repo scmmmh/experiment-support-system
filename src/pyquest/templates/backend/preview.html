@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
+    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
   </head>
   <body>
     <div class="container">
@@ -22,16 +23,18 @@
       <hgroup>
         <h1>${survey.title}</h1>
       </hgroup>
-      <section py:for="qsheet in survey.qsheets">
+      <section py:for="qsheet in survey.qsheets" class="qsheet">
         <hgroup>
-          <h2><a href="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h2>
+          <h1><a href="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h1>
         </hgroup>
         <form action="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" method="post">
+          ${h.form.hidden_field('items.ids', example['did'])}
+          ${h.form.hidden_field('items.%i.csrf_token_' % (example['did']), r.session.get_csrf_token())}
           ${h.qsheet.display(example, qsheet.content, e)}
+          <ul class="buttons">
+            <li>${h.form.submit('Test validation', class_='button')}</li>
+          </ul>
         </form>
-        <ul class="buttons span-22">
-          <li>${h.form.submit('Test validation', class_='button')}</li>
-        </ul>
       </section>
     </article>
   </body>
