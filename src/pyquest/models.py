@@ -90,7 +90,7 @@ class Survey(Base):
     updated_at = Column(DateTime)
     
     owner = relationship('User', backref='surveys')
-    qsheets = relationship('QSheet', backref='survey', order_by='QSheet.order')
+    qsheets = relationship('QSheet', backref='survey')
     all_items = relationship('DataItem',
                              backref='survey',
                              order_by='DataItem.order',
@@ -114,7 +114,6 @@ class QSheet(Base):
     
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id))
-    order = Column(Integer)
     title = Column(Unicode)
     content = Column(UnicodeText)
     schema = Column(Text)
