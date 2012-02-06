@@ -30,7 +30,6 @@
         <p class="success" py:if="r.method == 'POST' and not e">Your submission passed the validation</p>
         <p class="error" py:if="r.method == 'POST' and e">Unfortunately your submission did not pass the validation</p>
         <form action="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" method="post">
-          ${h.form.hidden_field('items.ids', example['did'])}
           ${h.form.hidden_field('items.%i.csrf_token_' % (example['did']), r.session.get_csrf_token())}
           ${h.qsheet.display(example, qsheet.content, e)}
           <ul class="buttons">
