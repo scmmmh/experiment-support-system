@@ -134,39 +134,39 @@ def number_input(element, item, e):
         attr['max'] = substitute(element.attrib['max_value'], item)
     if 'step' in element.attrib:
         attr['step'] = substitute(element.attrib['step'], item)
-    return tag.p(form.number_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e, **attr))
+    return tag.p(form.number_field('items.%s.%s' % (item['did'], element.attrib['name']), '', e, **attr))
 
 @question('email')
 def email_input(element, item, e):
-    return tag.p(form.email_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e))
+    return tag.p(form.email_field('items.%s.%s' % (item['did'], element.attrib['name']), '', e))
     
 @question('url')
 def url_input(element, item, e):
-    return tag.p(form.url_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e))
+    return tag.p(form.url_field('items.%s.%s' % (item['did'], element.attrib['name']), '', e))
 
 @question('date')
 def date_input(element, item, e):
-    return tag.p(form.date_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e))
+    return tag.p(form.date_field('items.%s.%s' % (item['did'], element.attrib['name']), '' , e))
 
 @question('time')
 def time_input(element, item, e):
-    return tag.p(form.time_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e))
+    return tag.p(form.time_field('items.%s.%s' % (item['did'], element.attrib['name']), '' , e))
 
 @question('datetime')
 def datetime_input(element, item, e):
-    return tag.p(form.datetime_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e))
+    return tag.p(form.datetime_field('items.%s.%s' % (item['did'], element.attrib['name']), '' , e))
         
 @question('month')
 def month_input(element, item, e):
-    return tag.p(form.month_field('items.%i.%s' % (item['did'], element.attrib['name']), '' , e))
+    return tag.p(form.month_field('items.%s.%s' % (item['did'], element.attrib['name']), '' , e))
 
 @question('short_text')
 def short_text_input(element, item, e):
-    return tag.p(form.text_field('items.%i.%s' % (item['did'], element.attrib['name']), '', e))
+    return tag.p(form.text_field('items.%s.%s' % (item['did'], element.attrib['name']), '', e))
 
 @question('long_text')
 def long_text_input(element, item, e):
-    return tag.p(form.textarea('items.%i.%s' % (item['did'], element.attrib['name']), '', e))
+    return tag.p(form.textarea('items.%s.%s' % (item['did'], element.attrib['name']), '', e))
 
 @question('rating')
 def rating(element, item, e):
@@ -174,26 +174,26 @@ def rating(element, item, e):
     choices = extract_choices(element)
     rows.append(tag.thead(tag.tr(map(lambda (_, t): tag.th(t), choices))))
     rows.append(tag.tbody(tag.tr(map(lambda (v, _): tag.td(tag.input(type='radio',
-                                                                     name='items.%i.%s' % (item['did'], element.attrib['name']),
+                                                                     name='items.%s.%s' % (item['did'], element.attrib['name']),
                                                                      value=v)),
                                      choices))))
-    return form.error_wrapper(tag.table(rows), 'items.%i.%s' % (item['did'], element.attrib['name']), e)
+    return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
 
 @question('rating_group')
 def rating_group(element, item, e):
     choices = extract_choices(element)
     rows = []
-    field_names = ['items.%i.%s' % (item['did'], element.attrib['name'])]
+    field_names = ['items.%s.%s' % (item['did'], element.attrib['name'])]
     for rating in element:
         if rating.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
             if 'name' in rating.attrib:
                 if 'title' in rating.attrib:
                     rows.append(tag.tr(tag.th(rating.attrib['title']),
                                        map(lambda (v, _): tag.td(tag.input(type='radio',
-                                                                           name='items.%i.%s.%s' % (item['did'], element.attrib['name'], rating.attrib['name']),
+                                                                           name='items.%s.%s.%s' % (item['did'], element.attrib['name'], rating.attrib['name']),
                                                                            value=v)),
                                            choices)))
-                    field_names.append('items.%i.%s.%s' % (item['did'], element.attrib['name'], rating.attrib['name']))
+                    field_names.append('items.%s.%s.%s' % (item['did'], element.attrib['name'], rating.attrib['name']))
     return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda (_, t): tag.th(t), choices))),
                                         tag.tbody(rows)),
                               field_names, e)
@@ -203,22 +203,22 @@ def listchoice(element, item, e):
     items = []
     for idx, (value, title) in enumerate(extract_choices(element)):
         parts = [tag.input(type='radio',
-                           id='items.%i.%s-%i' % (item['did'], element.attrib['name'], idx),
-                           name='items.%i.%s' % (item['did'], element.attrib['name']),
+                           id='items.%s.%s-%i' % (item['did'], element.attrib['name'], idx),
+                           name='items.%s.%s' % (item['did'], element.attrib['name']),
                            value=value)]
         if title != '':
             parts.append(tag.label(title,
-                                   for_='items.%i.%s-%i' % (item['did'], element.attrib['name'], idx)))
+                                   for_='items.%s.%s-%i' % (item['did'], element.attrib['name'], idx)))
         items.append(tag.li(parts))
-    return form.error_wrapper(tag.ul(items), 'items.%i.%s' % (item['did'], element.attrib['name']), e)
+    return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
 
 @question('selectchoice')
 def selectchoice(element, item, e):
     choices = map(lambda (v, t): tag.option(t, value=v), extract_choices(element))
     choices.insert(0, tag.option('--- Please choose ---', value=''))
     return form.error_wrapper(tag.p(tag.select(choices,
-                                               name='items.%i.%s' % (item['did'], element.attrib['name']))),
-                              'items.%i.%s' % (item['did'], element.attrib['name']),
+                                               name='items.%s.%s' % (item['did'], element.attrib['name']))),
+                              'items.%s.%s' % (item['did'], element.attrib['name']),
                               e)
 
 @question('multichoice')
@@ -228,19 +228,19 @@ def multichoice(element, item, e):
     for idx, (value, title) in enumerate(choices):
         list_item = []
         list_item.append(tag.input(type='checkbox',
-                                   id='items.%i.%s-%i' % (item['did'], element.attrib['name'], idx),
-                                   name='items.%i.%s' % (item['did'], element.attrib['name']),
+                                   id='items.%s.%s-%i' % (item['did'], element.attrib['name'], idx),
+                                   name='items.%s.%s' % (item['did'], element.attrib['name']),
                                    value=value))
         if title != '':
-            list_item.append(tag.label(title, for_='items.%i.%s-%i' % (item['did'], element.attrib['name'], idx)))
+            list_item.append(tag.label(title, for_='items.%s.%s-%i' % (item['did'], element.attrib['name'], idx)))
         items.append(tag.li(list_item))
-    return form.error_wrapper(tag.ul(items), 'items.%i.%s' % (item['did'], element.attrib['name']), e)
+    return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
 
 @question('multichoice_group')
 def multichoice_group(element, item, e):
     rows = []
     choices = extract_choices(element)
-    field_names = ['items.%i.%s' % (item['did'], element.attrib['name'])]
+    field_names = ['items.%s.%s' % (item['did'], element.attrib['name'])]
     for choice in element:
         if choice.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
             if 'name' in element.attrib:
@@ -251,10 +251,10 @@ def multichoice_group(element, item, e):
                     columns.append(tag.th())
                 for (v, _) in choices:
                     columns.append(tag.td(tag.input(type='checkbox',
-                                                    name='items.%i.%s.%s' % (item['did'], element.attrib['name'], choice.attrib['name']),
+                                                    name='items.%s.%s.%s' % (item['did'], element.attrib['name'], choice.attrib['name']),
                                                     value=v)))
                 rows.append(tag.tr(columns))
-                field_names.append('items.%i.%s.%s' % (item['did'], element.attrib['name'], choice.attrib['name']))
+                field_names.append('items.%s.%s.%s' % (item['did'], element.attrib['name'], choice.attrib['name']))
     return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(''), map(lambda (_, t): tag.th(t), choices))),
                                         tag.tbody(rows)),
                               field_names,
@@ -264,16 +264,16 @@ def multichoice_group(element, item, e):
 def confirm(element, item, e):
     tags = []
     tags.append(tag.input(type='checkbox',
-                          id='items.%i.%s' % (item['did'], element.attrib['name']),
-                          name='items.%i.%s' % (item['did'], element.attrib['name']),
+                          id='items.%s.%s' % (item['did'], element.attrib['name']),
+                          name='items.%s.%s' % (item['did'], element.attrib['name']),
                           value='true'))
     if 'label' in element.attrib:
         tags.append(tag.label(element.attrib['label'],
-                              for_='items.%i.%s' % (item['did'], element.attrib['name'])))
+                              for_='items.%s.%s' % (item['did'], element.attrib['name'])))
     elif 'title' in element.attrib:
         tags.append(tag.label(element.attrib['title'],
-                              for_='items.%i.%s' % (item['did'], element.attrib['name'])))
-    return form.error_wrapper(tag.p(tags), 'items.%i.%s' % (item['did'], element.attrib['name']), e)
+                              for_='items.%s.%s' % (item['did'], element.attrib['name'])))
+    return form.error_wrapper(tag.p(tags), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
     
 @question('ranking')
 def ranking(element, item, e):
@@ -282,8 +282,8 @@ def ranking(element, item, e):
     for value, title in choices:
         items.append(tag.li(tag.select(tag.option('--', value=''),
                                        [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(choices))],
-                                       id='items.%i.%s.%s' % (item['did'], element.attrib['name'], value),
-                                       name='items.%i.%s.%s' % (item['did'], element.attrib['name'], value)),
-                            tag.label(title, for_='items.%i.%s.%s' % (item['did'], element.attrib['name'], value)),
-                            id='items.%i.%s_%s' % (item['did'], element.attrib['name'], value)))
-    return form.error_wrapper(tag.ul(items), 'items.%i.%s' % (item['did'], element.attrib['name']), e)
+                                       id='items.%s.%s.%s' % (item['did'], element.attrib['name'], value),
+                                       name='items.%s.%s.%s' % (item['did'], element.attrib['name'], value)),
+                            tag.label(title, for_='items.%s.%s.%s' % (item['did'], element.attrib['name'], value)),
+                            id='items.%s.%s_%s' % (item['did'], element.attrib['name'], value)))
+    return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
