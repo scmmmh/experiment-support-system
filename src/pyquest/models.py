@@ -143,3 +143,12 @@ class DataItemAttribute(Base):
     key = Column(Unicode)
     value = Column(Unicode)
     answer = Column(Unicode, nullable=True)
+
+class Participant(Base):
+    
+    __tablename__ = 'participants'
+    
+    id = Column(Integer, primary_key=True)
+    survey_id = Column(ForeignKey(Survey.id))
+    answers = Column(Text)
+    
