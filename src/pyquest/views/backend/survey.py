@@ -34,24 +34,39 @@ def create_schema(content):
             if 'qsid' in element.attrib:
                 qsheet = {'qsid': element.attrib['qsid'],
                           'type': 'single'}
+                for child in element:
+                    qsheet.update(process(child))
                 return qsheet
             else:
-                return None
+                return {}
         elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}repeat':
             if 'qsid' in element.attrib:
                 qsheet = {'qsid': element.attrib['qsid'],
                           'type': 'repeat'}
-                for option in element:
-                    if 'name' in option.attrib and 'value' in option.attrib:
-                        if option.attrib['name'] == 'data_items':
-                            qsheet['data_items'] = option.attrib['value']
-                        elif option.attrib['name'] == 'data_items_count':
-                            qsheet['data_items_count'] = int(option.attrib['value'])
-                        elif option.attrib['name'] == 'control_items_count':
-                            qsheet['control_items_count'] = int(option.attrib['value'])
+                for child in element:
+                    qsheet.update(process(child))
                 return qsheet
             else:
-                return None
+                return {}
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}data_items':
+            data_items = {'data_items': {'data': {'count': 1}}}
+            for child in element:
+                data_items['data_items'].update(process(child))
+            return data_items
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}data':
+            if 'count' in element.attrib:
+                try:
+                    return {'data': {'count': int(element.attrib['count'])}}
+                except ValueError:
+                    return {'data': {'count': 1}}
+            return {'data': {'count': 1}}
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}control':
+            if 'count' in element.attrib:
+                try:
+                    return {'control': {'count': int(element.attrib['count'])}}
+                except ValueError:
+                    return {'control': {'count': 1}}
+            return {'control': {'count': 1}}
     def link_qsheets(schema):
         for idx, instr in enumerate(schema):
             if instr['type'] == 'single':
