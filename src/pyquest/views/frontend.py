@@ -75,7 +75,8 @@ def run_survey(request):
             else:
                 state = {'qsid': survey_schema[0]['qsid']}
                 with transaction.manager:
-                    participant = Participant(answers=pickle.dumps({}))
+                    participant = Participant(survey_id=survey.id,
+                                              answers=pickle.dumps({}))
                     dbsession.add(participant)
                     dbsession.flush()
                     state['ptid'] = participant.id

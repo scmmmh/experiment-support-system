@@ -103,6 +103,7 @@ class Survey(Base):
     control_items = relationship('DataItem',
                                  order_by='DataItem.order',
                                  primaryjoin='and_(Survey.id==DataItem.survey_id, DataItem.control==True)')
+    participants = relationship('Participant', backref='survey')
     
     def is_owned_by(self, user):
         if user:
