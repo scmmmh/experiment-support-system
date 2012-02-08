@@ -13,7 +13,7 @@ import transaction
 from formencode import Schema, validators, api, foreach
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
-from sqlalchemy import and_, func
+from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet)
