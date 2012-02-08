@@ -33,9 +33,13 @@ def main(argv=sys.argv):
         group.permissions.append(Permission(name='survey.edit-all'))
         user.groups.append(group)
         DBSession.add(user)
-        survey = Survey(title='A test survey', content="""
-<pq:qsheet qsid="1"/>
-<pq:qsheet qsid="2" type="repeat"/>""")
+        survey = Survey(title='A test survey', content="""<pq:single qsid="1"/>
+<pq:repeat qsid="2">
+  <pq:data_items>
+    <pq:data count="5"/>
+    <pq:control count="0"/>
+  </pq:data_items>
+</pq:repeat>""")
         survey.owner = user
         qsheet = QSheet(title='Welcome', content="""<p>Thank you for participating
 in this survey, your time is much appreciated.</p>
