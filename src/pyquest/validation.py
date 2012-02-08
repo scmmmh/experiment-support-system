@@ -312,7 +312,6 @@ class PageSchema(Schema):
     def __init__(self, qsheet_schema, items, csrf_test=True):
         Schema.__init__(self)
         items_schema = Schema()
-        #items_schema.add_field('ids', validators.OneOf(map(lambda i: unicode(i['did']), items), testValueList=True))
         for item in items:
             if 'did' in item:
                 item_schema = DynamicSchema(qsheet_schema)

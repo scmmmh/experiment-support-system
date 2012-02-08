@@ -70,13 +70,16 @@ def extract_choices(element):
                         values.append((option.attrib['value'], ''))
         return values
 
-def display(item, content, e):
+def display(item, content, e, csrf_token=None):
     doc = etree.parse(StringIO('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % (content)))
-    return process(doc.getroot(), item, e)
+    return process(doc.getroot(), item, e, csrf_token)
 
-def process(element, item, e):
+def process(element, item, e, csrf_token=None):
     if element.tag == u'{http://paths.sheffield.ac.uk/pyquest}qsheet':
-        children = [element.text]
+        children = []
+        if csrf_token:
+            children.append(form.hidden_field('items.%s.csrf_token_' % item['did'], csrf_token))
+        children.append(element.text)
         for child in element:
             children.append(process(child, item, e))
             children.append(child.tail)

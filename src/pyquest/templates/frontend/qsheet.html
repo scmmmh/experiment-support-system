@@ -35,10 +35,9 @@
         </hgroup>
         <p class="error" py:if="r.method == 'POST' and e">Please answer all required questions.</p>
         <form action="${r.route_url('survey.run', sid=survey.id, qsid=qsheet.id)}" method="post">
-          <section py:for="data_item in data_items" style="margin-bottom: 2em;padding-bottom:2em;border-bottom:1px solid;">
-            ${h.form.hidden_field('items.%s.csrf_token_' % (data_item['did']), r.session.get_csrf_token())}
-            ${h.qsheet.display(data_item, qsheet.content, e)}
-          </section>
+          <py:for each="data_item in data_items">
+            ${h.qsheet.display(data_item, qsheet.content, e, csrf_token=r.session.get_csrf_token())}
+          </py:for>
           <ul class="buttons">
             <li>${h.form.submit('Next', class_='button')}</li>
           </ul>
