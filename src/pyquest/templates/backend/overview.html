@@ -23,6 +23,7 @@
             <th class="center">Question Sheets</th>
             <th class="center">Data Items</th>
             <th class="center">Control Items</th>
+            <th class="center">Participants</th>
           </tr>
         </thead>
         <tbody>
@@ -30,6 +31,7 @@
             <td class="center" style="font-size:28pt;font-weight:bold;"><a href="${r.route_url('survey.qsheet', sid=survey.id)}" style="text-decoration:none;">${len(survey.qsheets)}</a></td>
             <td class="center" style="font-size:28pt;font-weight:bold;"><a href="${r.route_url('survey.data', sid=survey.id)}" style="text-decoration:none;">${len(survey.data_items)}</a></td>
             <td class="center" style="font-size:28pt;font-weight:bold;">${len(survey.control_items)}</td>
+            <td class="center" style="font-size:28pt;font-weight:bold;"><a href="${r.route_url('survey.results', sid=survey.id)}" style="text-decoration:none;">${len(survey.participants)}</a></td>
           </tr>
         </tbody>
       </table>

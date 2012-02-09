@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - Results</title>
+  </head>
+  <body>
+    <nav class="level-1">
+      <ul>
+        <li class="current"><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
+        <li><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
+        <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
+        <li><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
+      </ul>
+    </nav>
+    <nav class="level-2">
+      <ul>
+        <li><a href="${r.route_url('survey.results.download', sid=survey.id)}">Download</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>${survey.title} - Results</h1>
+      </hgroup>
+      <table>
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Data item</th>
+            <th>Summary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <py:for each="qsheet in qsheets">
+            <py:for each="(question, attrib) in qsheet['schema'].items()">
+              <tr py:if="h.results.has_result(qsheet['qsid'], 'none', question, participants)">
+                <th>${question}</th>
+                <td>-</td>
+                <td>${h.results.question_summary(qsheet['qsid'], 'none', question, attrib, participants)}</td>
+              </tr>
+              <py:for each="data_item in survey.data_items">
+                <tr py:if="h.results.has_result(qsheet['qsid'], unicode(data_item.id), question, participants)">
+                  <th>${question}</th>
+                  <td>${data_item.id}</td>
+                  <td>${h.results.question_summary(qsheet['qsid'], unicode(data_item.id), question, attrib, participants)}</td>
+                </tr>
+              </py:for>
+            </py:for>
+          </py:for>
+        </tbody>
+      </table>
+    </article>
+  </body>
+</html>
