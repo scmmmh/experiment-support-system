@@ -5,14 +5,7 @@
     <title>${survey.title} - Data</title>
   </head>
   <body>
-    <nav class="level-1">
-      <ul>
-        <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
-        <li class="current"><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
-        <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
-        <li><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
-      </ul>
-    </nav>
+    ${h.ui.main_menu('data', survey, r)}
     <nav class="level-2">
       <ul>
         <li><a href="${r.route_url('survey.data.upload', sid=survey.id)}">Upload data</a></li>

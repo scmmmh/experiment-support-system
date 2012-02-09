@@ -26,14 +26,7 @@
   </head>
   <body>
     <div class="container">
-      <nav class="level-1">
-        <ul>
-          <li><a href="${r.route_url('survey.overview', sid=survey.id)}">Overview</a></li>
-          <li><a href="${r.route_url('survey.data', sid=survey.id)}">Data</a></li>
-          <li><a href="${r.route_url('survey.edit', sid=survey.id)}">Edit</a></li>
-          <li class="current"><a href="${r.route_url('survey.preview', sid=survey.id)}">Preview</a></li>
-        </ul>
-      </nav>
+      ${h.ui.main_menu('preview', survey, r)}
     </div>
     <article class="survey">
       <hgroup>
