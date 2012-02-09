@@ -8,6 +8,7 @@ is used to provide Genshi templating in the Pyramid WSGI framework.
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
+import csv
 import json
 import mimeparse
 
@@ -18,6 +19,7 @@ from genshi.template import TemplateLoader, loader
 from pyramid.httpexceptions import HTTPNotAcceptable
 from pyramid.request import Request
 from pyramid.response import Response
+from StringIO import StringIO
 
 from pyquest import helpers
 
@@ -86,6 +88,16 @@ def handle_json_response(request, result):
     response = Response(json.dumps(result))
     return response
 
+def handle_csv_response(request, result):
+    f = StringIO()
+    writer = csv.DictWriter(f, result['columns'])
+    writer.writeheader()
+    for row in result['rows']:
+        writer.writerow(row)
+    response = Response(unicode(f.getvalue()))
+    f.close()
+    return response
+
 def render(content_types={}):
     def wrapper(f, *args, **kwargs):
         request = request_from_args(*args)
@@ -97,6 +109,8 @@ def render(content_types={}):
             response = handle_json_response(request, result)
         elif response_type == 'text/html':
             response = handle_html_response(request, response_template, result)
+        elif response_type == 'text/csv':
+            response = handle_csv_response(request, result)
         response.content_type = response_type
         request.response.merge_cookies(response)
         return response
