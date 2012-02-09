@@ -80,7 +80,7 @@ def create_schema(content):
     return link_qsheets(process(etree.fromstring(content)))
 
 @view_config(route_name='survey')
-@render({'text/html': 'backend/index.html'})
+@render({'text/html': 'backend/survey/index.html'})
 def index(request):
     user = current_user(request)
     if user:
@@ -89,7 +89,7 @@ def index(request):
         redirect_to_login(request)
 
 @view_config(route_name='survey.view')
-@render({'text/html': 'backend/overview.html'})
+@render({'text/html': 'backend/survey/view.html'})
 def view(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -103,7 +103,7 @@ def view(request):
         raise HTTPNotFound()
     
 @view_config(route_name='survey.edit')
-@render({'text/html': 'backend/edit.html'})
+@render({'text/html': 'backend/survey/edit.html'})
 def edit(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -164,7 +164,7 @@ def delete(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.preview')
-@render({'text/html': 'backend/preview.html'})
+@render({'text/html': 'backend/survey/preview.html'})
 def preview(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
