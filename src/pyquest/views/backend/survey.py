@@ -78,7 +78,16 @@ def create_schema(content):
                 instr['next_qsid'] = instr['qsid']
         return schema
     return link_qsheets(process(etree.fromstring(content)))
-    
+
+@view_config(route_name='survey')
+@render({'text/html': 'backend/index.html'})
+def index(request):
+    user = current_user(request)
+    if user:
+        return {'surveys': user.surveys}
+    else:
+        redirect_to_login(request)
+
 @view_config(route_name='survey.overview')
 @render({'text/html': 'backend/overview.html'})
 def overview(request):

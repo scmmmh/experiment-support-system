@@ -5,7 +5,9 @@ nav ul li a {text-decoration:none;display:inline-block;padding:0.3em 0.8em;}
 nav.level-1 ul {padding:0.5em 1em 0 2em;border-bottom:2px solid #0066cc;}
 nav.level-1 ul li {margin:0 1em 0 0;}
 nav.level-1 ul li a {font-size:1.5em;font-weight:bold;background-color:#c3d9ff;border-left:2px solid #0066cc;border-top:2px solid #0066cc;border-right:2px solid #0066cc;}
+nav.level-1 ul li a.no-tab {border:0;background-color:#ffffff;}
 nav.level-1 ul li.current a, nav.level-1 ul li a:hover {color:#ffffff;background-color:#0066cc;}
+nav.level-1 ul li a.no-tab:hover {color:#0066cc;background-color:#ffffff;text-decoration:underline;}
 nav.level-2 ul {padding:0 1em 0 3em;background-color:#c3d9ff;}
 nav.level-2 ul li a {font-size:1.2em;font-weight:bold;}
 nav.level-2 ul li.current a, nav.level-2 ul li a:hover {background-color:#0066cc;color:#ffffff;}

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 def init(config):
+    config.add_route('survey', '/surveys')
     config.add_route('survey.overview', '/surveys/{sid}')
     config.add_route('survey.data', '/surveys/{sid}/data')
     config.add_route('survey.data.upload', '/surveys/{sid}/data/upload')

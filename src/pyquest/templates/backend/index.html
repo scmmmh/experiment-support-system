@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../layout/backend.html"/>
+  <head>
+    <title></title>
+  </head>
+  <body>
+    <article>
+      <hgroup>
+        <h1>Surveys</h1>
+      </hgroup>
+      <table>
+        <thead>
+          <tr>
+            <th>Survey</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr py:for="survey in surveys">
+            <td><a href="${r.route_url('survey.overview', sid=survey.id)}">${survey.title}</a></td>
+            <td>In Development</td>
+            <td>
+              <ul class="inline no-symbol no-margin">
+                <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
+                <li><a href="" class="button">Delete</a></li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </article>
+  </body>
+</html>
