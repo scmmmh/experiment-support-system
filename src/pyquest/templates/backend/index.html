@@ -9,6 +9,11 @@
       <hgroup>
         <h1>Surveys</h1>
       </hgroup>
+      <nav class="toolbar">
+        <ul>
+          <li><a href="${r.route_url('survey.new')}" class="button">New Survey</a></li>
+        </ul>
+      </nav>
       <table>
         <thead>
           <tr>
@@ -19,12 +24,12 @@
         </thead>
         <tbody>
           <tr py:for="survey in surveys">
-            <td><a href="${r.route_url('survey.overview', sid=survey.id)}">${survey.title}</a></td>
+            <td><a href="${r.route_url('survey.view', sid=survey.id)}">${survey.title}</a></td>
             <td>In Development</td>
             <td>
               <ul class="inline no-symbol no-margin">
                 <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
-                <li><a href="" class="button">Delete</a></li>
+                <li><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button">Delete</a></li>
               </ul>
             </td>
           </tr>

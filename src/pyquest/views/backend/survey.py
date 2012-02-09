@@ -88,9 +88,9 @@ def index(request):
     else:
         redirect_to_login(request)
 
-@view_config(route_name='survey.overview')
+@view_config(route_name='survey.view')
 @render({'text/html': 'backend/overview.html'})
-def overview(request):
+def view(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
@@ -125,6 +125,33 @@ def edit(request):
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.edit',
                                                       sid=request.matchdict['sid']))
+                except api.Invalid as e:
+                    e.params = request.POST
+                    return {'survey': survey,
+                            'e': e}
+            else:
+                return {'survey': survey}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
+@view_config(route_name='survey.delete')
+@render({'text/html': 'backend/survey/delete.html'})
+def delete(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    user = current_user(request)
+    if survey:
+        if user and (survey.is_owned_by(user) or user.has_permission('survey.delete-all')):
+            if request.method == 'POST':
+                try:
+                    if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
+                        raise HTTPForbidden('Cross-site request forgery detected')
+                    with transaction.manager:
+                        dbsession.delete(survey)
+                    request.session.flash('Survey deleted', 'info')
+                    raise HTTPFound(request.route_url('survey'))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,

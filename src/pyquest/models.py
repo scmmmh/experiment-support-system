@@ -92,7 +92,9 @@ class Survey(Base):
     updated_at = Column(DateTime)
     
     owner = relationship('User', backref='surveys')
-    qsheets = relationship('QSheet', backref='survey')
+    qsheets = relationship('QSheet',
+                           backref='survey',
+                           cascade='all, delete, delete-orphan')
     all_items = relationship('DataItem',
                              backref='survey',
                              order_by='DataItem.order',
@@ -103,7 +105,9 @@ class Survey(Base):
     control_items = relationship('DataItem',
                                  order_by='DataItem.order',
                                  primaryjoin='and_(Survey.id==DataItem.survey_id, DataItem.control==True)')
-    participants = relationship('Participant', backref='survey')
+    participants = relationship('Participant',
+                                backref='survey',
+                                cascade='all, delete, delete-orphan')
     
     def is_owned_by(self, user):
         if user:
