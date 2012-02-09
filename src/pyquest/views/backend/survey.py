@@ -77,7 +77,10 @@ def create_schema(content):
             elif instr['type'] == 'repeat':
                 instr['next_qsid'] = instr['qsid']
         return schema
-    return link_qsheets(process(etree.fromstring(content)))
+    if content:
+        return link_qsheets(process(etree.fromstring(content)))
+    else:
+        return []
 
 @view_config(route_name='survey')
 @render({'text/html': 'backend/survey/index.html'})
@@ -101,7 +104,40 @@ def view(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
-    
+
+@view_config(route_name='survey.new')
+@render({'text/html': 'backend/survey/new.html'})
+def new(request):
+    dbsession = DBSession()
+    user = current_user(request)
+    survey = Survey()
+    if user and user.has_permission('survey.new'):
+        if request.method == 'POST':
+            try:
+                if 'content' in request.POST:
+                    request.POST['schema'] = request.POST['content']
+                params = SurveySchema().to_python(request.POST)
+                if params['csrf_token'] != request.session.get_csrf_token():
+                    raise HTTPForbidden('Cross-site request forgery detected')
+                with transaction.manager:
+                    survey.title = params['title']
+                    survey.content = params['content']
+                    survey.schema = pickle.dumps(create_schema(params['schema']))
+                    survey.owned_by = user.id
+                    dbsession.add(survey)
+                    dbsession.flush()
+                    sid = survey.id
+                request.session.flash('Survey created', 'info')
+                raise HTTPFound(request.route_url('survey.edit', sid=sid))
+            except api.Invalid as e:
+                e.params = request.POST
+                return {'survey': survey,
+                        'e': e}
+        else:
+            return {'survey': survey}
+    else:
+        redirect_to_login(request)
+
 @view_config(route_name='survey.edit')
 @render({'text/html': 'backend/survey/edit.html'})
 def edit(request):

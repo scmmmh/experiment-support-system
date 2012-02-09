@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>New Survey</title>
+  </head>
+  <body>
+    <nav class="level-1">
+      <ul>
+        <li><a href="${r.route_url('survey')}" class="no-tab" style="font-weight:normal;">&larr; All my surveys</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>New Survey</h1>
+      </hgroup>
+      <form action="${r.route_url('survey.new')}" method="post">
+        ${h.form.csrf_token(r.session.get_csrf_token())}
+        <dl>
+          <dt>Title</dt>
+          <dd>${h.form.text_field('title', survey.title, e, class_='span-12')}</dd>
+          <dt>Content</dt>
+          <dd>${h.form.textarea('content', survey.content, e, class_='span-22')}</dd>
+        </dl>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't create", class_='button')}</li>
+          <li>${h.form.submit('Create', class_='button')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>

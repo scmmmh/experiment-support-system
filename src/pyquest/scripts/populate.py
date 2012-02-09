@@ -31,6 +31,7 @@ def main(argv=sys.argv):
         group.permissions.append(Permission(name='admin.configuration'))
         group.permissions.append(Permission(name='admin.users'))
         group.permissions.append(Permission(name='survey.edit-all'))
+        group.permissions.append(Permission(name='survey.new'))
         user.groups.append(group)
         DBSession.add(user)
         survey = Survey(title='A test survey', content="""<pq:single qsid="1"/>
