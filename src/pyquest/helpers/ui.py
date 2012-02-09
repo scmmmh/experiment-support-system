@@ -5,7 +5,7 @@ Created on 9 Feb 2012
 @author: mhall
 '''
 
-from genshi.builder import tag, Markup
+from genshi.builder import Markup
 from pywebtools import ui
 
 def main_menu(current, survey, request):
