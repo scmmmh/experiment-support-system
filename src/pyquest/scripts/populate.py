@@ -61,7 +61,7 @@ of the following url, based on its title</p>
   <pq:option value="2"/>
   <pq:option value="3"/>
   <pq:option value="4"/>
-  <pq:option title="Perfectly" value="1"/>
+  <pq:option title="Perfectly" value="5"/>
 </pq:rating>
 """)
         survey.qsheets.append(qsheet)
