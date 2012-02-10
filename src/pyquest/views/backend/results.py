@@ -58,6 +58,9 @@ def raw_data(request):
                     columns.append(attr.key) 
             columns.append('question')
             columns.append('answer')
+            qsid_mapping = {}
+            for qsheet in survey.qsheets:
+                qsid_mapping[unicode(qsheet.id)] = qsheet.name
             for participant in survey.participants:
                 answers = pickle.loads(str(participant.answers))
                 for (qsid, value) in answers.items():
@@ -65,7 +68,7 @@ def raw_data(request):
                         for (did, questions) in value['items'].items():
                             for (question, answer) in questions.items():
                                 if not question.endswith('_'):
-                                    row = {'page': qsid,
+                                    row = {'page': qsid_mapping[qsid],
                                            'data_id': did,
                                            'participant_id': participant.id,
                                            'question': question,
@@ -130,6 +133,9 @@ def participant(request):
             rows = []
             columns = []
             did_mapping = {}
+            qsid_mapping = {}
+            for qsheet in survey.qsheets:
+                qsid_mapping[unicode(qsheet.id)] = qsheet.name
             for participant in survey.participants:
                 answers = pickle.loads(str(participant.answers))
                 row = {'participant_id': participant.id}
@@ -139,7 +145,7 @@ def participant(request):
                             for question in questions.keys():
                                 if not question.endswith('_'):
                                     if did == 'none':
-                                        column_id = '%s.%s' % (qsid, question)
+                                        column_id = '%s.%s' % (qsid_mapping[qsid], question)
                                     else:
                                         if data_identifier:
                                             data_item = dbsession.query(DataItem).filter(DataItem.id==did).first()
@@ -147,14 +153,14 @@ def participant(request):
                                                 for attr in data_item.attributes:
                                                     if attr.key == data_identifier:
                                                         did_mapping[did] = attr.value
-                                                        column_id = '%s.%s.%s' % (qsid, question, attr.value)
+                                                        column_id = '%s.%s.%s' % (qsid_mapping[qsid], question, attr.value)
                                                         break
                                             else:
                                                 did_mapping[did] = did
-                                                column_id = '%s.%s.%s' % (qsid, question, did)
+                                                column_id = '%s.%s.%s' % (qsid_mapping[qsid], question, did)
                                         else:
                                             did_mapping[did] = did
-                                            column_id = '%s.%s.%s' % (qsid, question, did)
+                                            column_id = '%s.%s.%s' % (qsid_mapping[qsid], question, did)
                                     if column_id not in columns:
                                         columns.append(column_id)
             columns.sort(cmp=cmp_columns)
@@ -168,9 +174,9 @@ def participant(request):
                             for (question, answer) in questions.items():
                                 if not question.endswith('_'):
                                     if did == 'none':
-                                        row['%s.%s' % (qsid, question)] = answer
+                                        row['%s.%s' % (qsid_mapping[qsid], question)] = answer
                                     else:
-                                        row['%s.%s.%s' % (qsid, question, did_mapping[did])] = answer
+                                        row['%s.%s.%s' % (qsid_mapping[qsid], question, did_mapping[did])] = answer
                 rows.append(row)
             return {'columns': columns,
                     'rows': rows,

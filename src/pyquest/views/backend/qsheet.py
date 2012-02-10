@@ -23,6 +23,7 @@ from pyquest.validation import (PageSchema, qsheet_to_schema, flatten_invalid,
 
 class QSheetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
+    name = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
     content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>')
     schema = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>', strip_wrapper=False)
@@ -63,6 +64,7 @@ def new_qsheet(request):
                     with transaction.manager:
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         qsheet = QSheet(survey_id=request.matchdict['sid'],
+                                        name=params['name'],
                                         title=params['title'],
                                         content=params['content'],
                                         schema = pickle.dumps(qsheet_to_schema(params['schema'])))
@@ -122,7 +124,7 @@ def view(request):
 
 @view_config(route_name='survey.qsheet.edit')
 @render({'text/html': 'backend/qsheet/edit.html'})
-def edit_qsheet(request):
+def edit(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -139,6 +141,7 @@ def edit_qsheet(request):
                     if params['csrf_token'] != request.session.get_csrf_token():
                         raise HTTPForbidden('Cross-site request forgery detected')
                     with transaction.manager:
+                        qsheet.name = params['name']
                         qsheet.title = params['title']
                         qsheet.content = params['content']
                         qsheet.schema = pickle.dumps(qsheet_to_schema(params['schema']))

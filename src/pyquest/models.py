@@ -122,6 +122,7 @@ class QSheet(Base):
     
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id))
+    name = Column(Unicode)
     title = Column(Unicode)
     content = Column(UnicodeText)
     schema = Column(Text)

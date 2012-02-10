@@ -14,6 +14,8 @@
       <form action="${r.route_url('survey.qsheet.new', sid=survey.id)}" method="post">
         ${h.form.csrf_token(r.session.get_csrf_token())}
         <dl>
+          <dt>Name</dt>
+          <dd>${h.form.text_field('name', '', e)}</dd>
           <dt>Title</dt>
           <dd>${h.form.text_field('title', '', e)}</dd>
           <dt>Content</dt>

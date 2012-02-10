@@ -19,13 +19,17 @@
       <table>
         <thead>
           <tr>
-            <th>Page</th>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Title</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
           <tr py:for="qsheet in survey.qsheets">
-            <td><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></td>
+            <td>${qsheet.id}</td>
+            <td><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.name}</a></td>
+            <td>${qsheet.title}</td>
             <td>
               <ul class="no-symbol inline no-margin">
                 <li><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" class="button">Edit</a></li>

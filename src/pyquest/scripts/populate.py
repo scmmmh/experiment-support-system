@@ -49,7 +49,7 @@ def main(argv=sys.argv):
 </pq:repeat>""", summary='A simple test survey')
         survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
         survey.owner = user
-        qsheet = QSheet(title='Welcome', content="""<p>Thank you for participating
+        qsheet = QSheet(name='consent', title='Welcome', content="""<p>Thank you for participating
 in this survey, your time is much appreciated.</p>
 <p>Your data will be stored annonymously and in full compliance with the Data Protection Act.
 Your data will only be used for reasearch purposes and will not be shared with anyone outside
@@ -57,7 +57,7 @@ the research group.</p>
 <pq:confirm name="informed_consent" title="Please confirm that you have understood this" label="I confirm" required="true"/>""")
         qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
         survey.qsheets.append(qsheet)
-        qsheet = QSheet(title='Rate this URL', content="""<p>Please rate the content
+        qsheet = QSheet(name='rating', title='Rate this URL', content="""<p>Please rate the content
 of the following url, based on its title</p>
 <dl>
   <dt>Title</dt>
