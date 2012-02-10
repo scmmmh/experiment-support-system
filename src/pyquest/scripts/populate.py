@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import os
 import sys
 import transaction
@@ -9,6 +13,8 @@ from sqlalchemy import engine_from_config
 
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission)
+from pyquest import validation
+from pyquest.views.backend import survey as survey_backend
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -41,6 +47,7 @@ def main(argv=sys.argv):
     <pq:control count="0"/>
   </pq:data_items>
 </pq:repeat>""")
+        survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
         survey.owner = user
         qsheet = QSheet(title='Welcome', content="""<p>Thank you for participating
 in this survey, your time is much appreciated.</p>
@@ -48,6 +55,7 @@ in this survey, your time is much appreciated.</p>
 Your data will only be used for reasearch purposes and will not be shared with anyone outside
 the research group.</p>
 <pq:confirm name="informed_consent" title="Please confirm that you have understood this" label="I confirm" required="true"/>""")
+        qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
         survey.qsheets.append(qsheet)
         qsheet = QSheet(title='Rate this URL', content="""<p>Please rate the content
 of the following url, based on its title</p>
@@ -65,6 +73,7 @@ of the following url, based on its title</p>
   <pq:option title="Perfectly" value="5"/>
 </pq:rating>
 """)
+        qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
         survey.qsheets.append(qsheet)
         data_item = DataItem(order=1, control=False)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the first item'))
