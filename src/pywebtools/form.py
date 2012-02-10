@@ -72,6 +72,15 @@ def checkbox(name, value, options, e, **attr):
 def textarea(name, text, e, **attr):
     return error_wrapper(tag.textarea(text, name=name, **attr), name, e)
 
+def select(name, value, options, e, **attr):
+    select_options = []
+    for option in options:
+        if option[0] == value:
+            select_options.append(tag.option(option[1], value=option[0], selected="selected"))
+        else:
+            select_options.append(tag.option(option[1], value=option[0]))
+    return error_wrapper(tag.select(select_options, name=name, **attr), name, e)
+
 def button(label, **attr):
     return tag.input(type='button', value=label, **attr)
 
