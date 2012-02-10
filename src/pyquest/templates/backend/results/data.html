@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - Results - Download Raw Data</title>
+  </head>
+  <body>
+    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Download Raw Data', {'href': r.route_url('survey.results.data', sid=survey.id)})], r)}
+    ${h.ui.main_menu('results', survey, r)}
+    <nav class="toolbar">
+      <ul>
+        <li><a href="${r.route_url('survey.results.data.ext', sid=survey.id, ext='csv')}" class="button">Download as CSV</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>${survey.title} - Results - Download Raw Data</h1>
+      </hgroup>
+      <table>
+        <thead>
+          <tr>
+            <th py:for="column in columns">${column}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr py:for="row in rows[0:20]">
+            <td py:for="column in columns"><py:if test="column in row">${row[column]}</py:if></td>
+          </tr>
+        </tbody>
+      </table>
+    </article>
+  </body>
+</html>

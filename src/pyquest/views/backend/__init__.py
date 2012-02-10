@@ -19,4 +19,8 @@ def init(config):
     config.add_route('survey.qsheet.view', '/surveys/{sid}/pages/{qsid}/preview')
     config.add_route('survey.preview', '/surveys/{sid}/preview')
     config.add_route('survey.results', '/surveys/{sid}/results')
-    config.add_route('survey.results.download', '/surveys/{sid}/results/download')
+    config.add_route('survey.results.data', '/surveys/{sid}/results/data')
+    config.add_route('survey.results.data.ext', '/surveys/{sid}/results/data.{ext}')
+    config.add_route('survey.results.participant', '/surveys/{sid}/results/participant')
+    config.add_route('survey.results.participant.ext', '/surveys/{sid}/results/participant.{ext}')
+    

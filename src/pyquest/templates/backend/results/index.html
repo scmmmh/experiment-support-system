@@ -9,7 +9,8 @@
     ${h.ui.main_menu('results', survey, r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.results.download', sid=survey.id)}" class="button">Download</a></li>
+        <li><a href="${r.route_url('survey.results.data', sid=survey.id)}" class="button">Raw Data</a></li>
+        <li><a href="${r.route_url('survey.results.participant', sid=survey.id)}" class="button">By Participant</a></li>
       </ul>
     </nav>
     <article>
