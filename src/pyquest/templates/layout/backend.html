@@ -7,12 +7,19 @@
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+    	setTimeout(function() {
+    	    $('header.flash').animate({height: '0px'}, 500);
+    	}, 2000);
+    });
+    </script>
     ${select('script')}
   </head>
   <body py:match="body">
     <div class="container">
-      <header class="span-24">
-        <ul py:if="r.session.peek_flash('info') or r.session.peek_flash('warn') or r.session.peek_flash('auth')" class="flash no-symbol no-margin">
+      <header class="span-20 flash">
+        <ul py:if="r.session.peek_flash('info') or r.session.peek_flash('warn') or r.session.peek_flash('auth')" class="no-symbol no-margin">
           <li py:for="flash in r.session.pop_flash('info')" class="info">${flash}</li>
           <li py:for="flash in r.session.pop_flash('warn')" class="warn">${flash}</li>
           <li py:for="flash in r.session.pop_flash('auth')" class="warn">${flash}</li>
