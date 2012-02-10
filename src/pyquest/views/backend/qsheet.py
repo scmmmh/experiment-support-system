@@ -70,7 +70,7 @@ def new_qsheet(request):
                         dbsession.flush()
                         qsid = qsheet.id
                     request.session.flash('Survey page added', 'info')
-                    raise HTTPFound(request.route_url('survey.qsheet.edit',
+                    raise HTTPFound(request.route_url('survey.qsheet.view',
                                                       sid=request.matchdict['sid'],
                                                       qsid=qsid))
                 except api.Invalid as e:
@@ -79,6 +79,42 @@ def new_qsheet(request):
                             'e': e}
             else:
                 return {'survey': survey}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='survey.qsheet.view')
+@render({'text/html': 'backend/qsheet/view.html'})
+def view(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+    user = current_user(request)
+    if survey and qsheet:
+        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+            example = {'did': 0}
+            if survey.all_items:
+                example['did'] = survey.all_items[0].id
+                for attr in survey.all_items[0].attributes:
+                    example[attr.key] = attr.value
+            if request.method == 'POST':
+                schema = pickle.loads(str(qsheet.schema))
+                validator = PageSchema(schema, [example])
+                try:
+                    validator.to_python(request.POST, ValidationState(request=request))
+                except api.Invalid as ie:
+                    ie = flatten_invalid(ie)
+                    ie.params = request.POST
+                    return {'survey': survey,
+                            'qsheet': qsheet,
+                            'example': example,
+                            'e': ie}
+            return {'survey': survey,
+                    'qsheet': qsheet,
+                    'example': example}
         else:
             redirect_to_login(request)
     else:
@@ -145,41 +181,6 @@ def delete_qsheet(request):
             else:
                 return {'survey': survey,
                         'qsheet': qsheet}
-        else:
-            redirect_to_login(request)
-    else:
-        raise HTTPNotFound()
-
-@view_config(route_name='survey.qsheet.preview')
-@render({'text/html': 'backend/qsheet/preview.html'})
-def preview_qsheet(request):
-    dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                 QSheet.survey_id==request.matchdict['sid'])).first()
-    user = current_user(request)
-    if survey and qsheet:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
-            example = {'did': 0}
-            if survey.all_items:
-                example['did'] = survey.all_items[0].id
-                for attr in survey.all_items[0].attributes:
-                    example[attr.key] = attr.value
-            if request.method == 'POST':
-                schema = pickle.loads(str(qsheet.schema))
-                validator = PageSchema(schema, [example])
-                try:
-                    validator.to_python(request.POST, ValidationState(request=request))
-                except api.Invalid as ie:
-                    ie = flatten_invalid(ie)
-                    ie.params = request.POST
-                    return {'survey': survey,
-                            'qsheet': qsheet,
-                            'example': example,
-                            'e': ie}
-            return {'survey': survey,
-                    'qsheet': qsheet,
-                    'example': example}
         else:
             redirect_to_login(request)
     else:

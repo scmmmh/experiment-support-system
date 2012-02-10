@@ -26,6 +26,7 @@
   </head>
   <body>
     <div class="container">
+      ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)})], r)}
       ${h.ui.main_menu('pages', survey, r)}
       <nav class="toolbar">
         <ul>
@@ -46,7 +47,7 @@
         </hgroup>
         <p class="success" py:if="r.method == 'POST' and not e">Your submission passed the validation</p>
         <p class="error" py:if="r.method == 'POST' and e">Unfortunately your submission did not pass the validation</p>
-        <form action="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" method="post">
+        <form action="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" method="post">
           ${h.form.hidden_field('items.%i.csrf_token_' % (example['did']), r.session.get_csrf_token())}
           ${h.qsheet.display(example, qsheet.content, e)}
           <ul class="buttons">

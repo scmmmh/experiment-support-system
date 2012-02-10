@@ -2,13 +2,14 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>${survey.title} - Add page</title>
+    <title>${survey.title} - Add Page</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), ('Add Page', {'href': r.route_url('survey.qsheet.new', sid=survey.id)})], r)}
     ${h.ui.main_menu('pages', survey, r)}
     <article>
       <hgroup>
-        <h1>${survey.title} - Add page</h1>
+        <h1>${survey.title} - Add Page</h1>
       </hgroup>
       <form action="${r.route_url('survey.qsheet.new', sid=survey.id)}" method="post">
         ${h.form.csrf_token(r.session.get_csrf_token())}

@@ -5,6 +5,7 @@
     <title>${survey.title} - Edit</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Edit', {'href': r.route_url('survey.edit', sid=survey.id)})], r)}
     ${h.ui.main_menu('survey', survey, r)}
     <article>
       <hgroup>

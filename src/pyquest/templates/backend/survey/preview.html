@@ -26,6 +26,7 @@
   </head>
   <body>
     <div class="container">
+      ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Preview', {'href': r.route_url('survey.preview', sid=survey.id)})], r)}
       ${h.ui.main_menu('preview', survey, r)}
     </div>
     <article class="survey">
@@ -34,9 +35,9 @@
       </hgroup>
       <section py:for="qsheet in survey.qsheets" class="qsheet">
         <hgroup>
-          <h1><a href="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h1>
+          <h1><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h1>
         </hgroup>
-        <form action="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" method="post">
+        <form action="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" method="post">
           ${h.form.hidden_field('items.%i.csrf_token_' % (example['did']), r.session.get_csrf_token())}
           ${h.qsheet.display(example, qsheet.content, e)}
           <ul class="buttons">

@@ -5,6 +5,7 @@
     <title>${survey.title} - Data</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id)})], r)}
     ${h.ui.main_menu('data', survey, r)}
     <nav class="toolbar">
       <ul>

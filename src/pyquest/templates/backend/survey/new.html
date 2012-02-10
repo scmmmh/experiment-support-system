@@ -5,6 +5,7 @@
     <title>New Survey</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('New Survey', {'href': r.route_url('survey.new')})], r)}
     <nav class="level-1">
       <ul>
         <li><a href="${r.route_url('survey')}" class="no-tab" style="font-weight:normal;">&larr; All my surveys</a></li>

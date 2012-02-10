@@ -5,6 +5,7 @@
     <title>${survey.title} - Pages</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)})], r)}
     ${h.ui.main_menu('pages', survey, r)}
     <nav class="toolbar">
       <ul>
@@ -24,7 +25,7 @@
         </thead>
         <tbody>
           <tr py:for="qsheet in survey.qsheets">
-            <td><a href="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></td>
+            <td><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></td>
             <td>
               <ul class="no-symbol inline no-margin">
                 <li><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" class="button">Edit</a></li>
