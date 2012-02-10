@@ -31,7 +31,7 @@
               <td>${item.control}</td>
               <td py:for="attribute in item.attributes">${attribute.value}</td>
               <td>
-                <ul class="span-3 inline no-symbol">
+                <ul class="span-3 inline no-symbol no-margin">
                   <li><a href="${r.route_url('survey.data.edit', sid=survey.id, did=item.id)}" class="button">Edit</a></li>
                   <li><a href="${r.route_url('survey.data.delete', sid=survey.id, did=item.id)}" class="button">Delete</a></li>
                 </ul>
