@@ -14,8 +14,8 @@
       <form action="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}" method="post">
         ${h.form.csrf_token(r.session.get_csrf_token())}
         <p>Please confirm that you wish to delete the page "${qsheet.title}".</p>
-        <ul class="buttons span-6">
-          <li>${h.form.button("Don't delete", class_='button')}</li>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't delete", class_='button', onclick="document.location='%s'" % r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id))}</li>
           <li>${h.form.submit('Delete', class_='button')}</li>
         </ul>
       </form>

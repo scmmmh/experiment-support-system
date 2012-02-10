@@ -5,6 +5,7 @@
     <title>${survey.title} - Delete Data</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id)}), ('Delete', {'href': r.route_url('survey.data.delete', sid=survey.id, did=data_item.id)})], r)}
     ${h.ui.main_menu('data', survey, r)}
     <article>
       <hgroup>
@@ -21,8 +22,8 @@
             <dd>${attribute.value}</dd>
           </py:for>
         </dl>
-        <ul class="buttons span-12">
-          <li>${h.form.button("Don't delete", class_='button')}</li>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't delete", class_='button', onclick="document.location='%s'" % r.route_url('survey.data', sid=survey.id))}</li>
           <li>${h.form.submit('Delete', class_='button')}</li>
         </ul>
       </form>

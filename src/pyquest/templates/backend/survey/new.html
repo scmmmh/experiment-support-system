@@ -24,7 +24,7 @@
           <dd>${h.form.textarea('content', survey.content, e, class_='span-22')}</dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't create", class_='button')}</li>
+          <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('survey'))}</li>
           <li>${h.form.submit('Create', class_='button')}</li>
         </ul>
       </form>

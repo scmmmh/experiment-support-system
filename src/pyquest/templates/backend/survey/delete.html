@@ -15,8 +15,8 @@
         ${h.form.csrf_token(r.session.get_csrf_token())}
         <p>Please confirm that you wish to delete the survey "${survey.title}" including its
           pages, data, and results.</p>
-        <ul class="buttons span-6">
-          <li>${h.form.button("Don't delete", class_='button')}</li>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't delete", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id))}</li>
           <li>${h.form.submit('Delete', class_='button')}</li>
         </ul>
       </form>

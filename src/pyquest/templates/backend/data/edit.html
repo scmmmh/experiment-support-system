@@ -5,6 +5,7 @@
     <title>${survey.title} - Edit Data</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id)}), ('Edit', {'href': r.route_url('survey.data.edit', sid=survey.id, did=data_item.id)})], r)}
     ${h.ui.main_menu('data', survey, r)}
     <article>
       <hgroup>
@@ -20,8 +21,8 @@
             <dd>${h.form.text_field(attribute.key, attribute.value, e, class_='span-12')}</dd>
           </py:for>
         </dl>
-        <ul class="buttons span-12">
-          <li>${h.form.button("Don't update", class_='button')}</li>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.data', sid=survey.id))}</li>
           <li>${h.form.submit('Update', class_='button')}</li>
         </ul>
       </form>
