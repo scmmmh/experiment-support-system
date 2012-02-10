@@ -61,10 +61,12 @@ def template_defaults(request):
 def match_response_type(view_content_types, request):
     accept_header = unicode(request.accept)
     if request.matchdict and 'ext' in request.matchdict and request.matchdict['ext']:
-        if request.matchdict['ext'] == '.html':
+        if request.matchdict['ext'] == 'html':
             accept_header = 'text/html'
-        elif request.matchdict['ext'] == '.json':
+        elif request.matchdict['ext'] == 'json':
             accept_header = 'application/json'
+        elif request.matchdict['ext'] == 'csv':
+            accept_header = 'text/csv'
     response_type = mimeparse.best_match(view_content_types.keys(), accept_header)
     if not response_type or response_type not in view_content_types:
         raise HTTPNotAcceptable()
