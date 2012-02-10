@@ -3,6 +3,14 @@
   <xi:include href="../../layout/backend.html"/>
   <head>
     <title>${survey.title} - Data</title>
+    <script type="text/javascript">
+      $(document).ready(function() {
+    	  $('#data-filter-form input[type=submit]').hide();
+    	  $('#data-filter-form select').change(function(ev, ui) {
+    		 $('#data-filter-form').submit(); 
+    	  });
+      });
+    </script>
   </head>
   <body>
     ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id)})], r)}
@@ -18,7 +26,13 @@
       <hgroup>
         <h1>${survey.title} - Data</h1>
       </hgroup>
-      <div class="span-24" style="overflow:auto;height:600px;">
+      <div class="text-right">
+        <form id="data-filter-form" action="" method="get">
+          ${h.form.select('show', show, [('all', 'All items'), ('data', 'Data items'), ('control', 'Control items')], e)}
+          ${h.form.submit('Update', class_='button')}
+        </form>
+      </div>
+      <div class="span-24" style="overflow:auto;">
         <table>
           <thead>
             <tr py:if="survey.data_items">
@@ -28,7 +42,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr py:for="item in survey.all_items">
+            <tr py:for="item in items">
               <td>${item.control}</td>
               <td py:for="attribute in item.attributes">${attribute.value}</td>
               <td>
@@ -41,6 +55,7 @@
           </tbody>
         </table>
       </div>
+      ${h.ui.pager(page, pages, r)}
     </article>
   </body>
 </html>

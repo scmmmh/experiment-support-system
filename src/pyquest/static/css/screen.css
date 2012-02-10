@@ -81,6 +81,7 @@ caption {background:#eee;}
 .top {margin-top:0;padding-top:0;}
 .bottom {margin-bottom:0;padding-bottom:0;}
 .center {text-align:center;}
+.text-right {text-align:right;}
 
 /* forms.css */
 label {font-weight:bold;}

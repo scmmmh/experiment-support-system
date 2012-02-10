@@ -5,6 +5,7 @@ Created on 24 Jan 2012
 @author: mhall
 '''
 import csv
+import math
 import transaction
 
 from formencode import Schema, validators, api
@@ -28,7 +29,28 @@ def index(request):
     user = current_user(request)
     if survey:
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
-            return {'survey': survey}
+            show = 'all'
+            items = dbsession.query(DataItem)
+            if 'show' in request.params:
+                if request.params['show'] == 'data':
+                    show = 'data'
+                    items = items.filter(DataItem.control==False)
+                elif request.params['show'] == 'control':
+                    show = 'control'
+                    items = items.filter(DataItem.control==True)
+            pages = int(math.ceil(items.count() / 10.0))
+            page = 1
+            if 'page' in request.params:
+                try:
+                    page = int(request.params['page'])
+                except:
+                    page = 1
+            items = items.offset((page - 1) * 10).limit(10)
+            return {'survey': survey,
+                    'show': show,
+                    'items': items,
+                    'page': page,
+                    'pages': pages}
         else:
             redirect_to_login(request)
     else:

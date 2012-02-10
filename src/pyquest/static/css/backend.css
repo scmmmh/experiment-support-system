@@ -18,4 +18,10 @@ nav.breadcrumbs ol li.current a {font-weight:bold;}
 article {margin-top:1em;}
 ul.buttons {margin:0;padding:0;text-align:right;}
 ul.buttons li {list-style-type:none;display:inline-block;}
+nav.pager {text-align:center;}
+nav.pager ol {margin:1em 0;padding:0;}
+nav.pager ol li {list-style-type:none;display:inline-block;margin:0 0.4em;}
+nav.pager ol li a {text-decoration:none;}
+nav.pager ol li a:hover {text-decoration:underline;}
+nav.pager ol li.current a {font-weight: bold;}
 footer {font-size:0.8em;text-align:center;padding-top:0.5em;margin-top:2em;border-top:1px dashed #0066cc;}

@@ -21,3 +21,13 @@ def main_menu(current, survey, request):
                     ('results', 'Results', {'href': request.route_url('survey.results', sid=survey.id)})],
                    current,
                    class_='level-1')
+
+def pager(page, pages, request):
+    query = {'show': 'all'}
+    if 'show' in request.params:
+        if request.params['show'] == 'data':
+            query['show'] = 'data'
+        elif request.params['show'] == 'control':
+            query['show'] = 'control'
+    base_url = request.current_route_url(_query=query)
+    return ui.pager(base_url, page, pages)
