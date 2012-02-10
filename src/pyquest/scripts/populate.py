@@ -46,7 +46,7 @@ def main(argv=sys.argv):
     <pq:data count="5"/>
     <pq:control count="0"/>
   </pq:data_items>
-</pq:repeat>""")
+</pq:repeat>""", summary='A simple test survey')
         survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
         survey.owner = user
         qsheet = QSheet(title='Welcome', content="""<p>Thank you for participating

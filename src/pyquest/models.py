@@ -85,6 +85,7 @@ class Survey(Base):
     
     id = Column(Integer, primary_key=True)
     title = Column(Unicode)
+    summary = Column(Unicode)
     content = Column(UnicodeText)
     schema = Column(Text)
     owned_by = Column(ForeignKey(User.id), default=func.now())
