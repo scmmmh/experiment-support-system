@@ -6,16 +6,16 @@
   </head>
   <body>
     ${h.ui.main_menu('data', survey, r)}
-    <nav class="level-2">
+    <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.data.upload', sid=survey.id)}">Upload data</a></li>
-        <li><a href="${r.route_url('survey.data.new', sid=survey.id)}">Add data</a></li>
-        <li><a href="${r.route_url('survey.data.clear', sid=survey.id)}">Clear data</a></li>
+        <li><a href="${r.route_url('survey.data.upload', sid=survey.id)}" class="button">Upload data</a></li>
+        <li><a href="${r.route_url('survey.data.new', sid=survey.id)}" class="button">Add data</a></li>
+        <li><a href="${r.route_url('survey.data.clear', sid=survey.id)}" class="button">Clear data</a></li>
       </ul>
     </nav>
     <article>
       <hgroup>
-        <h1>Data</h1>
+        <h1>${survey.title} - Data</h1>
       </hgroup>
       <div class="span-24" style="overflow:auto;height:600px;">
         <table>

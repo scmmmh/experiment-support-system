@@ -26,12 +26,20 @@
   </head>
   <body>
     <div class="container">
-      ${h.ui.main_menu('preview', survey, r)}
+      ${h.ui.main_menu('pages', survey, r)}
+      <nav class="toolbar">
+        <ul>
+          <li><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" class="button">Edit</a></li>
+          <li><a href="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}" class="button">Delete</a></li>
+        </ul>
+      </nav>
+      <article>
+        <hgroup>
+          <h1>${survey.title}</h1>
+        </hgroup>
+      </article>
     </div>
     <article class="survey">
-      <hgroup>
-        <h1>${survey.title}</h1>
-      </hgroup>
       <section class="qsheet">
         <hgroup>
           <h1>${qsheet.title}</h1>

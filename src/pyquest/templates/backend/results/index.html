@@ -6,9 +6,9 @@
   </head>
   <body>
     ${h.ui.main_menu('results', survey, r)}
-    <nav class="level-2">
+    <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.results.download', sid=survey.id)}">Download</a></li>
+        <li><a href="${r.route_url('survey.results.download', sid=survey.id)}" class="button">Download</a></li>
       </ul>
     </nav>
     <article>

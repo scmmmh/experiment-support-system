@@ -2,20 +2,13 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>${survey.title} - Data - Add</title>
+    <title>${survey.title} - Add Data</title>
   </head>
   <body>
     ${h.ui.main_menu('data', survey, r)}
-    <nav class="level-2">
-      <ul>
-        <li><a href="${r.route_url('survey.data.upload', sid=survey.id)}">Upload data</a></li>
-        <li class="current"><a href="${r.route_url('survey.data.new', sid=survey.id)}">Add data</a></li>
-        <li><a href="${r.route_url('survey.data.clear', sid=survey.id)}">Clear data</a></li>
-      </ul>
-    </nav>
     <article>
       <hgroup>
-        <h1>Add</h1>
+        <h1>${survey.title} - Add Data</h1>
       </hgroup>
       <form action="${r.route_url('survey.data.new', sid=survey.id, did=data_item.id)}" method="post">
         ${h.form.csrf_token(r.session.get_csrf_token())}

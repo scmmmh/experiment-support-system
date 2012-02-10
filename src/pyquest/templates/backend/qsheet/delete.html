@@ -5,12 +5,7 @@
     <title>${survey.title} - ${qsheet.title} - Delete</title>
   </head>
   <body>
-    ${h.ui.main_menu('edit', survey, r)}
-    <nav class="level-2">
-      <ul>
-        <li><a href="${r.route_url('survey.qsheet', sid=survey.id)}">Pages</a></li>
-      </ul>
-    </nav>
+    ${h.ui.main_menu('pages', survey, r)}
     <article>
       <hgroup>
         <h1>Delete - ${qsheet.title}</h1>

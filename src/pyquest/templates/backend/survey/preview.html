@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>${survey.title}</title>
+    <title>${survey.title} - Preview</title>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/screen.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
@@ -30,7 +30,7 @@
     </div>
     <article class="survey">
       <hgroup>
-        <h1>${survey.title}</h1>
+        <h1>${survey.title} - Preview</h1>
       </hgroup>
       <section py:for="qsheet in survey.qsheets" class="qsheet">
         <hgroup>

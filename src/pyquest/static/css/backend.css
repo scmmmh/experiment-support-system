@@ -14,6 +14,7 @@ nav.level-2 ul li.current a, nav.level-2 ul li a:hover {background-color:#0066cc
 nav.level-3 ul {padding:0 1em 0 4em;border-top:1px solid #0066cc;background-color:#c3d9ff;}
 nav.level-3 ul li a {font-size:1em;font-weight:bold;}
 nav.level-3 ul li.current a, nav.level-3 ul li a:hover {font-size:1em;font-weight:bold;background-color:#0066cc;color:#ffffff;}
+nav.toolbar {background-color:#f0f0f0;padding: 0 1em 0 1em;}
 article {margin-top:1em;}
 ul.buttons {margin:0;padding:0;text-align:right;}
 ul.buttons li {list-style-type:none;display:inline-block;}

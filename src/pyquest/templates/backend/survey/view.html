@@ -5,7 +5,14 @@
     <title>${survey.title}</title>
   </head>
   <body>
-    ${h.ui.main_menu('overview', survey, r)}
+    ${h.ui.main_menu('survey', survey, r)}
+    <nav class="toolbar">
+      <ul>
+        <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button">Add page</a></li>
+        <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
+        <li><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button">Delete</a></li>
+      </ul>
+    </nav>
     <article>
       <hgroup>
         <h1>${survey.title}</h1>
@@ -13,7 +20,7 @@
       <table>
         <thead>
           <tr>
-            <th class="center">Question Sheets</th>
+            <th class="center">Pages</th>
             <th class="center">Data Items</th>
             <th class="center">Control Items</th>
             <th class="center">Participants</th>

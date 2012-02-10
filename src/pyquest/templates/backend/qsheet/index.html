@@ -5,15 +5,10 @@
     <title>${survey.title} - Pages</title>
   </head>
   <body>
-    ${h.ui.main_menu('edit', survey, r)}
-    <nav class="level-2">
+    ${h.ui.main_menu('pages', survey, r)}
+    <nav class="toolbar">
       <ul>
-        <li class="current"><a href="${r.route_url('survey.qsheet', sid=survey.id)}">Pages</a></li>
-      </ul>
-    </nav>
-    <nav class="level-3">
-      <ul>
-        <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}">New page</a></li>
+        <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button">Add page</a></li>
       </ul>
     </nav>
     <article>
@@ -23,16 +18,16 @@
       <table>
         <thead>
           <tr>
-            <th>Sheet</th>
+            <th>Page</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
           <tr py:for="qsheet in survey.qsheets">
-            <td><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></td>
+            <td><a href="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></td>
             <td>
               <ul class="no-symbol inline no-margin">
-                <li><a href="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" class="button">Preview</a></li>
+                <li><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" class="button">Edit</a></li>
                 <li><a href="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}" class="button">Delete</a></li>
               </ul>
             </td>

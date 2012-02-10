@@ -5,15 +5,10 @@
     <title>${survey.title} - Edit</title>
   </head>
   <body>
-    ${h.ui.main_menu('edit', survey, r)}
-    <nav class="level-2">
-      <ul>
-        <li><a href="${r.route_url('survey.qsheet', sid=survey.id)}">Pages</a></li>
-      </ul>
-    </nav>
+    ${h.ui.main_menu('survey', survey, r)}
     <article>
       <hgroup>
-        <h1>Edit - ${survey.title}</h1>
+        <h1>${survey.title} - Edit</h1>
       </hgroup>
       <form action="${r.route_url('survey.edit', sid=survey.id)}" method="post">
         ${h.form.csrf_token(r.session.get_csrf_token())}
