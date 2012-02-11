@@ -101,6 +101,7 @@ def run_survey(request):
                     'qsheet': qsheet,
                     'data_items': data_items}
         elif request.method == 'POST':
+            print request.POST
             if 'survey.%s' % request.matchdict['sid'] not in request.cookies:
                 raise HTTPFound(request.route_url('survey.run', qsid=request.matchdict['qsid']))
             state = pickle.loads(str(request.cookies['survey.%s' % request.matchdict['sid']]))
@@ -127,6 +128,11 @@ def run_survey(request):
                 del state['dids']
                 if next_qsid:
                     response = HTTPFound(request.route_url('survey.run', sid=survey.id, qsid=next_qsid))
+                    response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
+                    raise response
+                else:
+                    response = HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
+                    state['qsid'] = 'finished'
                     response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
                     raise response
             except api.Invalid as ie:
