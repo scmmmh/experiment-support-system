@@ -116,6 +116,98 @@ of the following url, based on its title</p>
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/10.html'))
         survey.all_items.append(data_item)
         DBSession.add(survey)
+        survey = Survey(title='Tests all question types', content='''<pq:single qsid="3"/>
+<pq:single qsid="4"/>
+<pq:single qsid="5"/>
+<pq:single qsid="6"/>''')
+        survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
+        qsheet = QSheet(name='p1', title='Page 1', content='''<p>This is the first page, demonstrating the different input field types.</p>
+<pq:short_text name="short_text" title="This is a (required) pq:short_text question" required="true"/>
+<pq:long_text name="long_text" title="A pq:long_text question"/>
+<pq:number name="number" title="The pq:number question only allows numbers to be input" min="2" max="10" step="2"/>
+<pq:email name="email" title="The pq:email question forces a valid e-mail address"/>
+<pq:url name="url" title="The pq:url question forces a http or https URL"/>
+<pq:date name="date" title="The pq:date question requires a valid date"/>
+<pq:time name="time" title="The pq:time question requires a valid time"/>
+<pq:datetime name="datetime" title="The pq:datetime question requires a valid date and time"/>
+<pq:month name="month" title="The pq:month question requires a month number between 1 and 12 or at least three letters of the English month name"/>
+''')
+        qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
+        survey.qsheets.append(qsheet)
+        survey.owner = user
+        qsheet = QSheet(name='p2', title='Page 2', content='''<p>This page demonstrates the available single-choice questions</p>
+<pq:rating name="rating_1" title="The pq:rating question provides a choice of answers" min_value="1" min_title="First" max_value="5" max_title="Last"/>
+<pq:rating name="rating_2" min_value="1" min_title="First" max_value="5" max_title="Last" hide_extra_labels="true"/>
+<pq:rating name="rating_3" title="The pq:option element is used to define the choices">
+  <pq:option value="1" title="First"/>
+  <pq:option value="2"/>
+  <pq:option value="3" title="Middle"/>
+  <pq:option value="4"/>
+  <pq:option value="5" title="Last"/>
+</pq:rating>
+<pq:rating_group name="rating_group" title="The pq:rating_group creates a grid of questions and answers">
+  <pq:option value="1" title="First"/>
+  <pq:option value="2"/>
+  <pq:option value="3" title="Middle"/>
+  <pq:option value="4"/>
+  <pq:option value="5" title="Last"/>
+  <pq:rating name="question_1" title="Question 1"/>
+  <pq:rating name="question_2" title="Question 2"/>
+  <pq:rating name="question_3" title="Question 3"/>
+</pq:rating_group>
+<pq:listchoice name="rating_4" title="The pq:listchoice displays the options as a list">
+  <pq:option value="1" title="A"/>
+  <pq:option value="2" title="B"/>
+  <pq:option value="3" title="C"/>
+  <pq:option value="4" title="D"/>
+  <pq:option value="5" title="E"/>
+</pq:listchoice>
+<pq:selectchoice name="rating_5" title="The pq:selectchoice displays the options as a select box">
+  <pq:option value="1" title="A"/>
+  <pq:option value="2" title="B"/>
+  <pq:option value="3" title="C"/>
+  <pq:option value="4" title="D"/>
+  <pq:option value="5" title="E"/>
+</pq:selectchoice>
+''')
+        qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
+        survey.qsheets.append(qsheet)
+        survey.owner = user
+        qsheet = QSheet(name='p3', title='Page 3', content='''<p>This page demonstrates the multi-choice questions.</p>
+<pq:multichoice name="multichoice" title="The pq:multichoice question allows multiple answers">
+  <pq:option value="1" title="A"/>
+  <pq:option value="2" title="B"/>
+  <pq:option value="3" title="C"/>
+  <pq:option value="4" title="D"/>
+  <pq:option value="5" title="E"/>
+</pq:multichoice>
+<pq:multichoice_group name="multichoice_group" title="The pq:multichoice_group question allows multiple questions with the same possible answers to be grouped">
+  <pq:option value="1" title="A"/>
+  <pq:option value="2" title="B"/>
+  <pq:option value="3" title="C"/>
+  <pq:option value="4" title="D"/>
+  <pq:option value="5" title="E"/>
+  <pq:multichoice name="q1" title="Question 1"/>
+  <pq:multichoice name="q2" title="Question 2"/>
+  <pq:multichoice name="q3" title="Question 3"/>
+</pq:multichoice_group>
+''')
+        qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
+        survey.qsheets.append(qsheet)
+        survey.owner = user
+        qsheet = QSheet(name='p4', title='Page 4', content='''<p>This page demonstrates the remaining question types</p>
+<pq:confirm name="confirm" title="The pq:confirm question gets a yes/no decision" required="true"/>
+<pq:ranking name="ranking" title="The pq:ranking question gets a ranking of pq:options">
+  <pq:option value="cat" title="Cat"/>
+  <pq:option value="dog" title="Dog"/>
+  <pq:option value="mouse" title="Mouse"/>
+  <pq:option value="horse" title="Horse"/>
+  <pq:option value="elephant" title="Elephant"/>
+</pq:ranking>''')
+        qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
+        survey.qsheets.append(qsheet)
+        survey.owner = user
+        DBSession.add(survey)
         user = User(u'mahall', u'm.mhall@sheffield.ac.uk', u'Mark')
         DBSession.add(user)
         survey = Survey(title='Auth test')
