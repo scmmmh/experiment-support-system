@@ -42,6 +42,18 @@ def index(request):
     else:
         raise HTTPNotFound()
 
+def flatten_answers(question, answer):
+    if isinstance(answer, list):
+        return map(lambda a: (question, a), answer)
+    elif isinstance(answer, dict):
+        tmp = []
+        for (key, value) in answer.items():
+            for (question2, answer2) in flatten_answers(key, value):
+                tmp.append(('%s.%s' % (question, question2), answer2))
+        return tmp
+    else:
+        return [(question, answer)]
+
 @view_config(route_name='survey.results.data')
 @view_config(route_name='survey.results.data.ext')
 @render({'text/html': 'backend/results/data.html', 'text/csv': ''})
@@ -68,17 +80,19 @@ def raw_data(request):
                         for (did, questions) in value['items'].items():
                             for (question, answer) in questions.items():
                                 if not question.endswith('_'):
-                                    row = {'page': qsid_mapping[qsid],
-                                           'data_id': did,
-                                           'participant_id': participant.id,
-                                           'question': question,
-                                           'answer': answer}
-                                    if did != 'none':
-                                        data_item = dbsession.query(DataItem).filter(DataItem.id==did).first()
-                                        if data_item:
-                                            for attr in data_item.attributes:
-                                                row[attr.key] = attr.value
-                                    rows.append(row)
+                                    flat_items = flatten_answers(question, answer)
+                                    for(question, answer) in flat_items:
+                                        row = {'page': qsid_mapping[qsid],
+                                               'data_id': did,
+                                               'participant_id': participant.id,
+                                               'question': question,
+                                               'answer': answer}
+                                        if did != 'none':
+                                            data_item = dbsession.query(DataItem).filter(DataItem.id==did).first()
+                                            if data_item:
+                                                for attr in data_item.attributes:
+                                                    row[attr.key] = attr.value
+                                        rows.append(row)
             return {'columns': columns,
                     'rows': rows,
                     'survey': survey}
@@ -133,36 +147,49 @@ def participant(request):
             rows = []
             columns = []
             did_mapping = {}
+            for data_item in survey.all_items:
+                if data_identifier:
+                    for attr in data_item.attributes:
+                        if attr['key'] == data_identifier:
+                            did_mapping[unicode(data_item.id)] = attr['value']
+                            break
+                else:
+                    did_mapping[unicode(data_item.id)] = unicode(data_item.id)
             qsid_mapping = {}
-            for qsheet in survey.qsheets:
+            schema = pickle.loads(str(survey.schema))
+            for sheet in schema:
+                qsheet = dbsession.query(QSheet).filter(QSheet.id==sheet['qsid']).first()
                 qsid_mapping[unicode(qsheet.id)] = qsheet.name
-            for participant in survey.participants:
-                answers = pickle.loads(str(participant.answers))
-                row = {'participant_id': participant.id}
-                for (qsid, value) in answers.items():
-                    if 'items' in value:
-                        for (did, questions) in value['items'].items():
-                            for question in questions.keys():
-                                if not question.endswith('_'):
-                                    if did == 'none':
-                                        column_id = '%s.%s' % (qsid_mapping[qsid], question)
+                qs_schema = pickle.loads(str(qsheet.schema))
+                for (question, attr) in qs_schema.items():
+                    if attr['type'] in ['multi_in_list', 'all_in_list']:
+                        for value in attr['values']:
+                            if 'data_items' in sheet:
+                                for data_item in survey.all_items:
+                                    columns.append('%s.%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, value, did_mapping[unicode(data_item.id)]))
+                            else:
+                                columns.append('%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, value))
+                    elif attr['type'] == 'compound':
+                        for (sub_question, sub_attr) in attr['fields'].items():
+                            if sub_attr['type'] == 'multi_in_list':
+                                for sub_value in sub_attr['values']:
+                                    if 'data_items' in sheet:
+                                        for data_item in survey.all_items:
+                                            columns.append('%s.%s.%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, sub_question, sub_value, did_mapping[unicode(data_item.id)]))
                                     else:
-                                        if data_identifier:
-                                            data_item = dbsession.query(DataItem).filter(DataItem.id==did).first()
-                                            if data_item:
-                                                for attr in data_item.attributes:
-                                                    if attr.key == data_identifier:
-                                                        did_mapping[did] = attr.value
-                                                        column_id = '%s.%s.%s' % (qsid_mapping[qsid], question, attr.value)
-                                                        break
-                                            else:
-                                                did_mapping[did] = did
-                                                column_id = '%s.%s.%s' % (qsid_mapping[qsid], question, did)
-                                        else:
-                                            did_mapping[did] = did
-                                            column_id = '%s.%s.%s' % (qsid_mapping[qsid], question, did)
-                                    if column_id not in columns:
-                                        columns.append(column_id)
+                                        columns.append('%s.%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, sub_question, sub_value))
+                            else:
+                                if 'data_items' in sheet:
+                                    for data_item in survey.all_items:
+                                        columns.append('%s.%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, sub_question, did_mapping[unicode(data_item.id)]))
+                                else:
+                                    columns.append('%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, sub_question))
+                    else:
+                        if 'data_items' in sheet:
+                            for data_item in survey.all_items:
+                                columns.append('%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, did_mapping[unicode(data_item.id)]))
+                        else:
+                            columns.append('%s.%s' % (qsid_mapping[unicode(qsheet.id)], question))
             columns.sort(cmp=cmp_columns)
             columns.insert(0, 'participant_id')
             for participant in survey.participants:
@@ -173,10 +200,23 @@ def participant(request):
                         for (did, questions) in value['items'].items():
                             for (question, answer) in questions.items():
                                 if not question.endswith('_'):
-                                    if did == 'none':
-                                        row['%s.%s' % (qsid_mapping[qsid], question)] = answer
-                                    else:
-                                        row['%s.%s.%s' % (qsid_mapping[qsid], question, did_mapping[did])] = answer
+                                    for (flat_question, flat_answer) in flatten_answers(question, answer):
+                                        if did == 'none':
+                                            question_id = '%s.%s' % (qsid_mapping[qsid], flat_question)
+                                            if question_id in columns:
+                                                row[question_id] = flat_answer
+                                            else:
+                                                question_id = '%s.%s.%s' % (qsid_mapping[qsid], flat_question, flat_answer)
+                                                if question_id in columns:
+                                                    row[question_id] = 1
+                                        else:
+                                            question_id = '%s.%s.%s' % (qsid_mapping[qsid], flat_question, did_mapping[did])
+                                            if question_id in columns:
+                                                row[question_id] = flat_answer
+                                            else:
+                                                question_id = '%s.%s.%s.%s' % (qsid_mapping[qsid], flat_question, flat_answer, did_mapping[did])
+                                                if question_id in columns:
+                                                    row[question_id] = 1
                 rows.append(row)
             return {'columns': columns,
                     'rows': rows,
