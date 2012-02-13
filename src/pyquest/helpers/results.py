@@ -91,23 +91,5 @@ def question_summary(qsheet, data_item, question, question_attr, participants):
         return summary_single_in_list(qsheet, data_item, question, question_attr, participants)
     elif question_attr['type'] == 'multi_in_list':
         return summary_multi_in_list(qsheet, data_item, question, question_attr, participants)
-    elif question_attr['type'] == 'number':
-        return summary_count(qsheet, data_item, question, participants)
-    elif question_attr['type'] == 'unicode':
-        return summary_count(qsheet, data_item, question, participants)
-    elif question_attr['type'] == 'email':
-        return summary_count(qsheet, data_item, question, participants)
-    elif question_attr['type'] == 'url':
-        return summary_count(qsheet, data_item, question, participants)
-    elif question_attr['type'] == 'date':
-        return summary_count(qsheet, data_item, question, participants)
-    elif question_attr['type'] == 'time':
-        return summary_count(qsheet, data_item, question, participants)
-    elif question_attr['type'] == 'datetime':
-        return summary_count(qsheet, data_item, question, participants)
-    elif question_attr['type'] == 'month':
-        return summary_count(qsheet, data_item, question, participants)
-    elif question_attr['type'] == 'all_in_list':
-        return summary_count(qsheet, data_item, question, participants)
     else:
         return summary_count(qsheet, data_item, question, participants)
