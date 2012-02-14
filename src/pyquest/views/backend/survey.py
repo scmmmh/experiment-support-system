@@ -235,8 +235,15 @@ def status(request):
                         survey.status = params['status']
                         dbsession.add(survey)
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
-                    raise HTTPFound(request.route_url('survey.view',
-                                                      sid=request.matchdict['sid']))
+                    if params['status'] == 'testing':
+                        raise HTTPFound(request.route_url('survey.run',
+                                                          sid=request.matchdict['sid']))
+                    elif params['status'] == 'finished':
+                        raise HTTPFound(request.route_url('survey.results',
+                                                          sid=request.matchdict['sid']))
+                    else:
+                        raise HTTPFound(request.route_url('survey.view',
+                                                          sid=request.matchdict['sid']))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
