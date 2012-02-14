@@ -179,7 +179,7 @@ def delete_qsheet(request):
                 with transaction.manager:
                     dbsession.delete(qsheet)
                 request.session.flash('Survey page deleted', 'info')
-                raise HTTPFound(request.route_url('survey.edit',
+                raise HTTPFound(request.route_url('survey.pages',
                                                   sid=request.matchdict['sid']))
             else:
                 return {'survey': survey,
