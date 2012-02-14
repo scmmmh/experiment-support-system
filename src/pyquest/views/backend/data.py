@@ -79,8 +79,7 @@ def upload(request):
                                             keys.remove(attribute.key)
                                     if len(keys) > 0:
                                         raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Extra key(s) "%s" found in the uploaded data' % ', '.join(keys)})
-                                data_item = DataItem(order=order,
-                                                     control=False)
+                                data_item = DataItem(order=order)
                                 for idx, (key, value) in enumerate(item.items()):
                                     if key != 'control':
                                         data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
