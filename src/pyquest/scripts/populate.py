@@ -18,12 +18,12 @@ from pyquest.views.backend import survey as survey_backend
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri>\n'
+    print('usage: %s <config_uri> [--no-data]\n'
           '(example: "%s development.ini")' % (cmd, cmd)) 
     sys.exit(1)
 
 def main(argv=sys.argv):
-    if len(argv) != 2:
+    if len(argv) < 2:
         usage(argv)
     config_uri = argv[1]
     setup_logging(config_uri)
@@ -31,6 +31,10 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
+    if len(argv) == 2 or argv[2] != '--no-data':
+        init_data(DBSession)
+
+def init_data(DBSession):
     with transaction.manager:
         user = User(u'mhall', u'm.mhall@sheffield.ac.uk', u'Archchancellor', u'test')
         group = Group(name='administrator')
