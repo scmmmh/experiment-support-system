@@ -12,12 +12,12 @@
       <ul>
         <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button">Add page</a></li>
         <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
-        <li><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button">Delete</a></li>
-        <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'testing'})}" class="button">Test</a></li>
-        <li py:if="survey.status == 'testing'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'develop'})}" class="button">Stop Test</a></li>
-        <li py:if="survey.status in ['develop', 'paused', 'finished']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'running'})}" class="button">Start</a></li>
-        <li py:if="survey.status == 'running'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'paused'})}" class="button">Pause</a></li>
-        <li py:if="survey.status in ['running', 'paused']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'finished'})}" class="button">Finish</a></li>
+        <li><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the survey &quot;${survey.title}&quot; including its pages, data, and results.">Delete</a></li>
+        <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'testing'})}" class="button post-submit" data-confirm="no-confirm">Test</a></li>
+        <li py:if="survey.status == 'testing'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'develop'})}" class="button post-submit" data-confirm="no-confirm">Stop Test</a></li>
+        <li py:if="survey.status in ['develop', 'paused', 'finished']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'running'})}" class="button post-submit" data-confirm="no-confirm">Start</a></li>
+        <li py:if="survey.status == 'running'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'paused'})}" class="button post-submit" data-confirm="no-confirm">Pause</a></li>
+        <li py:if="survey.status in ['running', 'paused']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'finished'})}" class="button post-submit" data-confirm="no-confirm">Finish</a></li>
       </ul>
     </nav>
     <article>

@@ -34,7 +34,7 @@
             <td>
               <ul class="no-symbol inline no-margin">
                 <li><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" class="button">Edit</a></li>
-                <li><a href="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}" class="button">Delete</a></li>
+                <li><a href="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the page &quot;${qsheet.title}&quot;.">Delete</a></li>
               </ul>
             </td>
            </tr>

@@ -6,7 +6,7 @@ def init(config):
     config.add_route('survey.view', '/surveys/{sid}')
     config.add_route('survey.edit', '/surveys/{sid}/edit')
     config.add_route('survey.delete', '/surveys/{sid}/delete')
-    config.add_route('survey.status', '/surves/{sid}/status')
+    config.add_route('survey.status', '/surveys/{sid}/status')
     config.add_route('survey.data', '/surveys/{sid}/data')
     config.add_route('survey.data.upload', '/surveys/{sid}/data/upload')
     config.add_route('survey.data.new', '/surveys/{sid}/data/new')

@@ -7,12 +7,16 @@
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
+    <script type="text/javascript" src="${r.static_url('pyquest:static/js/backend.js')}"></script>
     <script type="text/javascript">
     $(document).ready(function() {
     	setTimeout(function() {
     	    $('header.flash').animate({height: '0px'}, 500);
     	}, 2000);
+    	$('header.flash').click(function(ev, ui) {$(this).hide();});
+    	$('.post-submit').click(post_submit);
     });
+    CSRF_TOKEN = '${r.session.get_csrf_token()}';
     </script>
     ${select('script')}
   </head>
