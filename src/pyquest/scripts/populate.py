@@ -75,6 +75,7 @@ of the following url, based on its title</p>
         survey.qsheets.append(qsheet)
         qsheet = QSheet(name='finish', title='Thank you very much', content="""<p>Thank you very much
 for completing our survey. Your time and effort have been a great help.</p>""")
+        qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
         survey.qsheets.append(qsheet)
         data_item = DataItem(order=1)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the first item'))
