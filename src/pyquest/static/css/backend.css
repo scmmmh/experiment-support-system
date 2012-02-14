@@ -1,6 +1,9 @@
 /* backend */
 header.flash {position:absolute;z-index: 1;top:0;box-shadow:2px 2px 3px;overflow:hidden;margin:0 70px 0 70px;}
 header.flash li {margin:0;}
+p.survey-status {}
+p.survey-status img {padding-left:0.8em;vertical-align:middle;}
+p.survey-status span {font-size:120%;font-weight:bold;}
 nav ul {padding:0;margin:0;}
 nav ul li {list-style-type:none;display:inline-block;}
 nav ul li a {text-decoration:none;display:inline-block;padding:0.3em 0.8em;}
