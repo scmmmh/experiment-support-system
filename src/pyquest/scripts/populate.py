@@ -18,7 +18,7 @@ from pyquest.views.backend import survey as survey_backend
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri> [--no-data]\n'
+    print('usage: %s <config_uri> [--no-test-data]\n'
           '(example: "%s development.ini")' % (cmd, cmd)) 
     sys.exit(1)
 
@@ -31,19 +31,22 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
+    init_data(DBSession)
     if len(argv) == 2 or argv[2] != '--no-data':
-        init_data(DBSession)
+        init_test_data(DBSession)
 
 def init_data(DBSession):
     with transaction.manager:
         user = User(u'mhall', u'm.mhall@sheffield.ac.uk', u'Archchancellor', u'test')
-        group = Group(name='administrator')
+        group = Group(name='administrator', title='Administrator')
         group.permissions.append(Permission(name='admin.configuration'))
         group.permissions.append(Permission(name='admin.users'))
-        group.permissions.append(Permission(name='survey.edit-all'))
-        group.permissions.append(Permission(name='survey.new'))
         user.groups.append(group)
         DBSession.add(user)
+
+def init_test_data(DBSession):
+    with transaction.manager:
+        user = DBSession.query(User).first()
         survey = Survey(title='A test survey', content="""<pq:single qsid="1"/>
 <pq:repeat qsid="2">
   <pq:data_items count="5"/>
