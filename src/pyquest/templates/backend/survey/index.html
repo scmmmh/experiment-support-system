@@ -29,6 +29,7 @@
             <td>${h.survey.fancy_status(r, survey.status, class_='survey-status')}</td>
             <td>
               <ul class="inline no-symbol no-margin">
+                <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button">Add page</a></li>
                 <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
                 <li><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button">Delete</a></li>
                 <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'testing'})}" class="button post-submit" data-confirm="no-confirm">Test</a></li>
