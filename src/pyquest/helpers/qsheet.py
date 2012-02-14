@@ -4,6 +4,8 @@ Created on 20 Jan 2012
 
 @author: mhall
 '''
+from random import shuffle
+
 from decorator import decorator
 from genshi.builder import tag
 from lxml import etree
@@ -289,4 +291,5 @@ def ranking(element, item, e):
                                        name='items.%s.%s.%s' % (item['did'], element.attrib['name'], value)),
                             tag.label(title, for_='items.%s.%s.%s' % (item['did'], element.attrib['name'], value)),
                             id='items.%s.%s_%s' % (item['did'], element.attrib['name'], value)))
+    shuffle(items)
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
