@@ -1,35 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:py="http://genshi.edgewall.org/">
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../layout/frontend.html"/>
   <head>
     <title>${survey.title} - Completed</title>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/screen.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
-    <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
-    <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
-    <script type="text/javascript">
-    $(document).ready(function() {
-        $('.question.ranking ul select').hide();
-        $('.question.ranking ul').sortable({
-            update: function(e, ui) {
-                var items = $(this).sortable('toArray');
-                for(var idx in items) {
-                    console.log('#' + items[idx].replace('_', '.').replace(/\./g, '\\.'));
-                    $('#' + items[idx].replace('_', '.').replace(/\./g, '\\.')).val(idx);
-                }
-            }
-        });
-    });
-    </script>
   </head>
   <body>
-    <article class="survey">
-      <hgroup>
-        <h1>${survey.title} - Completed</h1>
-      </hgroup>
-      <p>Thank you very much for participating in this survey.</p>
-    </article>
+    <hgroup>
+      <h1>${survey.title} - Completed</h1>
+    </hgroup>
+    <p>Thank you very much for participating in this survey.</p>
+    <div py:if="survey.status == 'testing'" class="info">This survey is currently being tested and is not live yet.
+      Your answers have been recored and you can now <a href="${r.route_url('survey.run', sid=survey.id)}">test the survey again</a>,
+      if you wish to do so.</div>
   </body>
 </html>

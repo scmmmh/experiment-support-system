@@ -88,6 +88,7 @@ class Survey(Base):
     summary = Column(Unicode)
     content = Column(UnicodeText)
     schema = Column(Text)
+    status = Column(Unicode)
     owned_by = Column(ForeignKey(User.id), default=func.now())
     created_at = Column(DateTime)
     updated_at = Column(DateTime)

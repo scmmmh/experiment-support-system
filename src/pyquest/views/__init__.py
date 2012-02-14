@@ -8,4 +8,5 @@ def init(config):
     config.add_static_view(name='static.files', path='pyquest:static')
 
     config.add_route('survey.run', '/surveys/{sid}/run')
+    config.add_route('survey.run.inactive', '/surveys/{sid}/inactive')
     config.add_route('survey.run.finished', '/surveys/{sid}/finished')

@@ -68,6 +68,8 @@ def run_survey(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     if survey:
+        if survey.status not in ['running', 'testing']:
+            raise HTTPFound(request.route_url('survey.run.inactive', sid=request.matchdict['sid']))
         survey_schema = pickle.loads(str(survey.schema))
         if request.method == 'GET':
             if 'survey.%s' % request.matchdict['sid'] in request.cookies:
@@ -117,6 +119,14 @@ def run_survey(request):
                 qsheet_answers = validator.to_python(request.POST, ValidationState(request=request))
                 with transaction.manager:
                     participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
+                    if not participant:
+                        with transaction.manager:
+                            participant = Participant(survey_id=survey.id,
+                                                      answers=pickle.dumps({}))
+                            dbsession.add(participant)
+                            dbsession.flush()
+                            state['ptid'] = participant.id
+                    participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
                     pt_answers = pickle.loads(str(participant.answers))
                     if state['qsid'] in pt_answers:
                         pt_answers[state['qsid']]['items'].update(qsheet_answers['items'])
@@ -153,7 +163,18 @@ def finished_survey(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     if survey:
+        if survey.status == 'testing':
+            request.response.delete_cookie('survey.%s' % request.matchdict['sid'])
         return {'survey': survey}
     else:
         raise HTTPNotFound()
 
+@view_config(route_name='survey.run.inactive')
+@render({'text/html': 'frontend/inactive.html'})
+def inactive(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    if survey:
+        return {'survey': survey}
+    else:
+        raise HTTPNotFound()

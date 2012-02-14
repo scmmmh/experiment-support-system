@@ -15,6 +15,7 @@ from lxml import etree
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 
+from pyquest import helpers
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey)
 from pyquest.renderer import render
@@ -25,6 +26,10 @@ class SurveySchema(Schema):
     title = validators.UnicodeString(not_empty=True)
     content = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>')
     schema = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>', strip_wrapper=False)
+
+class SurveyStatusSchema(Schema):
+    csrf_token = validators.UnicodeString(not_empty=True)
+    status = validators.OneOf(['develop', 'testing', 'running', 'paused', 'finished'])
 
 def create_schema(content):
     def process(element):
@@ -112,6 +117,7 @@ def new(request):
                     survey.title = params['title']
                     survey.content = params['content']
                     survey.schema = pickle.dumps(create_schema(params['schema']))
+                    survey.status = 'develop'
                     survey.owned_by = user.id
                     dbsession.add(survey)
                     dbsession.flush()
@@ -203,6 +209,41 @@ def preview(request):
                     example[attr.key] = attr.value
             return {'survey': survey,
                     'example': example}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
+@view_config(route_name='survey.status')
+@render({'text/html': 'backend/survey/status.html'})
+def status(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    user = current_user(request)
+    if survey:
+        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+            if request.method == 'POST':
+                try:
+                    params = SurveyStatusSchema().to_python(request.POST)
+                    with transaction.manager:
+                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+                        if survey.status == 'testing' and params['status'] == 'develop':
+                            survey.participants = []
+                        survey.status = params['status']
+                        dbsession.add(survey)
+                    request.session.flash('Survey now %s' % helpers.survey.status(params['status']), 'info')
+                    raise HTTPFound(request.route_url('survey.view',
+                                                      sid=request.matchdict['sid']))
+                except api.Invalid as e:
+                    e.params = request.POST
+                    return {'survey': survey,
+                            'status': request.params['status'],
+                            'e': e}
+            else:
+                if 'status' not in request.params:
+                    raise HTTPFound(request.route_url('survey.view', sid=request.matchdict['sid']))
+                return {'survey': survey,
+                        'status': request.params['status']}
         else:
             redirect_to_login(request)
     else:

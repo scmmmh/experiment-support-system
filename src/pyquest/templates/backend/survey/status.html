@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - Change Status</title>
+  </head>
+  <body>
+    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Change Status', {'href': r.route_url('survey.status', sid=survey.id, _query={'status': status})})], r)}
+    ${h.ui.main_menu('survey', survey, r)}
+    <article>
+      <hgroup>
+        <h1>${survey.title} - Change Status</h1>
+      </hgroup>
+      <form action="${r.route_url('survey.status', sid=survey.id)}" method="post">
+        ${h.form.csrf_token(r.session.get_csrf_token())}
+        ${h.form.hidden_field('status', status)}
+        <p>Please confirm that you wish to change the status or "${survey.title}" from "${h.survey.status(survey.status)}" to "${h.survey.status(status)}"</p>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't change", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id))}</li>
+          <li>${h.form.submit('Change status', class_='button')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>

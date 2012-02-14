@@ -43,7 +43,7 @@ def main(argv=sys.argv):
         survey = Survey(title='A test survey', content="""<pq:single qsid="1"/>
 <pq:repeat qsid="2">
   <pq:data_items count="5"/>
-</pq:repeat>""", summary='A simple test survey')
+</pq:repeat>""", summary='A simple test survey', status='develop')
         survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
         survey.owner = user
         qsheet = QSheet(name='consent', title='Welcome', content="""<p>Thank you for participating
@@ -116,7 +116,7 @@ of the following url, based on its title</p>
         survey = Survey(title='Tests all question types', content='''<pq:single qsid="3"/>
 <pq:single qsid="4"/>
 <pq:single qsid="5"/>
-<pq:single qsid="6"/>''')
+<pq:single qsid="6"/>''', status='develop')
         survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
         qsheet = QSheet(name='p1', title='Page 1', content='''<p>This is the first page, demonstrating the different input field types.</p>
 <pq:short_text name="short_text" title="This is a (required) pq:short_text question" required="true"/>
@@ -207,7 +207,7 @@ of the following url, based on its title</p>
         DBSession.add(survey)
         user = User(u'mahall', u'm.mhall@sheffield.ac.uk', u'Mark')
         DBSession.add(user)
-        survey = Survey(title='Auth test')
+        survey = Survey(title='Auth test', status='develop')
         survey.owner = user
         qsheet = QSheet(title='A sheet', content='')
         survey.qsheets.append(qsheet)

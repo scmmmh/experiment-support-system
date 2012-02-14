@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../layout/frontend.html"/>
+  <head>
+    <title>${survey.title} - ${h.survey.status(survey.status)}</title>
+  </head>
+  <body>
+    <hgroup>
+      <h1>${survey.title} - ${h.survey.status(survey.status)}</h1>
+    </hgroup>
+    <p>Unfortunately this survey is currently not accessible because it is ${h.survey.status(survey.status)}.</p>
+    <p py:if="survey.status == 'paused'">Please check again later to see whether it has been re-started.</p>
+  </body>
+</html>
