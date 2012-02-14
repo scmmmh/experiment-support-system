@@ -19,7 +19,6 @@ from pyquest.renderer import render
 
 class DataItemSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
-    control = validators.StringBool(not_empty=True)
 
 @view_config(route_name='survey.data')
 @render({'text/html': 'backend/data/index.html'})
@@ -29,15 +28,7 @@ def index(request):
     user = current_user(request)
     if survey:
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
-            show = 'all'
-            items = dbsession.query(DataItem)
-            if 'show' in request.params:
-                if request.params['show'] == 'data':
-                    show = 'data'
-                    items = items.filter(DataItem.control==False)
-                elif request.params['show'] == 'control':
-                    show = 'control'
-                    items = items.filter(DataItem.control==True)
+            items = dbsession.query(DataItem).filter(DataItem.survey_id==request.matchdict['sid'])
             pages = int(math.ceil(items.count() / 10.0))
             page = 1
             if 'page' in request.params:
@@ -47,7 +38,6 @@ def index(request):
                     page = 1
             items = items.offset((page - 1) * 10).limit(10)
             return {'survey': survey,
-                    'show': show,
                     'items': items,
                     'page': page,
                     'pages': pages}
@@ -72,7 +62,7 @@ def upload(request):
                     if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                         raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
                     reader = csv.DictReader(request.POST['source_file'].file)
-                    if len(survey.all_items) > 0:
+                    if len(survey.data_items) > 0:
                         order = dbsession.query(func.max(DataItem.order)).filter(DataItem.survey_id==survey.id).first()[0] + 1
                     else:
                         order = 1
@@ -80,9 +70,9 @@ def upload(request):
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         try:
                             for item in reader:
-                                if len(survey.all_items) > 0:
+                                if len(survey.data_items) > 0:
                                     keys = item.keys()
-                                    for attribute in survey.all_items[0].attributes:
+                                    for attribute in survey.data_items[0].attributes:
                                         if attribute.key not in item:
                                             raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Key "%s" missing from the uploaded data' % attribute.key})
                                         else:
@@ -91,14 +81,12 @@ def upload(request):
                                         raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Extra key(s) "%s" found in the uploaded data' % ', '.join(keys)})
                                 data_item = DataItem(order=order,
                                                      control=False)
-                                if 'control' in item and item['control'] in ['true', 'True']:
-                                    data_item.control = True
                                 for idx, (key, value) in enumerate(item.items()):
                                     if key != 'control':
                                         data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
                                                                                       value=value.decode('utf-8'),
                                                                                       order=idx + 1))
-                                survey.all_items.append(data_item)
+                                survey.data_items.append(data_item)
                                 dbsession.add(data_item)
                         except csv.Error:
                             raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
@@ -123,8 +111,8 @@ def new(request):
     user = current_user(request)
     if survey:
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
-            if len(survey.all_items) > 0:
-                data_item = survey.all_items[0]
+            if len(survey.data_items) > 0:
+                data_item = survey.data_items[0]
             else:
                 data_item = DataItem()
             if request.method == 'POST':
@@ -136,9 +124,8 @@ def new(request):
                     if params['csrf_token'] != request.session.get_csrf_token():
                         raise HTTPForbidden('Cross-site request forgery detected')
                     with transaction.manager:
-                        new_data_item = DataItem(survey_id=survey.id,
-                                                 control=params['control'])
-                        if len(survey.all_items) > 0:
+                        new_data_item = DataItem(survey_id=survey.id)
+                        if len(survey.data_items) > 0:
                             new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.survey_id==survey.id).first()[0] + 1
                         else:
                             new_data_item.order = 1
@@ -182,7 +169,6 @@ def edit(request):
                     if params['csrf_token'] != request.session.get_csrf_token():
                         raise HTTPForbidden('Cross-site request forgery detected')
                     with transaction.manager:
-                        data_item.control = params['control']
                         for attribute in data_item.attributes:
                             attribute.value = params[attribute.key]
                         dbsession.add(data_item)
@@ -240,7 +226,7 @@ def clear(request):
                     raise HTTPForbidden('Cross-site request forgery detected')
                 with transaction.manager:
                     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-                    survey.all_items = []
+                    survey.data_items = []
                     dbsession.add(survey)
                 request.session.flash('All data deleted', 'info')
                 raise HTTPFound(request.route_url('survey.data', sid=request.matchdict['sid']))

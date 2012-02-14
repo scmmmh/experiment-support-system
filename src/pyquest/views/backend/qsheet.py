@@ -98,9 +98,9 @@ def view(request):
     if survey and qsheet:
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
             example = {'did': 0}
-            if survey.all_items:
-                example['did'] = survey.all_items[0].id
-                for attr in survey.all_items[0].attributes:
+            if survey.data_items:
+                example['did'] = survey.data_items[0].id
+                for attr in survey.data_items[0].attributes:
                     example[attr.key] = attr.value
             if request.method == 'POST':
                 schema = pickle.loads(str(qsheet.schema))

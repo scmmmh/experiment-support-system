@@ -135,8 +135,8 @@ def participant(request):
     user = current_user(request)
     if survey:
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
-            if len(survey.all_items) > 0:
-                data_attr = map(lambda d: (d.key, d.key), survey.all_items[0].attributes)
+            if len(survey.data_items) > 0:
+                data_attr = map(lambda d: (d.key, d.key), survey.data_items[0].attributes)
                 data_attr.insert(0, ('did_', 'System Identifier'))
             else:
                 data_attr = []
@@ -147,7 +147,7 @@ def participant(request):
             rows = []
             columns = []
             did_mapping = {}
-            for data_item in survey.all_items:
+            for data_item in survey.data_items:
                 if data_identifier:
                     for attr in data_item.attributes:
                         if attr['key'] == data_identifier:
@@ -165,7 +165,7 @@ def participant(request):
                     if attr['type'] in ['multi_in_list', 'all_in_list']:
                         for value in attr['values']:
                             if 'data_items' in sheet:
-                                for data_item in survey.all_items:
+                                for data_item in survey.data_items:
                                     columns.append('%s.%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, value, did_mapping[unicode(data_item.id)]))
                             else:
                                 columns.append('%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, value))
@@ -174,19 +174,19 @@ def participant(request):
                             if sub_attr['type'] == 'multi_in_list':
                                 for sub_value in sub_attr['values']:
                                     if 'data_items' in sheet:
-                                        for data_item in survey.all_items:
+                                        for data_item in survey.data_items:
                                             columns.append('%s.%s.%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, sub_question, sub_value, did_mapping[unicode(data_item.id)]))
                                     else:
                                         columns.append('%s.%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, sub_question, sub_value))
                             else:
                                 if 'data_items' in sheet:
-                                    for data_item in survey.all_items:
+                                    for data_item in survey.data_items:
                                         columns.append('%s.%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, sub_question, did_mapping[unicode(data_item.id)]))
                                 else:
                                     columns.append('%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, sub_question))
                     else:
                         if 'data_items' in sheet:
-                            for data_item in survey.all_items:
+                            for data_item in survey.data_items:
                                 columns.append('%s.%s.%s' % (qsid_mapping[unicode(qsheet.id)], question, did_mapping[unicode(data_item.id)]))
                         else:
                             columns.append('%s.%s' % (qsid_mapping[unicode(qsheet.id)], question))

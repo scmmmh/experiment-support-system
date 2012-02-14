@@ -26,24 +26,16 @@
       <hgroup>
         <h1>${survey.title} - Data</h1>
       </hgroup>
-      <div class="text-right">
-        <form id="data-filter-form" action="" method="get">
-          ${h.form.select('show', show, [('all', 'All items'), ('data', 'Data items'), ('control', 'Control items')], e)}
-          ${h.form.submit('Update', class_='button')}
-        </form>
-      </div>
       <div class="span-24" style="overflow:auto;">
         <table>
           <thead>
             <tr py:if="survey.data_items">
-              <th>Control</th>
               <th py:for="attribute in survey.data_items[0].attributes">${h.text.title(attribute.key)}</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             <tr py:for="item in items">
-              <td>${item.control}</td>
               <td py:for="attribute in item.attributes">${attribute.value}</td>
               <td>
                 <ul class="span-3 inline no-symbol no-margin">

@@ -12,7 +12,7 @@ import transaction
 from formencode import api
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPNotAcceptable
 from pyramid.view import view_config
-from random import sample
+from random import sample, shuffle
 from sqlalchemy import and_
 
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant)
@@ -40,17 +40,17 @@ def data_item_to_dict(data_item):
 def select_data_items(sid, state, instr, dbsession):
     if 'data_items' in instr:
         data_items = map(lambda d: {'did': d.id},
-                         dbsession.query(DataItem).filter(and_(DataItem.survey_id==sid,
-                                                               DataItem.control==False)).all())
+                         dbsession.query(DataItem).filter(DataItem.survey_id==sid).all())
         participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
         pt_answers = pickle.loads(str(participant.answers))
         filter_list = []
         if state['qsid'] in pt_answers:
             filter_list = map(lambda d: unicode(d), pt_answers[state['qsid']]['items'].keys())
         data_items = filter(lambda d: str(d['did']) not in filter_list, data_items)
-        if len(data_items) > instr['data_items']['data']['count']:
-            return sample(data_items, instr['data_items']['data']['count'])
+        if len(data_items) > instr['data_items']['count']:
+            return sample(data_items, instr['data_items']['count'])
         else:
+            shuffle(data_items)
             return data_items
     else:
         return[{'did': 'none'}]
@@ -83,7 +83,7 @@ def run_survey(request):
             if state['qsid'] == 'finished':
                 raise HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
             instr = current_instr(state['qsid'], survey_schema)
-            if True or 'dids' not in state:
+            if 'dids' not in state:
                 state['dids'] = select_data_items(request.matchdict['sid'], state, instr, dbsession)
                 if len(state['dids']) == 0:
                     response = HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))

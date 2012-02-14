@@ -49,24 +49,13 @@ def create_schema(content):
             else:
                 return {}
         elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}data_items':
-            data_items = {'data_items': {'data': {'count': 1}}}
-            for child in element:
-                data_items['data_items'].update(process(child))
+            data_items = {'data_items': {'count': 1}}
+            if 'count' in element.attrib:
+                try:
+                    data_items['data_items']['count'] = int(element.attrib['count'])
+                except ValueError:
+                    pass
             return data_items
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}data':
-            if 'count' in element.attrib:
-                try:
-                    return {'data': {'count': int(element.attrib['count'])}}
-                except ValueError:
-                    return {'data': {'count': 1}}
-            return {'data': {'count': 1}}
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}control':
-            if 'count' in element.attrib:
-                try:
-                    return {'control': {'count': int(element.attrib['count'])}}
-                except ValueError:
-                    return {'control': {'count': 1}}
-            return {'control': {'count': 1}}
     def link_qsheets(schema):
         for idx, instr in enumerate(schema):
             if instr['type'] == 'single':
@@ -208,9 +197,9 @@ def preview(request):
     if survey:
         if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
             example = {'did': 0}
-            if survey.all_items:
-                example['did'] = survey.all_items[0].id
-                for attr in survey.all_items[0].attributes:
+            if survey.data_items:
+                example['did'] = survey.data_items[0].id
+                for attr in survey.data_items[0].attributes:
                     example[attr.key] = attr.value
             return {'survey': survey,
                     'example': example}

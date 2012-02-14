@@ -96,16 +96,10 @@ class Survey(Base):
     qsheets = relationship('QSheet',
                            backref='survey',
                            cascade='all, delete, delete-orphan')
-    all_items = relationship('DataItem',
+    data_items = relationship('DataItem',
                              backref='survey',
                              order_by='DataItem.order',
                              cascade='all, delete, delete-orphan')
-    data_items = relationship('DataItem',
-                              order_by='DataItem.order',
-                              primaryjoin='and_(Survey.id==DataItem.survey_id, DataItem.control==False)')
-    control_items = relationship('DataItem',
-                                 order_by='DataItem.order',
-                                 primaryjoin='and_(Survey.id==DataItem.survey_id, DataItem.control==True)')
     participants = relationship('Participant',
                                 backref='survey',
                                 cascade='all, delete, delete-orphan')
@@ -133,7 +127,6 @@ class DataItem(Base):
     
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id))
-    control = Column(Boolean)
     order = Column(Integer)
     
     attributes = relationship('DataItemAttribute',
