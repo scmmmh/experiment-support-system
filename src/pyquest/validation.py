@@ -164,10 +164,13 @@ class DateTimeValidator(FancyValidator):
         elif self.type == 'month':
             match = re.match(r'([0-9]{1,2})', value)
             if match:
-                value = int(value)
-                if value < 1 or value > 12:
+                try:
+                    value = int(value)
+                    if value < 1 or value > 12:
+                        raise Invalid('Please specify a valid month', value, state)
+                    return value
+                except ValueError:
                     raise Invalid('Please specify a valid month', value, state)
-                return value
             else:
                 value = value.lower()
                 if re.match(r'jan(uary)?', value):
