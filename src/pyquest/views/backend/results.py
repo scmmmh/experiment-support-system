@@ -150,8 +150,8 @@ def participant(request):
             for data_item in survey.data_items:
                 if data_identifier:
                     for attr in data_item.attributes:
-                        if attr['key'] == data_identifier:
-                            did_mapping[unicode(data_item.id)] = attr['value']
+                        if attr.key == data_identifier:
+                            did_mapping[unicode(data_item.id)] = attr.value
                             break
                 else:
                     did_mapping[unicode(data_item.id)] = unicode(data_item.id)
