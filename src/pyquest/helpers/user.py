@@ -4,6 +4,7 @@ Created on 23 Jan 2012
 
 @author: mhall
 '''
+from genshi.builder import tag
 from pyramid.httpexceptions import HTTPFound
 
 from pyquest.models import DBSession, User
@@ -19,3 +20,14 @@ def redirect_to_login(request):
     request.session.flash('You do not have sufficient rights to access this area', 'auth')
     request.session['redirect-to'] = request.current_route_url()
     raise HTTPFound(request.route_url('user.login'))
+
+def menu(request):
+    user = current_user(request)
+    if user:
+        return tag.nav(tag.ul(tag.li('Welcome, ', tag.strong(user.display_name)),
+                              tag.li(tag.a('Preferences', href='')),
+                              tag.li(tag.a('Logout', href=request.route_url('user.logout'), class_='post-submit', data_confirm='no-confirm'))),
+                       class_='user-menu right')
+    else:
+        return tag.nav(tag.ul(tag.li(tag.a('Login', href=request.route_url('user.login')))),
+                       class_='user-menu right')
