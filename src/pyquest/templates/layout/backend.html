@@ -29,6 +29,19 @@
           <li py:for="flash in r.session.pop_flash('auth')" class="error">${flash}</li>
         </ul>
       </header>
+      <nav id="user-menu" class="right">
+        <ul>
+          <li>Welcome, <strong>Archchancellor</strong></li>
+          <li><a href="">Preferences</a></li>
+          <li><a href="${r.route_url('user.logout')}" class="post-submit" data-confirm="no-confirm">Logout</a></li>
+        </ul>
+      </nav>
+      <nav id="admin-menu">
+        <ul>
+          <li><a href="">Administer Site</a></li>
+          <li><a href="">Administer Users</a></li>
+        </ul>
+      </nav>
       ${select('*')}
       <footer class="span-24">
         Powered by PyQuestionnaire

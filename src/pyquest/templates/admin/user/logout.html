@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>Logout</title>
+  </head>
+  <body>
+    <h1>Login</h1>
+    <form action="${r.route_url('user.logout')}" method="post">
+      ${h.form.csrf_token(r.session.get_csrf_token())}
+      <p>Please confirm that you wish to log out.</p>
+      <ul class="buttons">
+        <li>${h.form.button("Don't logout")}</li>
+        <li>${h.form.submit('Logout')}</li>
+      </ul>
+    </form>
+  </body>
+</html>

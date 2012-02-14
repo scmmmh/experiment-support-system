@@ -19,7 +19,7 @@ class LoginValidator(Schema):
     password = validators.UnicodeString(not_empty=True)
 
 @view_config(route_name='user.login')
-@render({'text/html': 'user/login.html'})
+@render({'text/html': 'admin/user/login.html'})
 def login(request):
     if request.method == 'POST':
         try:
@@ -40,5 +40,15 @@ def login(request):
         except api.Invalid as e:
             e.params = request.params
             return {'e': e}
+    else:
+        return {}
+
+@view_config(route_name='user.logout')
+@render({'text/html': 'admin/user/logout.html'})
+def logout(request):
+    if request.method == 'POST':
+        check_csrf_token(request, request.POST['csrf_token'])
+        del request.session['user-id']
+        raise HTTPFound(request.route_url('root'))
     else:
         return {}
