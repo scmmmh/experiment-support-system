@@ -21,8 +21,8 @@
       <header class="span-20 flash">
         <ul py:if="r.session.peek_flash('info') or r.session.peek_flash('warn') or r.session.peek_flash('auth')" class="no-symbol no-margin">
           <li py:for="flash in r.session.pop_flash('info')" class="info">${flash}</li>
-          <li py:for="flash in r.session.pop_flash('warn')" class="warn">${flash}</li>
-          <li py:for="flash in r.session.pop_flash('auth')" class="warn">${flash}</li>
+          <li py:for="flash in r.session.pop_flash('warn')" class="error">${flash}</li>
+          <li py:for="flash in r.session.pop_flash('auth')" class="error">${flash}</li>
         </ul>
       </header>
       ${select('*')}
