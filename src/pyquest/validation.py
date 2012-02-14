@@ -309,6 +309,8 @@ class DynamicSchema(Schema):
             
 class PageSchema(Schema):
     
+    _action = validators.UnicodeString()
+    
     def __init__(self, qsheet_schema, items, csrf_test=True):
         Schema.__init__(self)
         items_schema = Schema()
@@ -325,12 +327,13 @@ class PageSchema(Schema):
 def flatten_invalid(ie):
     def flatten_dict(e):
         result = {}
-        for (key, value) in e.error_dict.items():
-            if value.error_dict:
-                for (key2, value2) in flatten_dict(value).items():
-                    result['%s.%s' % (key, key2)] = value2
-            else:
-                result[key] = unicode(value)
+        if e and e.error_dict:
+            for (key, value) in e.error_dict.items():
+                if value.error_dict:
+                    for (key2, value2) in flatten_dict(value).items():
+                        result['%s.%s' % (key, key2)] = value2
+                else:
+                    result[key] = unicode(value)
         return result
     return Invalid('Unfortunately not all your answers were acceptable',
                    ie.value,

@@ -43,7 +43,8 @@ def main(argv=sys.argv):
         survey = Survey(title='A test survey', content="""<pq:single qsid="1"/>
 <pq:repeat qsid="2">
   <pq:data_items count="5"/>
-</pq:repeat>""", summary='A simple test survey', status='develop')
+</pq:repeat>
+<pq:finish qsid="3"/>""", summary='A simple test survey', status='develop')
         survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
         survey.owner = user
         qsheet = QSheet(name='consent', title='Welcome', content="""<p>Thank you for participating
@@ -71,6 +72,9 @@ of the following url, based on its title</p>
 </pq:rating>
 """)
         qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
+        survey.qsheets.append(qsheet)
+        qsheet = QSheet(name='finish', title='Thank you very much', content="""<p>Thank you very much
+for completing our survey. Your time and effort have been a great help.</p>""")
         survey.qsheets.append(qsheet)
         data_item = DataItem(order=1)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the first item'))
@@ -113,10 +117,10 @@ of the following url, based on its title</p>
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/10.html'))
         survey.data_items.append(data_item)
         DBSession.add(survey)
-        survey = Survey(title='Tests all question types', content='''<pq:single qsid="3"/>
-<pq:single qsid="4"/>
+        survey = Survey(title='Tests all question types', content='''<pq:single qsid="4"/>
 <pq:single qsid="5"/>
-<pq:single qsid="6"/>''', status='develop')
+<pq:single qsid="6"/>
+<pq:single qsid="7"/>''', status='develop')
         survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
         qsheet = QSheet(name='p1', title='Page 1', content='''<p>This is the first page, demonstrating the different input field types.</p>
 <pq:short_text name="short_text" title="This is a (required) pq:short_text question" required="true"/>

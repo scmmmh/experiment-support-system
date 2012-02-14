@@ -19,16 +19,10 @@ from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant)
 from pyquest.renderer import render
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 
-def current_instr(qsid, schema):
+def get_instr(qsid, schema):
     for instr in schema:
         if instr['qsid'] == qsid:
             return instr
-    return None
-
-def next_qsheet_id(qsid, schema):
-    for instr in schema:
-        if instr['qsid'] == qsid:
-            return instr['next_qsid']
     return None
 
 def data_item_to_dict(data_item):
@@ -62,6 +56,44 @@ def load_data_items(state, dbsession):
     else:
         return [{'did': 'none'}]
 
+def init_state(request, dbsession, survey, survey_schema):
+    if 'survey.%s' % request.matchdict['sid'] in request.cookies:
+        state = pickle.loads(str(request.cookies['survey.%s' % request.matchdict['sid']]))
+    else:
+        state = {'qsid': survey_schema[0]['qsid']}
+        with transaction.manager:
+            participant = Participant(survey_id=survey.id,
+                                      answers=pickle.dumps({}))
+            dbsession.add(participant)
+            dbsession.flush()
+            state['ptid'] = participant.id
+    return state
+
+def determine_submit_options(instr, state, survey_schema):
+    next_instr = get_instr(instr['next_qsid'], survey_schema)
+    if next_instr:
+        if next_instr['type'] == 'finish':
+            if instr['type'] == 'single':
+                return ['finish']
+            elif instr['type'] == 'repeat':
+                return ['more', 'finish']
+            else:
+                return []
+        else:
+            if instr['type'] == 'single':
+                return ['next']
+            elif instr['type'] == 'repeat':
+                return ['more', 'next']
+            else:
+                return ['next']
+    else:
+        if instr['type'] == 'single':
+            return ['finish']
+        elif instr['type'] == 'repeat':
+            return ['more', 'finish']
+        else:
+            return []
+
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/qsheet.html'})
 def run_survey(request):
@@ -71,61 +103,35 @@ def run_survey(request):
         if survey.status not in ['running', 'testing']:
             raise HTTPFound(request.route_url('survey.run.inactive', sid=request.matchdict['sid']))
         survey_schema = pickle.loads(str(survey.schema))
+        state = init_state(request, dbsession, survey, survey_schema)
+        if not state['qsid']:
+            raise HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
+        instr = get_instr(state['qsid'], survey_schema)
+        qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==instr['qsid'],
+                                                     QSheet.survey_id==request.matchdict['sid'])).first()
+        if not qsheet:
+            raise HTTPNotFound()
         if request.method == 'GET':
-            if 'survey.%s' % request.matchdict['sid'] in request.cookies:
-                state = pickle.loads(str(request.cookies['survey.%s' % request.matchdict['sid']]))
-            else:
-                state = {'qsid': survey_schema[0]['qsid']}
-                with transaction.manager:
-                    participant = Participant(survey_id=survey.id,
-                                              answers=pickle.dumps({}))
-                    dbsession.add(participant)
-                    dbsession.flush()
-                    state['ptid'] = participant.id
-            if state['qsid'] == 'finished':
-                raise HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
-            instr = current_instr(state['qsid'], survey_schema)
             if 'dids' not in state:
                 state['dids'] = select_data_items(request.matchdict['sid'], state, instr, dbsession)
                 if len(state['dids']) == 0:
-                    response = HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
-                    state['qsid'] = 'finished'
+                    response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
+                    state['qsid'] = instr['next_qsid']
                     del state['dids']
                     response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
                     raise response
             data_items = load_data_items(state, dbsession)
-            qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==state['qsid'],
-                                                         QSheet.survey_id==request.matchdict['sid'])).first()
-            if not qsheet:
-                raise HTTPNotFound()
             request.response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
             return {'survey': survey,
                     'qsheet': qsheet,
-                    'data_items': data_items}
+                    'data_items': data_items,
+                    'submit_options': determine_submit_options(instr, state, survey_schema)}
         elif request.method == 'POST':
-            print request.POST
-            if 'survey.%s' % request.matchdict['sid'] not in request.cookies:
-                raise HTTPFound(request.route_url('survey.run', qsid=request.matchdict['qsid']))
-            state = pickle.loads(str(request.cookies['survey.%s' % request.matchdict['sid']]))
-            if state['qsid'] == 'finished':
-                HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
-            qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==state['qsid'],
-                                                         QSheet.survey_id==request.matchdict['sid'])).first()
-            if not qsheet:
-                raise HTTPNotFound()
             data_items = load_data_items(state, dbsession)
             validator = PageSchema(pickle.loads(str(qsheet.schema)), data_items)
             try:
                 qsheet_answers = validator.to_python(request.POST, ValidationState(request=request))
                 with transaction.manager:
-                    participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
-                    if not participant:
-                        with transaction.manager:
-                            participant = Participant(survey_id=survey.id,
-                                                      answers=pickle.dumps({}))
-                            dbsession.add(participant)
-                            dbsession.flush()
-                            state['ptid'] = participant.id
                     participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
                     pt_answers = pickle.loads(str(participant.answers))
                     if state['qsid'] in pt_answers:
@@ -133,24 +139,19 @@ def run_survey(request):
                     else:
                         pt_answers[state['qsid']] = qsheet_answers
                     participant.answers = pickle.dumps(pt_answers)
-                next_qsid = next_qsheet_id(unicode(qsheet.id), survey_schema)
-                state['qsid'] = next_qsid
+                if qsheet_answers['_action'] in ['Next', 'Finish']:
+                    state['qsid'] = instr['next_qsid']
                 del state['dids']
-                if next_qsid:
-                    response = HTTPFound(request.route_url('survey.run', sid=survey.id, qsid=next_qsid))
-                    response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
-                    raise response
-                else:
-                    response = HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
-                    state['qsid'] = 'finished'
-                    response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
-                    raise response
+                response = HTTPFound(request.route_url('survey.run', sid=survey.id))
+                response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
+                raise response
             except api.Invalid as ie:
                 ie = flatten_invalid(ie)
                 ie.params = request.POST
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'data_items': data_items,
+                        'submit_options': determine_submit_options(instr, state, survey_schema),
                         'e': ie}
         else:
             raise HTTPNotAcceptable()
@@ -175,6 +176,8 @@ def inactive(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     if survey:
+        if survey.status in ['running', 'testing']:
+            raise HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
         return {'survey': survey}
     else:
         raise HTTPNotFound()

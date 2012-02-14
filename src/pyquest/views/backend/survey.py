@@ -53,6 +53,12 @@ def create_schema(content):
                 return qsheet
             else:
                 return {}
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}finish':
+            if 'qsid' in element.attrib:
+                return {'qsid': element.attrib['qsid'],
+                        'type': 'finish'}
+            else:
+                return {}
         elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}data_items':
             data_items = {'data_items': {'count': 1}}
             if 'count' in element.attrib:
@@ -63,13 +69,10 @@ def create_schema(content):
             return data_items
     def link_qsheets(schema):
         for idx, instr in enumerate(schema):
-            if instr['type'] == 'single':
-                if (idx + 1) < len(schema):
-                    instr['next_qsid'] = schema[idx + 1]['qsid']
-                else:
-                    instr['next_qsid'] = None
-            elif instr['type'] == 'repeat':
-                instr['next_qsid'] = instr['qsid']
+            if (idx + 1) < len(schema):
+                instr['next_qsid'] = schema[idx + 1]['qsid']
+            else:
+                instr['next_qsid'] = None
         return schema
     if content:
         return link_qsheets(process(etree.fromstring(content)))

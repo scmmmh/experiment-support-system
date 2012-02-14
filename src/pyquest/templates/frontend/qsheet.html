@@ -21,7 +21,9 @@
           ${h.qsheet.display(data_item, qsheet.content, e, csrf_token=r.session.get_csrf_token())}
         </py:for>
         <ul class="buttons">
-          <li>${h.form.submit('Next', class_='button')}</li>
+          <li py:if="'more' in submit_options">${h.form.submit('More', name='_action', class_='button')}</li>
+          <li py:if="'next' in submit_options">${h.form.submit('Next', name='_action', class_='button')}</li>
+          <li py:if="'finish' in submit_options">${h.form.submit('Finish', name='_action', class_='button')}</li>
         </ul>
       </form>
     </section>
