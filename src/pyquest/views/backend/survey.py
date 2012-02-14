@@ -234,7 +234,7 @@ def status(request):
                             survey.participants = []
                         survey.status = params['status']
                         dbsession.add(survey)
-                    request.session.flash('Survey now %s' % helpers.survey.status(params['status']), 'info')
+                    request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
                     raise HTTPFound(request.route_url('survey.view',
                                                       sid=request.matchdict['sid']))
                 except api.Invalid as e:
