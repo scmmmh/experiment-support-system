@@ -16,14 +16,7 @@
         <dt>Rights</dt>
         <dd>
           <ul class="no-symbol">
-            <li py:for="permission in permissions">
-              <py:if test="permission.id in has_permissions">
-                ${h.form.checkbox('permission', permission.id, permission.id, e, id='permission.%s' % (permission.name))} <label for="permission.${permission.name}">${permission.title}</label>
-              </py:if>
-              <py:if test="permission.id not in has_permissions">
-                ${h.form.checkbox('permission', '', permission.id, e, id='permission.%s' % (permission.name))} <label for="permission.${permission.name}">${permission.title}</label>
-              </py:if>
-            </li>
+            <li py:for="permission in permissions">${h.form.checkbox('pid', permission.id, e, checked=(unicode(permission.id) in has_permissions), label=permission.title)}</li>
           </ul>
         </dd>
       </dl>

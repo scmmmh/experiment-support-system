@@ -40,18 +40,18 @@ def new(request):
         if request.method == 'POST':
             try:
                 schema = GroupSchema()
-                schema.add_field('permission', validators.OneOf(map(lambda p: unicode(p.id), permissions), testValueList=True, if_missing=[], hideList=True))
+                schema.add_field('pid', validators.OneOf(map(lambda p: unicode(p.id), permissions), testValueList=True, if_missing=[], hideList=True))
                 params = schema.to_python(request.POST)
                 check_csrf_token(request, request.session.get_csrf_token())
                 with transaction.manager:
                     group = Group(title=params['title'])
                     group.permissions = []
-                    if 'permission' in params:
-                        if isinstance(params['permission'], list):
-                            for permission in dbsession.query(Permission).filter(Permission.id.in_(params['permission'])):
+                    if 'pid' in params:
+                        if isinstance(params['pid'], list):
+                            for permission in dbsession.query(Permission).filter(Permission.id.in_(params['pid'])):
                                 group.permissions.append(permission)
                         else:
-                            permission = dbsession.query(Permission).filter(Permission.id==params['permission']).first()
+                            permission = dbsession.query(Permission).filter(Permission.id==params['pid']).first()
                             if permission:
                                 group.permissions.append(permission)
                     dbsession.add(group)
@@ -61,7 +61,7 @@ def new(request):
                 raise HTTPFound(request.route_url('group.view', gid=gid))
             except api.Invalid as e:
                 e.params = request.POST
-                return {'group': group,
+                return {'group': Group(),
                             'permissions': permissions,
                             'e': e}
         else:
@@ -93,37 +93,37 @@ def edit(request):
         group = dbsession.query(Group).filter(Group.id==request.matchdict['gid']).first()
         if group:
             permissions = dbsession.query(Permission).order_by(Permission.title)
+            has_permissions = map(lambda p: unicode(p.id), group.permissions)
             if request.method == 'POST':
                 try:
                     schema = GroupSchema()
-                    schema.add_field('permission', validators.OneOf(map(lambda p: unicode(p.id), permissions), testValueList=True, if_missing=[], hideList=True))
+                    schema.add_field('pid', validators.OneOf(map(lambda p: unicode(p.id), permissions), testValueList=True, if_missing=[], hideList=True))
                     params = schema.to_python(request.POST)
                     check_csrf_token(request, request.session.get_csrf_token())
                     with transaction.manager:
                         group = dbsession.query(Group).filter(Group.id==request.matchdict['gid']).first()
                         group.title = params['title']
                         group.permissions = []
-                        if 'permission' in params:
-                            if isinstance(params['permission'], list):
-                                for permission in dbsession.query(Permission).filter(Permission.id.in_(params['permission'])):
+                        if 'pid' in params:
+                            if isinstance(params['pid'], list):
+                                for permission in dbsession.query(Permission).filter(Permission.id.in_(params['pid'])):
                                     group.permissions.append(permission)
                             else:
-                                permission = dbsession.query(Permission).filter(Permission.id==params['permission']).first()
+                                permission = dbsession.query(Permission).filter(Permission.id==params['pid']).first()
                                 if permission:
                                     group.permissions.append(permission)
                     request.session.flash('Group updated', 'info')
                     raise HTTPFound(request.route_url('group.view', gid=request.matchdict['gid']))
                 except api.Invalid as e:
-                    print e
                     e.params = request.POST
                     return {'group': group,
                             'permissions': permissions,
-                            'has_permissions': map(lambda p: p.id, group.permissions),
+                            'has_permissions': has_permissions,
                             'e': e}
             else:
                 return {'group': group,
                         'permissions': permissions,
-                        'has_permissions': map(lambda p: p.id, group.permissions)}
+                        'has_permissions': has_permissions}
         else:
             raise HTTPNotFound()
     else:

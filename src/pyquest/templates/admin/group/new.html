@@ -16,9 +16,7 @@
         <dt>Rights</dt>
         <dd>
           <ul class="no-symbol">
-            <li py:for="permission in permissions">
-              ${h.form.checkbox('permission', '', permission.id, e, id='permission.%s' % (permission.name))} <label for="permission.${permission.name}">${permission.title}</label>
-            </li>
+            <li py:for="permission in permissions">${h.form.checkbox('pid', permission.id, e, label=permission.title)}</li>
           </ul>
         </dd>
       </dl>
