@@ -10,8 +10,8 @@
       ${h.form.csrf_token(r.session.get_csrf_token())}
       <p>Please confirm that you wish to log out.</p>
       <ul class="buttons">
-        <li>${h.form.button("Don't logout")}</li>
-        <li>${h.form.submit('Logout')}</li>
+        <li>${h.form.button("Don't logout", class_='button')}</li>
+        <li>${h.form.submit('Logout', class_='button')}</li>
       </ul>
     </form>
   </body>

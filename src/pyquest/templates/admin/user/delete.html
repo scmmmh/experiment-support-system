@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${user.display_name} - Delete</title>
+  </head>
+  <body>
+    <article>
+      <hgroup>
+        <h1>${user.display_name} - Delete</h1>
+      </hgroup>
+      <form action="${r.route_url('user.delete',uid=user.id)}" method="post">
+        ${h.form.csrf_token(r.session.get_csrf_token())}
+        <p>Please confirm that you wish to delete the user "${user.display_name}" including their
+          surveys, data, and results.</p>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't delete", class_='button', onclick="document.location='%s'" % r.route_url('user.view', uid=user.id))}</li>
+          <li>${h.form.submit('Delete', class_='button')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>

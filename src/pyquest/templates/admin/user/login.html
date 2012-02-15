@@ -15,8 +15,9 @@
         <dd>${h.form.password_field('password', e)}</dd>
       </dl>
       <ul class="buttons">
-        <li>${h.form.button("Don't login")}</li>
-        <li>${h.form.submit('Login')}</li>
+        <li><a href="${r.route_url('user.forgotten_password')}" class="button">Forgotten password</a></li>
+        <li>${h.form.button("Don't login", class_='button', onclick="document.location='%s'" % r.route_url('root'))}</li>
+        <li>${h.form.submit('Login', class_='button')}</li>
       </ul>
     </form>
   </body>
