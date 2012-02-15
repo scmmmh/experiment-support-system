@@ -1,4 +1,4 @@
-#Wed Feb 15 11:18:38 GMT 2012
+#Wed Feb 15 14:07:25 GMT 2012
 eclipse.preferences.version=1
 encoding//src/pyquest/__init__.py=utf-8
 encoding//src/pyquest/helpers/__init__.py=utf-8
@@ -32,4 +32,5 @@ encoding//test/pyquest_test/__init__.py=utf-8
 encoding//test/pyquest_test/helpers_test/__init__.py=utf-8
 encoding//test/pyquest_test/helpers_test/qsheet_test.py=utf-8
 encoding//test/pyquest_test/validation_test.py=utf-8
+encoding//test/pywebtools_test/auth_test.py=utf-8
 encoding//virtualenv/lib/python2.7/site-packages/Genshi-0.6-py2.7.egg/genshi/builder.py=utf-8

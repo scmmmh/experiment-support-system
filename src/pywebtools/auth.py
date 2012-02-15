@@ -5,6 +5,16 @@ Created on 23 Jan 2012
 @author: mhall
 '''
 
+import collections
+
+OBJ = 'OBJ'
+VAL = 'VAL'
+CALL = 'CALL'
+IDENT = 'IDENT'
+OP = 'OP'
+BRACE_LEFT = 'BRLEFT'
+BRACE_RIGHT = 'BRRIGHT'
+
 class AuthorisationException(Exception):
     
     def __init__(self, message):
@@ -16,39 +26,169 @@ class AuthorisationException(Exception):
     def __str__(self):
         return self.message
 
-def parse_authentication_string(auth_string, params):
-    def obj(src, token):
-        while token == ' ':
-            token = src()
-        if token == ':':
-            obj_name = []
-            token = src()
-            while token not in ['.', ')', ':']:
-                obj_name.append(token)
-                token = src()
-            return ('obj', ''.join(obj_name), atom(src, token))
-    def method(src, token):
-        if token == '.':
-            method_name = []
-            token = src()
-            while token != '(' and token != ' ':
-                method_name.append(token)
-                token = src()
-            if token == '(':
-                return ('mthd', ''.join(method_name), atom(src, token))
-            elif token == ' ':
-                return ('mthd', ''.join(method_name), [])
-    def atom(src, token):
-        if token == ':':
-            return obj(src, token)
-        elif token == '.':
-            return method(src, token)
-        elif token == '(':
-            return []
-    src = (c for c in auth_string)
-    print atom(src.next, src.next())
-    return False
-    
-def is_authorised(auth_string, **params):
-    #ops = parse_authentication_string(auth_string, params)
-    return True
+def tokenise(auth_string):
+    def process(token):
+        token = ''.join(token)
+        if token == '(':
+            return (BRACE_LEFT, token)
+        elif token == ')':
+            return (BRACE_RIGHT, token)
+        elif token.lower() in ['.', '==', '!=', 'or', 'and']:
+            return (OP, token.lower())
+        elif token.startswith(':'):
+            return (OBJ, token[1:])
+        else:
+            return (IDENT, token)
+    tokens = []
+    token = []
+    for char in auth_string:
+        if char in ['(', ')', '.']:
+            if token:
+                tokens.append(process(token))
+                token = []
+            tokens.append(process(char))
+        elif char in ['!', '=']:
+            if token:
+                if len(token) > 1 or token[0] not in ['!', '=']:
+                    tokens.append(process(token))
+                    token = []
+            token.append(char)
+        elif char == ' ':
+            if token:
+                tokens.append(process(token))
+                token = []
+        else:
+            token.append(char)
+    if token:
+        tokens.append(process(token))
+    return tokens
+
+def parse(tokens):
+    def value(token):
+        if token[1] == 'True':
+            return (VAL, True)
+        elif token[1] == 'True':
+            return (VAL, False)
+        else:
+            return (VAL, token[1])
+    def params(tokens):
+        param_list = []
+        while True:
+            if len(tokens) == 0:
+                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT or ), but got EOL')
+            ntoken = tokens.pop()
+            if ntoken[0] == IDENT:
+                param_list.append(value(ntoken))
+            elif ntoken[0] == BRACE_RIGHT:
+                break
+            else:
+                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT or ), but got %s' % (ntoken[1]))
+        return param_list
+    def obj(token, tokens):
+        if len(tokens) == 0:
+            return (OBJ, token[1])
+        ntoken = tokens.pop()
+        if ntoken == (OP, '.'):
+            if len(tokens) == 0:
+                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT, but got EOL')
+            ntoken = tokens.pop()
+            if ntoken[0] == IDENT:
+                result = [CALL, token[1], ntoken[1]]
+                if len(tokens) > 0:
+                    ntoken = tokens.pop()
+                    if ntoken[0] == BRACE_LEFT:
+                        result.extend(params(tokens))
+                    else:
+                        tokens.append(ntoken)
+                return tuple(result)
+    output = []
+    tokens.reverse()
+    while len(tokens) > 0:
+        ntoken = tokens.pop()
+        if ntoken[0] == OBJ:
+            output.append(obj(ntoken, tokens))
+        elif ntoken[0] == IDENT:
+            output.append(value(ntoken))
+        else:
+            output.append(ntoken)
+    return output
+
+def infix_to_reverse_polish(tokens):
+    def op_precedence(token):
+        if token[0] == BRACE_LEFT:
+            return 0
+        elif token[0] == OP and token[1] in ['==', '!=']:
+            return 2
+        else:
+            return 1
+    output = []
+    stack = []
+    for token in tokens:
+        if token[0] == BRACE_LEFT:
+            stack.append(token)
+        elif token[0] == BRACE_RIGHT:
+            while True:
+                if len(stack) == 0:
+                    raise AuthorisationException('Invalid authorisation statement: Too many ).')
+                ntoken = stack.pop()
+                if ntoken[0] == BRACE_LEFT:
+                    break
+                else:
+                    output.append(ntoken)
+        elif token[0] == OP:
+            while len(stack) > 0:
+                ntoken = stack.pop()
+                if op_precedence(token) > op_precedence(ntoken):
+                    stack.append(ntoken)
+                    break
+                else:
+                    output.append(ntoken)
+            stack.append(token)
+        else:
+            output.append(token)
+    while len(stack) > 0:
+        ntoken = stack.pop()
+        if ntoken[0] == BRACE_LEFT:
+            raise AuthorisationException('Invalid authorisation statement: Missing ).')
+        output.append(ntoken)
+    return output
+
+def is_authorised(auth_string, objects):
+    stack = []
+    for token in infix_to_reverse_polish(parse(tokenise(auth_string))):
+        if token[0] == VAL:
+            stack.append(token)
+        elif token[0] == CALL:
+            if token[1] in objects:
+                obj = objects[token[1]]
+                func = token[2].replace('-', '_')
+                if hasattr(obj, func):
+                    attr = getattr(obj, func)
+                    if isinstance(attr, collections.Callable):
+                        stack.append((VAL, attr(*map(lambda t: t[1], token[3:]))))
+                    else:
+                        stack.append((VAL, attr))
+                else:
+                    stack.append((VAL, False))
+            else:
+                stack.append((VAL, False))
+        elif token[0] == OP:
+            if len(stack) < 2:
+                raise AuthorisationException('Invalid authorisation statement: Too few operands')
+            op2 = stack.pop()
+            op1 = stack.pop()
+            if token[1] == 'and':
+                stack.append((VAL, op1[1] and op2[1]))
+            elif token[1] == 'or':
+                stack.append((VAL, op1[1] or op2[1]))
+            elif token[1] == '!=':
+                stack.append((VAL, op1[1] != op2[1]))
+            elif token[1] == '==':
+                stack.append((VAL, op1[1] == op2[1]))
+        else:
+            raise AuthorisationException('Internal authorisation execution error.')
+    if len(stack) == 0:
+        raise AuthorisationException('Empty authorisation statement')
+    elif len(stack) > 1:
+        raise AuthorisationException('Invalid authorisation statement: Missing operator')
+    return stack[0][1] == True
