@@ -38,7 +38,7 @@ def main(argv=sys.argv):
 def init_data(DBSession):
     with transaction.manager:
         user = User(u'mhall', u'm.mhall@sheffield.ac.uk', u'Archchancellor', u'test')
-        group = Group(name='administrator', title='Administrator')
+        group = Group(title='Administrator')
         group.permissions.append(Permission(name='admin.configuration'))
         group.permissions.append(Permission(name='admin.users'))
         user.groups.append(group)

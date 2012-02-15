@@ -68,7 +68,6 @@ class Group(Base):
     __tablename__ = 'groups'
     
     id = Column(Integer, primary_key=True)
-    name = Column(Unicode(255), index=True, unique=True)
     title = Column(Unicode)
     
     permissions = relationship('Permission', backref='groups', secondary='groups_permissions')
