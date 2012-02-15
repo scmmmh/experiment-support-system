@@ -224,11 +224,21 @@ def permissions(request):
                     with transaction.manager:
                         user = dbsession.query(User).filter(User.id==request.matchdict['uid']).first()
                         user.groups = []
-                        for group in dbsession.query(Group).filter(Group.id.in_(params['gid'])):
-                            user.groups.append(group)
+                        if isinstance(params['gid'], list):
+                            for group in dbsession.query(Group).filter(Group.id.in_(params['gid'])):
+                                user.groups.append(group)
+                        else:
+                            group = dbsession.query(Group).filter(Group.id==params['gid']).first()
+                            if group:
+                                user.groups.append(group)
                         user.permissions = []
-                        for permission in dbsession.query(Permission).filter(Permission.id.in_(params['pid'])):
-                            user.permissions.append(permission)
+                        if isinstance(params['pid'], list):
+                            for permission in dbsession.query(Permission).filter(Permission.id.in_(params['pid'])):
+                                user.permissions.append(permission)
+                        else:
+                            permission = dbsession.query(Permission).filter(Permission.id==params['pid']).first()
+                            if permission:
+                                user.permissions.append(permission)
                         dbsession.add(user)
                     request.session.flash('User permissions updated', 'info')
                     raise HTTPFound(request.route_url('user.view', uid=request.matchdict['uid']))
