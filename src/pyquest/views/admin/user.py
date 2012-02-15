@@ -15,7 +15,7 @@ from random import randint
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, User, Survey)
+from pyquest.models import (DBSession, User, Survey, Group, Permission)
 from pyquest.renderer import render
 
 class LoginSchema(Schema):
@@ -37,6 +37,9 @@ class UserEditSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     display_name = validators.UnicodeString(not_empty=True)
     email = validators.Email(not_empty=True)
+    
+class UserPermissionSchema(Schema):
+    csrf_token = validators.UnicodeString(not_empty=True)
     
 class PasswordChangeSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -181,8 +184,7 @@ def edit(request):
             if request.method == 'POST':
                 try:
                     params = UserEditSchema().to_python(request.POST)
-                    if params['csrf_token'] != request.session.get_csrf_token():
-                        raise HTTPForbidden('Cross-site request forgery detected')
+                    check_csrf_token(request, request.session.get_csrf_token())
                     with transaction.manager:
                         user.display_name = params['display_name']
                         user.email = params['email']
@@ -199,6 +201,55 @@ def edit(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+@view_config(route_name='user.permissions')
+@render({'text/html': 'admin/user/permissions.html'})
+def permissions(request):
+    c_user = current_user(request)
+    dbsession = DBSession()
+    if c_user and c_user.has_permission('admin.users'):
+        user = dbsession.query(User).filter(User.id==request.matchdict['uid']).first()
+        if user:
+            permissions = dbsession.query(Permission).order_by(Permission.name)
+            has_permissions = map(lambda p: unicode(p.id), user.permissions)
+            groups = dbsession.query(Group).order_by(Group.title)
+            has_groups = map(lambda g: unicode(g.id), user.groups)
+            if request.method == 'POST':
+                try:
+                    schema = UserPermissionSchema()
+                    schema.add_field('pid', validators.OneOf(map(lambda p: unicode(p.id), permissions), testValueList=True, if_missing=[], hideList=True))
+                    schema.add_field('gid', validators.OneOf(map(lambda g: unicode(g.id), groups), testValueList=True, if_missing=[], hideList=True))
+                    params = schema.to_python(request.POST)
+                    check_csrf_token(request, request.session.get_csrf_token())
+                    with transaction.manager:
+                        user = dbsession.query(User).filter(User.id==request.matchdict['uid']).first()
+                        user.groups = []
+                        for group in dbsession.query(Group).filter(Group.id.in_(params['gid'])):
+                            user.groups.append(group)
+                        user.permissions = []
+                        for permission in dbsession.query(Permission).filter(Permission.id.in_(params['pid'])):
+                            user.permissions.append(permission)
+                        dbsession.add(user)
+                    request.session.flash('User permissions updated', 'info')
+                    raise HTTPFound(request.route_url('user.view', uid=request.matchdict['uid']))
+                except api.Invalid as e:
+                    e.params = request.POST
+                    return {'user': user,
+                            'permissions': permissions,
+                            'has_permissions': has_permissions,
+                            'groups': groups,
+                            'has_groups': has_groups,
+                            'e': e}
+            else:
+                return {'user': user,
+                        'permissions': permissions,
+                        'has_permissions': has_permissions,
+                        'groups': groups,
+                        'has_groups': has_groups}
+        else:
+            raise HTTPNotFound()
+    else:
+        redirect_to_login(request)
 
 @view_config(route_name='user.delete')
 @render({'text/html': 'admin/user/delete.html'})

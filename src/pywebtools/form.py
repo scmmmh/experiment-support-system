@@ -60,13 +60,20 @@ def password_field(name, e, **attr):
 def file_input(name, e, **attr):
     return error_wrapper(tag.input(type='file', name=name, **attr), name, e)
 
-def checkbox(name, value, option, e, **attr):
-    if value == option:
+def checkbox(name, value, e, checked=False, label=None, **attr):
+    if checked:
         attr['checked'] = 'checked'
-    elif value == option:
+    else:
         if 'checked' in attr:
             del attr['checked']
-    return error_wrapper(tag.input(type='checkbox', name=name, value=option, **attr), name, e)
+    if label:
+        if 'id' not in attr:
+            attr['id'] = '%s.%s' % (name, value)
+        return error_wrapper(tag(tag.input(type='checkbox', name=name, value=value, **attr),
+                                 ' ', tag.label(label, for_=attr['id'])),
+                             name, e)
+    else:
+        return error_wrapper(tag.input(type='checkbox', name=name, value=value, **attr), name, e)
 
 def textarea(name, text, e, **attr):
     return error_wrapper(tag.textarea(text, name=name, **attr), name, e)

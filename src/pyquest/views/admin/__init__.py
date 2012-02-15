@@ -8,7 +8,7 @@ def init(config):
     config.add_route('user.new', '/users/new')
     config.add_route('user.view', '/users/{uid}')
     config.add_route('user.edit', '/users/{uid}/edit')
-    config.add_route('user.rights', '/users/{uid}/rights')
+    config.add_route('user.permissions', '/users/{uid}/permissions')
     config.add_route('user.delete', '/users/{uid}/delete')
     config.add_route('user.password', '/users/{uid}/password')
     config.add_route('group', '/admin/groups')
