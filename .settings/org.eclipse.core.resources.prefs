@@ -1,4 +1,4 @@
-#Tue Feb 14 17:04:39 GMT 2012
+#Wed Feb 15 11:18:38 GMT 2012
 eclipse.preferences.version=1
 encoding//src/pyquest/__init__.py=utf-8
 encoding//src/pyquest/helpers/__init__.py=utf-8
@@ -15,6 +15,7 @@ encoding//src/pyquest/scripts/populate.py=utf-8
 encoding//src/pyquest/validation.py=utf-8
 encoding//src/pyquest/views/__init__.py=utf-8
 encoding//src/pyquest/views/admin/__init__.py=utf-8
+encoding//src/pyquest/views/admin/group.py=utf-8
 encoding//src/pyquest/views/admin/user.py=utf-8
 encoding//src/pyquest/views/backend/__init__.py=utf-8
 encoding//src/pyquest/views/backend/data.py=utf-8

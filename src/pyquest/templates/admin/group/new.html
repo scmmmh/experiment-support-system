@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>New Group</title>
+  </head>
+  <body>
+    <hgroup>
+      <h1>New Group</h1>
+    </hgroup>
+    <form action="${r.route_url('group.new')}" method="post">
+      ${h.form.csrf_token(r.session.get_csrf_token())}
+      <dl>
+        <dt>Title</dt>
+        <dd>${h.form.text_field('title', group.title, e)}</dd>
+        <dt>Rights</dt>
+        <dd>
+          <ul class="no-symbol">
+            <li py:for="permission in permissions">
+              ${h.form.checkbox('permission', '', permission.id, e, id='permission.%s' % (permission.name))} <label for="permission.${permission.name}">${permission.title}</label>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+      <ul class="buttons">
+        <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('group'))}</li>
+        <li>${h.form.submit('Create', class_='button')}</li>
+      </ul>
+    </form>
+  </body>
+</html>

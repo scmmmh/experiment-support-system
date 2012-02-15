@@ -39,8 +39,12 @@ def init_data(DBSession):
     with transaction.manager:
         user = User(u'mhall', u'm.mhall@sheffield.ac.uk', u'Archchancellor', u'test')
         group = Group(title='Administrator')
-        group.permissions.append(Permission(name='admin.configuration'))
-        group.permissions.append(Permission(name='admin.users'))
+        group.permissions.append(Permission(name='admin.configuration', title='Administer the site configuration'))
+        group.permissions.append(Permission(name='admin.users', title='Administer the users'))
+        group.permissions.append(Permission(name='admin.groups', title='Administer the permission groups'))
+        user.groups.append(group)
+        group = Group(title='Developer')
+        group.permissions.append(Permission(name='survey.new', title='Create new surveys'))
         user.groups.append(group)
         DBSession.add(user)
 

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${group.title}</title>
+  </head>
+  <body>
+    <nav class="toolbar">
+      <ul>
+        <li><a href="${r.route_url('group.edit', gid=group.id)}" class="button">Edit</a></li>
+        <li><a href="${r.route_url('group.delete', gid=group.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this group.">Delete</a></li>
+      </ul>
+    </nav>
+    <hgroup>
+      <h1>${group.title}</h1>
+    </hgroup>
+    <section>
+      <hgroup>
+        <h2>Rights</h2>
+      </hgroup>
+      <ul>
+        <li py:for="permission in group.permissions">${permission.title}</li>
+      </ul>
+    </section>
+    <section>
+      <hgroup>
+        <h2>Users</h2>
+      </hgroup>
+      <ul>
+        <li py:for="user in group.users"><a href="${r.route_url('user.view', uid=user.id)}">${user.display_name}</a></li>
+      </ul>
+    </section>
+  </body>
+</html>

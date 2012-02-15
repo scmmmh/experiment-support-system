@@ -11,3 +11,9 @@ def init(config):
     config.add_route('user.rights', '/users/{uid}/rights')
     config.add_route('user.delete', '/users/{uid}/delete')
     config.add_route('user.password', '/users/{uid}/password')
+    config.add_route('group', '/admin/groups')
+    config.add_route('group.new', '/admin/groups/new')
+    config.add_route('group.view', '/admin/groups/{gid}')
+    config.add_route('group.edit', '/admin/groups/{gid}/edit')
+    config.add_route('group.delete', '/admin/groups/{gid}/delete')
+    
