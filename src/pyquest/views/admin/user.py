@@ -127,7 +127,6 @@ def index(request):
     else:
         redirect_to_login(request)
 
-
 @view_config(route_name='user.new')
 @render({'text/html': 'admin/user/new.html'})
 def new(request):
