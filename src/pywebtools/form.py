@@ -66,8 +66,7 @@ def checkbox(name, value, options, e, **attr):
     elif value == options[1]:
         if 'checked' in attr:
             del attr['checked']
-    return tag(hidden_field(name, options[1]),
-               error_wrapper(tag.input(type='checkbox', name=name, **attr), name, e))
+    return error_wrapper(tag.input(type='checkbox', name=name, **attr), name, e)
 
 def textarea(name, text, e, **attr):
     return error_wrapper(tag.textarea(text, name=name, **attr), name, e)
