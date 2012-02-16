@@ -20,6 +20,8 @@
         <dl>
           <dt>Title</dt>
           <dd>${h.form.text_field('title', survey.title, e, class_='span-12')}</dd>
+          <dt>Summary</dt>
+          <dd>${h.form.textarea('summary', survey.summary, e, class_='span-22', style='height:5em;')}</dd>
           <dt>Content</dt>
           <dd>${h.form.textarea('content', survey.content, e, class_='span-22')}</dd>
         </dl>

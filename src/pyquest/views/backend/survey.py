@@ -24,6 +24,7 @@ from pyquest.validation import XmlValidator
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
+    summary = validators.UnicodeString()
     content = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>')
     schema = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>', strip_wrapper=False)
 
@@ -118,6 +119,7 @@ def new(request):
                     raise HTTPForbidden('Cross-site request forgery detected')
                 with transaction.manager:
                     survey.title = params['title']
+                    survey.summary = params['summary']
                     survey.content = params['content']
                     survey.schema = pickle.dumps(create_schema(params['schema']))
                     survey.status = 'develop'
@@ -153,6 +155,7 @@ def edit(request):
                         raise HTTPForbidden('Cross-site request forgery detected')
                     with transaction.manager:
                         survey.title = params['title']
+                        survey.summary = params['summary']
                         survey.content = params['content']
                         survey.schema = pickle.dumps(create_schema(params['schema']))
                         dbsession.add(survey)
