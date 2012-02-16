@@ -75,14 +75,16 @@ def parse(tokens):
         param_list = []
         while True:
             if len(tokens) == 0:
-                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT or ), but got EOL')
+                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT, OBJ, or ), but got EOL')
             ntoken = tokens.pop()
             if ntoken[0] == IDENT:
                 param_list.append(value(ntoken))
+            elif ntoken[0] == OBJ:
+                param_list.append(ntoken)
             elif ntoken[0] == BRACE_RIGHT:
                 break
             else:
-                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT or ), but got %s' % (ntoken[1]))
+                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT, OBJ, or ), but got %s' % (ntoken[1]))
         return param_list
     def obj(token, tokens):
         if len(tokens) == 0:
@@ -158,6 +160,11 @@ def is_authorised(auth_string, objects):
     for token in infix_to_reverse_polish(parse(tokenise(auth_string))):
         if token[0] == VAL:
             stack.append(token)
+        elif token[0] == OBJ:
+            if token[1] in objects:
+                stack.append((OBJ, objects[token[1]]))
+            else:
+                stack.append((OBJ, None))
         elif token[0] == CALL:
             if token[1] in objects:
                 obj = objects[token[1]]
@@ -165,7 +172,19 @@ def is_authorised(auth_string, objects):
                 if hasattr(obj, func):
                     attr = getattr(obj, func)
                     if isinstance(attr, collections.Callable):
-                        stack.append((VAL, attr(*map(lambda t: t[1], token[3:]))))
+                        params = []
+                        for param in token[3:]:
+                            if param[0] == OBJ:
+                                if param[1] in objects:
+                                    params.append(objects[param[1]])
+                                else:
+                                    params.append(None)
+                            elif param[0] == VAL:
+                                params.append(param[1])
+                            else:
+                                raise AuthorisationException('Invalid authorisation statement. Was expecting OBJ or VAL, but got %s' % (param[1]))
+                        print params
+                        stack.append((VAL, attr(*params)))
                     else:
                         stack.append((VAL, attr))
                 else:
@@ -191,4 +210,4 @@ def is_authorised(auth_string, objects):
         raise AuthorisationException('Empty authorisation statement')
     elif len(stack) > 1:
         raise AuthorisationException('Invalid authorisation statement: Missing operator')
-    return stack[0][1] == True
+    return bool(stack[0][1])

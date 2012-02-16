@@ -11,6 +11,8 @@ from pywebtools.auth import (AuthorisationException, tokenise, parse,
                              IDENT, OP, BRACE_LEFT, BRACE_RIGHT, OBJ, VAL, CALL)
 
 def test_tokenise():
+    eq_([(OBJ, 'user')],
+        tokenise(':user'))
     eq_([(OBJ, 'user'), (OP, '.'), (IDENT, 'is-logged-in')],
         tokenise(':user.is-logged-in'))
     eq_([(OBJ, 'user'), (OP, '.'), (IDENT, 'is-logged-in'), (OP, 'or'), (OBJ, 'user'), (OP, '.'), (IDENT, 'has-right'), (BRACE_LEFT, '('), (IDENT, 'test'), (BRACE_RIGHT, ')')],
@@ -23,10 +25,14 @@ def test_tokenise():
         tokenise(' :user.is-logged-in() == True'))
     eq_([(OBJ, 'user'), (OP, '.'), (IDENT, 'is-logged-in'), (BRACE_LEFT, '('), (BRACE_RIGHT, ')'), (OP, '!='), (IDENT, 'True')],
         tokenise(' :user.is-logged-in() != True'))
+    eq_([(OBJ, 'survey'), (OP, '.'), (IDENT, 'is-owned-by'), (BRACE_LEFT, '('), (OBJ, 'user'), (BRACE_RIGHT, ')')],
+        tokenise(':survey.is-owned-by(:user)'))
 
 def test_parse():
     eq_([(VAL, True)],
         parse(tokenise('True')))
+    eq_([(OBJ, 'user')],
+        parse(tokenise(':user')))
     eq_([(CALL, 'user', 'is-logged-in')],
         parse(tokenise(':user.is-logged-in')))
     eq_([(CALL, 'user', 'is-logged-in')],
@@ -39,6 +45,8 @@ def test_parse():
         parse(tokenise(':user.is-logged-in() == True')))
     eq_([(CALL, 'user', 'is-logged-in'), (OP, '!='), (VAL, True)],
         parse(tokenise(':user.is-logged-in != True')))
+    eq_([(CALL, 'survey', 'is-owned-by', (OBJ, 'user'))],
+        parse(tokenise(':survey.is-owned-by(:user)')))
 
 def test_infix_to_inverse_polish():
     eq_([(CALL, 'user', 'is-logged-in'), (CALL, 'user', 'has-right', (VAL, 'test')), (OP, 'or')],
@@ -53,6 +61,8 @@ def test_infix_to_inverse_polish():
         infix_to_reverse_polish(parse(tokenise('(:user.is-logged-in or :user.has-right(test)) and :user.id == :user2.id'))))
     eq_([(CALL, 'cuser', 'is-logged-in'), (CALL, 'cuser', 'id'), (CALL, 'user', 'id'), (OP, '=='), (CALL, 'user', 'has-right', (VAL, 'test')), (OP, 'or'), (OP, 'and')],
         infix_to_reverse_polish(parse(tokenise(':cuser.is-logged-in and (:cuser.id == :user.id or :user.has-right(test))'))))
+    eq_([(CALL, 'survey', 'is-owned-by', (OBJ, 'user'))],
+        infix_to_reverse_polish(parse(tokenise(':survey.is-owned-by(:user)'))))
 
 class TestUser(object):
     
@@ -73,9 +83,21 @@ class TestUser(object):
     def has_right(self, right):
         return right in self.rights
 
+class TestObj(object):
+    
+    def __init__(self, owned_by=True):
+        self.owned_by = owned_by
+    
+    def is_owned_by(self, user):
+        return user and self.owned_by
+            
 def test_basic_is_authorised():
     eq_(True,
         is_authorised('True', {}))
+    eq_(True,
+        is_authorised(':user', {'user': TestUser()}))
+    eq_(False,
+        is_authorised(':user', {}))
     eq_(True,
         is_authorised(':user.is-logged-in', {'user': TestUser(logged_in=True)}))
     eq_(True,
@@ -98,6 +120,12 @@ def test_basic_is_authorised():
         is_authorised(':user1.value != :user2.value', {'user1': TestUser(val=1), 'user2': TestUser(val=2)}))
     eq_(False,
         is_authorised(':user1.value != :user2.value', {'user1': TestUser(val=1), 'user2': TestUser(val=1)}))
+    eq_(True,
+        is_authorised(':survey.is-owned-by(:user)', {'survey': TestObj(True), 'user': TestUser()}))
+    eq_(False,
+        is_authorised(':survey.is-owned-by(:user)', {'survey': TestObj(False), 'user': TestUser()}))
+    eq_(False,
+        is_authorised(':survey.is-owned-by(:user)', {'survey': TestObj(True), 'user': None}))
 
 def test_complex_is_authorised():
     eq_(True,
