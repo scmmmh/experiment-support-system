@@ -6,6 +6,7 @@ Created on 23 Jan 2012
 '''
 
 import collections
+import re
 
 OBJ = 'OBJ'
 VAL = 'VAL'
@@ -41,24 +42,42 @@ def tokenise(auth_string):
             return (IDENT, token)
     tokens = []
     token = []
+    string_marker = None
     for char in auth_string:
-        if char in ['(', ')', '.']:
-            if token:
-                tokens.append(process(token))
+        if string_marker:
+            if char == string_marker:
+                token.append(char)
+                tokens.append((VAL, ''.join(token)))
                 token = []
-            tokens.append(process(char))
-        elif char in ['!', '=']:
-            if token:
-                if len(token) > 1 or token[0] not in ['!', '=']:
+                string_marker = None
+            else:
+                token.append(char)
+        else:
+            if char in ['(', ')', '.']:
+                if token:
                     tokens.append(process(token))
                     token = []
-            token.append(char)
-        elif char == ' ':
-            if token:
-                tokens.append(process(token))
-                token = []
-        else:
-            token.append(char)
+                tokens.append(process(char))
+            elif char in ['!', '=']:
+                if token:
+                    if len(token) > 1 or token[0] not in ['!', '=']:
+                        tokens.append(process(token))
+                        token = []
+                token.append(char)
+            elif char == ' ':
+                if token:
+                    tokens.append(process(token))
+                    token = []
+            elif char in ["'", '"']:
+                if token:
+                    tokens.append(process(token))
+                    token = []
+                token.append(char)
+                string_marker = char
+            else:
+                token.append(char)
+    if string_marker:
+        raise AuthorisationException("Invalid authorisation statement. Unterminated string literal.")
     if token:
         tokens.append(process(token))
     return tokens
@@ -67,24 +86,52 @@ def parse(tokens):
     def value(token):
         if token[1] == 'True':
             return (VAL, True)
-        elif token[1] == 'True':
+        elif token[1] == 'False':
             return (VAL, False)
+        elif re.match(r'[0-9]+', token[1]):
+            return (VAL, int(token[1]))
+        elif token[1].startswith("'") and token[1].endswith("'"):
+            return (VAL, token[1][1:-1])
+        elif token[1].startswith('"') and token[1].endswith('"'):
+            return (VAL, token[1][1:-1])
         else:
             return (VAL, token[1])
+    def float_value(token, tokens):
+        if len(tokens) > 0:
+            ntoken = tokens.pop()
+            if ntoken[0] == OP and ntoken[1] == '.':
+                ntoken2 = tokens.pop()
+                if ntoken2[0] == IDENT and isinstance(value(ntoken2)[1], int):
+                    return (VAL, float('%s.%s' % (token[1], ntoken2[1])))
+                else:
+                    tokens.append(ntoken2)
+                    tokens.append(ntoken)
+                    return token
+            else:
+                tokens.append(ntoken)
+                return token
+        else:
+            return token
     def params(tokens):
         param_list = []
         while True:
             if len(tokens) == 0:
-                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT, OBJ, or ), but got EOL')
+                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT, OBJ, VAL, or ), but got EOL')
             ntoken = tokens.pop()
             if ntoken[0] == IDENT:
-                param_list.append(value(ntoken))
+                tmp = value(ntoken)
+                if tmp[0] == VAL and isinstance(tmp[1], int):
+                    param_list.append(float_value(tmp, tokens))
+                else:
+                    param_list.append(tmp)
             elif ntoken[0] == OBJ:
                 param_list.append(ntoken)
+            elif ntoken[0] == VAL:
+                param_list.append(value(ntoken))
             elif ntoken[0] == BRACE_RIGHT:
                 break
             else:
-                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT, OBJ, or ), but got %s' % (ntoken[1]))
+                raise AuthorisationException('Invalid authorisation statement: Was expecting IDENT, OBJ, VAL, or ), but got %s' % (ntoken[1]))
         return param_list
     def obj(token, tokens):
         if len(tokens) == 0:
@@ -110,7 +157,15 @@ def parse(tokens):
         if ntoken[0] == OBJ:
             output.append(obj(ntoken, tokens))
         elif ntoken[0] == IDENT:
+            tmp = value(ntoken)
+            if tmp[0] == VAL and isinstance(tmp[1], int):
+                output.append(float_value(tmp, tokens))
+            else:
+                output.append(tmp)
+        elif ntoken[0] == VAL:
             output.append(value(ntoken))
+        elif ntoken[0] == OP and ntoken[1] == '.':
+            raise AuthorisationException('Invalid authorisation statement. Was expecting one of OBJ, IDENT, VAL, OP, or BRACE_LEFT, but got .')
         else:
             output.append(ntoken)
     return output

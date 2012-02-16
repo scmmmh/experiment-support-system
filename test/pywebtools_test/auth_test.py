@@ -27,10 +27,28 @@ def test_tokenise():
         tokenise(' :user.is-logged-in() != True'))
     eq_([(OBJ, 'survey'), (OP, '.'), (IDENT, 'is-owned-by'), (BRACE_LEFT, '('), (OBJ, 'user'), (BRACE_RIGHT, ')')],
         tokenise(':survey.is-owned-by(:user)'))
+    eq_([(OBJ, 'user'), (OP, '.'), (IDENT, 'has-right'), (BRACE_LEFT, '('), (VAL, "'test.yes'"), (BRACE_RIGHT, ')')],
+        tokenise(":user.has-right('test.yes')"))
+    eq_([(OBJ, 'user'), (OP, '.'), (IDENT, 'has-right'), (BRACE_LEFT, '('), (VAL, '"test.yes"'), (BRACE_RIGHT, ')')],
+        tokenise(':user.has-right("test.yes")'))
 
-def test_parse():
+def test_value_parse():
     eq_([(VAL, True)],
         parse(tokenise('True')))
+    eq_([(VAL, False)],
+        parse(tokenise('False')))
+    eq_([(VAL, 4)],
+        parse(tokenise('4')))
+    eq_([(VAL, 3.4)],
+        parse(tokenise('3.4')))
+    eq_([(VAL, 'nobody')],
+        parse(tokenise('nobody')))
+    eq_([(VAL, 'True')],
+        parse(tokenise('"True"')))
+    eq_([(VAL, '4')],
+        parse(tokenise("'4'")))
+
+def test_parse():
     eq_([(OBJ, 'user')],
         parse(tokenise(':user')))
     eq_([(CALL, 'user', 'is-logged-in')],
@@ -47,6 +65,16 @@ def test_parse():
         parse(tokenise(':user.is-logged-in != True')))
     eq_([(CALL, 'survey', 'is-owned-by', (OBJ, 'user'))],
         parse(tokenise(':survey.is-owned-by(:user)')))
+    eq_([(CALL, 'survey', 'is-owned-by', (VAL, ':user'))],
+        parse(tokenise(':survey.is-owned-by(":user")')))
+    eq_([(CALL, 'survey', 'is-owned-by', (VAL, '4'))],
+        parse(tokenise(':survey.is-owned-by("4")')))
+    eq_([(CALL, 'survey', 'is-owned-by', (VAL, 3))],
+        parse(tokenise(':survey.is-owned-by(3)')))
+    eq_([(CALL, 'survey', 'is-owned-by', (VAL, 3.2))],
+        parse(tokenise(':survey.is-owned-by(3.2)')))
+    eq_([(CALL, 'survey', 'is-owned-by', (VAL, True))],
+        parse(tokenise(':survey.is-owned-by(True)')))
 
 def test_infix_to_inverse_polish():
     eq_([(CALL, 'user', 'is-logged-in'), (CALL, 'user', 'has-right', (VAL, 'test')), (OP, 'or')],
