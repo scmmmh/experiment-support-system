@@ -94,6 +94,18 @@ def determine_submit_options(instr, state, survey_schema):
         else:
             return []
 
+def get_participant(dbsession, survey, state):
+    participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
+    if not participant:
+        with transaction.manager:
+            participant = Participant(survey_id=survey.id, answers=pickle.dumps({}))
+            dbsession.add(participant)
+            dbsession.flush()
+            state['ptid'] = participant.id
+        return get_participant(dbsession, survey, state)
+    else:
+        return participant
+
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/qsheet.html'})
 def run_survey(request):
@@ -132,7 +144,7 @@ def run_survey(request):
             try:
                 qsheet_answers = validator.to_python(request.POST, ValidationState(request=request))
                 with transaction.manager:
-                    participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
+                    participant = get_participant(dbsession, survey, state)
                     pt_answers = pickle.loads(str(participant.answers))
                     if state['qsid'] in pt_answers:
                         pt_answers[state['qsid']]['items'].update(qsheet_answers['items'])
