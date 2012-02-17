@@ -14,6 +14,7 @@ from formencode import Schema, validators, api, foreach
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from sqlalchemy import and_
+from pywebtools.auth import is_authorised
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem)
@@ -26,7 +27,7 @@ def index(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             qsheets = []
             for qsheet in survey.qsheets:
                 qsheets.append({'qsid': unicode(qsheet.id),
@@ -62,7 +63,7 @@ def raw_data(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             rows = []
             columns = ['page', 'data_id', 'participant_id']
             if len(survey.data_items) > 0:
@@ -134,7 +135,7 @@ def participant(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             if len(survey.data_items) > 0:
                 data_attr = map(lambda d: (d.key, d.key), survey.data_items[0].attributes)
                 data_attr.insert(0, ('did_', 'System Identifier'))

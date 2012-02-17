@@ -14,6 +14,7 @@ from formencode import Schema, validators, api, foreach
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from sqlalchemy import and_
+from pywebtools.auth import is_authorised
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet)
@@ -38,7 +39,7 @@ def index(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             return {'survey': survey}
         else:
             redirect_to_login(request)
@@ -52,7 +53,7 @@ def new_qsheet(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 validator = QSheetSchema()
                 try:
@@ -96,7 +97,7 @@ def view(request):
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
     user = current_user(request)
     if survey and qsheet:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             example = {'did': 0}
             if survey.data_items:
                 example['did'] = survey.data_items[0].id
@@ -131,7 +132,7 @@ def edit(request):
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
     user = current_user(request)
     if survey and qsheet:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 validator = QSheetSchema()
                 try:
@@ -172,7 +173,7 @@ def delete_qsheet(request):
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
     user = current_user(request)
     if survey and qsheet:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
                         raise HTTPForbidden('Cross-site request forgery detected')

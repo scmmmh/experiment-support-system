@@ -12,6 +12,7 @@ from formencode import Schema, validators, api
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from sqlalchemy import and_, func
+from pywebtools.auth import is_authorised
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, DataItem, DataItemAttribute)
@@ -27,7 +28,7 @@ def index(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             items = dbsession.query(DataItem).filter(DataItem.survey_id==request.matchdict['sid'])
             pages = int(math.ceil(items.count() / 10.0))
             page = 1
@@ -53,7 +54,7 @@ def upload(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
                     raise HTTPForbidden('Cross-site request forgery detected')
@@ -109,7 +110,7 @@ def new(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if len(survey.data_items) > 0:
                 data_item = survey.data_items[0]
             else:
@@ -158,7 +159,7 @@ def edit(request):
                                                       DataItem.id==request.matchdict['did'])).first()
     user = current_user(request)
     if survey and data_item:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
                     validator = DataItemSchema()
@@ -196,7 +197,7 @@ def delete(request):
                                                       DataItem.id==request.matchdict['did'])).first()
     user = current_user(request)
     if survey and data_item:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
                     raise HTTPForbidden('Cross-site request forgery detected')
@@ -219,7 +220,7 @@ def clear(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
                     raise HTTPForbidden('Cross-site request forgery detected')

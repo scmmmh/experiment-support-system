@@ -8,7 +8,7 @@
     ${h.ui.breadcrumbs([], r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.new')}" class="button">New Survey</a></li>
+        <li><a href="${r.route_url('survey.new')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})">New Survey</a></li>
       </ul>
     </nav>
     <article>
@@ -29,14 +29,18 @@
             <td>${h.survey.fancy_status(r, survey.status, class_='survey-status')}</td>
             <td>
               <ul class="inline no-symbol no-margin">
-                <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button">Add page</a></li>
-                <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
-                <li><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button">Delete</a></li>
-                <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'testing'})}" class="button post-submit" data-confirm="no-confirm">Test</a></li>
-                <li py:if="survey.status == 'testing'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'develop'})}" class="button post-submit" data-confirm="no-confirm">Stop Test</a></li>
-                <li py:if="survey.status in ['develop', 'paused', 'finished']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'running'})}" class="button post-submit" data-confirm="no-confirm">Start</a></li>
-                <li py:if="survey.status == 'running'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'paused'})}" class="button post-submit" data-confirm="no-confirm">Pause</a></li>
-                <li py:if="survey.status in ['running', 'paused']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'finished'})}" class="button post-submit" data-confirm="no-confirm">Finish</a></li>
+                <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
+                  <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button">Add page</a></li>
+                  <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
+                </py:if>
+                <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button">Delete</a></li>
+                <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
+                  <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'testing'})}" class="button post-submit" data-confirm="no-confirm">Test</a></li>
+                  <li py:if="survey.status == 'testing'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'develop'})}" class="button post-submit" data-confirm="no-confirm">Stop Test</a></li>
+                  <li py:if="survey.status in ['develop', 'paused', 'finished']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'running'})}" class="button post-submit" data-confirm="no-confirm">Start</a></li>
+                  <li py:if="survey.status == 'running'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'paused'})}" class="button post-submit" data-confirm="no-confirm">Pause</a></li>
+                  <li py:if="survey.status in ['running', 'paused']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'finished'})}" class="button post-submit" data-confirm="no-confirm">Finish</a></li>
+                </py:if>
               </ul>
             </td>
           </tr>

@@ -14,6 +14,7 @@ from formencode import Schema, validators, api
 from lxml import etree
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
+from pywebtools.auth import is_authorised
 
 from pyquest import helpers
 from pyquest.helpers.user import current_user, redirect_to_login
@@ -84,7 +85,7 @@ def create_schema(content):
 @render({'text/html': 'backend/survey/index.html'})
 def index(request):
     user = current_user(request)
-    if user:
+    if is_authorised(':user.logged-in', {'user': user}):
         return {'surveys': user.surveys}
     else:
         redirect_to_login(request)
@@ -96,7 +97,7 @@ def view(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             return {'survey': survey}
         else:
             redirect_to_login(request)
@@ -109,7 +110,7 @@ def new(request):
     dbsession = DBSession()
     user = current_user(request)
     survey = Survey()
-    if user and user.has_permission('survey.new'):
+    if is_authorised(':user.has_permission("survey.new")'):
         if request.method == 'POST':
             try:
                 if 'content' in request.POST:
@@ -145,7 +146,7 @@ def edit(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
                     if 'content' in request.POST:
@@ -180,7 +181,7 @@ def delete(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.delete-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
                     if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
@@ -207,7 +208,7 @@ def preview(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             example = {'did': 0}
             if survey.data_items:
                 example['did'] = survey.data_items[0].id
@@ -227,7 +228,7 @@ def status(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if user and (survey.is_owned_by(user) or user.has_permission('survey.edit-all')):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
                     params = SurveyStatusSchema().to_python(request.POST)

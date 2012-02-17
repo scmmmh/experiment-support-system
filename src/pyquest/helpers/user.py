@@ -12,7 +12,9 @@ from pyquest.models import DBSession, User
 def current_user(request):
     if 'user-id' in request.session:
         dbsession = DBSession()
-        return dbsession.query(User).filter(User.id==request.session['user-id']).first()
+        user = dbsession.query(User).filter(User.id==request.session['user-id']).first()
+        user.logged_in = True
+        return user
     else:
         return None
 
