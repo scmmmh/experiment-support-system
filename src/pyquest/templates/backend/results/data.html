@@ -5,7 +5,7 @@
     <title>${survey.title} - Results - Download Raw Data</title>
   </head>
   <body>
-    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Download Raw Data', {'href': r.route_url('survey.results.data', sid=survey.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Download Raw Data', {'href': r.route_url('survey.results.data', sid=survey.id)})], r)}
     ${h.survey.fancy_status(r, survey.status, class_='survey-status right')}
     ${h.ui.main_menu('results', survey, r)}
     <nav class="toolbar">

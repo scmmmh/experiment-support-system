@@ -5,7 +5,7 @@
     <title>${survey.title}</title>
   </head>
   <body>
-    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)})], r)}
     ${h.survey.fancy_status(r, survey.status, class_='survey-status right')}
     ${h.ui.main_menu('survey', survey, r)}
     <nav class="toolbar">

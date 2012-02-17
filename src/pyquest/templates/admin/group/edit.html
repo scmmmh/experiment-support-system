@@ -5,6 +5,7 @@
     <title>${group.title} - Edit</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Groups', {'href': r.route_url('group')}), (group.title, {'href': r.route_url('group.view', gid=group.id)}), ('Edit', {'href': r.route_url('group.edit', gid=group.id)})], r)}
     <hgroup>
       <h1>${group.title} - Edit</h1>
     </hgroup>

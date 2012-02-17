@@ -5,7 +5,7 @@
     <title>${survey.title} - Add a Page</title>
   </head>
   <body>
-    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), ('Add a Page', {'href': r.route_url('survey.qsheet.new', sid=survey.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), ('Add a Page', {'href': r.route_url('survey.qsheet.new', sid=survey.id)})], r)}
     ${h.survey.fancy_status(r, survey.status, class_='survey-status right')}
     ${h.ui.main_menu('pages', survey, r)}
     <article>

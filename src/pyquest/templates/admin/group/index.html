@@ -5,6 +5,7 @@
     <title>Groups</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Groups', {'href': r.route_url('group')})], r)}
     <nav class="toolbar">
       <ul>
        <li><a href="${r.route_url('group.new')}" class="button">New Group</a></li>

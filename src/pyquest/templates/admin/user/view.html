@@ -5,6 +5,7 @@
     <title>${user.display_name}</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Users', {'href': r.route_url('user')}), (user.display_name, {'href': r.route_url('user.view', uid=user.id)})], r)}
     <nav class="toolbar">
       <ul>
         <li><a href="${r.route_url('user.edit', uid=user.id)}" class="button">Edit</a></li>

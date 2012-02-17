@@ -5,6 +5,7 @@
     <title>New User</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Users', {'href': r.route_url('user')}), ('New User', {'href': r.route_url('user.new')})], r)}
     <hgroup>
       <h1>New User</h1>
     </hgroup>

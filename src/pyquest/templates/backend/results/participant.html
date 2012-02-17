@@ -13,7 +13,7 @@
     </script>
   </head>
   <body>
-    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Download By Participant', {'href': r.route_url('survey.results.participant', sid=survey.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Download By Participant', {'href': r.route_url('survey.results.participant', sid=survey.id)})], r)}
     ${h.survey.fancy_status(r, survey.status, class_='survey-status right')}
     ${h.ui.main_menu('results', survey, r)}
     <nav class="toolbar">

@@ -5,7 +5,7 @@
     <title></title>
   </head>
   <body>
-    ${h.ui.breadcrumbs([], r)}
+    ${h.ui.survey_breadcrumbs([], r)}
     <nav class="toolbar">
       <ul>
         <li><a href="${r.route_url('survey.new')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})">New Survey</a></li>

@@ -5,6 +5,7 @@
     <title>${group.title}</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Groups', {'href': r.route_url('group')}), (group.title, {'href': r.route_url('group.view', gid=group.id)})], r)}
     <nav class="toolbar">
       <ul>
         <li><a href="${r.route_url('group.edit', gid=group.id)}" class="button">Edit</a></li>

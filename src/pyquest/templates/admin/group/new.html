@@ -5,6 +5,7 @@
     <title>New Group</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Groups', {'href': r.route_url('group')}), ('New Group', {'href': r.route_url('group.new')})], r)}
     <hgroup>
       <h1>New Group</h1>
     </hgroup>

@@ -9,8 +9,12 @@ from genshi.builder import Markup
 from pywebtools import ui
 
 def breadcrumbs(items, request):
-    items.insert(0, ('All my surveys', {'href': request.route_url('survey')}))
+    items.insert(0, ('PyQuestionnaire', {'href': request.route_url('root')}))
     return ui.breadcrumbs(items)
+    
+def survey_breadcrumbs(items, request):
+    items.insert(0, ('All my surveys', {'href': request.route_url('survey')}))
+    return breadcrumbs(items, request)
 
 def main_menu(current, survey, request):
     return ui.menu([('back', [Markup('&larr;'),  ' All my surveys'], {'href': request.route_url('survey'), 'class': 'no-tab', 'style': 'font-weight:normal;'}),

@@ -5,6 +5,7 @@
     <title>${group.title} - Delete</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Groups', {'href': r.route_url('group')}), (group.title, {'href': r.route_url('group.view', gid=group.id)}), ('Delete', {'href': r.route_url('group.delete', gid=group.id)})], r)}
     <hgroup>
       <h1>${group.title} - Delete</h1>
     </hgroup>

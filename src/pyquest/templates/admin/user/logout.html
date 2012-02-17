@@ -5,12 +5,15 @@
     <title>Logout</title>
   </head>
   <body>
-    <h1>Login</h1>
+    ${h.ui.breadcrumbs([('Logout', {'href': r.route_url('user.logout')})], r)}
+    <hgroup>
+      <h1>Login</h1>
+    </hgroup>
     <form action="${r.route_url('user.logout')}" method="post">
       ${h.form.csrf_token(r.session.get_csrf_token())}
       <p>Please confirm that you wish to log out.</p>
       <ul class="buttons">
-        <li>${h.form.button("Don't logout", class_='button')}</li>
+        <li>${h.form.button("Don't logout", class_='button', onclick="document.location='%s'" % r.route_url('survey'))}</li>
         <li>${h.form.submit('Logout', class_='button')}</li>
       </ul>
     </form>

@@ -5,7 +5,10 @@
     <title>Login</title>
   </head>
   <body>
-    <h1>Login</h1>
+    ${h.ui.breadcrumbs([('Login', {'href': r.route_url('user.login')})], r)}
+    <hgroup>
+      <h1>Login</h1>
+    </hgroup>
     <form action="${r.route_url('user.login')}" method="post">
       ${h.form.csrf_token(r.session.get_csrf_token())}
       <dl>

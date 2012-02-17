@@ -5,6 +5,7 @@
     <title>Users</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Users', {'href': r.route_url('user')})], r)}
     <nav class="toolbar">
       <ul>
        <li><a href="${r.route_url('user.new')}" class="button">New User</a></li>

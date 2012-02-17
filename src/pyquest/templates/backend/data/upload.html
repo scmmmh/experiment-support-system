@@ -5,7 +5,7 @@
     <title>${survey.title} - Upload Data</title>
   </head>
   <body>
-    ${h.ui.breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id)}), ('Upload', {'href': r.route_url('survey.data.upload', sid=survey.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id)}), ('Upload', {'href': r.route_url('survey.data.upload', sid=survey.id)})], r)}
     ${h.survey.fancy_status(r, survey.status, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
     <article>

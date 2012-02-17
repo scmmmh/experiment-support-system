@@ -5,6 +5,7 @@
     <title>${user.display_name} - Edit</title>
   </head>
   <body>
+    ${h.ui.breadcrumbs([('Users', {'href': r.route_url('user')}), (user.display_name, {'href': r.route_url('user.view', uid=user.id)}), ('Edit', {'href': r.route_url('user.edit', uid=user.id)})], r)}
     <hgroup>
       <h1>${user.display_name} - Edit</h1>
     </hgroup>
