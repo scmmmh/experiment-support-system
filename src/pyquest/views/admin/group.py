@@ -42,7 +42,7 @@ def new(request):
                 schema = GroupSchema()
                 schema.add_field('pid', validators.OneOf(map(lambda p: unicode(p.id), permissions), testValueList=True, if_missing=[], hideList=True))
                 params = schema.to_python(request.POST)
-                check_csrf_token(request, request.session.get_csrf_token())
+                check_csrf_token(request, params)
                 with transaction.manager:
                     group = Group(title=params['title'])
                     group.permissions = []
@@ -99,7 +99,7 @@ def edit(request):
                     schema = GroupSchema()
                     schema.add_field('pid', validators.OneOf(map(lambda p: unicode(p.id), permissions), testValueList=True, if_missing=[], hideList=True))
                     params = schema.to_python(request.POST)
-                    check_csrf_token(request, request.session.get_csrf_token())
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         group = dbsession.query(Group).filter(Group.id==request.matchdict['gid']).first()
                         group.title = params['title']
@@ -138,7 +138,7 @@ def delete(request):
         group = dbsession.query(Group).filter(Group.id==request.matchdict['gid']).first()
         if group:
             if request.method == 'POST':
-                check_csrf_token(request, request.session.get_csrf_token())
+                check_csrf_token(request, request.POST)
                 with transaction.manager:
                     dbsession.delete(group)
                 request.session.flash('Group deleted', 'info')

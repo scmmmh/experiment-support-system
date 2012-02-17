@@ -16,6 +16,7 @@ from pyramid.view import view_config
 from sqlalchemy import and_
 from pywebtools.auth import is_authorised
 
+from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet)
 from pyquest.renderer import render
@@ -60,8 +61,7 @@ def new_qsheet(request):
                     if 'content' in request.POST:
                         request.POST['schema'] = request.POST['content']
                     params = validator.to_python(request.POST)
-                    if params['csrf_token'] != request.session.get_csrf_token():
-                        raise HTTPForbidden('Cross-site request forgery detected')
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         qsheet = QSheet(survey_id=request.matchdict['sid'],
@@ -139,8 +139,7 @@ def edit(request):
                     if 'content' in request.POST:
                         request.POST['schema'] = request.POST['content']
                     params = validator.to_python(request.POST)
-                    if params['csrf_token'] != request.session.get_csrf_token():
-                        raise HTTPForbidden('Cross-site request forgery detected')
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         qsheet.name = params['name']
                         qsheet.title = params['title']
@@ -175,8 +174,7 @@ def delete_qsheet(request):
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
-                if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
-                        raise HTTPForbidden('Cross-site request forgery detected')
+                check_csrf_token(request, request.POST)
                 with transaction.manager:
                     dbsession.delete(qsheet)
                 request.session.flash('Survey page deleted', 'info')

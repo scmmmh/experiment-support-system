@@ -17,6 +17,7 @@ from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 
 from pyquest import helpers
+from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey)
 from pyquest.renderer import render
@@ -116,8 +117,7 @@ def new(request):
                 if 'content' in request.POST:
                     request.POST['schema'] = request.POST['content']
                 params = SurveySchema().to_python(request.POST)
-                if params['csrf_token'] != request.session.get_csrf_token():
-                    raise HTTPForbidden('Cross-site request forgery detected')
+                check_csrf_token(request, params)
                 with transaction.manager:
                     survey.title = params['title']
                     survey.summary = params['summary']
@@ -152,8 +152,7 @@ def edit(request):
                     if 'content' in request.POST:
                         request.POST['schema'] = request.POST['content']
                     params = SurveySchema().to_python(request.POST)
-                    if params['csrf_token'] != request.session.get_csrf_token():
-                        raise HTTPForbidden('Cross-site request forgery detected')
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         survey.title = params['title']
                         survey.summary = params['summary']
@@ -184,8 +183,7 @@ def delete(request):
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
-                    if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
-                        raise HTTPForbidden('Cross-site request forgery detected')
+                    check_csrf_token(request, request.POST)
                     with transaction.manager:
                         dbsession.delete(survey)
                     request.session.flash('Survey deleted', 'info')
@@ -232,6 +230,7 @@ def status(request):
             if request.method == 'POST':
                 try:
                     params = SurveyStatusSchema().to_python(request.POST)
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         if survey.status == 'testing' and params['status'] == 'develop':

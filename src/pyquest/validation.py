@@ -321,7 +321,7 @@ class PageSchema(Schema):
             if 'did' in item:
                 item_schema = DynamicSchema(qsheet_schema)
                 if csrf_test:
-                    item_schema.add_field('csrf_token_', CsrfTokenValidator())
+                    item_schema.add_field('csrf_token_', CsrfTokenValidator(not_empty=True))
                 items_schema.add_field(unicode(item['did']), item_schema)
         self.add_field('items', items_schema)
     

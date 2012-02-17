@@ -14,6 +14,7 @@ from pyramid.view import view_config
 from sqlalchemy import and_, func
 from pywebtools.auth import is_authorised
 
+from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, DataItem, DataItemAttribute)
 from pyquest.renderer import render
@@ -56,8 +57,7 @@ def upload(request):
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
-                if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
-                    raise HTTPForbidden('Cross-site request forgery detected')
+                check_csrf_token(request, request.POST)
                 try:
                     print request.POST['source_file'].__class__
                     if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
@@ -121,8 +121,7 @@ def new(request):
                     for attribute in data_item.attributes:
                         validator.add_field(attribute.key, validators.UnicodeString(not_empty=True))
                     params = validator.to_python(request.POST)
-                    if params['csrf_token'] != request.session.get_csrf_token():
-                        raise HTTPForbidden('Cross-site request forgery detected')
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         new_data_item = DataItem(survey_id=survey.id)
                         if len(survey.data_items) > 0:
@@ -166,8 +165,7 @@ def edit(request):
                     for attribute in data_item.attributes:
                         validator.add_field(attribute.key, validators.UnicodeString(not_empty=True))
                     params = validator.to_python(request.POST)
-                    if params['csrf_token'] != request.session.get_csrf_token():
-                        raise HTTPForbidden('Cross-site request forgery detected')
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         for attribute in data_item.attributes:
                             attribute.value = params[attribute.key]
@@ -199,8 +197,7 @@ def delete(request):
     if survey and data_item:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
-                if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
-                    raise HTTPForbidden('Cross-site request forgery detected')
+                check_csrf_token(request, request.POST)
                 with transaction.manager:
                     dbsession.delete(data_item)
                 request.session.flash('Data deleted', 'info')
@@ -222,8 +219,7 @@ def clear(request):
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
-                if 'csrf_token' not in request.POST or request.POST['csrf_token'] != request.session.get_csrf_token():
-                    raise HTTPForbidden('Cross-site request forgery detected')
+                check_csrf_token(request, request.POST)
                 with transaction.manager:
                     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                     survey.data_items = []

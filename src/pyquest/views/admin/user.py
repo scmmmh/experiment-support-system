@@ -54,7 +54,7 @@ def login(request):
     if request.method == 'POST':
         try:
             params = LoginSchema().to_python(request.params)
-            check_csrf_token(request, params['csrf_token'])
+            check_csrf_token(request, params)
             dbsession = DBSession()
             user = dbsession.query(User).filter(User.username==params['username']).first()
             if user.password_matches(params['password']):
@@ -77,7 +77,7 @@ def login(request):
 @render({'text/html': 'admin/user/logout.html'})
 def logout(request):
     if request.method == 'POST':
-        check_csrf_token(request, request.POST['csrf_token'])
+        check_csrf_token(request, request.POST)
         del request.session['user-id']
         raise HTTPFound(request.route_url('root'))
     else:
@@ -87,7 +87,7 @@ def logout(request):
 @render({'text/html': 'admin/user/forgotten_password.html'})
 def forgotten_password(request):
     if request.method == 'POST':
-        check_csrf_token(request, request.POST['csrf_token'])
+        check_csrf_token(request, request.POST)
         try:
             params = ForgottenPasswordSchema().to_python(request.POST)
             dbsession = DBSession()
@@ -184,7 +184,7 @@ def edit(request):
             if request.method == 'POST':
                 try:
                     params = UserEditSchema().to_python(request.POST)
-                    check_csrf_token(request, request.session.get_csrf_token())
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         user.display_name = params['display_name']
                         user.email = params['email']
@@ -220,7 +220,7 @@ def permissions(request):
                     schema.add_field('pid', validators.OneOf(map(lambda p: unicode(p.id), permissions), testValueList=True, if_missing=[], hideList=True))
                     schema.add_field('gid', validators.OneOf(map(lambda g: unicode(g.id), groups), testValueList=True, if_missing=[], hideList=True))
                     params = schema.to_python(request.POST)
-                    check_csrf_token(request, request.session.get_csrf_token())
+                    check_csrf_token(request, params)
                     with transaction.manager:
                         user = dbsession.query(User).filter(User.id==request.matchdict['uid']).first()
                         user.groups = []
