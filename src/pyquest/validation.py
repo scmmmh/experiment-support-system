@@ -312,7 +312,7 @@ class DynamicSchema(Schema):
             
 class PageSchema(Schema):
     
-    _action = validators.UnicodeString()
+    action_ = validators.UnicodeString()
     
     def __init__(self, qsheet_schema, items, csrf_test=True):
         Schema.__init__(self)
