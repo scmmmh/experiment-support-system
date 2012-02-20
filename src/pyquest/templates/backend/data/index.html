@@ -33,12 +33,14 @@
         <table>
           <thead>
             <tr py:if="survey.data_items">
+              <th>Control item</th>
               <th py:for="attribute in survey.data_items[0].attributes">${h.text.title(attribute.key)}</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             <tr py:for="item in items">
+              <td><py:if test="item.control">Yes</py:if></td>
               <td py:for="attribute in item.attributes">${attribute.value}</td>
               <td>
                 <ul class="span-3 inline no-symbol no-margin">

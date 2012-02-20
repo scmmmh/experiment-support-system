@@ -62,14 +62,27 @@ def create_schema(content):
                         'type': 'finish'}
             else:
                 return {}
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}source':
+            source = {'source': {'data_items': 1, 'control_items': 0}}
+            for child in element:
+                source['source'].update(process(child))
+            return source
         elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}data_items':
-            data_items = {'data_items': {'count': 1}}
             if 'count' in element.attrib:
                 try:
-                    data_items['data_items']['count'] = int(element.attrib['count'])
+                    return {'data_items': int(element.attrib['count'])}
                 except ValueError:
-                    pass
-            return data_items
+                    return {'data_items': 1}
+            else:
+                return {'data_items': 1}
+        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}control_items':
+            if 'count' in element.attrib:
+                try:
+                    return {'control_items': int(element.attrib['count'])}
+                except ValueError:
+                    return {'control_items': 0}
+            else:
+                return {'control_items': 0}
     def link_qsheets(schema):
         for idx, instr in enumerate(schema):
             if (idx + 1) < len(schema):

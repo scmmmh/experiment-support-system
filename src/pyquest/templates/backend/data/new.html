@@ -17,6 +17,8 @@
       <form action="${r.route_url('survey.data.new', sid=survey.id, did=data_item.id)}" method="post">
         ${h.form.csrf_token(r.session.get_csrf_token())}
         <dl>
+          <dt><label for="control_item">Control item</label></dt>
+          <dd>${h.form.checkbox('control_', 'True', e, checked=data_item.control, label='Yes')}</dd>
           <py:for each="attribute in data_item.attributes">
             <dt>${h.text.title(attribute.key)}</dt>
             <dd>${h.form.text_field(attribute.key, '', e, class_='span-12')}</dd>

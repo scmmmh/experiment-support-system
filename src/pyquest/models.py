@@ -130,6 +130,7 @@ class DataItem(Base):
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id))
     order = Column(Integer)
+    control = Column(Boolean, default=False)
     
     attributes = relationship('DataItemAttribute',
                               backref='data_item', order_by='DataItemAttribute.order',
@@ -147,7 +148,6 @@ class DataItemAttribute(Base):
     order = Column(Integer)
     key = Column(Unicode)
     value = Column(Unicode)
-    answer = Column(Unicode, nullable=True)
 
 class DataItemCount(Base):
     

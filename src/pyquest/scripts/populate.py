@@ -57,7 +57,10 @@ def init_test_data(DBSession):
         user = DBSession.query(User).first()
         survey = Survey(title='A test survey', content="""<pq:single qsid="1"/>
 <pq:repeat qsid="2">
-  <pq:data_items count="5"/>
+  <pq:source>
+    <pq:data_items count="4"/>
+    <pq:control_items count="1"/>
+  </pq:source>
 </pq:repeat>
 <pq:finish qsid="3"/>""", summary='A simple test survey', status='develop')
         survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
@@ -100,7 +103,7 @@ for completing our survey. Your time and effort have been a great help.</p>""")
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the second item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/2.html'))
         survey.data_items.append(data_item)
-        data_item = DataItem(order=3)
+        data_item = DataItem(order=3, control=True)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the third item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/3.html'))
         survey.data_items.append(data_item)
@@ -116,7 +119,7 @@ for completing our survey. Your time and effort have been a great help.</p>""")
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the sixth item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/6.html'))
         survey.data_items.append(data_item)
-        data_item = DataItem(order=7)
+        data_item = DataItem(order=7, control=True)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the seventh item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/7.html'))
         survey.data_items.append(data_item)

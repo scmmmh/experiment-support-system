@@ -39,8 +39,9 @@ def select_data_items(sid, state, instr, dbsession):
             return (t[0], t[1].count)
         else:
             return (t[0], 0)
-    if 'data_items' in instr:
-        source_items = map(data_item_transform, dbsession.query(DataItem, DataItemCount).outerjoin(DataItemCount).filter(DataItem.survey_id==sid).all())
+    if 'source' in instr:
+        source_items = map(data_item_transform, dbsession.query(DataItem, DataItemCount).outerjoin(DataItemCount).filter(and_(DataItem.survey_id==sid,
+                                                                                                                              DataItem.control==False)).all())
         if len(source_items) > 0:
             filter_list = []
             participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
@@ -51,16 +52,24 @@ def select_data_items(sid, state, instr, dbsession):
             data_items = []
             threshold = source_items[0][1]
             max_threshold = source_items[len(source_items) - 1][1]
-            while len(data_items) < instr['data_items']['count']:
+            print instr
+            while len(data_items) < instr['source']['data_items']:
                 if threshold > max_threshold:
                     return []
                 threshold_items = filter(lambda t: t[1] == threshold and unicode(t[0].id) not in filter_list, source_items)
-                required_count = instr['data_items']['count'] - len(data_items)
+                required_count = instr['source']['data_items'] - len(data_items)
                 if required_count < len(threshold_items):
                     data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
                 else:
                     data_items.extend(map(lambda t: {'did': t[0].id}, threshold_items))
                 threshold = threshold + 1
+            control_items = map(lambda d: {'did': d.id},
+                                dbsession.query(DataItem).filter(and_(DataItem.survey_id==sid,
+                                                                      DataItem.control==True)).all())
+            if len(control_items) < instr['source']['control_items']:
+                data_items.extend(control_items)
+            else:
+                data_items.extend(sample(control_items, instr['source']['control_items']))
             shuffle(data_items)
             return data_items
         else:

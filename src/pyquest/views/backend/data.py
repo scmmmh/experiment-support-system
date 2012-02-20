@@ -21,6 +21,7 @@ from pyquest.renderer import render
 
 class DataItemSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
+    control_ = validators.StringBool(if_missing=False)
 
 @view_config(route_name='survey.data')
 @render({'text/html': 'backend/data/index.html'})
@@ -123,7 +124,8 @@ def new(request):
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
-                        new_data_item = DataItem(survey_id=survey.id)
+                        new_data_item = DataItem(survey_id=survey.id,
+                                                 control=params['control_'])
                         if len(survey.data_items) > 0:
                             new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.survey_id==survey.id).first()[0] + 1
                         else:
@@ -131,8 +133,7 @@ def new(request):
                         for attribute in data_item.attributes:
                             new_data_item.attributes.append(DataItemAttribute(key=attribute.key,
                                                                               value=params[attribute.key],
-                                                                              order=attribute.order,
-                                                                              answer=None))
+                                                                              order=attribute.order))
                         dbsession.add(new_data_item)
                     request.session.flash('Data added', 'info')
                     raise HTTPFound(request.route_url('survey.data',
@@ -167,13 +168,13 @@ def edit(request):
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
+                        data_item.control = params['control_']
                         for attribute in data_item.attributes:
                             attribute.value = params[attribute.key]
                         dbsession.add(data_item)
                     request.session.flash('Data updated', 'info')
-                    raise HTTPFound(request.route_url('survey.data.edit',
-                                                      sid=request.matchdict['sid'],
-                                                      did=request.matchdict['did']))
+                    raise HTTPFound(request.route_url('survey.data',
+                                                      sid=request.matchdict['sid']))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
