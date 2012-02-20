@@ -74,6 +74,8 @@ def upload(request):
                             for item in reader:
                                 if len(survey.data_items) > 0:
                                     keys = item.keys()
+                                    if 'control_' in keys:
+                                        keys.remove('control_')
                                     for attribute in survey.data_items[0].attributes:
                                         if attribute.key not in item:
                                             raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Key "%s" missing from the uploaded data' % attribute.key})
@@ -82,8 +84,10 @@ def upload(request):
                                     if len(keys) > 0:
                                         raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Extra key(s) "%s" found in the uploaded data' % ', '.join(keys)})
                                 data_item = DataItem(order=order)
+                                if 'control_' in item:
+                                    data_item.control = validators.StringBool().to_python(item['control_'])
                                 for idx, (key, value) in enumerate(item.items()):
-                                    if key != 'control':
+                                    if key != 'control_':
                                         data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
                                                                                       value=value.decode('utf-8'),
                                                                                       order=idx + 1))
