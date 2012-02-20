@@ -10,12 +10,14 @@ except:
 import transaction
 
 from formencode import api
+from operator import itemgetter
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPNotAcceptable
 from pyramid.view import view_config
 from random import sample, shuffle
 from sqlalchemy import and_
 
-from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant)
+from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
+    DataItemCount)
 from pyquest.renderer import render
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 
@@ -32,23 +34,51 @@ def data_item_to_dict(data_item):
     return result
 
 def select_data_items(sid, state, instr, dbsession):
-    if 'data_items' in instr:
-        data_items = map(lambda d: {'did': d.id},
-                         dbsession.query(DataItem).filter(DataItem.survey_id==sid).all())
-        participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
-        pt_answers = pickle.loads(str(participant.answers))
-        filter_list = []
-        if state['qsid'] in pt_answers:
-            filter_list = map(lambda d: unicode(d), pt_answers[state['qsid']]['items'].keys())
-        data_items = filter(lambda d: str(d['did']) not in filter_list, data_items)
-        if len(data_items) > instr['data_items']['count']:
-            return sample(data_items, instr['data_items']['count'])
+    def data_item_transform(t):
+        if t[1]:
+            return (t[0], t[1].count)
         else:
+            return (t[0], 0)
+    if 'data_items' in instr:
+        source_items = map(data_item_transform, dbsession.query(DataItem, DataItemCount).outerjoin(DataItemCount).filter(DataItem.survey_id==sid).all())
+        if len(source_items) > 0:
+            filter_list = []
+            participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
+            pt_answers = pickle.loads(str(participant.answers))
+            if state['qsid'] in pt_answers:
+                filter_list = map(lambda d: unicode(d), pt_answers[state['qsid']]['items'].keys())
+            source_items.sort(key=itemgetter(1))
+            data_items = []
+            threshold = source_items[0][1]
+            max_threshold = source_items[len(source_items) - 1][1]
+            while len(data_items) < instr['data_items']['count']:
+                if threshold > max_threshold:
+                    return []
+                threshold_items = filter(lambda t: t[1] == threshold and unicode(t[0].id) not in filter_list, source_items)
+                required_count = instr['data_items']['count'] - len(data_items)
+                if required_count < len(threshold_items):
+                    data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
+                else:
+                    data_items.extend(map(lambda t: {'did': t[0].id}, threshold_items))
+                threshold = threshold + 1
             shuffle(data_items)
             return data_items
+        else:
+            return []
     else:
         return[{'did': 'none'}]
 
+def update_data_item_counts(state, dids, dbsession):
+    for did in dids:
+        if did != 'none':
+            with transaction.manager:
+                count = dbsession.query(DataItemCount).filter(and_(DataItemCount.data_item_id==did,
+                                                                   DataItemCount.qsheet_id==state['qsid'])).first()
+                if count:
+                    count.count = count.count + 1
+                else:
+                    dbsession.add(DataItemCount(data_item_id=did, qsheet_id=state['qsid'], count=1))
+                
 def load_data_items(state, dbsession):
     data_items = dbsession.query(DataItem).filter(DataItem.id.in_(map(lambda d: d['did'], state['dids']))).all()
     if data_items:
@@ -150,8 +180,10 @@ def run_survey(request):
                         pt_answers[state['qsid']]['items'].update(qsheet_answers['items'])
                     else:
                         pt_answers[state['qsid']] = qsheet_answers
+                    update_data_item_counts(state, qsheet_answers['items'].keys(), dbsession)
                     participant.answers = pickle.dumps(pt_answers)
-                if qsheet_answers['_action'] in ['Next', 'Finish']:
+                    dbsession.add(participant)
+                if qsheet_answers['action_'] in ['Next', 'Finish']:
                     state['qsid'] = instr['next_qsid']
                 del state['dids']
                 response = HTTPFound(request.route_url('survey.run', sid=survey.id))

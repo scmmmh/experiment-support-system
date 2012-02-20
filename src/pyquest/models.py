@@ -134,6 +134,9 @@ class DataItem(Base):
     attributes = relationship('DataItemAttribute',
                               backref='data_item', order_by='DataItemAttribute.order',
                               cascade='all, delete, delete-orphan')
+    counts = relationship('DataItemCount',
+                          backref='counts',
+                          cascade='all, delete, delete-orphan')
 
 class DataItemAttribute(Base):
     
@@ -146,6 +149,15 @@ class DataItemAttribute(Base):
     value = Column(Unicode)
     answer = Column(Unicode, nullable=True)
 
+class DataItemCount(Base):
+    
+    __tablename__ = 'data_item_counts'
+    
+    id = Column(Integer, primary_key=True)
+    data_item_id = Column(ForeignKey(DataItem.id))
+    qsheet_id = Column(ForeignKey(QSheet.id))
+    count = Column(Integer)
+     
 class Participant(Base):
     
     __tablename__ = 'participants'
