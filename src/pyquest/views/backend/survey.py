@@ -83,6 +83,8 @@ def create_schema(content):
                     return {'control_items': 0}
             else:
                 return {'control_items': 0}
+        else:
+            return {}
     def link_qsheets(schema):
         for idx, instr in enumerate(schema):
             if (idx + 1) < len(schema):
