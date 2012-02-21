@@ -5,6 +5,12 @@
     <title>${survey.title} - Completed</title>
   </head>
   <body>
+    <py:if test="survey.status == 'testing'"> 
+      ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Test', {'href': r.route_url('survey.run', sid=survey.id)})], r)}
+      <div class="error"><div style="padding:0 1em 0.5em 0;" class="left"><img src="${r.static_url('pyquest:static/img/testing.png')}" alt="testing"/></div>This survey is currently being tested and is not live yet.
+        Answers will be validated and recored as when the survey is live, but will be wiped automatically at the end of
+        the test. Testers will also be able to complete the survey multiple times.</div>
+    </py:if>
     <hgroup>
       <h1>${survey.title} - Completed</h1>
     </hgroup>
