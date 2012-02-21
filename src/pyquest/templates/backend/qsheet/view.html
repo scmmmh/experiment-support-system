@@ -52,7 +52,7 @@
           ${h.form.hidden_field('items.%i.csrf_token_' % (example['did']), r.session.get_csrf_token())}
           ${h.qsheet.display(example, qsheet.content, e)}
           <ul class="buttons">
-            <li>${h.form.submit('Test validation', class_='button')}</li>
+            <li>${h.form.submit('Test validation', class_='button', name='action_')}</li>
           </ul>
         </form>
       </section>
