@@ -124,7 +124,7 @@ def new(request):
     dbsession = DBSession()
     user = current_user(request)
     survey = Survey()
-    if is_authorised(':user.has_permission("survey.new")'):
+    if is_authorised(':user.has_permission("survey.new")', {'user': user}):
         if request.method == 'POST':
             try:
                 if 'content' in request.POST:
