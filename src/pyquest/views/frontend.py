@@ -25,7 +25,7 @@ def get_instr(qsid, schema):
     for instr in schema:
         if instr['qsid'] == qsid:
             return instr
-    return schema[0]
+    return None
 
 def data_item_to_dict(data_item):
     result = {'did': data_item.id}
@@ -156,8 +156,14 @@ def run_survey(request):
         survey_schema = pickle.loads(str(survey.schema))
         state = init_state(request, dbsession, survey, survey_schema)
         if not state['qsid']:
-            raise HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
+            response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
+            response.delete_cookie('survey.%s' % request.matchdict['sid'])
+            raise response
         instr = get_instr(state['qsid'], survey_schema)
+        if not instr:
+            response = HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
+            response.delete_cookie('survey.%s' % request.matchdict['sid'])
+            raise response
         qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==instr['qsid'],
                                                      QSheet.survey_id==request.matchdict['sid'])).first()
         if not qsheet:
