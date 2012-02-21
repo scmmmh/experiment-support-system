@@ -81,10 +81,10 @@ def process(element, item, e, csrf_token=None):
         children = []
         if csrf_token:
             children.append(form.hidden_field('items.%s.csrf_token_' % item['did'], csrf_token))
-        children.append(element.text)
+        children.append(substitute(element.text, item))
         for child in element:
             children.append(process(child, item, e))
-            children.append(child.tail)
+            children.append(substitute(child.tail, item))
         return tag.section(children, class_='data-item')
     elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}number':
         return number_input(element, item, e)
