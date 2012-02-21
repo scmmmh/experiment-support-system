@@ -32,7 +32,7 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     init_data(DBSession)
-    if len(argv) == 2 or argv[2] != '--no-data':
+    if len(argv) == 2 or argv[2] != '--no-test-data':
         init_test_data(DBSession)
 
 def init_data(DBSession):
