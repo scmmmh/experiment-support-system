@@ -25,7 +25,7 @@ def get_instr(qsid, schema):
     for instr in schema:
         if instr['qsid'] == qsid:
             return instr
-    return None
+    return schema[0]
 
 def data_item_to_dict(data_item):
     result = {'did': data_item.id}
