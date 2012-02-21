@@ -250,6 +250,9 @@ def status(request):
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
+                            for data_item in survey.data_items:
+                                data_item.counts = []
+                                dbsession.add(data_item)
                         survey.status = params['status']
                         dbsession.add(survey)
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
