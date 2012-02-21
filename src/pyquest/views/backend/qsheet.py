@@ -29,6 +29,8 @@ class QSheetSchema(Schema):
     title = validators.UnicodeString(not_empty=True)
     content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>')
     schema = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>', strip_wrapper=False)
+    styles = validators.UnicodeString()
+    scripts = validators.UnicodeString()
 
 class QSheetOrderSchema(Schema):
     qsid = foreach.ForEach(validators.Int())
@@ -68,7 +70,9 @@ def new_qsheet(request):
                                         name=params['name'],
                                         title=params['title'],
                                         content=params['content'],
-                                        schema = pickle.dumps(qsheet_to_schema(params['schema'])))
+                                        schema = pickle.dumps(qsheet_to_schema(params['schema'])),
+                                        styles=params['styles'],
+                                        scripts=params['scripts'])
                         dbsession.add(qsheet)
                         dbsession.flush()
                         qsid = qsheet.id
@@ -145,6 +149,8 @@ def edit(request):
                         qsheet.title = params['title']
                         qsheet.content = params['content']
                         qsheet.schema = pickle.dumps(qsheet_to_schema(params['schema']))
+                        qsheet.styles = params['styles']
+                        qsheet.scripts = params['scripts']
                         dbsession.add(qsheet)
                     request.session.flash('Survey page updated', 'info')
                     raise HTTPFound(request.route_url('survey.qsheet.edit',

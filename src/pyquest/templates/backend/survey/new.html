@@ -24,6 +24,10 @@
           <dd>${h.form.textarea('summary', survey.summary, e, class_='span-22', style='height:5em;')}</dd>
           <dt>Content</dt>
           <dd>${h.form.textarea('content', survey.content, e, class_='span-22')}</dd>
+          <dt>CSS styles</dt>
+          <dd>${h.form.textarea('styles', survey.styles, e, class_='span-22')}</dd>
+          <dt>Javascript</dt>
+          <dd>${h.form.textarea('scripts', survey.scripts, e, class_='span-22')}</dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('survey'))}</li>

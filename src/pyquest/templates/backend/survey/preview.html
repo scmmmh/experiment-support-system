@@ -6,6 +6,8 @@
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
+    <style type="text/css">${survey.styles}</style>
+    <style type="text/css" py:for="qsheet in survey.qsheets">${qsheet.styles}</style>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
@@ -23,6 +25,8 @@
         });
     });
     </script>
+    <script type="text/javascript">${survey.scripts}</script>
+    <script type="text/javascript" py:for="qsheet in survey.qsheets">${qsheet.scripts}</script>
   </head>
   <body>
     <div class="container">
@@ -34,7 +38,7 @@
       <hgroup>
         <h1>${survey.title} - Preview</h1>
       </hgroup>
-      <section py:for="qsheet in survey.qsheets" class="qsheet">
+      <section id="${qsheet.name}" py:for="qsheet in survey.qsheets" class="qsheet">
         <hgroup>
           <h1><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h1>
         </hgroup>

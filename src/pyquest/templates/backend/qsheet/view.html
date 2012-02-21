@@ -7,6 +7,8 @@
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
+    <style type="text/css">${survey.styles}</style>
+    <style type="text/css">${qsheet.styles}</style>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
     <script type="text/javascript">
@@ -23,6 +25,8 @@
     	});
     });
     </script>
+    <script type="text/javascript">${survey.scripts}</script>
+    <script type="text/javascript">${qsheet.scripts}</script>
   </head>
   <body>
     <div class="container">
@@ -42,7 +46,7 @@
       </article>
     </div>
     <article class="survey">
-      <section class="qsheet">
+      <section id="${qsheet.name}" class="qsheet">
         <hgroup>
           <h1>${qsheet.title}</h1>
         </hgroup>

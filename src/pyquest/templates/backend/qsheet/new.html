@@ -23,6 +23,10 @@
           <dd>${h.form.text_field('title', '', e)}</dd>
           <dt>Content</dt>
           <dd>${h.form.textarea('content', '', e, class_='span-22')}</dd>
+          <dt>CSS styles</dt>
+          <dd>${h.form.textarea('styles', '', e, class_='span-22')}</dd>
+          <dt>Javascript</dt>
+          <dd>${h.form.textarea('scripts', '', e, class_='span-22')}</dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('survey.qsheet', sid=survey.id))}</li>

@@ -29,6 +29,8 @@ class SurveySchema(Schema):
     summary = validators.UnicodeString()
     content = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>')
     schema = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>', strip_wrapper=False)
+    styles = validators.UnicodeString()
+    scripts = validators.UnicodeString()
 
 class SurveyStatusSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -138,6 +140,8 @@ def new(request):
                     survey.summary = params['summary']
                     survey.content = params['content']
                     survey.schema = pickle.dumps(create_schema(params['schema']))
+                    survey.styles = params['styles']
+                    survey.scripts = params['scripts']
                     survey.status = 'develop'
                     survey.owned_by = user.id
                     dbsession.add(survey)
@@ -173,6 +177,8 @@ def edit(request):
                         survey.summary = params['summary']
                         survey.content = params['content']
                         survey.schema = pickle.dumps(create_schema(params['schema']))
+                        survey.styles = params['styles']
+                        survey.scripts = params['scripts']
                         dbsession.add(survey)
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.edit',

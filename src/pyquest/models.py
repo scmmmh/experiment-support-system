@@ -89,6 +89,8 @@ class Survey(Base):
     summary = Column(Unicode)
     content = Column(UnicodeText)
     schema = Column(Text)
+    styles = Column(UnicodeText)
+    scripts = Column(UnicodeText)
     status = Column(Unicode)
     owned_by = Column(ForeignKey(User.id), default=func.now())
     created_at = Column(DateTime)
@@ -122,6 +124,8 @@ class QSheet(Base):
     title = Column(Unicode)
     content = Column(UnicodeText)
     schema = Column(Text)
+    styles = Column(UnicodeText)
+    scripts = Column(UnicodeText)
     
 class DataItem(Base):
     

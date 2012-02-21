@@ -3,6 +3,10 @@
   <xi:include href="../layout/frontend.html"/>
   <head>
     <title>${survey.title} - ${qsheet.title}</title>
+    <style type="text/css">${survey.styles}</style>
+    <style type="text/css">${qsheet.styles}</style>
+    <script type="text/javascript">${survey.scripts}</script>
+    <script type="text/javascript">${qsheet.scripts}</script>
   </head>
   <body>
     <py:if test="survey.status == 'testing'"> 
@@ -14,7 +18,7 @@
     <hgroup>
       <h1>${survey.title}</h1>
     </hgroup>
-    <section class="qsheet">
+    <section id="${qsheet.name}" class="qsheet">
       <hgroup>
         <h1>${qsheet.title}</h1>
       </hgroup>
