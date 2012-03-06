@@ -1,9 +1,15 @@
 /* backend */
 header.flash {position:absolute;z-index: 1;top:0;box-shadow:2px 2px 3px;overflow:hidden;margin:0 70px 0 70px;}
 header.flash li {margin:0;}
-p.survey-status {}
-p.survey-status img {padding-left:0.8em;vertical-align:middle;}
-p.survey-status span {font-size:120%;font-weight:bold;}
+div.survey-status {}
+div.survey-status p {margin-bottom:0;}
+div.survey-status img {padding-left:0.8em;vertical-align:middle;}
+div.survey-status span, div.survey-status a {font-size:120%;font-weight:bold;}
+div.survey-status a {text-decoration:none;color:#000000;}
+div.survey-status a:hover {text-decoration:underline;}
+div.survey-status ul.status-changer {margin:5px 0 0 0;padding:0;border:1px solid #d5d5d5;background-color:#ffffff;width:100%;-moz-box-sizing:border-box;box-sizing:border-box;box-shadow: 1px 1px 1px;}
+div.survey-status ul.status-changer li {list-style-type:none;padding:0;margin:0;}
+div.survey-status ul.status-changer li a {display:block;padding: 5px 8px;}
 nav ul {padding:0;margin:0;}
 nav ul li {list-style-type:none;display:inline-block;}
 nav ul li a {text-decoration:none;display:inline-block;padding:0.3em 0.8em;}

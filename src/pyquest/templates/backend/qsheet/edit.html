@@ -6,7 +6,7 @@
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Edit', {'href': r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)})], r)}
-    ${h.survey.fancy_status(r, survey.status, class_='survey-status right')}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('pages', survey, r)}
     <article>
       <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}

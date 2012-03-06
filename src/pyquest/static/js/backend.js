@@ -29,3 +29,14 @@ function post_submit() {
 	}
 	return false;
 }
+
+function setup_status_changer() {
+	var status_box = $('div.survey-status');
+	if(!status_box.hasClass('no-menu')) {
+		status_box.hover(function() {
+			status_box.children('.status-changer').slideDown();
+		}, function() {
+			status_box.children('.status-changer').slideUp();
+		});
+	}
+}

@@ -15,6 +15,7 @@
     	}, 2000);
     	$('header.flash').click(function(ev, ui) {$(this).hide();});
     	$('.post-submit').click(post_submit);
+    	setup_status_changer();
     });
     CSRF_TOKEN = '${r.session.get_csrf_token()}';
     </script>

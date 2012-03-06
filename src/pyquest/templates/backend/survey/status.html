@@ -6,7 +6,7 @@
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Change Status', {'href': r.route_url('survey.status', sid=survey.id, _query={'status': status})})], r)}
-    ${h.survey.fancy_status(r, survey.status, class_='survey-status right')}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('survey', survey, r)}
     <article>
       <hgroup>
