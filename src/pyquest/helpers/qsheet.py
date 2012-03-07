@@ -293,3 +293,115 @@ def ranking(element, item, e):
                             id='items.%s.%s_%s' % (item['did'], element.attrib['name'], value)))
     shuffle(items)
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
+
+def display_edit(content, e, idx=0):
+    doc = etree.parse(StringIO('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % (content)))
+    return process_edit(doc.getroot(), e, idx)
+
+def process_edit(element, e, idx=0):
+    if element.tag == u'{http://paths.sheffield.ac.uk/pyquest}qsheet':
+        children = []
+        if element.text and element.text.strip() != '':
+            children.append(text_edit(element.text, idx))
+            idx = idx + 1
+        for child in element:
+            children.append(process_edit(child, e, idx))
+            idx = idx + 1
+            if child.tail and child.tail.strip() != '':
+                children.append(text_edit(child.tail, idx))
+                idx = idx + 1
+        return tag(children)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}number':
+        return single_line_edit(element, idx)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}email':
+        return single_line_edit(element, idx)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}url':
+        return single_line_edit(element, idx)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}date':
+        return single_line_edit(element, idx)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}time':
+        return single_line_edit(element, idx)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}datetime':
+        return single_line_edit(element, idx)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}month':
+        return single_line_edit(element, idx)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}short_text':
+        return single_line_edit(element, idx)
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}long_text':
+        return ''
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
+        return ''
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating_group':
+        return ''
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}listchoice':
+        return ''
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}selectchoice':
+        return ''
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
+        return ''
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice_group':
+        return ''
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}confirm':
+        return ''
+    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}ranking':
+        return ''
+    else:
+        children = [element.text]
+        for child in element:
+            children.append(process(child, e))
+            children.append(child.tail)
+        attr = {}
+        for (key, value) in element.attrib.items():
+            attr[key] = value
+        return text_edit(tag.__getattr__(element.tag)(children, **attr), idx)
+
+def check_name():
+    def wrapper(f, element, idx):
+        if 'name' in element.attrib:
+            return f(element, idx)
+        else:
+            return None
+    return decorator(wrapper)
+
+def edit_box(title):
+    def wrapper(f, element, idx):
+        return tag.li(tag.hgroup(tag.h2(title, class_='header')),
+                      tag.div(f(element, idx), class_='content'),
+                      class_='item')
+    return decorator(wrapper)
+    
+def edit_defaults(element, idx):
+    return [tag.dt('Name'),
+            tag.dd(form.text_field('item-%i.name' % (idx), element.attrib['name'], None),
+                   form.hidden_field('item-%i.order' %(idx), unicode(idx), class_='role-order')),
+            tag.dt('Title'),
+            tag.dd(form.text_field('item-%i.title' % (idx), element.attrib['title'] if 'title' in element.attrib else '', None, class_='span-16')),
+            tag.dt('Help'),
+            tag.dd(form.textarea('item-%i.help' % (idx), element.attrib['help'] if 'help' in element.attrib else '', None, class_='span-16 thin')),
+            tag.dt('Required'),
+            tag.dd(form.checkbox('item-%i.required' % (idx), 'true', None, checked=('required' in element.attrib and element.attrib['required'].lower() == 'true'), label='This question must be answered'))]
+
+@edit_box('Text')
+def text_edit(content, idx):
+    return tag(content,
+               form.hidden_field('item-%i.order' %(idx), unicode(idx), class_='role-order'),
+               form.textarea('item-%i.text' % (idx), unicode(content), None, class_='span-16', style='display:none;'),
+               tag.div(tag.a('Edit', href='#', class_='button'), class_='text-right'))
+
+@check_name()
+@edit_box('Single-line text')
+def single_line_edit(element, idx):
+    content = edit_defaults(element, idx)
+    content.append(tag.dt('Type'))
+    content.append(tag.dd(form.select('item-%i.type' % (idx),
+                                      element.tag[38:],
+                                      [('short_text', 'Free text'),
+                                       ('number', 'Number'),
+                                       ('email', 'E-Mail Address'),
+                                       ('url', 'URL (http://..., https://...)'),
+                                       ('date', 'Date'),
+                                       ('time', 'Time'),
+                                       ('datetime', 'Date and Time'),
+                                       ('month', 'Month')],
+                                      None)))
+    return tag.dl(content)

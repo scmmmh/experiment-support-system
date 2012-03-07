@@ -34,3 +34,12 @@ nav.pager ol li a {text-decoration:none;}
 nav.pager ol li a:hover {text-decoration:underline;}
 nav.pager ol li.current a {font-weight: bold;}
 footer {font-size:0.8em;text-align:center;padding-top:0.5em;margin-top:2em;border-top:1px dashed #0066cc;}
+#tools ol {padding:0;overflow:visible;}
+#tools li {list-style-type:none;padding:5px 8px;background-color:#f0f0f0;}
+#tools li:hover {background-color:#dff4ff;}
+#qsheet-content {margin:0;padding:0;}
+#qsheet-content li {list-style-type:none;}
+#qsheet-content li.placeholder {border:1px dashed #0066cc;padding:10px;}
+#qsheet-content li.item {background-color:#ffffff;border:1px solid #d5d5d5;margin-bottom:10px;}
+#qsheet-content li.item .header {background-color:#c3d9ff;font-size:10pt;font-weight:bold;padding:5px 8px;}
+#qsheet-content li.item .content {padding:5px 8px;}

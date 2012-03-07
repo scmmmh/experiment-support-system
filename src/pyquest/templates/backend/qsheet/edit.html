@@ -3,11 +3,54 @@
   <xi:include href="../../layout/backend.html"/>
   <head>
     <title>${survey.title} - ${qsheet.title} - Edit</title>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        make_toggle_link('css-edit');
+        make_toggle_link('js-edit');
+        $('#tools').accordion();
+        $('#qsheet-content').sortable({
+        	receive: function(ev, ui) {
+        		ui.item.html('Loading...');
+        		ui.item.addClass('item');
+        		$('#qsheet-content li.placeholder').hide();
+        		$.get('${r.route_url('survey.qsheet.edit.fragment', sid=survey.id, qsid=qsheet.id)}', function(response) {
+        			ui.item.html($(response).children());
+        		});
+        	},
+        	update: function(ev, ui) {
+        		$('input.role-order').each(function(idx) {
+        			$(this).val(idx);
+        		});
+        	}
+        });
+        $('#qsheet-content li').each(function() {
+        	var item = $(this);
+        	var header = item.find('.header');
+        	var link = $('<a href="#"></a>').append(header.html()).click(function() {
+        		item.find('.content').slideToggle();
+        		return false;
+        	});
+        	header.html(link);
+        });
+        $('#tools ol li').draggable({
+        	helper: 'clone',
+        	connectToSortable: '#qsheet-content'
+        });
+        if($('#qsheet-content').children().length != 1) {
+        	$('#qsheet-content li.placeholder').hide();
+        }
+    });
+    </script>
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Edit', {'href': r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('pages', survey, r)}
+    <nav class="toolbar">
+      <ul>
+        <li><a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}" class="button">Edit Source</a></li>
+      </ul>
+    </nav>
     <article>
       <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
@@ -21,12 +64,49 @@
           <dd>${h.form.text_field('name', qsheet.name, e)}</dd>
           <dt>Title</dt>
           <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
+          <dt id="css-edit-toggle">CSS styles</dt>
+          <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22', id="css-edit")}</dd>
+          <dt id="js-edit-toggle">Javascript</dt>
+          <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22', id="js-edit")}</dd>
           <dt>Content</dt>
-          <dd>${h.form.textarea('content', qsheet.content, e, class_='span-22')}</dd>
-          <dt>CSS styles</dt>
-          <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22')}</dd>
-          <dt>Javascript</dt>
-          <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22')}</dd>
+          <dd class="clearfix">
+            <aside id="tools" class="right" style="width:200px;">
+              <h3><a href="#">Text</a></h3>
+              <ol>
+                <li>Text</li>
+              </ol>
+              <h3><a href="#">Text Input</a></h3>
+              <ol>
+                <li>Single-line text</li>
+                <li>Multi-line text</li>
+                <li>Number</li>
+              </ol>
+              <h3><a href="#">Rating</a></h3>
+              <ol>
+                <li>Rating</li>
+                <li>Rating grid</li>
+              </ol>
+              <h3><a href="#">Single choice</a></h3>
+              <ol>
+                <li>List</li>
+                <li>Select</li>
+                <li>Confirmation</li>
+              </ol>
+              <h3><a href="#">Multiple choice</a></h3>
+              <ol>
+                <li>Multiple choice</li>
+                <li>Multiple choice grid</li>
+              </ol>
+              <h3><a href="#">Ranking</a></h3>
+              <ol>
+                <li>Ranking</li>
+              </ol>
+            </aside>
+            <ol id="qsheet-content" style="width:700px;">
+              <li class="placeholder">Drag elements from the right to construct the questionnaire sheet.</li>
+              ${h.qsheet.display_edit(qsheet.content, e)}
+            </ol>
+          </dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id))}</li>
