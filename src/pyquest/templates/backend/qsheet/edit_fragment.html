@@ -1,0 +1,15 @@
+<li class="item">
+  <hgroup>
+    <h2 class="header">Single line input - ${item}</h2>
+  </hgroup>
+  <div class="content">
+    <dl>
+      <dt>Name</dt>
+      <dd>${h.form.text_field('', '', e)}</dd>
+      <dt>Type</dt>
+      <dd>${h.form.select('', '', [('text', 'Free text'), ('number', 'Number')], e)}</dd>
+      <dt>Required</dt>
+      <dd>${h.form.checkbox('required', 'true', e, label='This question must be answered')}</dd>
+    </dl>
+  </div>
+</li>
