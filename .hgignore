@@ -9,3 +9,5 @@ syntax: regexp
 ^src/PyQuestionnaire\.egg-info$
 syntax: regexp
 ^production\.ini$
+syntax: regexp
+^dist$
