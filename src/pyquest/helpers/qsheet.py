@@ -7,12 +7,70 @@ Created on 20 Jan 2012
 from random import shuffle
 
 from decorator import decorator
-from genshi.builder import tag
+from genshi.builder import tag, Markup
 from lxml import etree
 from pywebtools import form
 from re import search
 from StringIO import StringIO
 
+def get_attr_groups(question, key):
+    return [attr_group for attr_group in question.attributes if attr_group.key==key]
+
+def get_qg_attr(attr_group, key):
+    for attr in attr_group.attributes:
+        if attr.key == key:
+            return attr.value
+    return None
+    
+def get_q_attr(question, key):
+    keys = key.split('.')
+    if len(keys) < 2:
+        return None
+    for attr_group in question.attributes:
+        if attr_group.key == keys[0]:
+            return get_qg_attr(attr_group, keys[1])
+    return None
+
+def question_type_title(q_type):
+    if q_type == 'text':
+        return 'Static text'
+    elif q_type == 'short_text':
+        return 'Single-line text input'
+    elif q_type == 'long_text':
+        return 'Multi-line text input'
+    elif q_type == 'number':
+        return 'Number input'
+    elif q_type == 'email':
+        return 'E-Mail input'
+    elif q_type == 'url':
+        return 'URL input'
+    elif q_type == 'date':
+        return 'Date input'
+    elif q_type == 'time':
+        return 'Time input'
+    elif q_type == 'datetime':
+        return 'Date & Time input'
+    elif q_type == 'month':
+        return 'Month input'
+    elif q_type == 'rating':
+        return 'Rating'
+    elif q_type == 'rating_group':
+        return 'Rating grid'
+    elif q_type == 'single_list':
+        return 'List single choice'
+    elif q_type == 'single_select':
+        return 'Select single choice'
+    elif q_type == 'confirm':
+        return 'Confirmation checkbox'
+    elif q_type == 'multichoice':
+        return 'Multiple choice'
+    elif q_type == 'multichoice_group':
+        return 'Multiple choice grid'
+    elif q_type == 'ranking':
+        return 'Ranking'
+    else:
+        return q_type
+    
 def substitute(text, item):
     if text:
         m = search('\${.+}', text)
@@ -27,381 +85,205 @@ def substitute(text, item):
     else:
         return None
 
-def question(question_type):
-    def wrapper(f, element, item, e):
-        if 'name' not in element.attrib:
-            return None
-        tags = f(element, item, e)
+def display(question, item, e, csrf_token=None):
+    if csrf_token:
+        pass
+    if question.type == 'text':
+        return tag.section(Markup(get_q_attr(question, 'text.text')))
+    elif question.type == 'short_text':
+        return short_text_input(question, item, e)
+    elif question.type == 'long_text':
+        return long_text_input(question, item, e)
+    elif question.type == 'number':
+        return number_input(question, item, e)
+    elif question.type == 'email':
+        return email_input(question, item, e)
+    elif question.type == 'url':
+        return url_input(question, item, e)
+    elif question.type == 'date':
+        return date_input(question, item, e)
+    elif question.type == 'time':
+        return time_input(question, item, e)
+    elif question.type == 'datetime':
+        return datetime_input(question, item, e)
+    elif question.type == 'month':
+        return month_input(question, item, e)
+    elif question.type == 'rating':
+        return rating(question, item, e)
+    elif question.type == 'rating_group':
+        return rating_group(question, item, e)
+    elif question.type == 'single_list':
+        return single_list(question, item, e)
+    elif question.type == 'single_select':
+        return single_select(question, item, e)
+    elif question.type == 'confirm':
+        return confirm(question, item, e)
+    elif question.type == 'multichoice':
+        return multichoice(question, item, e)
+    elif question.type == 'multichoice_group':
+        return multichoice_group(question, item, e)
+    elif question.type == 'ranking':
+        return ranking(question, item, e)
+    else:
+        return question.type
+
+def question():
+    def wrapper(f, question, item, e):
+        tags = f(question, item, e)
         if not isinstance(tags, list):
             tags = [tags]
-        if 'title' in element.attrib:
-            tags.insert(0, tag.hgroup(tag.h1(substitute(element.attrib['title'], item))))
-        return tag.section(tags, class_='question %s' % (question_type))
+        if question.title:
+            tags.insert(0, tag.hgroup(tag.h1(substitute(question.title, item))))
+        return tag.section(tags, class_='question %s' % (question.type))
     return decorator(wrapper)
 
-def extract_choices(element):
-    if len(element) == 0:
-        min_value = 1
-        if 'min_value' in element.attrib:
-            min_value = int(element.attrib['min_value'])
-        min_title = '1'
-        if 'min_title' in element.attrib:
-            min_title = element.attrib['min_title']
-        max_value = 5
-        if 'max_value' in element.attrib:
-            max_value = int(element.attrib['max_value'])
-        max_title ='5'
-        if 'max_title' in element.attrib:
-            max_title = element.attrib['max_title']
-        if 'hide_extra_labels' in element.attrib and element.attrib['hide_extra_labels'].lower().strip() == 'true':
-            element.attrib['hide_extra_labels']
-            values = [(str(idx), '') for idx in xrange(min_value + 1, max_value)]
-        else:
-            values = [(str(idx), str(idx)) for idx in xrange(min_value + 1, max_value)]
-        values.insert(0, (str(min_value), min_title))
-        values.append((str(max_value), max_title))
-        return values
-    else:
-        values = []
-        for option in element:
-            if option.tag == u'{http://paths.sheffield.ac.uk/pyquest}option':
-                if 'value' in option.attrib:
-                    if 'title' in option.attrib:
-                        values.append((option.attrib['value'], option.attrib['title']))
-                    else:
-                        values.append((option.attrib['value'], ''))
-        return values
+@question()
+def short_text_input(question, item, e):
+    return tag.p(form.text_field('items.%s.%s' % (item['did'], question.name), '', e))
 
-def display(item, content, e, csrf_token=None):
-    doc = etree.parse(StringIO('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % (content)))
-    return process(doc.getroot(), item, e, csrf_token)
+@question()
+def long_text_input(question, item, e):
+    return tag.p(form.textarea('items.%s.%s' % (item['did'], question.name), '', e))
 
-def process(element, item, e, csrf_token=None):
-    if element.tag == u'{http://paths.sheffield.ac.uk/pyquest}qsheet':
-        children = []
-        if csrf_token:
-            children.append(form.hidden_field('items.%s.csrf_token_' % item['did'], csrf_token))
-        children.append(substitute(element.text, item))
-        for child in element:
-            children.append(process(child, item, e))
-            children.append(substitute(child.tail, item))
-        return tag.section(children, class_='data-item')
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}number':
-        return number_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}email':
-        return email_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}url':
-        return url_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}date':
-        return date_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}time':
-        return time_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}datetime':
-        return datetime_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}month':
-        return month_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}short_text':
-        return short_text_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}long_text':
-        return long_text_input(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
-        return rating(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating_group':
-        return rating_group(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}listchoice':
-        return listchoice(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}selectchoice':
-        return selectchoice(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
-        return multichoice(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice_group':
-        return multichoice_group(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}confirm':
-        return confirm(element, item, e)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}ranking':
-        return ranking(element, item, e)
-    else:
-        children = [substitute(element.text, item)]
-        for child in element:
-            children.append(process(child, item, e))
-            children.append(substitute(child.tail, item))
-        attr = {}
-        for (key, value) in element.attrib.items():
-            attr[key] = substitute(value, item)
-        return tag.__getattr__(element.tag)(children, **attr)
-
-@question('number')    
-def number_input(element, item, e):
+@question()    
+def number_input(question, item, e):
     attr = {}
-    if 'min_value' in element.attrib:
-        attr['min'] = substitute(element.attrib['min_value'], item)
-    if 'max_value' in element.attrib:
-        attr['max'] = substitute(element.attrib['max_value'], item)
-    if 'step' in element.attrib:
-        attr['step'] = substitute(element.attrib['step'], item)
-    return tag.p(form.number_field('items.%s.%s' % (item['did'], element.attrib['name']), '', e, **attr))
+    if get_q_attr(question, 'further.min').strip() != '':
+        attr['min'] = substitute(get_q_attr(question, 'further.min'), item)
+    if get_q_attr(question, 'further.max').strip() != '':
+        attr['max'] = substitute(get_q_attr(question, 'further.min'), item)
+    if get_q_attr(question, 'further.step').strip() != '':
+        attr['step'] = substitute(get_q_attr(question, 'further.min'), item)
+    return tag.p(form.number_field('items.%s.%s' % (item['did'], question.name), '', e, **attr))
 
-@question('email')
-def email_input(element, item, e):
-    return tag.p(form.email_field('items.%s.%s' % (item['did'], element.attrib['name']), '', e))
+@question()
+def email_input(question, item, e):
+    return tag.p(form.email_field('items.%s.%s' % (item['did'], question.name), '', e))
     
-@question('url')
-def url_input(element, item, e):
-    return tag.p(form.url_field('items.%s.%s' % (item['did'], element.attrib['name']), '', e))
+@question()
+def url_input(question, item, e):
+    return tag.p(form.url_field('items.%s.%s' % (item['did'], question.name), '', e))
 
-@question('date')
-def date_input(element, item, e):
-    return tag.p(form.date_field('items.%s.%s' % (item['did'], element.attrib['name']), '' , e))
+@question()
+def date_input(question, item, e):
+    return tag.p(form.date_field('items.%s.%s' % (item['did'], question.name), '' , e))
 
-@question('time')
-def time_input(element, item, e):
-    return tag.p(form.time_field('items.%s.%s' % (item['did'], element.attrib['name']), '' , e))
+@question()
+def time_input(question, item, e):
+    return tag.p(form.time_field('items.%s.%s' % (item['did'], question.name), '' , e))
 
-@question('datetime')
-def datetime_input(element, item, e):
-    return tag.p(form.datetime_field('items.%s.%s' % (item['did'], element.attrib['name']), '' , e))
+@question()
+def datetime_input(question, item, e):
+    return tag.p(form.datetime_field('items.%s.%s' % (item['did'], question.name), '' , e))
         
-@question('month')
-def month_input(element, item, e):
-    return tag.p(form.month_field('items.%s.%s' % (item['did'], element.attrib['name']), '' , e))
+@question()
+def month_input(question, item, e):
+    return tag.p(form.month_field('items.%s.%s' % (item['did'], question.name), '' , e))
 
-@question('short_text')
-def short_text_input(element, item, e):
-    return tag.p(form.text_field('items.%s.%s' % (item['did'], element.attrib['name']), '', e))
-
-@question('long_text')
-def long_text_input(element, item, e):
-    return tag.p(form.textarea('items.%s.%s' % (item['did'], element.attrib['name']), '', e))
-
-@question('rating')
-def rating(element, item, e):
+@question()
+def rating(question, item, e):
     rows = []
-    choices = extract_choices(element)
-    rows.append(tag.thead(tag.tr(map(lambda (_, t): tag.th(t), choices))))
-    rows.append(tag.tbody(tag.tr(map(lambda (v, _): tag.td(tag.input(type='radio',
-                                                                     name='items.%s.%s' % (item['did'], element.attrib['name']),
-                                                                     value=v)),
-                                     choices))))
-    return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
+    answers = get_attr_groups(question, 'answer')
+    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr(a, 'label')), answers))))
+    rows.append(tag.tbody(tag.tr(map(lambda a: tag.td(tag.input(type='radio',
+                                                                name='items.%s.%s' % (item['did'], question.name),
+                                                                value=get_qg_attr(a, 'value'))),
+                                     answers))))
+    return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
 
-@question('rating_group')
-def rating_group(element, item, e):
-    choices = extract_choices(element)
+@question()
+def rating_group(question, item, e):
+    answers = get_attr_groups(question, 'answer')
     rows = []
-    field_names = ['items.%s.%s' % (item['did'], element.attrib['name'])]
-    for rating in element:
-        if rating.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
-            if 'name' in rating.attrib:
-                if 'title' in rating.attrib:
-                    rows.append(tag.tr(tag.th(rating.attrib['title']),
-                                       map(lambda (v, _): tag.td(tag.input(type='radio',
-                                                                           name='items.%s.%s.%s' % (item['did'], element.attrib['name'], rating.attrib['name']),
-                                                                           value=v)),
-                                           choices)))
-                    field_names.append('items.%s.%s.%s' % (item['did'], element.attrib['name'], rating.attrib['name']))
-    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda (_, t): tag.th(t), choices))),
+    field_names = ['items.%s.%s' % (item['did'], question.name)]
+    for sub_question in get_attr_groups(question, 'subquestion'):
+        rows.append(tag.tr(tag.th(get_qg_attr(sub_question, 'label')),
+                           map(lambda a: tag.td(tag.input(type='radio',
+                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(sub_question, 'name')),
+                                                          value=get_qg_attr(a, 'value'))),
+                               answers)))
+        field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(sub_question, 'name')))
+    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr(a, 'label')), answers))),
                                         tag.tbody(rows)),
                               field_names, e)
 
-@question('listchoice')
-def listchoice(element, item, e):
+@question()
+def single_list(question, item, e):
     items = []
-    for idx, (value, title) in enumerate(extract_choices(element)):
+    answers = get_attr_groups(question, 'answer')
+    for idx, answer in enumerate(answers):
         parts = [tag.input(type='radio',
-                           id='items.%s.%s-%i' % (item['did'], element.attrib['name'], idx),
-                           name='items.%s.%s' % (item['did'], element.attrib['name']),
-                           value=value)]
-        if title != '':
-            parts.append(tag.label(title,
-                                   for_='items.%s.%s-%i' % (item['did'], element.attrib['name'], idx)))
+                           id='items.%s.%s-%i' % (item['did'], question.name, idx),
+                           name='items.%s.%s' % (item['did'], question.name),
+                           value=get_qg_attr(answer, 'value'))]
+        if get_qg_attr(answer, 'value').strip() != '':
+            parts.append(tag.label(get_qg_attr(answer, 'value'),
+                                   for_='items.%s.%s-%i' % (item['did'], question.name, idx)))
         items.append(tag.li(parts))
-    return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
+    return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)
 
-@question('selectchoice')
-def selectchoice(element, item, e):
-    choices = map(lambda (v, t): tag.option(t, value=v), extract_choices(element))
-    choices.insert(0, tag.option('--- Please choose ---', value=''))
-    return form.error_wrapper(tag.p(tag.select(choices,
-                                               name='items.%s.%s' % (item['did'], element.attrib['name']))),
-                              'items.%s.%s' % (item['did'], element.attrib['name']),
+@question()
+def single_select(question, item, e):
+    answers = get_attr_groups(question, 'answer')
+    items = [tag.option(get_qg_attr(answer, 'label'), value=get_qg_attr(answer, 'value')) for answer in answers]
+    items.insert(0, tag.option('--- Please choose ---', value=''))
+    return form.error_wrapper(tag.p(tag.select(items,
+                                               name='items.%s.%s' % (item['did'], question.name))),
+                              'items.%s.%s' % (item['did'], question.name),
                               e)
 
-@question('multichoice')
-def multichoice(element, item, e):
-    choices = extract_choices(element)
-    items = []
-    for idx, (value, title) in enumerate(choices):
-        list_item = []
-        list_item.append(tag.input(type='checkbox',
-                                   id='items.%s.%s-%i' % (item['did'], element.attrib['name'], idx),
-                                   name='items.%s.%s' % (item['did'], element.attrib['name']),
-                                   value=value))
-        if title != '':
-            list_item.append(tag.label(title, for_='items.%s.%s-%i' % (item['did'], element.attrib['name'], idx)))
-        items.append(tag.li(list_item))
-    return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
-
-@question('multichoice_group')
-def multichoice_group(element, item, e):
-    rows = []
-    choices = extract_choices(element)
-    field_names = ['items.%s.%s' % (item['did'], element.attrib['name'])]
-    for choice in element:
-        if choice.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
-            if 'name' in element.attrib:
-                columns = []
-                if 'title' in choice.attrib:
-                    columns.append(tag.th(choice.attrib['title']))
-                else:
-                    columns.append(tag.th())
-                for (v, _) in choices:
-                    columns.append(tag.td(tag.input(type='checkbox',
-                                                    name='items.%s.%s.%s' % (item['did'], element.attrib['name'], choice.attrib['name']),
-                                                    value=v)))
-                rows.append(tag.tr(columns))
-                field_names.append('items.%s.%s.%s' % (item['did'], element.attrib['name'], choice.attrib['name']))
-    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(''), map(lambda (_, t): tag.th(t), choices))),
-                                        tag.tbody(rows)),
-                              field_names,
-                              e)
-
-@question('confirm')
-def confirm(element, item, e):
+@question()
+def confirm(question, item, e):
     tags = []
     tags.append(tag.input(type='checkbox',
-                          id='items.%s.%s' % (item['did'], element.attrib['name']),
-                          name='items.%s.%s' % (item['did'], element.attrib['name']),
-                          value='true'))
-    if 'label' in element.attrib:
-        tags.append(tag.label(element.attrib['label'],
-                              for_='items.%s.%s' % (item['did'], element.attrib['name'])))
-    elif 'title' in element.attrib:
-        tags.append(tag.label(element.attrib['title'],
-                              for_='items.%s.%s' % (item['did'], element.attrib['name'])))
-    return form.error_wrapper(tag.p(tags), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
+                          id='items.%s.%s' % (item['did'], question.name),
+                          name='items.%s.%s' % (item['did'], question.name),
+                          value=get_q_attr(question, 'further.value')))
+    if get_q_attr(question, 'further.label').strip() != '':
+        tags.append(tag.label(get_q_attr(question, 'further.label'),
+                              for_='items.%s.%s' % (item['did'], question.name)))
+    elif question.title.strip() != '':
+        tags.append(tag.label(question.title,
+                              for_='items.%s.%s' % (item['did'], question.name)))
+    return form.error_wrapper(tag.p(tags), 'items.%s.%s' % (item['did'], question.name), e)
     
-@question('ranking')
-def ranking(element, item, e):
-    choices = extract_choices(element)
+@question()
+def multichoice(question, item, e):
+    rows = []
+    answers = get_attr_groups(question, 'answer')
+    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr(a, 'label')), answers))))
+    rows.append(tag.tbody(tag.tr(map(lambda a: tag.td(tag.input(type='checkbox',
+                                                                name='items.%s.%s' % (item['did'], question.name),
+                                                                value=get_qg_attr(a, 'value'))),
+                                     answers))))
+    return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
+
+@question()
+def multichoice_group(question, item, e):
+    answers = get_attr_groups(question, 'answer')
+    rows = []
+    field_names = ['items.%s.%s' % (item['did'], question.name)]
+    for sub_question in get_attr_groups(question, 'subquestion'):
+        rows.append(tag.tr(tag.th(get_qg_attr(sub_question, 'label')),
+                           map(lambda a: tag.td(tag.input(type='checkbox',
+                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(sub_question, 'name')),
+                                                          value=get_qg_attr(a, 'value'))),
+                               answers)))
+        field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(sub_question, 'name')))
+    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr(a, 'label')), answers))),
+                                        tag.tbody(rows)),
+                              field_names, e)
+
+@question()
+def ranking(question, item, e):
+    answers = get_attr_groups(question, 'answer')
     items = []
-    for value, title in choices:
+    for answer in answers:
         items.append(tag.li(tag.select(tag.option('--', value=''),
-                                       [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(choices))],
-                                       id='items.%s.%s.%s' % (item['did'], element.attrib['name'], value),
-                                       name='items.%s.%s.%s' % (item['did'], element.attrib['name'], value)),
-                            tag.label(title, for_='items.%s.%s.%s' % (item['did'], element.attrib['name'], value)),
-                            id='items.%s.%s_%s' % (item['did'], element.attrib['name'], value)))
+                                       [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(answers))],
+                                       id='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(answer, 'value')),
+                                       name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(answer, 'value'))),
+                            tag.label(get_qg_attr(answer, 'label'), for_='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(answer, 'value'))),
+                            id='items.%s.%s.%s-item' % (item['did'], question.name, get_qg_attr(answer, 'value'))))
     shuffle(items)
-    return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], element.attrib['name']), e)
-
-def display_edit(content, e, idx=0):
-    doc = etree.parse(StringIO('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % (content)))
-    return process_edit(doc.getroot(), e, idx)
-
-def process_edit(element, e, idx=0):
-    if element.tag == u'{http://paths.sheffield.ac.uk/pyquest}qsheet':
-        children = []
-        if element.text and element.text.strip() != '':
-            children.append(text_edit(element.text, idx))
-            idx = idx + 1
-        for child in element:
-            children.append(process_edit(child, e, idx))
-            idx = idx + 1
-            if child.tail and child.tail.strip() != '':
-                children.append(text_edit(child.tail, idx))
-                idx = idx + 1
-        return tag(children)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}number':
-        return single_line_edit(element, idx)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}email':
-        return single_line_edit(element, idx)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}url':
-        return single_line_edit(element, idx)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}date':
-        return single_line_edit(element, idx)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}time':
-        return single_line_edit(element, idx)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}datetime':
-        return single_line_edit(element, idx)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}month':
-        return single_line_edit(element, idx)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}short_text':
-        return single_line_edit(element, idx)
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}long_text':
-        return ''
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
-        return ''
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating_group':
-        return ''
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}listchoice':
-        return ''
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}selectchoice':
-        return ''
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
-        return ''
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice_group':
-        return ''
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}confirm':
-        return ''
-    elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}ranking':
-        return ''
-    else:
-        children = [element.text]
-        for child in element:
-            children.append(process(child, e))
-            children.append(child.tail)
-        attr = {}
-        for (key, value) in element.attrib.items():
-            attr[key] = value
-        return text_edit(tag.__getattr__(element.tag)(children, **attr), idx)
-
-def check_name():
-    def wrapper(f, element, idx):
-        if 'name' in element.attrib:
-            return f(element, idx)
-        else:
-            return None
-    return decorator(wrapper)
-
-def edit_box(title):
-    def wrapper(f, element, idx):
-        return tag.li(tag.hgroup(tag.h2(title, class_='header')),
-                      tag.div(f(element, idx), class_='content'),
-                      class_='item')
-    return decorator(wrapper)
-    
-def edit_defaults(element, idx):
-    return [tag.dt('Name'),
-            tag.dd(form.text_field('item-%i.name' % (idx), element.attrib['name'], None),
-                   form.hidden_field('item-%i.order' %(idx), unicode(idx), class_='role-order')),
-            tag.dt('Title'),
-            tag.dd(form.text_field('item-%i.title' % (idx), element.attrib['title'] if 'title' in element.attrib else '', None, class_='span-16')),
-            tag.dt('Help'),
-            tag.dd(form.textarea('item-%i.help' % (idx), element.attrib['help'] if 'help' in element.attrib else '', None, class_='span-16 thin')),
-            tag.dt('Required'),
-            tag.dd(form.checkbox('item-%i.required' % (idx), 'true', None, checked=('required' in element.attrib and element.attrib['required'].lower() == 'true'), label='This question must be answered'))]
-
-@edit_box('Text')
-def text_edit(content, idx):
-    return tag(content,
-               form.hidden_field('item-%i.order' %(idx), unicode(idx), class_='role-order'),
-               form.textarea('item-%i.text' % (idx), unicode(content), None, class_='span-16', style='display:none;'),
-               tag.div(tag.a('Edit', href='#', class_='button'), class_='text-right'))
-
-@check_name()
-@edit_box('Single-line text')
-def single_line_edit(element, idx):
-    content = edit_defaults(element, idx)
-    content.append(tag.dt('Type'))
-    content.append(tag.dd(form.select('item-%i.type' % (idx),
-                                      element.tag[38:],
-                                      [('short_text', 'Free text'),
-                                       ('number', 'Number'),
-                                       ('email', 'E-Mail Address'),
-                                       ('url', 'URL (http://..., https://...)'),
-                                       ('date', 'Date'),
-                                       ('time', 'Time'),
-                                       ('datetime', 'Date and Time'),
-                                       ('month', 'Month')],
-                                      None)))
-    return tag.dl(content)
+    return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)

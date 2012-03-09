@@ -20,7 +20,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet)
 from pyquest.renderer import render
-from pyquest.validation import (PageSchema, qsheet_to_schema, flatten_invalid,
+from pyquest.validation import (PageSchema, flatten_invalid,
                                 ValidationState, XmlValidator)
 
 class QSheetSchema(Schema):
@@ -132,8 +132,7 @@ def view(request):
                 for attr in survey.data_items[0].attributes:
                     example[attr.key] = attr.value
             if request.method == 'POST':
-                schema = pickle.loads(str(qsheet.schema))
-                validator = PageSchema(schema, [example])
+                validator = PageSchema(qsheet, [example])
                 try:
                     validator.to_python(request.POST, ValidationState(request=request))
                 except api.Invalid as ie:

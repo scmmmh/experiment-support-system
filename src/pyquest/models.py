@@ -87,8 +87,6 @@ class Survey(Base):
     id = Column(Integer, primary_key=True)
     title = Column(Unicode)
     summary = Column(Unicode)
-    content = Column(UnicodeText)
-    schema = Column(Text)
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
     status = Column(Unicode)
@@ -122,11 +120,58 @@ class QSheet(Base):
     survey_id = Column(ForeignKey(Survey.id))
     name = Column(Unicode)
     title = Column(Unicode)
-    content = Column(UnicodeText)
-    schema = Column(Text)
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
     
+    questions = relationship('Question',
+                             backref='qsheet',
+                             order_by='Question.order',
+                             cascade='all, delete, delete-orphan')
+    
+class Question(Base):
+    
+    __tablename__ = 'questions'
+    
+    id = Column(Integer, primary_key=True)
+    qsheet_id = Column(ForeignKey(QSheet.id))
+    type = Column(Unicode)
+    name = Column(Unicode)
+    title = Column(Unicode)
+    required = Column(Boolean)
+    help = Column(Unicode)
+    order = Column(Integer)
+    
+    attributes = relationship('QuestionAttributeGroup',
+                              backref='question',
+                              order_by='QuestionAttributeGroup.order',
+                              cascade='all, delete, delete-orphan')
+
+class QuestionAttributeGroup(Base):
+    
+    __tablename__ = 'question_complex_attributes'
+    
+    id = Column(Integer, primary_key=True)
+    question_id = Column(ForeignKey(Question.id))
+    key = Column(Unicode)
+    label = Column(Unicode)
+    order = Column(Integer)
+    
+    attributes = relationship('QuestionAttribute',
+                              backref='question',
+                              order_by='QuestionAttribute.order',
+                              cascade='all, delete, delete-orphan')
+
+class QuestionAttribute(Base):
+    
+    __tablename__ = 'question_attributes'
+    
+    id = Column(Integer, primary_key=True)
+    question_group_id = Column(ForeignKey(QuestionAttributeGroup.id))
+    key = Column(Unicode)
+    label = Column(Unicode)
+    value = Column(Unicode)
+    order = Column(Integer)
+
 class DataItem(Base):
     
     __tablename__ = 'data_items'

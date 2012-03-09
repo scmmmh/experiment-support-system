@@ -18,8 +18,9 @@
     		update: function(e, ui) {
     			var items = $(this).sortable('toArray');
     			for(var idx in items) {
-    				console.log('#' + items[idx].replace('_', '.').replace(/\./g, '\\.'));
-    				$('#' + items[idx].replace('_', '.').replace(/\./g, '\\.')).val(idx);
+    				var id = '#' + items[idx].replace(/\./g, '\\.');
+    				id = id.substring(0, id.length - 5);
+    				$(id).val(idx);
     			}
     		}
     	});
@@ -54,7 +55,7 @@
         <p class="error" py:if="r.method == 'POST' and e">Unfortunately your submission did not pass the validation</p>
         <form action="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" method="post">
           ${h.form.hidden_field('items.%i.csrf_token_' % (example['did']), r.session.get_csrf_token())}
-          ${h.qsheet.display(example, qsheet.content, e)}
+          <py:for each="question in qsheet.questions">${h.qsheet.display(question, example, e)}</py:for>
           <ul class="buttons">
             <li>${h.form.submit('Test validation', class_='button', name='action_')}</li>
           </ul>

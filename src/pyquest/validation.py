@@ -10,122 +10,8 @@ import re
 from formencode import validators, variabledecode
 from formencode import FancyValidator, Schema, Invalid
 from lxml import etree
-from StringIO import StringIO
 
-from pyquest.helpers.qsheet import extract_choices
-
-def qsheet_to_schema(qsheet):
-    def process_element(element, f):
-        if 'name' not in element.attrib:
-            return {}
-        schema = f(element)
-        if 'required' in element.attrib and element.attrib['required'] == 'true':
-            schema['required'] = True
-        return {element.attrib['name']: schema}
-    def process(element):
-        if element.tag == u'{http://paths.sheffield.ac.uk/pyquest}qsheet':
-            qschema = {}
-            for child in element:
-                qschema.update(process(child))
-            return qschema
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}number':
-            return process_element(element, number_input)
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}email':
-            return process_element(element, lambda e: {'type': 'email'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}url':
-            return process_element(element, lambda e: {'type': 'url'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}date':
-            return process_element(element, lambda e: {'type': 'date'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}time':
-            return process_element(element, lambda e: {'type': 'time'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}datetime':
-            return process_element(element, lambda e: {'type': 'datetime'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}month':
-            return process_element(element, lambda e: {'type': 'month'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}short_text':
-            return process_element(element, lambda e: {'type': 'unicode'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}long_text':
-            return process_element(element, lambda e: {'type': 'unicode'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
-            return process_element(element, single_in_list)
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating_group':
-            return process_element(element, grouped_single_in_list)
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}listchoice':
-            return process_element(element, single_in_list)
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}selectchoice':
-            return process_element(element, single_in_list)
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
-            return process_element(element, multi_in_list)
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice_group':
-            return process_element(element, grouped_multi_in_list)
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}confirm':
-            return process_element(element, lambda e: {'type': 'boolean'})
-        elif element.tag == u'{http://paths.sheffield.ac.uk/pyquest}ranking':
-            return process_element(element, ranking)
-        else:
-            qschema = {}
-            for child in element:
-                qschema.update(process(child))
-            return qschema
-    doc = etree.parse(StringIO(qsheet))
-    return process(doc.getroot())
-
-def number_input(element):
-    schema = {'type': 'number'}
-    if 'required' in element.attrib and element.attrib['required'] == 'true':
-        schema['required'] = True
-    if 'min_value' in element.attrib:
-        try:
-            schema['min_value'] = int(element.attrib['min_value'])
-        except ValueError:
-            pass
-    if 'max_value' in element.attrib:
-        try:
-            schema['max_value'] = int(element.attrib['max_value'])
-        except ValueError:
-            pass
-    if 'step' in element.attrib:
-        try:
-            schema['step'] = int(element.attrib['step'])
-        except ValueError:
-            pass
-    return schema
-
-def single_in_list(element):
-    return {'type': 'single_in_list',
-            'values': map(lambda (v, _): v, extract_choices(element))}
-
-def grouped_single_in_list(element):
-    schema = {'type': 'compound', 'fields': {}}
-    choices = extract_choices(element)
-    for child in element:
-        if child.tag == u'{http://paths.sheffield.ac.uk/pyquest}rating':
-            if 'name' in child.attrib:
-                schema['fields'][child.attrib['name']] = {'type': 'single_in_list',
-                                                          'values': map(lambda (v, _): v, choices)}
-                if 'required' in element.attrib and element.attrib['required'] == 'true':
-                    schema['fields'][child.attrib['name']]['required'] = True
-    return schema
-
-def multi_in_list(element):
-    return {'type': 'multi_in_list',
-            'values': map(lambda (v, _): v, extract_choices(element))}
-
-def grouped_multi_in_list(element):
-    schema = {'type': 'compound', 'fields': {}}
-    choices = extract_choices(element)
-    for child in element:
-        if child.tag == u'{http://paths.sheffield.ac.uk/pyquest}multichoice':
-            if 'name' in child.attrib:
-                schema['fields'][child.attrib['name']] = {'type': 'multi_in_list',
-                                                          'values': map(lambda (v, _): v, choices)}
-                if 'required' in element.attrib and element.attrib['required'] == 'true':
-                    schema['fields'][child.attrib['name']]['required'] = True
-    return schema
-
-def ranking(element):
-    return {'type': 'all_in_list',
-            'values': map(lambda (v, _): v, extract_choices(element))}
+from pyquest.helpers.qsheet import get_q_attr, get_qg_attr, get_attr_groups
 
 class DateTimeValidator(FancyValidator):
     
@@ -262,64 +148,65 @@ class XmlValidator(FancyValidator):
     
 class DynamicSchema(Schema):
     
-    def __init__(self, source_schema, **kwargs):
-        def augment(validator, value, missing_value=''):
-            if 'required' in value and value['required']:
+    def __init__(self, questions, **kwargs):
+        def augment(validator, question, missing_value=''):
+            if question.required:
                 validator.not_empty = True
             else:
                 validator.not_empty = False
                 validator.if_missing = missing_value
             return validator
         Schema.__init__(self, **kwargs)
-        for (key, value) in source_schema.items():
-            if value['type'] == 'compound':
-                self.add_field(key, augment(DynamicSchema(value['fields']), value))
-            elif value['type'] == 'number':
-                number_validator = augment(validators.Number(), value)
-                if 'min_value' in value:
-                    try:
-                        number_validator.min = float(value['min_value'])
-                    except ValueError:
-                        pass
-                if 'max_value' in value:
-                    try:
-                        number_validator.max = float(value['max_value'])
-                    except ValueError:
-                        pass
-                self.add_field(key, number_validator)
-            elif value['type'] == 'unicode':
-                self.add_field(key, augment(validators.UnicodeString(), value))
-            elif value['type'] == 'email':
-                self.add_field(key, augment(validators.Email(), value))
-            elif value['type'] == 'url':
-                self.add_field(key, augment(validators.URL(), value))
-            elif value['type'] == 'date':
-                self.add_field(key, augment(DateTimeValidator('date'), value))
-            elif value['type'] == 'time':
-                self.add_field(key, augment(DateTimeValidator('time'), value))
-            elif value['type'] == 'datetime':
-                self.add_field(key, augment(DateTimeValidator('datetime'), value))
-            elif value['type'] == 'month':
-                self.add_field(key, augment(DateTimeValidator('month'), value))
-            elif value['type'] == 'single_in_list':
-                self.add_field(key, augment(validators.OneOf(value['values'], hideList=True), value))
-            elif value['type'] == 'multi_in_list':
-                self.add_field(key, augment(validators.OneOf(value['values'], hideList=True, testValueList=True), value))
-            elif value['type'] == 'boolean':
-                self.add_field(key, augment(validators.StringBool(), value, missing_value=False))
-            elif value['type'] == 'all_in_list':
-                self.add_field(key, augment(RankingValidator(value['values']), value))
+        for question in questions:
+            if question.type in ['short_text', 'long_text']:
+                self.add_field(question.name, augment(validators.UnicodeString(), question))
+            elif question.type == 'number':
+                number_validator = augment(validators.Number(), question)
+                if get_q_attr(question, 'further.min') != '':
+                    number_validator.min = int(get_q_attr(question, 'further.min'))
+                if get_q_attr(question, 'further.max') != '':
+                    number_validator.max = int(get_q_attr(question, 'further.max'))
+                self.add_field(question.name, number_validator)
+            elif question.type == 'email':
+                self.add_field(question.name, augment(validators.Email(), question))
+            elif question.type == 'url':
+                self.add_field(question.name, augment(validators.URL(), question))
+            elif question.type in ['date', 'time', 'datetime', 'month']:
+                self.add_field(question.name, augment(DateTimeValidator(question.type), question))
+            elif question.type in ['rating', 'single_list', 'single_select']:
+                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                self.add_field(question.name, augment(validators.OneOf(values, hideList=True), question))
+            elif question.type == 'rating_group':
+                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                sub_schema = DynamicSchema([])
+                for sub_question in get_attr_groups(question, 'subquestion'):
+                    sub_schema.add_field(get_qg_attr(sub_question, 'name'), augment(validators.OneOf(values, hideList=True), question))
+                self.add_field(question.name, augment(sub_schema, question))
+            elif question.type == 'confirm':
+                self.add_field(question.name, augment(validators.UnicodeString(), question, missing_value=''))
+            elif question.type == 'multichoice':
+                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                self.add_field(question.name, augment(validators.OneOf(values, hideList=True, testValueList=True), question))
+            elif question.type == 'multichoice_group':
+                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                sub_schema = DynamicSchema([])
+                for sub_question in get_attr_groups(question, 'subquestion'):
+                    sub_schema.add_field(get_qg_attr(sub_question, 'name'), augment(validators.OneOf(values, hideList=True, testValueList=True), question))
+                self.add_field(question.name, augment(sub_schema, question))
+            elif question.type == 'ranking':
+                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                self.add_field(question.name, augment(RankingValidator(values), question))
             
 class PageSchema(Schema):
     
     action_ = validators.UnicodeString()
     
-    def __init__(self, qsheet_schema, items, csrf_test=True):
+    def __init__(self, qsheet, items, csrf_test=True):
         Schema.__init__(self)
         items_schema = Schema()
         for item in items:
             if 'did' in item:
-                item_schema = DynamicSchema(qsheet_schema)
+                item_schema = DynamicSchema(qsheet.questions)
                 if csrf_test:
                     item_schema.add_field('csrf_token_', CsrfTokenValidator(not_empty=True))
                 items_schema.add_field(unicode(item['did']), item_schema)

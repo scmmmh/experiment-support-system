@@ -73,13 +73,19 @@
             <aside id="tools" class="right" style="width:200px;">
               <h3><a href="#">Text</a></h3>
               <ol>
-                <li>Text</li>
+                <li>Static text</li>
               </ol>
               <h3><a href="#">Text Input</a></h3>
               <ol>
                 <li>Single-line text</li>
                 <li>Multi-line text</li>
                 <li>Number</li>
+                <li>E-Mail</li>
+                <li>URL</li>
+                <li>Date</li>
+                <li>Time</li>
+                <li>Date &amp; Time</li>
+                <li>Month</li>
               </ol>
               <h3><a href="#">Rating</a></h3>
               <ol>
@@ -104,7 +110,82 @@
             </aside>
             <ol id="qsheet-content" style="width:700px;">
               <li class="placeholder">Drag elements from the right to construct the questionnaire sheet.</li>
-              ${h.qsheet.display_edit(qsheet.content, e)}
+              <li class="item" py:for="question in qsheet.questions">
+                ${h.form.hidden_field('id', question.id)}
+                <hgroup>
+                  <h2 class="header">${h.qsheet.question_type_title(question.type)}</h2>
+                </hgroup>
+                <div class="content">
+                  <py:if test="question.type == 'text'">
+                    ${Markup(h.qsheet.get_q_attr(question, 'text.text'))}
+                  </py:if>
+                  <py:if test="question.type != 'text'">
+                    <dl>
+                      <dt>Name</dt>
+                      <dd>${h.form.text_field('%i.name' % (question.id), question.name, e)}</dd>
+                      <dt>Title</dt>
+                      <dd>${h.form.text_field('%i.title' % (question.id), question.title, e, class_='span-16')}</dd>
+                      <dt>Help</dt>
+                      <dd>${h.form.textarea('%i.help' % (question.id), question.help, e, class_='span-16', style='height:50px;')}</dd>
+                      <dt>Required</dt>
+                      <dd>${h.form.checkbox('%i.required' % (question.id), 'true', e, checked=question.required, label='This question must be answered')}</dd>
+                      <py:if test="question.type == 'number'">
+                        <dt>Minimum value</dt>
+                        <dd>${h.form.number_field('%i.further.min' % (question.id), h.qsheet.get_q_attr(question, 'further.min'), e)}</dd>
+                        <dt>Maximum value</dt>
+                        <dd>${h.form.number_field('%i.further.max' % (question.id), h.qsheet.get_q_attr(question, 'further.max'), e)}</dd>
+                        <dt>Step</dt>
+                        <dd>${h.form.number_field('%i.further.step' % (question.id), h.qsheet.get_q_attr(question, 'further.step'), e)}</dd>
+                      </py:if>
+                      <py:if test="question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']">
+                        <dt py:if="question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group']">Answers</dt>
+                        <dt py:if="question.type == 'ranking'">Items</dt>
+                        <dd>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>Value</th>
+                                <th>Label</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'answer')">
+                                <td>${h.form.text_field('%i.answer.%i.value' % (question.id, attr_group.id), h.qsheet.get_qg_attr(attr_group, 'value'), e)}</td>
+                                <td>${h.form.text_field('%i.answer.%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr(attr_group, 'label'), e)}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </dd>
+                      </py:if>
+                      <py:if test="question.type in ['rating_group', 'multichoice_group']">
+                        <dt>Sub-questions</dt>
+                        <dd>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>Name</th>
+                                <th>Label</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'subquestion')">
+                                <td>${h.form.text_field('%i.sub-quest.%i.name' % (question.id, attr_group.id), h.qsheet.get_qg_attr(attr_group, 'name'), e)}</td>
+                                <td>${h.form.text_field('%i.sub-quest.%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr(attr_group, 'label'), e)}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </dd>
+                      </py:if>
+                      <py:if test="question.type == 'confirm'">
+                        <dt>Value</dt>
+                        <dd>${h.form.number_field('%i.further.value' % (question.id), h.qsheet.get_q_attr(question, 'further.value'), e, class_='span-16')}</dd>
+                        <dt>Label</dt>
+                        <dd>${h.form.number_field('%i.further.label' % (question.id), h.qsheet.get_q_attr(question, 'further.label'), e, class_='span-16')}</dd>
+                      </py:if>
+                    </dl>
+                  </py:if>
+                </div>
+              </li>
             </ol>
           </dd>
         </dl>

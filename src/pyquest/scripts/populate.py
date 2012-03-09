@@ -12,9 +12,8 @@ from pyramid.paster import (get_appsettings, setup_logging)
 from sqlalchemy import engine_from_config
 
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
-                            DataItemAttribute, User, Group, Permission)
-from pyquest import validation
-from pyquest.views.backend import survey as survey_backend
+                            DataItemAttribute, User, Group, Permission,
+                            Question, QuestionAttributeGroup, QuestionAttribute)
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -55,6 +54,287 @@ def init_data(DBSession):
 def init_test_data(DBSession):
     with transaction.manager:
         user = DBSession.query(User).first()
+        survey = Survey(title='A test survey', status='develop', styles='', scripts='')
+        # PAGE 1
+        qsheet = QSheet(name='page1', title='Page 1', styles='', scripts='')
+        question = Question(type='text', name='', title='', required=False, help='', order=0)
+        qa_group = QuestionAttributeGroup(key='text', label='Free text')
+        qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>The first page demonstrates the basic question types</p>', order=0))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='short_text', name='short_text', title='This is a (required) pq:short_text question', required=True, help='Just a bit of help', order=1)
+        qsheet.questions.append(question)
+        question = Question(type='long_text', name='long_text', title='A pq:long_text question', required=False, help='', order=2)
+        qsheet.questions.append(question)
+        question = Question(type='number', name='number', title='The pq:number question only allows numbers to be input', required=False, help='', order=3)
+        qa_group = QuestionAttributeGroup(key='further', label='Further attributes')
+        qa_group.attributes.append(QuestionAttribute(key='min', label='Minimum value', value='', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='max', label='Maximum value', value='', order=1))
+        qa_group.attributes.append(QuestionAttribute(key='step', label='Stepping value', value='', order=2))
+        question.attributes.append(qa_group);
+        qsheet.questions.append(question)
+        question = Question(type='email', name='email', title='The pq:email question forces a valid e-mail address', required=False, help='', order=4)
+        qsheet.questions.append(question)
+        question = Question(type='url', name='url', title='The pq:url question forces a http or https URL', required=False, help='', order=5)
+        qsheet.questions.append(question)
+        question = Question(type='date', name='date', title='The pq:date question requires a valid date', required=False, help='', order=6)
+        qsheet.questions.append(question)
+        question = Question(type='time', name='time', title='The pq:time question requires a valid time', required=False, help='', order=7)
+        qsheet.questions.append(question)
+        question = Question(type='datetime', name='datetime', title='The pq:datetime question requires a valid date and time', required=False, help='', order=8)
+        qsheet.questions.append(question)
+        question = Question(type='month', name='month', title='The pq:month question requires a month number between 1 and 12 or at least three letters of the English month name', required=False, help='', order=9)
+        qsheet.questions.append(question)
+        survey.qsheets.append(qsheet)
+        # PAGE 2
+        qsheet = QSheet(name='page2', title='Page 2', styles='', scripts='')
+        question = Question(type='text', name='', title='', required=False, help='', order=0)
+        qa_group = QuestionAttributeGroup(key='text', label='Free text')
+        qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>The second page demonstrates the rating elements</p>', order=0))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='rating', name='rating_1', title='The pq:rating question lets the user select a value from a scale', required=False, help='', order=1)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='0', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='1', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='1', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='2', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='2', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='3', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=3)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='3', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='4', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=4)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='4', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='5', order=1))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='rating_group', name='rating_2', title='The pq:rating_group creates a grid of questions and answers', required=False, help='', order=2)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='0', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='1', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='1', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='2', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='2', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='3', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=3)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='3', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='4', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=4)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='4', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='5', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='subquestion', label='Sub-question', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='name', label='Name', value='q1', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Question 1', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='subquestion', label='Sub-question', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='name', label='Name', value='q2', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Question 2', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='subquestion', label='Sub-question', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='name', label='Name', value='q3', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Question 3', order=1))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        survey.qsheets.append(qsheet)
+        # PAGE 3
+        qsheet = QSheet(name='page3', title='Page 3', styles='', scripts='')
+        question = Question(type='text', name='', title='', required=False, help='', order=0)
+        qa_group = QuestionAttributeGroup(key='text', label='Free text')
+        qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>The third page demonstrates the single-selection elements</p>', order=0))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='single_list', name='single_1', title='The pq:rating question lets the user select a value from a scale', required=False, help='', order=1)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='0', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='1', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='1', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='2', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='2', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='3', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=3)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='3', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='4', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=4)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='4', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='5', order=1))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='single_select', name='single_2', title='The pq:rating question lets the user select a value from a scale', required=False, help='', order=2)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='0', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='1', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='1', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='2', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='2', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='3', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=3)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='3', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='4', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=4)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='4', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='5', order=1))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='confirm', name='confirm', title='The pq:rating question lets the user select a value from a scale', required=False, help='', order=3)
+        qa_group = QuestionAttributeGroup(key='further', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='true', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Adding a label makes it easier to select the confirmation option', order=1))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        survey.qsheets.append(qsheet)
+        # PAGE 4
+        qsheet = QSheet(name='page4', title='Page 4', styles='', scripts='')
+        question = Question(type='text', name='', title='', required=False, help='', order=0)
+        qa_group = QuestionAttributeGroup(key='text', label='Free text')
+        qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>The fourth page demonstrates the multi-choice elements</p>', order=0))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='multichoice', name='multi_1', title='The pq:rating question lets the user select a value from a scale', required=False, help='', order=1)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='0', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='1', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='1', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='2', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='2', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='3', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=3)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='3', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='4', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=4)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='4', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='5', order=1))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='multichoice_group', name='multi_2', title='The pq:rating_group creates a grid of questions and answers', required=False, help='', order=2)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='0', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='1', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='1', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='2', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='2', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='3', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=3)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='3', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='4', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=4)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='4', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='5', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='subquestion', label='Sub-question', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='name', label='Name', value='q1', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Question 1', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='subquestion', label='Sub-question', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='name', label='Name', value='q2', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Question 2', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='subquestion', label='Sub-question', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='name', label='Name', value='q3', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Question 3', order=1))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        survey.qsheets.append(qsheet)
+        # PAGE 5
+        qsheet = QSheet(name='page5', title='Page 5', styles='', scripts='')
+        question = Question(type='text', name='', title='', required=False, help='', order=0)
+        qa_group = QuestionAttributeGroup(key='text', label='Free text')
+        qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>The fifth page demonstrates the ranking element</p>', order=0))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        question = Question(type='ranking', name='multi_2', title='The pq:rating_group creates a grid of questions and answers', required=True, help='', order=1)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='dog', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Dog', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=1)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='cat', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Cat', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=2)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='mouse', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Mouse', order=1))
+        question.attributes.append(qa_group)
+        qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=3)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='bird', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Bird', order=1))
+        question.attributes.append(qa_group)
+        qsheet.questions.append(question)
+        survey.qsheets.append(qsheet)
+        user.surveys.append(survey)
+        """
+<pq:rating name="rating_1" title="The pq:rating question provides a choice of answers" min_value="1" min_title="First" max_value="5" max_title="Last"/>
+<pq:rating name="rating_2" min_value="1" min_title="First" max_value="5" max_title="Last" hide_extra_labels="true"/>
+<pq:rating name="rating_3" title="The pq:option element is used to define the choices">
+  <pq:option value="1" title="First"/>
+  <pq:option value="2"/>
+  <pq:option value="3" title="Middle"/>
+  <pq:option value="4"/>
+  <pq:option value="5" title="Last"/>
+</pq:rating>
+<pq:rating_group name="rating_group" title="The pq:rating_group creates a grid of questions and answers">
+  <pq:option value="1" title="First"/>
+  <pq:option value="2"/>
+  <pq:option value="3" title="Middle"/>
+  <pq:option value="4"/>
+  <pq:option value="5" title="Last"/>
+  <pq:rating name="question_1" title="Question 1"/>
+  <pq:rating name="question_2" title="Question 2"/>
+  <pq:rating name="question_3" title="Question 3"/>
+</pq:rating_group>
+<pq:listchoice name="rating_4" title="The pq:listchoice displays the options as a list">
+  <pq:option value="1" title="A"/>
+  <pq:option value="2" title="B"/>
+  <pq:option value="3" title="C"/>
+  <pq:option value="4" title="D"/>
+  <pq:option value="5" title="E"/>
+</pq:listchoice>
+<pq:selectchoice name="rating_5" title="The pq:selectchoice displays the options as a select box">
+  <pq:option value="1" title="A"/>
+  <pq:option value="2" title="B"/>
+  <pq:option value="3" title="C"/>
+  <pq:option value="4" title="D"/>
+  <pq:option value="5" title="E"/>
+</pq:selectchoice>
+''')"""
+        '''
         survey = Survey(title='A test survey', content="""<pq:single qsid="1"/>
 <pq:repeat qsid="2">
   <pq:source>
@@ -136,25 +416,10 @@ for completing our survey. Your time and effort have been a great help.</p>""")
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/10.html'))
         survey.data_items.append(data_item)
         DBSession.add(survey)
-        survey = Survey(title='Tests all question types', content='''<pq:single qsid="4"/>
+        survey = Survey(title='Tests all question types', content='''"""<pq:single qsid="4"/>
 <pq:single qsid="5"/>
 <pq:single qsid="6"/>
 <pq:single qsid="7"/>''', status='develop')
-        survey.schema = pickle.dumps(survey_backend.create_schema('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>' % survey.content))
-        qsheet = QSheet(name='p1', title='Page 1', content='''<p>This is the first page, demonstrating the different input field types.</p>
-<pq:short_text name="short_text" title="This is a (required) pq:short_text question" required="true"/>
-<pq:long_text name="long_text" title="A pq:long_text question"/>
-<pq:number name="number" title="The pq:number question only allows numbers to be input" min="2" max="10" step="2"/>
-<pq:email name="email" title="The pq:email question forces a valid e-mail address"/>
-<pq:url name="url" title="The pq:url question forces a http or https URL"/>
-<pq:date name="date" title="The pq:date question requires a valid date"/>
-<pq:time name="time" title="The pq:time question requires a valid time"/>
-<pq:datetime name="datetime" title="The pq:datetime question requires a valid date and time"/>
-<pq:month name="month" title="The pq:month question requires a month number between 1 and 12 or at least three letters of the English month name"/>
-''')
-        qsheet.schema = pickle.dumps(validation.qsheet_to_schema('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>' % qsheet.content))
-        survey.qsheets.append(qsheet)
-        survey.owner = user
         qsheet = QSheet(name='p2', title='Page 2', content='''<p>This page demonstrates the available single-choice questions</p>
 <pq:rating name="rating_1" title="The pq:rating question provides a choice of answers" min_value="1" min_title="First" max_value="5" max_title="Last"/>
 <pq:rating name="rating_2" min_value="1" min_title="First" max_value="5" max_title="Last" hide_extra_labels="true"/>
@@ -235,3 +500,5 @@ for completing our survey. Your time and effort have been a great help.</p>""")
         qsheet = QSheet(title='A sheet', content='')
         survey.qsheets.append(qsheet)
         DBSession.add(survey)
+        """
+        
