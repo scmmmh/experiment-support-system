@@ -113,30 +113,12 @@ def init_state(request, dbsession, survey):
             state['ptid'] = participant.id
     return state
 
-def determine_submit_options(instr, state, survey_schema):
-    next_instr = get_instr(instr['next_qsid'], survey_schema)
-    if next_instr:
-        if next_instr['type'] == 'finish':
-            if instr['type'] == 'single':
-                return ['finish']
-            elif instr['type'] == 'repeat':
-                return ['more', 'finish']
-            else:
-                return []
+def determine_submit_options(qsheet_instance):
+    if qsheet_instance.type == 'single':
+        if len(qsheet_instance.next) > 0:
+            return ['next']
         else:
-            if instr['type'] == 'single':
-                return ['next']
-            elif instr['type'] == 'repeat':
-                return ['more', 'next']
-            else:
-                return ['next']
-    else:
-        if instr['type'] == 'single':
             return ['finish']
-        elif instr['type'] == 'repeat':
-            return ['more', 'finish']
-        else:
-            return []
 
 def get_participant(dbsession, survey, state):
     participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
@@ -152,8 +134,8 @@ def get_participant(dbsession, survey, state):
 
 def next_qsheet_instance(qsheet_instance):
     for transition in qsheet_instance.next:
-        return transition.target.id
-    return 'none'
+        return transition.target
+    return None
 
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/qsheet.html'})
@@ -178,7 +160,11 @@ def run_survey(request):
                 state['dids'] = select_data_items(request.matchdict['sid'], state, qsheet_instance, dbsession)
                 if len(state['dids']) == 0:
                     response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
-                    state['qsiid'] = next_qsheet_instance(qsheet_instance)
+                    next_qsi = next_qsheet_instance(qsheet_instance)
+                    if next_qsi:
+                        state['qsiid'] = next_qsi.id
+                    else:
+                        state['qsiid'] = 'finished'
                     del state['dids']
                     response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
                     raise response
@@ -187,7 +173,7 @@ def run_survey(request):
             return {'survey': survey,
                     'qsheet': qsheet_instance.qsheet,
                     'data_items': data_items,
-                    'submit_options': ['next']}
+                    'submit_options': determine_submit_options(qsheet_instance)}
         elif request.method == 'POST':
             data_items = load_data_items(state, dbsession)
             validator = PageSchema(qsheet_instance.qsheet, data_items)
@@ -257,7 +243,11 @@ def run_survey(request):
                             dbsession.add(answer)
                 qsheet_instance = dbsession.query(QSheetInstance).filter(QSheetInstance.id==state['qsiid']).first()
                 if qsheet_answers['action_'] in ['Next', 'Finish']:
-                    state['qsiid'] = next_qsheet_instance(qsheet_instance)
+                    next_qsi = next_qsheet_instance(qsheet_instance)
+                    if next_qsi:
+                        state['qsiid'] = next_qsi.id
+                    else:
+                        state['qsiid'] = 'finished'
                 del state['dids']
                 response = HTTPFound(request.route_url('survey.run', sid=survey.id))
                 response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
@@ -268,7 +258,7 @@ def run_survey(request):
                 return {'survey': survey,
                         'qsheet': qsheet_instance.qsheet,
                         'data_items': data_items,
-                        'submit_options': ['next'],
+                        'submit_options': determine_submit_options(qsheet_instance),
                         'e': ie}
         else:
             raise HTTPNotAcceptable()
