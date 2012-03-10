@@ -17,7 +17,7 @@ from random import sample, shuffle
 from sqlalchemy import and_
 
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
-    DataItemCount, QSheetInstance)
+    DataItemCount, QSheetInstance, Answer, AnswerValue)
 from pyquest.renderer import render
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 
@@ -107,8 +107,7 @@ def init_state(request, dbsession, survey):
     else:
         state = {'qsiid': survey.start_id}
         with transaction.manager:
-            participant = Participant(survey_id=survey.id,
-                                      answers=pickle.dumps({}))
+            participant = Participant(survey_id=survey.id)
             dbsession.add(participant)
             dbsession.flush()
             state['ptid'] = participant.id
@@ -143,7 +142,7 @@ def get_participant(dbsession, survey, state):
     participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
     if not participant:
         with transaction.manager:
-            participant = Participant(survey_id=survey.id, answers=pickle.dumps({}))
+            participant = Participant(survey_id=survey.id)
             dbsession.add(participant)
             dbsession.flush()
             state['ptid'] = participant.id
@@ -164,7 +163,6 @@ def run_survey(request):
     if survey:
         if survey.status not in ['running', 'testing']:
             raise HTTPFound(request.route_url('survey.run.inactive', sid=request.matchdict['sid']))
-        #survey_schema = pickle.loads(str(survey.schema))
         state = init_state(request, dbsession, survey)
         if not state['qsiid']:
             response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
@@ -195,16 +193,69 @@ def run_survey(request):
             validator = PageSchema(qsheet_instance.qsheet, data_items)
             try:
                 qsheet_answers = validator.to_python(request.POST, ValidationState(request=request))
-                #with transaction.manager:
-                #    participant = get_participant(dbsession, survey, state)
-                #    pt_answers = pickle.loads(str(participant.answers))
-                #    if state['qsid'] in pt_answers:
-                #        pt_answers[state['qsid']]['items'].update(qsheet_answers['items'])
-                #    else:
-                #        pt_answers[state['qsid']] = qsheet_answers
-                #    update_data_item_counts(state, qsheet_answers['items'].keys(), dbsession)
-                #    participant.answers = pickle.dumps(pt_answers)
-                #    dbsession.add(participant)
+                with transaction.manager:
+                    participant = get_participant(dbsession, survey, state)
+                    for question in qsheet_instance.qsheet.questions:
+                        for data_item_src in data_items:
+                            data_item = dbsession.query(DataItem).filter(DataItem.id==data_item_src['did']).first()
+                            clear_query = dbsession.query(Answer)
+                            if data_item:
+                                clear_query = clear_query.filter(and_(Answer.participant_id==participant.id,
+                                                                      Answer.question_id==question.id,
+                                                                      Answer.data_item_id==data_item.id))
+                                answer = Answer(participant_id=participant.id,
+                                                question_id=question.id,
+                                                data_item_id=data_item.id)
+                            else:
+                                clear_query = clear_query.filter(and_(Answer.participant_id==participant.id,
+                                                                      Answer.question_id==question.id))
+                                answer = Answer(participant_id=participant.id,
+                                                question_id=question.id)
+                            clear_query.delete()
+                            if question.type == 'text':
+                                continue
+                            elif question.type == 'rating_group':
+                                for sub_question in get_attr_groups(question, 'subquestion'):
+                                    if qsheet_answers['items'][data_item_src['did']][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][data_item_src['did']][question.name]:
+                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
+                                                                         value=qsheet_answers['items'][data_item_src['did']][question.name][get_qg_attr_value(sub_question, 'name')]))
+                                    else:
+                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
+                                                                         value=None))
+                            elif question.type == 'multichoice':
+                                answer_list = qsheet_answers['items'][data_item_src['did']][question.name]
+                                if isinstance(answer_list, list):
+                                    for value in answer_list:
+                                        answer.values.append(AnswerValue(value=value))
+                                else:
+                                    answer.values.append(AnswerValue(value=answer_list))
+                            elif question.type == 'multichoice_group':
+                                for sub_question in get_attr_groups(question, 'subquestion'):
+                                    print repr(qsheet_answers)
+                                    if qsheet_answers['items'][data_item_src['did']][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][data_item_src['did']][question.name]:
+                                        answer_list = qsheet_answers['items'][data_item_src['did']][question.name][get_qg_attr_value(sub_question, 'name')]
+                                        if isinstance(answer_list, list):
+                                            for value in answer_list:
+                                                answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
+                                                                                 value=value))
+                                        else:
+                                            answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
+                                                                             value=answer_list))
+                                    else:
+                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
+                                                                         value=None))
+                            elif question.type == 'ranking':
+                                for sub_answer in get_attr_groups(question, 'answer'):
+                                    if get_qg_attr_value(sub_answer, 'value') in qsheet_answers['items'][data_item_src['did']][question.name]:
+                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_answer, 'value'),
+                                                                         value=qsheet_answers['items'][data_item_src['did']][question.name][get_qg_attr_value(sub_answer, 'value')]))
+                                    else:
+                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_answer, 'value'),
+                                                                         value=None))
+                            else:
+                                answer.values.append(AnswerValue(value=qsheet_answers['items'][data_item_src['did']][question.name]))
+                            dbsession.add(answer)
+                qsheet_instance = dbsession.query(QSheetInstance).filter(QSheetInstance.id==state['qsiid']).first()
                 if qsheet_answers['action_'] in ['Next', 'Finish']:
                     state['qsiid'] = next_qsheet_instance(qsheet_instance)
                 del state['dids']
@@ -247,3 +298,4 @@ def inactive(request):
         return {'survey': survey}
     else:
         raise HTTPNotFound()
+from pyquest.helpers.qsheet import get_attr_groups, get_qg_attr_value

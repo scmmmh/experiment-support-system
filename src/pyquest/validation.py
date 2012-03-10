@@ -149,7 +149,7 @@ class XmlValidator(FancyValidator):
 class DynamicSchema(Schema):
     
     def __init__(self, questions, **kwargs):
-        def augment(validator, question, missing_value=''):
+        def augment(validator, question, missing_value=None):
             if question.required:
                 validator.not_empty = True
             else:
@@ -183,7 +183,7 @@ class DynamicSchema(Schema):
                     sub_schema.add_field(get_qg_attr_value(sub_question, 'name'), augment(validators.OneOf(values, hideList=True), question))
                 self.add_field(question.name, augment(sub_schema, question))
             elif question.type == 'confirm':
-                self.add_field(question.name, augment(validators.UnicodeString(), question, missing_value=''))
+                self.add_field(question.name, augment(validators.UnicodeString(), question, missing_value=None))
             elif question.type == 'multichoice':
                 values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 self.add_field(question.name, augment(validators.OneOf(values, hideList=True, testValueList=True), question))

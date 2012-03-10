@@ -261,5 +261,30 @@ class Participant(Base):
     
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id))
-    answers = Column(Text)
     
+    answers = relationship('Answer',
+                           backref='participant',
+                           cascade='all, delete, delete-orphan')
+
+class Answer(Base):
+    
+    __tablename__ = 'answers'
+    
+    id = Column(Integer, primary_key=True)
+    participant_id = Column(ForeignKey(Participant.id))
+    question_id = Column(ForeignKey(Question.id))
+    data_item_id = Column(ForeignKey(DataItem.id))
+    
+    values = relationship('AnswerValue',
+                          backref='answer',
+                          cascade='all, delete, delete-orphan')
+    
+class AnswerValue(Base):
+    
+    __tablename__ = 'answer_values'
+    
+    id = Column(Integer, primary_key=True)
+    answer_id = Column(ForeignKey(Answer.id))
+    name = Column(Unicode)
+    value = Column(Unicode)
+        

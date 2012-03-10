@@ -29,6 +29,7 @@
           <py:for each="question in qsheet.questions">${h.qsheet.display(question, data_item, e)}</py:for>
         </py:for>
         <ul class="buttons">
+          <li>${h.form.reset('Clear', class_='button')}</li>
           <li py:if="'more' in submit_options">${h.form.submit('More', name='action_', class_='button')}</li>
           <li py:if="'next' in submit_options">${h.form.submit('Next', name='action_', class_='button')}</li>
           <li py:if="'finish' in submit_options">${h.form.submit('Finish', name='action_', class_='button')}</li>
