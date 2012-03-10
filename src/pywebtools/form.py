@@ -90,5 +90,8 @@ def select(name, value, options, e, **attr):
 def button(label, **attr):
     return tag.input(type='button', value=label, **attr)
 
+def reset(label, **attr):
+    return tag.input(type='reset', value=label, **attr)
+
 def submit(label, **attr):
     return tag.input(type='submit', value=label, **attr)
