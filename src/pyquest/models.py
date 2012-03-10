@@ -5,7 +5,7 @@ import hashlib
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         Table, DateTime, Boolean, func, Text)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import (scoped_session, sessionmaker, relationship)
+from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref)
 from zope.sqlalchemy import ZopeTransactionExtension
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
@@ -90,6 +90,7 @@ class Survey(Base):
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
     status = Column(Unicode)
+    start_id = Column(Integer, ForeignKey('qsheet_instances.id', use_alter=True, name='fk_start_id'))
     owned_by = Column(ForeignKey(User.id), default=func.now())
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
@@ -105,6 +106,11 @@ class Survey(Base):
     participants = relationship('Participant',
                                 backref='survey',
                                 cascade='all, delete, delete-orphan')
+    start = relationship('QSheetInstance',
+                         backref=backref('survey', uselist=False),
+                         cascade='all, delete, delete-orphan',
+                         post_update=True,
+                         single_parent=True)
     
     def is_owned_by(self, user):
         if user:
@@ -171,6 +177,48 @@ class QuestionAttribute(Base):
     label = Column(Unicode)
     value = Column(Unicode)
     order = Column(Integer)
+
+class QSheetInstance(Base):
+    
+    __tablename__ = 'qsheet_instances'
+    
+    id = Column(Integer, primary_key=True)
+    qsheet_id = Column(ForeignKey(QSheet.id))
+    type = Column(Unicode)
+    
+    attributes = relationship('QSheetInstanceAttribute',
+                              backref='qsheet_instance',
+                              cascade='all, delete, delete-orphan')
+    qsheet = relationship('QSheet',
+                          backref='instances',
+                          cascade='all, delete, delete-orphan',
+                          post_update=True,
+                          single_parent=True)
+    prev = relationship('QSheetTransition',
+                        backref='target',
+                        primaryjoin='QSheetInstance.id==QSheetTransition.target_id',
+                        cascade='all, delete, delete-orphan')
+    next = relationship('QSheetTransition',
+                        backref='source',
+                        primaryjoin='QSheetInstance.id==QSheetTransition.source_id',
+                        cascade='all, delete, delete-orphan')
+
+class QSheetInstanceAttribute(Base):
+    
+    __tablename__ = 'qsheet_instance_attributes'
+    
+    id = Column(Integer, primary_key=True)
+    qsheet_instance_id = Column(ForeignKey(QSheetInstance.id))
+    key = Column(Unicode)
+    value = Column(Unicode)
+
+class QSheetTransition(Base):
+    
+    __tablename__ = 'qsheet_transitions'
+    
+    id = Column(Integer, primary_key=True)
+    source_id = Column(ForeignKey(QSheetInstance.id))
+    target_id = Column(ForeignKey(QSheetInstance.id))
 
 class DataItem(Base):
     

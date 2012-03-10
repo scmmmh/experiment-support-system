@@ -100,8 +100,6 @@ def substitute(text, item):
         return None
 
 def display(question, item, e, csrf_token=None):
-    if csrf_token:
-        pass
     if question.type == 'text':
         return tag.section(Markup(get_q_attr_value(question, 'text.text')))
     elif question.type == 'short_text':
