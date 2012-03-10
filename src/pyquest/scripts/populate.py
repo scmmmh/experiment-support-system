@@ -280,7 +280,7 @@ def init_test_data(DBSession):
         qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>The fifth page demonstrates the ranking element</p>', order=0))
         question.attributes.append(qa_group)
         qsheet5.questions.append(question)
-        question = Question(type='ranking', name='multi_2', title='The pq:rating_group creates a grid of questions and answers', required=True, help='', order=1)
+        question = Question(type='ranking', name='ranking_1', title='The pq:rating_group creates a grid of questions and answers', required=True, help='', order=1)
         qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
         qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='dog', order=0))
         qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='Dog', order=1))
