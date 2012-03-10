@@ -30,6 +30,19 @@
         		item.find('.content').slideToggle();
         		return false;
         	});
+        	item.find('.role-editable-text').dblclick(function() {
+        		$(this).ckeditor(function() {
+                    this.on('focus', function() {
+                        $('#qsheet-content').sortable('disable');
+                    });
+                    this.on('blur', function() {
+                    	item.find('.role-stored-text').html(this.getData());
+                    	this.destroy();
+                        $('#qsheet-content').sortable('enable');
+                    });
+                    this.focus();
+        		});
+        	});
         	header.html(link);
         });
         $('#tools ol li').draggable({
@@ -52,6 +65,7 @@
       </ul>
     </nav>
     <article>
+      ${repr(e)}
       <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
       <hgroup>
@@ -110,14 +124,18 @@
             </aside>
             <ol id="qsheet-content" style="width:700px;">
               <li class="placeholder">Drag elements from the right to construct the questionnaire sheet.</li>
-              <li class="item" py:for="question in qsheet.questions">
-                ${h.form.hidden_field('id', question.id)}
+              <li class="item" py:for="idx, question in enumerate(qsheet.questions)">
+                ${h.form.hidden_field('%i.id' % (question.id), question.id)}
+                ${h.form.hidden_field('%i.order' % (question.id), idx, class_='role-order')}
                 <hgroup>
                   <h2 class="header">${h.qsheet.question_type_title(question.type)}</h2>
                 </hgroup>
                 <div class="content">
                   <py:if test="question.type == 'text'">
-                    ${Markup(h.qsheet.get_q_attr(question, 'text.text'))}
+                    ${h.form.textarea('%i.text' % (question.id), h.qsheet.get_q_attr_value(question, 'text.text'), e, class_='hidden role-stored-text')}
+                    <div class="role-editable-text">
+                      ${Markup(h.qsheet.get_q_attr_value(question, 'text.text'))}
+                    </div>
                   </py:if>
                   <py:if test="question.type != 'text'">
                     <dl>
@@ -131,11 +149,9 @@
                       <dd>${h.form.checkbox('%i.required' % (question.id), 'true', e, checked=question.required, label='This question must be answered')}</dd>
                       <py:if test="question.type == 'number'">
                         <dt>Minimum value</dt>
-                        <dd>${h.form.number_field('%i.further.min' % (question.id), h.qsheet.get_q_attr(question, 'further.min'), e)}</dd>
+                        <dd>${h.form.number_field('%i.min' % (question.id), h.qsheet.get_q_attr_value(question, 'further.min'), e)}</dd>
                         <dt>Maximum value</dt>
-                        <dd>${h.form.number_field('%i.further.max' % (question.id), h.qsheet.get_q_attr(question, 'further.max'), e)}</dd>
-                        <dt>Step</dt>
-                        <dd>${h.form.number_field('%i.further.step' % (question.id), h.qsheet.get_q_attr(question, 'further.step'), e)}</dd>
+                        <dd>${h.form.number_field('%i.max' % (question.id), h.qsheet.get_q_attr_value(question, 'further.max'), e)}</dd>
                       </py:if>
                       <py:if test="question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']">
                         <dt py:if="question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group']">Answers</dt>
@@ -150,8 +166,8 @@
                             </thead>
                             <tbody>
                               <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'answer')">
-                                <td>${h.form.text_field('%i.answer.%i.value' % (question.id, attr_group.id), h.qsheet.get_qg_attr(attr_group, 'value'), e)}</td>
-                                <td>${h.form.text_field('%i.answer.%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr(attr_group, 'label'), e)}</td>
+                                <td>${h.form.hidden_field('%i.answer.%i.id' % (question.id, attr_group.id), attr_group.id)}${h.form.hidden_field('%i.answer.%i.order' % (question.id, attr_group.id), attr_group.order)}${h.form.text_field('%i.answer.%i.value' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'value'), e)}</td>
+                                <td>${h.form.text_field('%i.answer.%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -169,8 +185,8 @@
                             </thead>
                             <tbody>
                               <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'subquestion')">
-                                <td>${h.form.text_field('%i.sub-quest.%i.name' % (question.id, attr_group.id), h.qsheet.get_qg_attr(attr_group, 'name'), e)}</td>
-                                <td>${h.form.text_field('%i.sub-quest.%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr(attr_group, 'label'), e)}</td>
+                                <td>${h.form.hidden_field('%i.sub_quest.%i.id' % (question.id, attr_group.id), attr_group.id)}${h.form.hidden_field('%i.sub_quest.%i.order' % (question.id, attr_group.id), attr_group.order)}${h.form.text_field('%i.sub_quest.%i.name' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'name'), e)}</td>
+                                <td>${h.form.text_field('%i.sub_quest.%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -178,9 +194,9 @@
                       </py:if>
                       <py:if test="question.type == 'confirm'">
                         <dt>Value</dt>
-                        <dd>${h.form.number_field('%i.further.value' % (question.id), h.qsheet.get_q_attr(question, 'further.value'), e, class_='span-16')}</dd>
+                        <dd>${h.form.number_field('%i.value' % (question.id), h.qsheet.get_q_attr_value(question, 'further.value'), e, class_='span-16')}</dd>
                         <dt>Label</dt>
-                        <dd>${h.form.number_field('%i.further.label' % (question.id), h.qsheet.get_q_attr(question, 'further.label'), e, class_='span-16')}</dd>
+                        <dd>${h.form.number_field('%i.label' % (question.id), h.qsheet.get_q_attr_value(question, 'further.label'), e, class_='span-16')}</dd>
                       </py:if>
                     </dl>
                   </py:if>

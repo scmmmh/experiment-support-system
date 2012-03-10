@@ -19,8 +19,15 @@ def get_attr_groups(question, key):
 def get_qg_attr(attr_group, key):
     for attr in attr_group.attributes:
         if attr.key == key:
-            return attr.value
+            return attr
     return None
+    
+def get_qg_attr_value(attr_group, key):
+    attr = get_qg_attr(attr_group, key)
+    if attr:
+        return attr.value
+    else:
+        return None
     
 def get_q_attr(question, key):
     keys = key.split('.')
@@ -30,7 +37,14 @@ def get_q_attr(question, key):
         if attr_group.key == keys[0]:
             return get_qg_attr(attr_group, keys[1])
     return None
-
+    
+def get_q_attr_value(question, key):
+    attr = get_q_attr(question, key)
+    if attr:
+        return attr.value
+    else:
+        return None
+    
 def question_type_title(q_type):
     if q_type == 'text':
         return 'Static text'
@@ -89,7 +103,7 @@ def display(question, item, e, csrf_token=None):
     if csrf_token:
         pass
     if question.type == 'text':
-        return tag.section(Markup(get_q_attr(question, 'text.text')))
+        return tag.section(Markup(get_q_attr_value(question, 'text.text')))
     elif question.type == 'short_text':
         return short_text_input(question, item, e)
     elif question.type == 'long_text':
@@ -148,12 +162,12 @@ def long_text_input(question, item, e):
 @question()    
 def number_input(question, item, e):
     attr = {}
-    if get_q_attr(question, 'further.min').strip() != '':
-        attr['min'] = substitute(get_q_attr(question, 'further.min'), item)
-    if get_q_attr(question, 'further.max').strip() != '':
-        attr['max'] = substitute(get_q_attr(question, 'further.min'), item)
-    if get_q_attr(question, 'further.step').strip() != '':
-        attr['step'] = substitute(get_q_attr(question, 'further.min'), item)
+    if get_q_attr_value(question, 'further.min').strip() != '':
+        attr['min'] = substitute(get_q_attr_value(question, 'further.min'), item)
+    if get_q_attr_value(question, 'further.max').strip() != '':
+        attr['max'] = substitute(get_q_attr_value(question, 'further.min'), item)
+    if get_q_attr_value(question, 'further.step').strip() != '':
+        attr['step'] = substitute(get_q_attr_value(question, 'further.min'), item)
     return tag.p(form.number_field('items.%s.%s' % (item['did'], question.name), '', e, **attr))
 
 @question()
@@ -184,10 +198,10 @@ def month_input(question, item, e):
 def rating(question, item, e):
     rows = []
     answers = get_attr_groups(question, 'answer')
-    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr(a, 'label')), answers))))
+    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))))
     rows.append(tag.tbody(tag.tr(map(lambda a: tag.td(tag.input(type='radio',
                                                                 name='items.%s.%s' % (item['did'], question.name),
-                                                                value=get_qg_attr(a, 'value'))),
+                                                                value=get_qg_attr_value(a, 'value'))),
                                      answers))))
     return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
 
@@ -197,13 +211,13 @@ def rating_group(question, item, e):
     rows = []
     field_names = ['items.%s.%s' % (item['did'], question.name)]
     for sub_question in get_attr_groups(question, 'subquestion'):
-        rows.append(tag.tr(tag.th(get_qg_attr(sub_question, 'label')),
+        rows.append(tag.tr(tag.th(get_qg_attr_value(sub_question, 'label')),
                            map(lambda a: tag.td(tag.input(type='radio',
-                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(sub_question, 'name')),
-                                                          value=get_qg_attr(a, 'value'))),
+                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')),
+                                                          value=get_qg_attr_value(a, 'value'))),
                                answers)))
-        field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(sub_question, 'name')))
-    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr(a, 'label')), answers))),
+        field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')))
+    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))),
                                         tag.tbody(rows)),
                               field_names, e)
 
@@ -215,9 +229,9 @@ def single_list(question, item, e):
         parts = [tag.input(type='radio',
                            id='items.%s.%s-%i' % (item['did'], question.name, idx),
                            name='items.%s.%s' % (item['did'], question.name),
-                           value=get_qg_attr(answer, 'value'))]
-        if get_qg_attr(answer, 'value').strip() != '':
-            parts.append(tag.label(get_qg_attr(answer, 'value'),
+                           value=get_qg_attr_value(answer, 'value'))]
+        if get_qg_attr_value(answer, 'value').strip() != '':
+            parts.append(tag.label(get_qg_attr_value(answer, 'value'),
                                    for_='items.%s.%s-%i' % (item['did'], question.name, idx)))
         items.append(tag.li(parts))
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)
@@ -225,7 +239,7 @@ def single_list(question, item, e):
 @question()
 def single_select(question, item, e):
     answers = get_attr_groups(question, 'answer')
-    items = [tag.option(get_qg_attr(answer, 'label'), value=get_qg_attr(answer, 'value')) for answer in answers]
+    items = [tag.option(get_qg_attr_value(answer, 'label'), value=get_qg_attr_value(answer, 'value')) for answer in answers]
     items.insert(0, tag.option('--- Please choose ---', value=''))
     return form.error_wrapper(tag.p(tag.select(items,
                                                name='items.%s.%s' % (item['did'], question.name))),
@@ -238,9 +252,9 @@ def confirm(question, item, e):
     tags.append(tag.input(type='checkbox',
                           id='items.%s.%s' % (item['did'], question.name),
                           name='items.%s.%s' % (item['did'], question.name),
-                          value=get_q_attr(question, 'further.value')))
-    if get_q_attr(question, 'further.label').strip() != '':
-        tags.append(tag.label(get_q_attr(question, 'further.label'),
+                          value=get_q_attr_value(question, 'further.value')))
+    if get_q_attr_value(question, 'further.label').strip() != '':
+        tags.append(tag.label(get_q_attr_value(question, 'further.label'),
                               for_='items.%s.%s' % (item['did'], question.name)))
     elif question.title.strip() != '':
         tags.append(tag.label(question.title,
@@ -251,10 +265,10 @@ def confirm(question, item, e):
 def multichoice(question, item, e):
     rows = []
     answers = get_attr_groups(question, 'answer')
-    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr(a, 'label')), answers))))
+    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))))
     rows.append(tag.tbody(tag.tr(map(lambda a: tag.td(tag.input(type='checkbox',
                                                                 name='items.%s.%s' % (item['did'], question.name),
-                                                                value=get_qg_attr(a, 'value'))),
+                                                                value=get_qg_attr_value(a, 'value'))),
                                      answers))))
     return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
 
@@ -264,13 +278,13 @@ def multichoice_group(question, item, e):
     rows = []
     field_names = ['items.%s.%s' % (item['did'], question.name)]
     for sub_question in get_attr_groups(question, 'subquestion'):
-        rows.append(tag.tr(tag.th(get_qg_attr(sub_question, 'label')),
+        rows.append(tag.tr(tag.th(get_qg_attr_value(sub_question, 'label')),
                            map(lambda a: tag.td(tag.input(type='checkbox',
-                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(sub_question, 'name')),
-                                                          value=get_qg_attr(a, 'value'))),
+                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')),
+                                                          value=get_qg_attr_value(a, 'value'))),
                                answers)))
-        field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(sub_question, 'name')))
-    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr(a, 'label')), answers))),
+        field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')))
+    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))),
                                         tag.tbody(rows)),
                               field_names, e)
 
@@ -281,9 +295,9 @@ def ranking(question, item, e):
     for answer in answers:
         items.append(tag.li(tag.select(tag.option('--', value=''),
                                        [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(answers))],
-                                       id='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(answer, 'value')),
-                                       name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(answer, 'value'))),
-                            tag.label(get_qg_attr(answer, 'label'), for_='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr(answer, 'value'))),
-                            id='items.%s.%s.%s-item' % (item['did'], question.name, get_qg_attr(answer, 'value'))))
+                                       id='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(answer, 'value')),
+                                       name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(answer, 'value'))),
+                            tag.label(get_qg_attr_value(answer, 'label'), for_='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(answer, 'value'))),
+                            id='items.%s.%s.%s-item' % (item['did'], question.name, get_qg_attr_value(answer, 'value'))))
     shuffle(items)
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)

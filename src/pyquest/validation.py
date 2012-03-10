@@ -11,7 +11,7 @@ from formencode import validators, variabledecode
 from formencode import FancyValidator, Schema, Invalid
 from lxml import etree
 
-from pyquest.helpers.qsheet import get_q_attr, get_qg_attr, get_attr_groups
+from pyquest.helpers.qsheet import get_q_attr_value, get_qg_attr_value, get_attr_groups
 
 class DateTimeValidator(FancyValidator):
     
@@ -162,10 +162,10 @@ class DynamicSchema(Schema):
                 self.add_field(question.name, augment(validators.UnicodeString(), question))
             elif question.type == 'number':
                 number_validator = augment(validators.Number(), question)
-                if get_q_attr(question, 'further.min') != '':
-                    number_validator.min = int(get_q_attr(question, 'further.min'))
-                if get_q_attr(question, 'further.max') != '':
-                    number_validator.max = int(get_q_attr(question, 'further.max'))
+                if get_q_attr_value(question, 'further.min') != '':
+                    number_validator.min = int(get_q_attr_value(question, 'further.min'))
+                if get_q_attr_value(question, 'further.max') != '':
+                    number_validator.max = int(get_q_attr_value(question, 'further.max'))
                 self.add_field(question.name, number_validator)
             elif question.type == 'email':
                 self.add_field(question.name, augment(validators.Email(), question))
@@ -174,27 +174,27 @@ class DynamicSchema(Schema):
             elif question.type in ['date', 'time', 'datetime', 'month']:
                 self.add_field(question.name, augment(DateTimeValidator(question.type), question))
             elif question.type in ['rating', 'single_list', 'single_select']:
-                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 self.add_field(question.name, augment(validators.OneOf(values, hideList=True), question))
             elif question.type == 'rating_group':
-                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 sub_schema = DynamicSchema([])
                 for sub_question in get_attr_groups(question, 'subquestion'):
-                    sub_schema.add_field(get_qg_attr(sub_question, 'name'), augment(validators.OneOf(values, hideList=True), question))
+                    sub_schema.add_field(get_qg_attr_value(sub_question, 'name'), augment(validators.OneOf(values, hideList=True), question))
                 self.add_field(question.name, augment(sub_schema, question))
             elif question.type == 'confirm':
                 self.add_field(question.name, augment(validators.UnicodeString(), question, missing_value=''))
             elif question.type == 'multichoice':
-                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 self.add_field(question.name, augment(validators.OneOf(values, hideList=True, testValueList=True), question))
             elif question.type == 'multichoice_group':
-                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 sub_schema = DynamicSchema([])
                 for sub_question in get_attr_groups(question, 'subquestion'):
-                    sub_schema.add_field(get_qg_attr(sub_question, 'name'), augment(validators.OneOf(values, hideList=True, testValueList=True), question))
+                    sub_schema.add_field(get_qg_attr_value(sub_question, 'name'), augment(validators.OneOf(values, hideList=True, testValueList=True), question))
                 self.add_field(question.name, augment(sub_schema, question))
             elif question.type == 'ranking':
-                values = [get_qg_attr(qg, 'value') for qg in get_attr_groups(question, 'answer')]
+                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 self.add_field(question.name, augment(RankingValidator(values), question))
             
 class PageSchema(Schema):
