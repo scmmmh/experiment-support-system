@@ -24,6 +24,9 @@
           </tr>
         </thead>
         <tbody>
+          <tr py:if="not surveys">
+            <td colspan="3" class="placeholder">You currently have no surveys. <a href="${r.route_url('survey.new')}">Create one now</a></td>
+          </tr>
           <tr py:for="survey in surveys">
             <td><a href="${r.route_url('survey.view', sid=survey.id)}">${survey.title}</a></td>
             <td>${h.survey.fancy_status(r, survey, class_='survey-status no-menu')}</td>
