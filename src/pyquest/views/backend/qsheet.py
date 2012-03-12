@@ -19,7 +19,8 @@ from pywebtools.auth import is_authorised
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.qsheet import get_q_attr, get_attr_groups, get_qg_attr
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, Survey, QSheet)
+from pyquest.models import (DBSession, Survey, QSheet, Question,
+    QuestionAttribute, QuestionAttributeGroup)
 from pyquest.renderer import render
 from pyquest.validation import (PageSchema, flatten_invalid,
                                 ValidationState, XmlValidator)
@@ -78,9 +79,14 @@ class QSheetVisualSchema(Schema):
     
     pre_validators = [variabledecode.NestedVariables()]
     
-class QSheetOrderSchema(Schema):
-    qsid = foreach.ForEach(validators.Int())
-
+class QSheetAddQuestionSchema(Schema):
+    type = compound.All(validators.OneOf(['text', 'short_text', 'long_text', 'number',
+                                          'email', 'url', 'date', 'time', 'datetime',
+                                          'month', 'rating', 'rating_group', 'single_list',
+                                          'single_select', 'confirm', 'multichoice',
+                                          'multichoice_group', 'ranking']),
+                        validators.UnicodeString(not_empty=True))
+    
 @view_config(route_name='survey.qsheet')
 @render({'text/html': 'backend/qsheet/index.html'})
 def index(request):
@@ -216,6 +222,7 @@ def edit(request):
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
                             if question.type == 'text':
+                                question.order = q_params['order']
                                 get_q_attr(question, 'text.text').value = q_params['text']
                             else:
                                 question.name = q_params['name']
@@ -259,10 +266,103 @@ def edit(request):
     else:
         raise HTTPNotFound()
 
-@view_config(route_name='survey.qsheet.edit.fragment')
-@render({'text/html': 'backend/qsheet/edit_fragment.html'})
-def qsheet_fragment(request):
-    return {'item': 'Test'}
+@view_config(route_name='survey.qsheet.edit.add_question')
+@render({'text/html': 'backend/qsheet/edit_fragment.html'}, allow_cache=False)
+# TODO: CSRF Protection
+def edit_add_question(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+    user = current_user(request)
+    if survey and qsheet:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            if request.method == 'POST':
+                params = QSheetAddQuestionSchema().to_python(request.POST)
+                with transaction.manager:
+                    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+                    question = Question(type=params['type'])
+                    if params['type'] == 'text':
+                        qag = QuestionAttributeGroup(key='text', order=0)
+                        qag.attributes.append(QuestionAttribute(key='text', value='<p>Double-click here to edit the text.</p>', order=0))
+                        question.attributes.append(qag)
+                    elif params['type'] in['number', 'confirm']:
+                        qag = QuestionAttributeGroup(key='further', order=0)
+                        if params['type'] == 'number':
+                            qag.attributes.append(QuestionAttribute(key='min'))
+                            qag.attributes.append(QuestionAttribute(key='max'))
+                        elif params['type'] == 'confirm':
+                            qag.attributes.append(QuestionAttribute(key='value'))
+                            qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                    if params['type'] in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
+                        qag = QuestionAttributeGroup(key='answer', order=0)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                        qag = QuestionAttributeGroup(key='answer', order=1)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                        qag = QuestionAttributeGroup(key='answer', order=2)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                        qag = QuestionAttributeGroup(key='answer', order=3)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                        qag = QuestionAttributeGroup(key='answer', order=4)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                    if params['type'] in ['rating_group', 'multichoice_group']:
+                        qag = QuestionAttributeGroup(key='subquestion', order=0)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                        qag = QuestionAttributeGroup(key='subquestion', order=1)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                        qag = QuestionAttributeGroup(key='subquestion', order=2)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                        qag = QuestionAttributeGroup(key='subquestion', order=3)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                        qag = QuestionAttributeGroup(key='subquestion', order=4)
+                        qag.attributes.append(QuestionAttribute(key='value'))
+                        qag.attributes.append(QuestionAttribute(key='label'))
+                        question.attributes.append(qag)
+                    qsheet.questions.append(question)
+                    dbsession.add(question)
+                    dbsession.flush()
+                    qid = question.id
+                question = dbsession.query(Question).filter(Question.id==qid).first()
+                return {'question': question,
+                        'idx': 0}
+
+@view_config(route_name='survey.qsheet.edit.delete_question')
+@render({'application/json': ''})
+# TODO: CSRF Protection
+def edit_delete_question(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+    user = current_user(request)
+    if survey and qsheet:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            if request.method == 'POST':
+                with transaction.manager:
+                    question = dbsession.query(Question).filter(and_(Question.id==request.matchdict['qid'],
+                                                                     Question.qsheet_id==request.matchdict['qsid'])).first()
+                    dbsession.delete(question)
+                return {'status': 'ok'}
 
 @view_config(route_name='survey.qsheet.edit.source')
 @render({'text/html': 'backend/qsheet/edit_source.html'})
