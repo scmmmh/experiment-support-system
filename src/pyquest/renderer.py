@@ -13,7 +13,6 @@ import json
 import mimeparse
 
 from decorator import decorator
-from genshi import XML
 from genshi import filters
 from genshi.template import TemplateLoader, loader
 from pyramid.httpexceptions import HTTPNotAcceptable
@@ -100,7 +99,7 @@ def handle_csv_response(request, result):
     f.close()
     return response
 
-def render(content_types={}):
+def render(content_types={}, allow_cache=True):
     def wrapper(f, *args, **kwargs):
         request = request_from_args(*args)
         result = template_defaults(request)
@@ -109,12 +108,19 @@ def render(content_types={}):
         response_template = content_types[response_type]
         if response_type == 'application/json':
             response = handle_json_response(request, result)
+            response.cache_control = 'no-cache'
+            response.pragma = 'no-cache'
+            response.expires = '0'
         elif response_type == 'text/html':
             response = handle_html_response(request, response_template, result)
         elif response_type == 'text/csv':
             response = handle_csv_response(request, result)
         response.content_type = response_type
         request.response.merge_cookies(response)
+        if not allow_cache:
+            response.cache_control = 'no-cache'
+            response.pragma = 'no-cache'
+            response.expires = '0'
         return response
     return decorator(wrapper)
 
