@@ -49,8 +49,8 @@
         });
     }
     $(document).ready(function() {
-        make_toggle_link('css-edit');
-        make_toggle_link('js-edit');
+        make_toggle_link('role-css-edit');
+        make_toggle_link('role-js-edit');
         $('#tools').accordion();
         $('#qsheet-content').sortable({
         	receive: function(ev, ui) {
@@ -154,10 +154,10 @@
           <dd>${h.form.text_field('name', qsheet.name, e)}</dd>
           <dt>Title</dt>
           <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
-          <dt id="css-edit-toggle">CSS styles</dt>
-          <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22', id="css-edit")}</dd>
-          <dt id="js-edit-toggle">Javascript</dt>
-          <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22', id="js-edit")}</dd>
+          <dt id="role-css-edit-toggle">CSS styles</dt>
+          <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22', id="role-css-edit")}</dd>
+          <dt id="role-js-edit-toggle">Javascript</dt>
+          <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22', id="role-js-edit")}</dd>
           <dt>Content</dt>
           <dd class="clearfix">
             <aside id="tools" class="right" style="width:200px;">
