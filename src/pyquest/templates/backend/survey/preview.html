@@ -6,9 +6,9 @@
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
+    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
     <style type="text/css">${survey.styles}</style>
     <style type="text/css" py:for="qsheet in survey.qsheets">${qsheet.styles}</style>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
     <script type="text/javascript">
@@ -45,7 +45,7 @@
         </hgroup>
         <form action="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" method="post">
           ${h.form.hidden_field('items.%i.csrf_token_' % (example['did']), r.session.get_csrf_token())}
-          ${h.qsheet.display(example, qsheet.content, e)}
+          <py:for each="question in qsheet.questions">${h.qsheet.display(question, example, e)}</py:for>
           <ul class="buttons">
             <li>${h.form.submit('Test validation', class_='button')}</li>
           </ul>
