@@ -4,13 +4,14 @@ Created on 23 Jan 2012
 
 @author: mhall
 '''
+from pyquest.helpers.qsheet import get_qs_attr
 try:
     import cPickle as pickle
 except:
     import pickle
 import transaction
 
-from formencode import Schema, validators, api
+from formencode import Schema, validators, api, variabledecode
 from lxml import etree
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
@@ -19,18 +20,30 @@ from pywebtools.auth import is_authorised
 from pyquest import helpers
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, Survey)
+from pyquest.models import (DBSession, Survey, QSheetTransition)
 from pyquest.renderer import render
 from pyquest.validation import XmlValidator
+
+class NewSurveySchema(Schema):
+    csrf_token = validators.UnicodeString(not_empty=True)
+    title = validators.UnicodeString(not_empty=True)
+    summary = validators.UnicodeString()
 
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
+    start = validators.Int(if_missing=None, if_empty=None)
     summary = validators.UnicodeString()
-    content = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>')
-    schema = XmlValidator('<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:survey>', strip_wrapper=False)
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
+    
+    pre_validators = [variabledecode.NestedVariables()]
+
+class QSheetInstanceSchema(Schema):
+    repeat = validators.UnicodeString(not_empty=True)
+    data_items = validators.Int(if_missing=0, if_empty=0)
+    control_items = validators.Int(if_missing=0, if_empty=0)
+    transition = validators.Int(if_missing=None, if_empty=None)
 
 class SurveyStatusSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -131,24 +144,20 @@ def new(request):
     if is_authorised(':user.has_permission("survey.new")', {'user': user}):
         if request.method == 'POST':
             try:
-                if 'content' in request.POST:
-                    request.POST['schema'] = request.POST['content']
-                params = SurveySchema().to_python(request.POST)
+                params = NewSurveySchema().to_python(request.POST)
                 check_csrf_token(request, params)
                 with transaction.manager:
                     survey.title = params['title']
                     survey.summary = params['summary']
-                    survey.content = params['content']
-                    survey.schema = pickle.dumps(create_schema(params['schema']))
-                    survey.styles = params['styles']
-                    survey.scripts = params['scripts']
+                    survey.styles = ''
+                    survey.scripts = ''
                     survey.status = 'develop'
                     survey.owned_by = user.id
                     dbsession.add(survey)
                     dbsession.flush()
                     sid = survey.id
                 request.session.flash('Survey created', 'info')
-                raise HTTPFound(request.route_url('survey.edit', sid=sid))
+                raise HTTPFound(request.route_url('survey.qsheet', sid=sid))
             except api.Invalid as e:
                 e.params = request.POST
                 return {'survey': survey,
@@ -168,17 +177,29 @@ def edit(request):
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
-                    if 'content' in request.POST:
-                        request.POST['schema'] = request.POST['content']
-                    params = SurveySchema().to_python(request.POST)
+                    schema = SurveySchema()
+                    for qsheet in survey.qsheets:
+                        schema.add_field(unicode(qsheet.id), QSheetInstanceSchema())
+                    params = schema.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
+                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         survey.title = params['title']
                         survey.summary = params['summary']
-                        survey.content = params['content']
-                        survey.schema = pickle.dumps(create_schema(params['schema']))
                         survey.styles = params['styles']
                         survey.scripts = params['scripts']
+                        survey.start_id = params['start']
+                        for qsheet in survey.qsheets:
+                            get_qs_attr(qsheet, 'repeat').value = params[unicode(qsheet.id)]['repeat']
+                            get_qs_attr(qsheet, 'data-items').value = params[unicode(qsheet.id)]['data_items']
+                            get_qs_attr(qsheet, 'control-items').value = params[unicode(qsheet.id)]['control_items']
+                            if len(qsheet.next) > 0:
+                                if params[unicode(qsheet.id)]['transition']:
+                                    qsheet.next[0].target_id = params[unicode(qsheet.id)]['transition']
+                                else:
+                                    dbsession.delete(qsheet.next[0])
+                            elif params[unicode(qsheet.id)]['transition']:
+                                qsheet.next.append(QSheetTransition(target_id=params[unicode(qsheet.id)]['transition']))
                         dbsession.add(survey)
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.edit',

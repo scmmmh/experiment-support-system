@@ -14,12 +14,25 @@ from re import search
 def get_attr_groups(question, key):
     return [attr_group for attr_group in question.attributes if attr_group.key==key]
 
+def get_qs_attr(qsheet, key):
+    for attr in qsheet.attributes:
+        if attr.key == key:
+            return attr
+    return None
+
+def get_qs_attr_value(qsheet, key):
+    attr = get_qs_attr(qsheet, key)
+    if attr:
+        return attr.value
+    else:
+        return None
+    
 def get_qg_attr(attr_group, key):
     for attr in attr_group.attributes:
         if attr.key == key:
             return attr
     return None
-    
+
 def get_qg_attr_value(attr_group, key):
     attr = get_qg_attr(attr_group, key)
     if attr:

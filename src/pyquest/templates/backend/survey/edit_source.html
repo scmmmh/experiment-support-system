@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - Edit</title>
+  </head>
+  <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Edit', {'href': r.route_url('survey.edit', sid=survey.id)})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('survey', survey, r)}
+    <article>
+      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
+        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
+      <hgroup>
+        <h1>${survey.title} - Edit</h1>
+      </hgroup>
+      <form action="${r.route_url('survey.edit', sid=survey.id)}" method="post">
+        ${h.form.csrf_token(r.session.get_csrf_token())}
+        <dl>
+          <dt>Title</dt>
+          <dd>${h.form.text_field('title', survey.title, e, class_='span-12')}</dd>
+          <dt>Summary</dt>
+          <dd>${h.form.textarea('summary', survey.summary, e, class_='span-22', style='height:5em;')}</dd>
+          <dt>Content</dt>
+          <dd>${h.form.textarea('content', survey.content, e, class_='span-22')}</dd>
+          <dt>CSS styles</dt>
+          <dd>${h.form.textarea('styles', survey.styles, e, class_='span-22')}</dd>
+          <dt>Javascript</dt>
+          <dd>${h.form.textarea('scripts', survey.scripts, e, class_='span-22')}</dd>
+        </dl>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id))}</li>
+          <li>${h.form.submit('Update', class_='button')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>

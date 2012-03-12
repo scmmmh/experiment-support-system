@@ -20,7 +20,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.qsheet import get_q_attr, get_attr_groups, get_qg_attr
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question,
-    QuestionAttribute, QuestionAttributeGroup)
+    QuestionAttribute, QuestionAttributeGroup, QSheetAttribute)
 from pyquest.renderer import render
 from pyquest.validation import (PageSchema, flatten_invalid,
                                 ValidationState, XmlValidator)
@@ -121,11 +121,16 @@ def new_qsheet(request):
                     check_csrf_token(request, params)
                     with transaction.manager:
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-                        qsheet = QSheet(survey_id=request.matchdict['sid'],
-                                        name=params['name'],
+                        qsheet = QSheet(name=params['name'],
                                         title=params['title'],
                                         styles='',
                                         scripts='')
+                        qsheet.attributes.append(QSheetAttribute(key='repeat', value='single'))
+                        qsheet.attributes.append(QSheetAttribute(key='data-items', value='0'))
+                        qsheet.attributes.append(QSheetAttribute(key='control-items', value='0'))
+                        survey.qsheets.append(qsheet)
+                        if not survey.start:
+                            survey.start = qsheet
                         dbsession.add(qsheet)
                         dbsession.flush()
                         qsid = qsheet.id
@@ -420,9 +425,20 @@ def delete_qsheet(request):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
                 with transaction.manager:
+                    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+                    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+                    if survey.start_id == qsheet.id:
+                        survey.start_id = None
                     dbsession.delete(qsheet)
+                with transaction.manager:
+                    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+                    if not survey.start_id and survey.qsheets:
+                        with transaction.manager:
+                            survey.start_id = survey.qsheets[0].id
+                            dbsession.add(survey)
                 request.session.flash('Survey page deleted', 'info')
-                raise HTTPFound(request.route_url('survey.pages',
+                raise HTTPFound(request.route_url('survey.qsheet',
                                                   sid=request.matchdict['sid']))
             else:
                 return {'survey': survey,

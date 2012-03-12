@@ -14,7 +14,7 @@ from sqlalchemy import engine_from_config
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             Question, QuestionAttributeGroup, QuestionAttribute,
-    QSheetTransition, QSheetInstance)
+                            QSheetTransition, QSheetAttribute)
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -299,16 +299,26 @@ def init_test_data(DBSession):
         question.attributes.append(qa_group)
         qsheet5.questions.append(question)
         survey.qsheets.append(qsheet5)
-        qsi1 = QSheetInstance(type='single', qsheet=qsheet1)
-        qsi2 = QSheetInstance(type='single', qsheet=qsheet2)
-        qsi3 = QSheetInstance(type='single', qsheet=qsheet3)
-        qsi4 = QSheetInstance(type='single', qsheet=qsheet4)
-        qsi5 = QSheetInstance(type='single', qsheet=qsheet5)
-        survey.start = qsi1
-        QSheetTransition(source=qsi1, target=qsi2)
-        QSheetTransition(source=qsi2, target=qsi3)
-        QSheetTransition(source=qsi3, target=qsi4)
-        QSheetTransition(source=qsi4, target=qsi5)
+        survey.start = qsheet1
+        qsheet1.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet1.attributes.append(QSheetAttribute(key='data-items', value='0'))
+        qsheet1.attributes.append(QSheetAttribute(key='control-items', value='0'))
+        QSheetTransition(source=qsheet1, target=qsheet2)
+        qsheet2.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet2.attributes.append(QSheetAttribute(key='data-items', value='0'))
+        qsheet2.attributes.append(QSheetAttribute(key='control-items', value='0'))
+        QSheetTransition(source=qsheet2, target=qsheet3)
+        qsheet3.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet3.attributes.append(QSheetAttribute(key='data-items', value='0'))
+        qsheet3.attributes.append(QSheetAttribute(key='control-items', value='0'))
+        QSheetTransition(source=qsheet3, target=qsheet4)
+        qsheet4.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet4.attributes.append(QSheetAttribute(key='data-items', value='0'))
+        qsheet4.attributes.append(QSheetAttribute(key='control-items', value='0'))
+        QSheetTransition(source=qsheet4, target=qsheet5)
+        qsheet5.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet5.attributes.append(QSheetAttribute(key='data-items', value='0'))
+        qsheet5.attributes.append(QSheetAttribute(key='control-items', value='0'))
         user.surveys.append(survey)
         
         data_item = DataItem(order=1)

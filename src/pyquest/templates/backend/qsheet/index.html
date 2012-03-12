@@ -27,6 +27,9 @@
           </tr>
         </thead>
         <tbody>
+          <tr py:if="not survey.qsheets">
+            <td colspan="5" class="placeholder">This survey currently has no pages. <a href="${r.route_url('survey.qsheet.new', sid=survey.id)}">Add a page now</a></td>
+          </tr>
           <tr py:for="qsheet in survey.qsheets">
             <td>${qsheet.id}</td>
             <td><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.name}</a></td>
