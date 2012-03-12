@@ -25,7 +25,12 @@ from pyquest.renderer import render
 from pyquest.validation import (PageSchema, flatten_invalid,
                                 ValidationState, XmlValidator)
 
-class QSheetSchema(Schema):
+class QSheetNewSchema(Schema):
+    csrf_token = validators.UnicodeString(not_empty=True)
+    name = validators.UnicodeString(not_empty=True)
+    title = validators.UnicodeString(not_empty=True)
+    
+class QSheetSourceSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
@@ -110,10 +115,8 @@ def new_qsheet(request):
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
-                validator = QSheetSchema()
+                validator = QSheetNewSchema()
                 try:
-                    if 'content' in request.POST:
-                        request.POST['schema'] = request.POST['content']
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
@@ -121,15 +124,13 @@ def new_qsheet(request):
                         qsheet = QSheet(survey_id=request.matchdict['sid'],
                                         name=params['name'],
                                         title=params['title'],
-                                        content=params['content'],
-                                        schema = pickle.dumps(qsheet_to_schema(params['schema'])),
-                                        styles=params['styles'],
-                                        scripts=params['scripts'])
+                                        styles='',
+                                        scripts='')
                         dbsession.add(qsheet)
                         dbsession.flush()
                         qsid = qsheet.id
                     request.session.flash('Survey page added', 'info')
-                    raise HTTPFound(request.route_url('survey.qsheet.view',
+                    raise HTTPFound(request.route_url('survey.qsheet.edit',
                                                       sid=request.matchdict['sid'],
                                                       qsid=qsid))
                 except api.Invalid as e:
@@ -375,7 +376,7 @@ def edit_source(request):
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
-                validator = QSheetSchema()
+                validator = QSheetSourceSchema()
                 try:
                     if 'content' in request.POST:
                         request.POST['schema'] = request.POST['content']
