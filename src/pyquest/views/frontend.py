@@ -239,7 +239,10 @@ def run_survey(request):
                                         answer.values.append(AnswerValue(name=get_qg_attr_value(sub_answer, 'value'),
                                                                          value=None))
                             else:
-                                answer.values.append(AnswerValue(value=qsheet_answers['items'][data_item_src['did']][question.name]))
+                                if qsheet_answers['items'][data_item_src['did']][question.name]:
+                                    answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][data_item_src['did']][question.name])))
+                                else:
+                                    answer.values.append(AnswerValue(value=None))
                             dbsession.add(answer)
                 qsheet_instance = dbsession.query(QSheetInstance).filter(QSheetInstance.id==state['qsiid']).first()
                 if qsheet_answers['action_'] in ['Next', 'Finish']:

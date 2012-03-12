@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>${survey.title} - Results - Download By Participant</title>
+    <title>${survey.title} - Results - Download by Participant</title>
     <script type="text/javascript">
       $(document).ready(function() {
           $('#data-id-form input[type=submit]').hide();
@@ -13,17 +13,17 @@
     </script>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Download By Participant', {'href': r.route_url('survey.results.participant', sid=survey.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Download by Participant', {'href': r.route_url('survey.results.by_participant', sid=survey.id)})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('results', survey, r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.results.participant.ext', sid=survey.id, ext='csv', _query=r.params)}" class="button">Download as CSV</a></li>
+        <li><a href="${r.route_url('survey.results.by_participant.ext', sid=survey.id, ext='csv', _query=r.params)}" class="button">Download as CSV</a></li>
       </ul>
     </nav>
     <article>
       <hgroup>
-        <h1>${survey.title} - Results - Download Raw Data</h1>
+        <h1>${survey.title} - Results - Download by Participant</h1>
       </hgroup>
       <form id="data-id-form" action="${r.route_url('survey.results.participant', sid=survey.id)}" method="get" class="text-right" py:if="data_attr">
         <label for="data-identifier">Data identifier</label>

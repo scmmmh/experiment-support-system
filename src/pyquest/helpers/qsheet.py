@@ -8,10 +8,8 @@ from random import shuffle
 
 from decorator import decorator
 from genshi.builder import tag, Markup
-from lxml import etree
 from pywebtools import form
 from re import search
-from StringIO import StringIO
 
 def get_attr_groups(question, key):
     return [attr_group for attr_group in question.attributes if attr_group.key==key]

@@ -10,8 +10,8 @@
     ${h.ui.main_menu('results', survey, r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.results.data', sid=survey.id)}" class="button">Raw Data</a></li>
-        <li><a href="${r.route_url('survey.results.participant', sid=survey.id)}" class="button">By Participant</a></li>
+        <li><a href="${r.route_url('survey.results.by_question', sid=survey.id)}" class="button">By Question</a></li>
+        <li><a href="${r.route_url('survey.results.by_participant', sid=survey.id)}" class="button">By Participant</a></li>
       </ul>
     </nav>
     <article>
@@ -21,30 +21,53 @@
       <table>
         <thead>
           <tr>
-            <th>Question</th>
-            <th>Data item</th>
-            <th>Summary</th>
+            <th class="text-center">Pages</th>
+            <th class="text-center">Questions</th>
+            <th class="text-center">Participants (Completed)</th>
+            <th class="text-center">Participants (Total)</th>
           </tr>
         </thead>
         <tbody>
-          <py:for each="qsheet in qsheets">
-            <py:for each="(question, attrib) in qsheet['schema'].items()">
-              <tr py:if="h.results.has_result(qsheet['qsid'], 'none', question, participants)">
-                <th>${question}</th>
-                <td>-</td>
-                <td>${h.results.question_summary(qsheet['qsid'], 'none', question, attrib, participants)}</td>
-              </tr>
-              <py:for each="data_item in survey.data_items">
-                <tr py:if="h.results.has_result(qsheet['qsid'], unicode(data_item.id), question, participants)">
-                  <th>${question}</th>
-                  <td>${data_item.id}</td>
-                  <td>${h.results.question_summary(qsheet['qsid'], unicode(data_item.id), question, attrib, participants)}</td>
-                </tr>
-              </py:for>
-            </py:for>
-          </py:for>
+          <tr>
+            <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.qsheets)}</td>
+            <td class="text-center" style="font-size:28pt;font-weight:bold;">${len([q for qsheet in survey.qsheets for q in qsheet.questions])}</td>
+            <td class="text-center" style="font-size:28pt;font-weight:bold;">${h.results.completed_count(survey)}</td>
+            <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.participants)}</td>
+          </tr>
         </tbody>
       </table>
+      <section py:for="qsheet in survey.qsheets">
+        <hgroup>
+          <h2>${qsheet.title}</h2>
+        </hgroup>
+        <table> 
+          <thead>
+            <tr>
+              <th>Question</th>
+              <th>No. of Answers</th>
+              <th>Sample</th>
+            </tr>
+          </thead>
+          <tbody>
+            <py:for each="question in qsheet.questions" py:if="question.type != 'text'">
+              <py:if test="question.type in ['rating_group', 'multichoice_group']">
+                <tr py:for="sub_quest in h.qsheet.get_attr_groups(question, 'subquestion')">
+                  <td>${question.name}.${h.qsheet.get_qg_attr_value(sub_quest, 'name')}</td>
+                  <td>${len(question.answers)}</td>
+                  <td>${h.results.sample_answer(question, h.qsheet.get_qg_attr_value(sub_quest, 'name'))}</td>
+                </tr>
+              </py:if>
+              <py:if test="question.type not in ['rating_group', 'multichoice_group']">
+                <tr>
+                  <td>${question.name}</td>
+                  <td>${len(question.answers)}</td>
+                  <td>${h.results.sample_answer(question)}</td>
+                </tr>
+              </py:if>
+            </py:for>
+          </tbody>
+        </table>
+      </section>
     </article>
   </body>
 </html>

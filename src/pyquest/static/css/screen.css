@@ -81,6 +81,8 @@ caption {background:#eee;}
 .top {margin-top:0;padding-top:0;}
 .bottom {margin-bottom:0;padding-bottom:0;}
 .center {text-align:center;}
+.text-left {text-align:left;}
+.text-center {text-align:center;}
 .text-right {text-align:right;}
 .hidden {display:none;}
 

@@ -151,6 +151,10 @@ class Question(Base):
                               backref='question',
                               order_by='QuestionAttributeGroup.order',
                               cascade='all, delete, delete-orphan')
+    
+    answers = relationship('Answer',
+                           backref='question',
+                           cascade='all, delete, delete-orphan')
 
 class QuestionAttributeGroup(Base):
     
