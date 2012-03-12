@@ -30,7 +30,12 @@
                 dataType: 'json',
                 success: function() {
                     item.fadeOut();
-                    setTimeout(function() {item.remove();}, 500);
+                    setTimeout(function() {
+                    	item.remove();
+                        if($('#qsheet-content').children().length == 1) {
+                            $('#qsheet-content li.placeholder').show();
+                        }
+                    }, 500);
                 }
             })
             return false;
