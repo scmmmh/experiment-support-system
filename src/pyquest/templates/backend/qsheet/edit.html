@@ -154,10 +154,10 @@
           <dd>${h.form.text_field('name', qsheet.name, e)}</dd>
           <dt>Title</dt>
           <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
-          <dt id="role-css-edit-toggle">CSS styles</dt>
-          <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22', id="role-css-edit")}</dd>
-          <dt id="role-js-edit-toggle">Javascript</dt>
-          <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22', id="role-js-edit")}</dd>
+          <dt class="role-css-edit-toggle">CSS styles</dt>
+          <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>
+          <dt class="role-js-edit-toggle">Javascript</dt>
+          <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22 role-js-edit')}</dd>
           <dt>Content</dt>
           <dd class="clearfix">
             <aside id="tools" class="right" style="width:200px;">

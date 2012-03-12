@@ -42,8 +42,8 @@ function setup_status_changer() {
 }
 
 function make_toggle_link(id) {
-	var elem = $('#' + id);
-	var toggle = $('#' + id + '-toggle');
+	var elem = $('.' + id);
+	var toggle = $('.' + id + '-toggle');
 	elem.hide();
 	var link = $('<a href="#"></a>').click(function() {
 		elem.slideToggle();
