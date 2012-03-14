@@ -8,6 +8,7 @@ CKEDITOR.editorConfig = function( config )
 	config.toolbar = 'PyQuest';
 	
 	config.toolbar_PyQuest = [
+	                          {name: 'document', items: ['Source']}
 	                          {name: 'clipboard', items : ['Cut','Copy','Paste','PasteText','PasteFromWord','-','Undo','Redo']},
 	                          {name: 'basicstyles', items : ['Bold','Italic','Underline','Strike','Subscript','Superscript','-','RemoveFormat']},
 	                          {name: 'paragraph', items : ['NumberedList','BulletedList','-','Outdent','Indent','-','Blockquote','CreateDiv',
