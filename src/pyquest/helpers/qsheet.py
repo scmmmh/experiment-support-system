@@ -98,7 +98,7 @@ def question_type_title(q_type):
     
 def substitute(text, item):
     if text:
-        m = search('\${.+}', text)
+        m = search('\${.+?}', text)
         while(m):
             tag = m.group(0)[2:-1]
             if tag in item:
@@ -112,7 +112,7 @@ def substitute(text, item):
 
 def display(question, item, e, csrf_token=None):
     if question.type == 'text':
-        return tag.section(Markup(get_q_attr_value(question, 'text.text')))
+        return tag.section(Markup(substitute(get_q_attr_value(question, 'text.text'), item)))
     elif question.type == 'short_text':
         return short_text_input(question, item, e)
     elif question.type == 'long_text':

@@ -18,7 +18,7 @@ from sqlalchemy import and_
 
 from pyquest.helpers.qsheet import get_qs_attr_value
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
-    DataItemCount, Answer, AnswerValue)
+    DataItemCount, Answer, AnswerValue, Question)
 from pyquest.renderer import render
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 
@@ -35,49 +35,48 @@ def data_item_to_dict(data_item):
     return result
 
 def select_data_items(sid, state, qsheet, dbsession):
+    def data_item_transform(t):
+        if t[1]:
+            return (t[0], t[1].count)
+        else:
+            return (t[0], 0)
     if get_qs_attr_value(qsheet, 'repeat') == 'single':
         return [{'did': 'none'}]
     elif get_qs_attr_value(qsheet, 'repeat') == 'repeat':
-        return []
+        source_items = map(data_item_transform,
+                           dbsession.query(DataItem, DataItemCount).\
+                                outerjoin(DataItemCount).filter(and_(DataItem.survey_id==sid,
+                                                                     DataItem.control==False,
+                                                                     not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
+                                                                                                                                                                  QSheet.id==qsheet.id)))))
+                                                                ).all())
+        if len(source_items) > 0:
+            data_items = []
+            threshold = source_items[0][1]
+            max_threshold = source_items[len(source_items) - 1][1]
+            while len(data_items) < int(get_qs_attr_value(qsheet, 'data-items')):
+                if threshold > max_threshold:
+                    return []
+                threshold_items = filter(lambda t: t[1] == threshold and unicode(t[0].id) not in [], source_items)
+                required_count = int(get_qs_attr_value(qsheet, 'data-items')) - len(data_items)
+                if required_count < len(threshold_items):
+                    data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
+                else:
+                    data_items.extend(map(lambda t: {'did': t[0].id}, threshold_items))
+                threshold = threshold + 1
+            control_items = map(lambda d: {'did': d.id},
+                                dbsession.query(DataItem).filter(and_(DataItem.survey_id==sid,
+                                                                      DataItem.control==True)).all())
+            if len(control_items) < int(get_qs_attr_value(qsheet, 'control-items')):
+                data_items.extend(control_items)
+            else:
+                data_items.extend(sample(control_items, int(get_qs_attr_value(qsheet, 'control-items'))))
+            shuffle(data_items)
+            return data_items
+        else:
+            return []
     else:
         return []
-    #if 'source' in instr:
-    #    source_items = map(data_item_transform, dbsession.query(DataItem, DataItemCount).outerjoin(DataItemCount).filter(and_(DataItem.survey_id==sid,
-    #                                                                                                                          DataItem.control==False)).all())
-    #    if len(source_items) > 0:
-    #        filter_list = []
-    #        participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
-    #        pt_answers = pickle.loads(str(participant.answers))
-    #        if state['qsid'] in pt_answers:
-    #            filter_list = map(lambda d: unicode(d), pt_answers[state['qsid']]['items'].keys())
-    #        source_items.sort(key=itemgetter(1))
-    #        data_items = []
-    #        threshold = source_items[0][1]
-    #        max_threshold = source_items[len(source_items) - 1][1]
-    #        print instr
-    #        while len(data_items) < instr['source']['data_items']:
-    #            if threshold > max_threshold:
-    #                return []
-    #            threshold_items = filter(lambda t: t[1] == threshold and unicode(t[0].id) not in filter_list, source_items)
-    #            required_count = instr['source']['data_items'] - len(data_items)
-    #            if required_count < len(threshold_items):
-    #                data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
-    #            else:
-    #                data_items.extend(map(lambda t: {'did': t[0].id}, threshold_items))
-    #            threshold = threshold + 1
-    #        control_items = map(lambda d: {'did': d.id},
-    #                            dbsession.query(DataItem).filter(and_(DataItem.survey_id==sid,
-    #                                                                  DataItem.control==True)).all())
-    #        if len(control_items) < instr['source']['control_items']:
-    #            data_items.extend(control_items)
-    #        else:
-    #            data_items.extend(sample(control_items, instr['source']['control_items']))
-    #        shuffle(data_items)
-    #        return data_items
-    #    else:
-    #        return []
-    #else:
-    #    return[{'did': 'none'}]
 
 def update_data_item_counts(state, dids, dbsession):
     for did in dids:
@@ -115,6 +114,11 @@ def determine_submit_options(qsheet):
             return ['next']
         else:
             return ['finish']
+    elif get_qs_attr_value(qsheet, 'repeat') == 'repeat':
+        if len(qsheet.next) > 0:
+            return ['more', 'next']
+        else:
+            return ['more', 'finish']
 
 def get_participant(dbsession, survey, state):
     participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
@@ -180,32 +184,36 @@ def run_survey(request):
                     for question in qsheet.questions:
                         for data_item_src in data_items:
                             data_item = dbsession.query(DataItem).filter(DataItem.id==data_item_src['did']).first()
-                            clear_query = dbsession.query(Answer)
                             if data_item:
-                                clear_query = clear_query.filter(and_(Answer.participant_id==participant.id,
-                                                                      Answer.question_id==question.id,
-                                                                      Answer.data_item_id==data_item.id))
-                                answer = Answer(participant_id=participant.id,
-                                                question_id=question.id,
-                                                data_item_id=data_item.id)
+                                for answer in dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
+                                                                                  Answer.question_id==question.id,
+                                                                                  Answer.data_item_id==data_item.id)):
+                                    dbsession.delete(answer)
                             else:
-                                clear_query = clear_query.filter(and_(Answer.participant_id==participant.id,
-                                                                      Answer.question_id==question.id))
-                                answer = Answer(participant_id=participant.id,
-                                                question_id=question.id)
-                            clear_query.delete()
-                            if question.type == 'text':
-                                continue
-                            elif question.type == 'rating_group':
+                                for answer in dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
+                                                                                  Answer.question_id==question.id)):
+                                    dbsession.delete(answer)
+                with transaction.manager:
+                    participant = get_participant(dbsession, survey, state)
+                    for question in qsheet.questions:
+                        if question.type == 'text':
+                            continue
+                        for data_item_src in data_items:
+                            data_item = dbsession.query(DataItem).filter(DataItem.id==data_item_src['did']).first()
+                            answer = Answer(participant_id=participant.id,
+                                            question_id=question.id)
+                            if data_item:
+                                answer.data_item_id = data_item.id
+                            if question.type == 'rating_group':
                                 for sub_question in get_attr_groups(question, 'subquestion'):
-                                    if qsheet_answers['items'][data_item_src['did']][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][data_item_src['did']][question.name]:
+                                    if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
                                         answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
-                                                                         value=qsheet_answers['items'][data_item_src['did']][question.name][get_qg_attr_value(sub_question, 'name')]))
+                                                                         value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][get_qg_attr_value(sub_question, 'name')]))
                                     else:
                                         answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
                                                                          value=None))
                             elif question.type == 'multichoice':
-                                answer_list = qsheet_answers['items'][data_item_src['did']][question.name]
+                                answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name]
                                 if isinstance(answer_list, list):
                                     for value in answer_list:
                                         answer.values.append(AnswerValue(value=value))
@@ -214,8 +222,8 @@ def run_survey(request):
                             elif question.type == 'multichoice_group':
                                 for sub_question in get_attr_groups(question, 'subquestion'):
                                     print repr(qsheet_answers)
-                                    if qsheet_answers['items'][data_item_src['did']][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][data_item_src['did']][question.name]:
-                                        answer_list = qsheet_answers['items'][data_item_src['did']][question.name][get_qg_attr_value(sub_question, 'name')]
+                                    if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
+                                        answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name][get_qg_attr_value(sub_question, 'name')]
                                         if isinstance(answer_list, list):
                                             for value in answer_list:
                                                 answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
@@ -228,18 +236,19 @@ def run_survey(request):
                                                                          value=None))
                             elif question.type == 'ranking':
                                 for sub_answer in get_attr_groups(question, 'answer'):
-                                    if get_qg_attr_value(sub_answer, 'value') in qsheet_answers['items'][data_item_src['did']][question.name]:
+                                    if get_qg_attr_value(sub_answer, 'value') in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
                                         answer.values.append(AnswerValue(name=get_qg_attr_value(sub_answer, 'value'),
-                                                                         value=qsheet_answers['items'][data_item_src['did']][question.name][get_qg_attr_value(sub_answer, 'value')]))
+                                                                         value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][get_qg_attr_value(sub_answer, 'value')]))
                                     else:
                                         answer.values.append(AnswerValue(name=get_qg_attr_value(sub_answer, 'value'),
                                                                          value=None))
                             else:
-                                if qsheet_answers['items'][data_item_src['did']][question.name]:
-                                    answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][data_item_src['did']][question.name])))
+                                if qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
+                                    answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][unicode(data_item_src['did'])][question.name])))
                                 else:
                                     answer.values.append(AnswerValue(value=None))
                             dbsession.add(answer)
+                update_data_item_counts(state, [d['did'] for d in data_items], dbsession)
                 qsheet = dbsession.query(QSheet).filter(QSheet.id==state['qsid']).first()
                 if qsheet_answers['action_'] in ['Next', 'Finish']:
                     next_qsi = next_qsheet(qsheet)
@@ -288,3 +297,4 @@ def inactive(request):
     else:
         raise HTTPNotFound()
 from pyquest.helpers.qsheet import get_attr_groups, get_qg_attr_value
+from sqlalchemy.sql.expression import not_

@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>${survey.title} - Results - Download by Participant</title>
+    <title>${survey.title} - Results - Export by Participant</title>
     <script type="text/javascript">
       $(document).ready(function() {
           $('#data-id-form input[type=submit]').hide();
@@ -13,7 +13,7 @@
     </script>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Download by Participant', {'href': r.route_url('survey.results.by_participant', sid=survey.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Results', {'href': r.route_url('survey.results', sid=survey.id)}), ('Export by Participant', {'href': r.route_url('survey.results.by_participant', sid=survey.id)})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('results', survey, r)}
     <nav class="toolbar">
@@ -23,9 +23,9 @@
     </nav>
     <article>
       <hgroup>
-        <h1>${survey.title} - Results - Download by Participant</h1>
+        <h1>${survey.title} - Results - Export by Participant</h1>
       </hgroup>
-      <form id="data-id-form" action="${r.route_url('survey.results.participant', sid=survey.id)}" method="get" class="text-right" py:if="data_attr">
+      <form id="data-id-form" action="${r.route_url('survey.results.by_participant', sid=survey.id)}" method="get" class="text-right" py:if="data_attr">
         <label for="data-identifier">Data identifier</label>
         ${h.form.select('data_identifier', data_identifier, data_attr, e, id='data-identifier')}
         ${h.form.submit('Update', class_='button')}
@@ -44,6 +44,7 @@
           </tbody>
         </table>
       </div>
+      <aside py:if="len(rows) > 20">This is only an excerpt of the available data. Use the "Download as CSV" button to export all results.</aside>
     </article>
   </body>
 </html>

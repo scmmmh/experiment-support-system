@@ -225,6 +225,9 @@ class DataItem(Base):
     counts = relationship('DataItemCount',
                           backref='counts',
                           cascade='all, delete, delete-orphan')
+    answers = relationship('Answer',
+                           backref='data_item',
+                           cascade='all, delete, delete-orphan')
 
 class DataItemAttribute(Base):
     

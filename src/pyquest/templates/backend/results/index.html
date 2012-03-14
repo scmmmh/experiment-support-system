@@ -10,61 +10,91 @@
     ${h.ui.main_menu('results', survey, r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.results.by_question', sid=survey.id)}" class="button">By Question</a></li>
-        <li><a href="${r.route_url('survey.results.by_participant', sid=survey.id)}" class="button">By Participant</a></li>
+        <li><a href="${r.route_url('survey.results.by_participant', sid=survey.id)}" class="button">Export by Participant</a></li>
+        <li><a href="${r.route_url('survey.results.by_question', sid=survey.id)}" class="button">Export by Question</a></li>
       </ul>
     </nav>
     <article>
       <hgroup>
         <h1>${survey.title} - Results</h1>
       </hgroup>
-      <table>
-        <thead>
-          <tr>
-            <th class="text-center">Pages</th>
-            <th class="text-center">Questions</th>
-            <th class="text-center">Participants (Completed)</th>
-            <th class="text-center">Participants (Total)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.qsheets)}</td>
-            <td class="text-center" style="font-size:28pt;font-weight:bold;">${len([q for qsheet in survey.qsheets for q in qsheet.questions])}</td>
-            <td class="text-center" style="font-size:28pt;font-weight:bold;">${h.results.completed_count(survey)}</td>
-            <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.participants)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <section py:for="qsheet in survey.qsheets">
-        <hgroup>
-          <h2>${qsheet.title}</h2>
-        </hgroup>
-        <table> 
+      <section>
+        <table>
           <thead>
             <tr>
-              <th>Question</th>
-              <th>No. of Answers</th>
+              <th class="text-center">Pages</th>
+              <th class="text-center">Questions</th>
+              <th class="text-center">Participants (Completed) *</th>
+              <th class="text-center">Participants (Total)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.qsheets)}</td>
+              <td class="text-center" style="font-size:28pt;font-weight:bold;">${len([q for qsheet in survey.qsheets for q in qsheet.questions])}</td>
+              <td class="text-center" style="font-size:28pt;font-weight:bold;">${h.results.completed_count(survey)} <py:if test="len(survey.participants) > 0">(${'%.0f%%' % (100.0 / len(survey.participants) * h.results.completed_count(survey))})</py:if></td>
+              <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.participants)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <aside>* This is an estimate based on the number of completed <em>required</em> questions.
+          The number of uncompleted non-<em>required</em> questions cannot be calculated.</aside>
+      </section>
+      <section style="margin-top:2em;" py:if="survey.qsheets">
+        <hgroup>
+          <h2>Pages</h2>
+        </hgroup>
+        <section py:for="qsheet in survey.qsheets">
+          <hgroup>
+            <h3>${qsheet.title}</h3>
+          </hgroup>
+          <table> 
+            <thead>
+              <tr>
+                <th>Question</th>
+                <th>No. of Answers</th>
+                <th>Sample</th>
+              </tr>
+            </thead>
+            <tbody>
+              <py:for each="question in qsheet.questions" py:if="question.type != 'text'">
+                <py:if test="question.type in ['rating_group', 'multichoice_group']">
+                  <tr py:for="sub_quest in h.qsheet.get_attr_groups(question, 'subquestion')">
+                    <td>${question.name}.${h.qsheet.get_qg_attr_value(sub_quest, 'name')}</td>
+                    <td>${len(question.answers)}</td>
+                    <td>${h.results.sample_answer(question, h.qsheet.get_qg_attr_value(sub_quest, 'name'))}</td>
+                  </tr>
+                </py:if>
+                <py:if test="question.type not in ['rating_group', 'multichoice_group']">
+                  <tr>
+                    <td>${question.name}</td>
+                    <td>${len(question.answers)}</td>
+                    <td>${h.results.sample_question_answer(question)}</td>
+                  </tr>
+                </py:if>
+              </py:for>
+            </tbody>
+          </table>
+        </section>
+      </section>
+      <section style="margin-top:2em;" py:if="survey.data_items">
+        <hgroup>
+          <h2>Data</h2>
+        </hgroup>
+        <table>
+          <thead>
+            <tr>
+              <th>Internal identifier</th>
+              <th py:for="attr in survey.data_items[0].attributes">${attr.key}</th>
               <th>Sample</th>
             </tr>
           </thead>
           <tbody>
-            <py:for each="question in qsheet.questions" py:if="question.type != 'text'">
-              <py:if test="question.type in ['rating_group', 'multichoice_group']">
-                <tr py:for="sub_quest in h.qsheet.get_attr_groups(question, 'subquestion')">
-                  <td>${question.name}.${h.qsheet.get_qg_attr_value(sub_quest, 'name')}</td>
-                  <td>${len(question.answers)}</td>
-                  <td>${h.results.sample_answer(question, h.qsheet.get_qg_attr_value(sub_quest, 'name'))}</td>
-                </tr>
-              </py:if>
-              <py:if test="question.type not in ['rating_group', 'multichoice_group']">
-                <tr>
-                  <td>${question.name}</td>
-                  <td>${len(question.answers)}</td>
-                  <td>${h.results.sample_answer(question)}</td>
-                </tr>
-              </py:if>
-            </py:for>
+            <tr py:for="data_item in survey.data_items">
+              <td>${data_item.id}</td>
+              <td py:for="attr in data_item.attributes">${attr.value}</td>
+              <td>${h.results.sample_data_answer(data_item)}</td>
+            </tr>
           </tbody>
         </table>
       </section>
