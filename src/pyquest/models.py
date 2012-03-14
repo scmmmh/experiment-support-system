@@ -109,7 +109,6 @@ class Survey(Base):
                                 cascade='all, delete, delete-orphan')
     start = relationship('QSheet',
                          primaryjoin='Survey.start_id==QSheet.id',
-                         cascade='all, delete, delete-orphan',
                          post_update=True)
     
     def is_owned_by(self, user):
