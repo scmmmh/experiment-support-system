@@ -1,5 +1,5 @@
 .survey {width:950px;margin:0 auto;padding-top:1em;}
 .qsheet {margin-top:1em;margin-bottom:1em;padding:1em;box-shadow:3px 3px 5px;}
 .qsheet .data-item {margin-bottom: 2em;}
-.qsheet .data-item + .data-item {border-top:1px solid #000000;padding-top:2em;}
+.qsheet .data-item + .data-item {border-top:1px solid #000000;padding-top:4em;margin-top:4em;}
 .question hgroup h1 {font-size:150%;font-weight:bold;}
