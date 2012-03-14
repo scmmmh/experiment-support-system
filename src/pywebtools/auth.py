@@ -238,7 +238,6 @@ def is_authorised(auth_string, objects):
                                 params.append(param[1])
                             else:
                                 raise AuthorisationException('Invalid authorisation statement. Was expecting OBJ or VAL, but got %s' % (param[1]))
-                        print params
                         stack.append((VAL, attr(*params)))
                     else:
                         stack.append((VAL, attr))
