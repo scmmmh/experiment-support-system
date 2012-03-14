@@ -147,6 +147,8 @@
       <hgroup>
         <h1>${qsheet.title} - Edit</h1>
       </hgroup>
+      <noscript class="error clearfix">JavaScript is required to use all the functionality provided by this page. If you cannot use
+        JavaScript, it is recommended that you use the <a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}">source-editing page</a> instead.</noscript>
       <form action="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" method="post">
         ${h.form.csrf_token(r.session.get_csrf_token())}
         <dl>
