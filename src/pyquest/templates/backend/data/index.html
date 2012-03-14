@@ -20,7 +20,7 @@
       <ul>
         <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
           <li><a href="${r.route_url('survey.data.upload', sid=survey.id)}" class="button">Upload data</a></li>
-          <li><a href="${r.route_url('survey.data.new', sid=survey.id)}" class="button">Add data</a></li>
+          <li py:if="len(survey.data_items) > 0"><a href="${r.route_url('survey.data.new', sid=survey.id)}" class="button">Add data</a></li>
         </py:if>
         <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.clear', sid=survey.id)}" class="button post-submit" data-confirm="Please confirm that you wish to clear all data.">Clear data</a></li>
       </ul>
@@ -39,6 +39,10 @@
             </tr>
           </thead>
           <tbody>
+            <tr py:if="len(survey.data_items) == 0">
+              <td class="placeholder">There is currently no data attached to this survey. Use the "Upload data" button to
+                upload a CSV (Comma-Separated-Value) file with data.</td>
+            </tr>
             <tr py:for="item in items">
               <td><py:if test="item.control">Yes</py:if></td>
               <td py:for="attribute in item.attributes">${attribute.value}</td>
