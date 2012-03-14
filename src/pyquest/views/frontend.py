@@ -22,6 +22,12 @@ from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
 from pyquest.renderer import render
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 
+def safe_int(value):
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
 def get_instr(qsid, schema):
     for instr in schema:
         if instr['qsid'] == qsid:
@@ -90,7 +96,7 @@ def update_data_item_counts(state, dids, dbsession):
                     dbsession.add(DataItemCount(data_item_id=did, qsheet_id=state['qsid'], count=1))
                 
 def load_data_items(state, dbsession):
-    data_items = dbsession.query(DataItem).filter(DataItem.id.in_(map(lambda d: d['did'], state['dids']))).all()
+    data_items = dbsession.query(DataItem).filter(DataItem.id.in_([safe_int(d['did']) for d in state['dids'] if safe_int(d['did'])])).all()
     if data_items:
         return map(data_item_to_dict, data_items)
     else:
@@ -150,7 +156,7 @@ def run_survey(request):
             response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
             response.delete_cookie('survey.%s' % request.matchdict['sid'])
             raise response
-        qsheet = dbsession.query(QSheet).filter(QSheet.id==state['qsid']).first()
+        qsheet = dbsession.query(QSheet).filter(QSheet.id==safe_int(state['qsid'])).first()
         if not qsheet:
             response = HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
             response.delete_cookie('survey.%s' % request.matchdict['sid'])
@@ -183,7 +189,7 @@ def run_survey(request):
                     participant = get_participant(dbsession, survey, state)
                     for question in qsheet.questions:
                         for data_item_src in data_items:
-                            data_item = dbsession.query(DataItem).filter(DataItem.id==data_item_src['did']).first()
+                            data_item = dbsession.query(DataItem).filter(DataItem.id==safe_int(data_item_src['did'])).first()
                             if data_item:
                                 for answer in dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
                                                                                   Answer.question_id==question.id,
@@ -191,7 +197,7 @@ def run_survey(request):
                                     dbsession.delete(answer)
                             else:
                                 for answer in dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
-                                                                                  Answer.question_id==question.id)):
+                                                                                    Answer.question_id==question.id)):
                                     dbsession.delete(answer)
                 with transaction.manager:
                     participant = get_participant(dbsession, survey, state)
@@ -199,7 +205,8 @@ def run_survey(request):
                         if question.type == 'text':
                             continue
                         for data_item_src in data_items:
-                            data_item = dbsession.query(DataItem).filter(DataItem.id==data_item_src['did']).first()
+                            data_item = None
+                            data_item = dbsession.query(DataItem).filter(DataItem.id==safe_int(data_item_src['did'])).first()
                             answer = Answer(participant_id=participant.id,
                                             question_id=question.id)
                             if data_item:
