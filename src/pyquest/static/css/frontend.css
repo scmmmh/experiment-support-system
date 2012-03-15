@@ -1,4 +1,6 @@
 /* frontend */
+.progress {background-color:#dddddd;width:200px;height:20px;color:#545454;position:relative;text-align:center;}
+.progress .done {display:block;width:200px;height:20px;background-color:#dff4ff;color:#336699;position:absolute;left:0px;top:0px;} 
 section.question table {width:auto;}
 section.question thead th {text-align:center;}
 section.question tbody th {font-style:italic;font-weight:normal;}

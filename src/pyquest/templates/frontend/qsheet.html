@@ -5,6 +5,7 @@
     <title>${survey.title} - ${qsheet.title}</title>
     <style type="text/css">${survey.styles}</style>
     <style type="text/css">${qsheet.styles}</style>
+    <style type="text/css">.progress .done{clip:rect(0px ${int(200.0 * progress[0] / (progress[0] + progress[1]))}px 20px 0px);}</style>
     <script type="text/javascript">${survey.scripts}</script>
     <script type="text/javascript">${qsheet.scripts}</script>
   </head>
@@ -18,6 +19,7 @@
     <hgroup class="hidden">
       <h1>${survey.title}</h1>
     </hgroup>
+    <aside class="progress right">${progress[0]} of ${progress[0] + progress[1]} pages completed<span class="done">${progress[0]} of ${progress[0] + progress[1]} pages completed</span></aside>
     <section id="${qsheet.name}" class="qsheet">
       <hgroup>
         <h1>${qsheet.title}</h1>

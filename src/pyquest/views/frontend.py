@@ -143,6 +143,19 @@ def next_qsheet(qsheet):
         return transition.target
     return None
 
+def calculate_progress(qsheet, participant):
+    def count_to_end(qsheet):
+        if qsheet.next:
+            return max([count_to_end(t.target) for t in qsheet.next])
+        else:
+            return 1
+    answered_qsids = set([a.question.qsheet.id for a in participant.answers])
+    done = len(answered_qsids)
+    remaining = count_to_end(qsheet)
+    if qsheet.id not in answered_qsids:
+        remaining = remaining + 1
+    return (done, remaining)
+
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/qsheet.html'})
 def run_survey(request):
@@ -179,7 +192,8 @@ def run_survey(request):
             return {'survey': survey,
                     'qsheet': qsheet,
                     'data_items': data_items,
-                    'submit_options': determine_submit_options(qsheet)}
+                    'submit_options': determine_submit_options(qsheet),
+                    'progress': calculate_progress(qsheet, get_participant(dbsession, survey, state))}
         elif request.method == 'POST':
             data_items = load_data_items(state, dbsession)
             validator = PageSchema(qsheet, data_items)
@@ -273,7 +287,8 @@ def run_survey(request):
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'data_items': data_items,
-                        'submit_options': determine_submit_options(qsheet),
+                        'submit_options': determine_submit_options(qsheet, get_participant(dbsession, survey, state)),
+                        'progress': calculate_progress(qsheet),
                         'e': ie}
         else:
             raise HTTPNotAcceptable()
