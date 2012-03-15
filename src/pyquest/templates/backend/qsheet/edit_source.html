@@ -2,11 +2,11 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>${survey.title} - ${qsheet.title} - Edit</title>
+    <title>${survey.title} - ${qsheet.title} - Edit source</title>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Edit', {'href': r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)})], r)}
-    ${h.survey.fancy_status(r, survey.status, class_='survey-status right')}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Edit source', {'href': r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('pages', survey, r)}
     <nav class="toolbar">
       <ul>
@@ -17,9 +17,9 @@
       <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
       <hgroup>
-        <h1>${qsheet.title} - Edit</h1>
+        <h1>${qsheet.title} - Edit source</h1>
       </hgroup>
-      <form action="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" method="post">
+      <form action="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}" method="post">
         ${h.form.csrf_token(r.session.get_csrf_token())}
         <dl>
           <dt>Name</dt>
@@ -27,7 +27,7 @@
           <dt>Title</dt>
           <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
           <dt>Content</dt>
-          <dd>${h.form.textarea('content', qsheet.content, e, class_='span-22')}</dd>
+          <dd>${h.form.textarea('content', h.qsheet.as_text(qsheet), e, class_='span-22')}</dd>
           <dt>CSS styles</dt>
           <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22')}</dd>
           <dt>Javascript</dt>

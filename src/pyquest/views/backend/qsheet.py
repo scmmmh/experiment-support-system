@@ -4,18 +4,16 @@ Created on 24 Jan 2012
 
 @author: mhall
 '''
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import transaction
 
 from formencode import Schema, validators, api, foreach, variabledecode, compound
-from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
+from lxml import etree
+from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from sqlalchemy import and_
 from pywebtools.auth import is_authorised
 
+from pyquest.views.frontend import safe_int
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.qsheet import get_q_attr, get_attr_groups, get_qg_attr
 from pyquest.helpers.user import current_user, redirect_to_login
@@ -34,8 +32,7 @@ class QSheetSourceSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>')
-    schema = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>', strip_wrapper=False)
+    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>', strip_wrapper=False)
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
 
@@ -373,6 +370,19 @@ def edit_delete_question(request):
 @view_config(route_name='survey.qsheet.edit.source')
 @render({'text/html': 'backend/qsheet/edit_source.html'})
 def edit_source(request):
+    def set_attr_value(question, key, value):
+        attr = get_q_attr(question, key)
+        if attr:
+            attr.value =value
+        else:
+            keys = key.split('.')
+            for attr_group in question.attributes:
+                if attr_group.key == keys[0]:
+                    attr_group.attributes.append(QuestionAttribute(key=keys[1], value=value))
+                    return
+            qag = QuestionAttributeGroup(key=keys[0])
+            qag.attributes.append(QuestionAttribute(key=keys[1], value=value))
+            question.attributes.append(qag)
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -383,24 +393,145 @@ def edit_source(request):
             if request.method == 'POST':
                 validator = QSheetSourceSchema()
                 try:
-                    if 'content' in request.POST:
-                        request.POST['schema'] = request.POST['content']
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
+                        qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                                     QSheet.survey_id==request.matchdict['sid'])).first()
                         qsheet.name = params['name']
                         qsheet.title = params['title']
-                        qsheet.content = params['content']
-                        qsheet.schema = pickle.dumps(qsheet_to_schema(params['schema']))
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
-                        dbsession.add(qsheet)
+                        seen_ids = []
+                        for idx, item in enumerate(params['content']):
+                            q_type = None
+                            if item.tag == '{http://paths.sheffield.ac.uk/pyquest}static_text':
+                                q_type = 'text'
+                            else:
+                                if 'name' not in item.attrib:
+                                    raise api.Invalid('All questions must have a name', None, None, error_dict={'content': 'All questions must have a name'})
+                                if item.tag == '{http://paths.sheffield.ac.uk/pyquest}short_text':
+                                    q_type = 'short_text'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}long_text':
+                                    q_type = 'long_text'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}number':
+                                    q_type = 'number'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}email':
+                                    q_type = 'email'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}url':
+                                    q_type = 'url'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}date':
+                                    q_type = 'date'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}time':
+                                    q_type = 'time'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}datetime':
+                                    q_type = 'datetime'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}month':
+                                    q_type = 'month'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}rating':
+                                    q_type = 'rating'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}rating_group':
+                                    q_type = 'rating_group'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_list':
+                                    q_type = 'single_list'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_select':
+                                    q_type = 'single_select'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}confirm':
+                                    q_type = 'confirm'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}multichoice':
+                                    q_type = 'multichoice'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}multichoice_group':
+                                    q_type = 'multichoice_group'
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}ranking':
+                                    q_type = 'ranking'
+                            question = None
+                            if not q_type:
+                                continue
+                            if q_type and 'id' in item.attrib:
+                                question = dbsession.query(Question).filter(and_(Question.id==safe_int(item.attrib['id']),
+                                                                                 Question.qsheet_id==qsheet.id,
+                                                                                 Question.type==q_type)).first()
+                            if question:
+                                seen_ids.append(question.id)
+                            else:
+                                question = Question(type=q_type)
+                                qsheet.questions.append(question)
+                                dbsession.add(question)
+                            if q_type != 'text':
+                                question.name = item.attrib['name']
+                                if 'required' in item.attrib and item.attrib['required'].lower() == 'true':
+                                    question.required = True
+                                else:
+                                    question.required = False
+                                if 'title' in item.attrib:
+                                    question.title = item.attrib['title']
+                                else:
+                                    question.title = ''
+                                if 'help' in item.attrib:
+                                    question.help = item.attrib['help']
+                                else:
+                                    question.help = ''
+                            question.order = idx
+                            if q_type == 'text':
+                                text = []
+                                if item.text:
+                                    text.append(item.text)
+                                for child in item:
+                                    text.append(etree.tostring(child, encoding="UTF-8"))
+                                set_attr_value(question, 'text.text', u''.join(text).replace(' xmlns:pq="http://paths.sheffield.ac.uk/pyquest"', ''))
+                            elif q_type == 'number':
+                                if 'min' in item.attrib:
+                                    set_attr_value(question, 'further.min', safe_int(item.attrib['min']))
+                                else:
+                                    set_attr_value(question, 'further.min', None)
+                                if 'max' in item.attrib:
+                                    set_attr_value(question, 'further.max', safe_int(item.attrib['max']))
+                                else:
+                                    set_attr_value(question, 'further.max', None)
+                            elif q_type == 'confirm':
+                                if 'value' in item.attrib:
+                                    set_attr_value(question, 'further.value', item.attrib['value'])
+                                else:
+                                    set_attr_value(question, 'further.value', None)
+                                if 'label' in item.attrib:
+                                    set_attr_value(question, 'further.label', item.attrib['label'])
+                                else:
+                                    set_attr_value(question, 'further.label', None)
+                            if q_type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
+                                for attr_group in get_attr_groups(question, 'answer'):
+                                    dbsession.delete(attr_group)
+                                for idx, attr in enumerate(item):
+                                    if attr.tag == '{http://paths.sheffield.ac.uk/pyquest}answer':
+                                        if 'value' in attr.attrib and 'label' in attr.attrib:
+                                            if attr.attrib['value'].strip() == '':
+                                                raise api.Invalid('Every answer must have a value', None, None, error_dict={'content': 'Every answer must have a value'})
+                                            qag = QuestionAttributeGroup(key='answer', order=idx)
+                                            qag.attributes.append(QuestionAttribute(key='value', value=attr.attrib['value']))
+                                            qag.attributes.append(QuestionAttribute(key='label', value=attr.attrib['label']))
+                                            question.attributes.append(qag)
+                            if q_type in ['rating_group', 'multichoice_group']:
+                                for attr_group in get_attr_groups(question, 'subquestion'):
+                                    dbsession.delete(attr_group)
+                                for idx, attr in enumerate(item):
+                                    if attr.tag == '{http://paths.sheffield.ac.uk/pyquest}sub_question':
+                                        if 'name' in attr.attrib and 'label' in attr.attrib:
+                                            if attr.attrib['name'].strip() == '':
+                                                raise api.Invalid('Every question must have a name', None, None, error_dict={'content': 'Every question must have a name'})
+                                            qag = QuestionAttributeGroup(key='subquestion', order=idx)
+                                            qag.attributes.append(QuestionAttribute(key='name', value=attr.attrib['name']))
+                                            qag.attributes.append(QuestionAttribute(key='label', value=attr.attrib['label']))
+                                            question.attributes.append(qag)
+                        for question in qsheet.questions:
+                            if question.id and question.id not in seen_ids:
+                                dbsession.delete(question)
                     request.session.flash('Survey page updated', 'info')
-                    raise HTTPFound(request.route_url('survey.qsheet.edit',
+                    raise HTTPFound(request.route_url('survey.qsheet.edit.source',
                                                       sid=request.matchdict['sid'],
                                                       qsid=request.matchdict['qsid']))
                 except api.Invalid as e:
                     e.params = request.POST
+                    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                                 QSheet.survey_id==request.matchdict['sid'])).first()
                     return {'survey': survey,
                             'qsheet': qsheet,
                             'e': e}

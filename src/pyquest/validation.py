@@ -131,18 +131,13 @@ class CsrfTokenValidator(FancyValidator):
 
 class XmlValidator(FancyValidator):
     
-    def __init__(self, wrapper='%s', strip_wrapper=True, **kwargs):
+    def __init__(self, wrapper='%s', **kwargs):
         FancyValidator.__init__(self, **kwargs)
         self.wrapper = wrapper
-        self.strip_wrapper = strip_wrapper
         
     def _to_python(self, value, state):
         try:
-            etree.fromstring(self.wrapper % value)
-            if self.strip_wrapper:
-                return value
-            else:
-                return self.wrapper % value
+            return etree.fromstring(self.wrapper % value)
         except etree.XMLSyntaxError as xse:
             raise Invalid(unicode(xse), value, state)
     
