@@ -154,7 +154,10 @@ def calculate_progress(qsheet, participant):
     remaining = count_to_end(qsheet)
     if qsheet.id not in answered_qsids:
         remaining = remaining + 1
-    return (done, remaining)
+    if done + remaining == 0:
+        return None
+    else:
+        return (done, remaining)
 
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/qsheet.html'})

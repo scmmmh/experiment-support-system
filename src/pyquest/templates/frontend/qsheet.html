@@ -19,7 +19,7 @@
     <hgroup class="hidden">
       <h1>${survey.title}</h1>
     </hgroup>
-    <aside class="progress right">${progress[0]} of ${progress[0] + progress[1]} pages completed<span class="done">${progress[0]} of ${progress[0] + progress[1]} pages completed</span></aside>
+    <aside class="progress right" py:if="progress">${progress[0]} of ${progress[0] + progress[1]} pages completed<span class="done">${progress[0]} of ${progress[0] + progress[1]} pages completed</span></aside>
     <section id="${qsheet.name}" class="qsheet">
       <hgroup>
         <h1>${qsheet.title}</h1>
