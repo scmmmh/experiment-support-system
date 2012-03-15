@@ -88,6 +88,20 @@ class QSheetAddQuestionSchema(Schema):
                                           'single_select', 'confirm', 'multichoice',
                                           'multichoice_group', 'ranking']),
                         validators.UnicodeString(not_empty=True))
+
+def set_quest_attr_value(question, key, value):
+    attr = get_q_attr(question, key)
+    if attr:
+        attr.value =value
+    else:
+        keys = key.split('.')
+        for attr_group in question.attributes:
+            if attr_group.key == keys[0]:
+                attr_group.attributes.append(QuestionAttribute(key=keys[1], value=value))
+                return
+        qag = QuestionAttributeGroup(key=keys[0])
+        qag.attributes.append(QuestionAttribute(key=keys[1], value=value))
+        question.attributes.append(qag)
     
 @view_config(route_name='survey.qsheet')
 @render({'text/html': 'backend/qsheet/index.html'})
@@ -370,19 +384,6 @@ def edit_delete_question(request):
 @view_config(route_name='survey.qsheet.edit.source')
 @render({'text/html': 'backend/qsheet/edit_source.html'})
 def edit_source(request):
-    def set_attr_value(question, key, value):
-        attr = get_q_attr(question, key)
-        if attr:
-            attr.value =value
-        else:
-            keys = key.split('.')
-            for attr_group in question.attributes:
-                if attr_group.key == keys[0]:
-                    attr_group.attributes.append(QuestionAttribute(key=keys[1], value=value))
-                    return
-            qag = QuestionAttributeGroup(key=keys[0])
-            qag.attributes.append(QuestionAttribute(key=keys[1], value=value))
-            question.attributes.append(qag)
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -478,25 +479,25 @@ def edit_source(request):
                                     text.append(item.text)
                                 for child in item:
                                     text.append(etree.tostring(child, encoding="UTF-8"))
-                                set_attr_value(question, 'text.text', u''.join(text).replace(' xmlns:pq="http://paths.sheffield.ac.uk/pyquest"', ''))
+                                set_quest_attr_value(question, 'text.text', u''.join(text).replace(' xmlns:pq="http://paths.sheffield.ac.uk/pyquest"', ''))
                             elif q_type == 'number':
                                 if 'min' in item.attrib:
-                                    set_attr_value(question, 'further.min', safe_int(item.attrib['min']))
+                                    set_quest_attr_value(question, 'further.min', safe_int(item.attrib['min']))
                                 else:
-                                    set_attr_value(question, 'further.min', None)
+                                    set_quest_attr_value(question, 'further.min', None)
                                 if 'max' in item.attrib:
-                                    set_attr_value(question, 'further.max', safe_int(item.attrib['max']))
+                                    set_quest_attr_value(question, 'further.max', safe_int(item.attrib['max']))
                                 else:
-                                    set_attr_value(question, 'further.max', None)
+                                    set_quest_attr_value(question, 'further.max', None)
                             elif q_type == 'confirm':
                                 if 'value' in item.attrib:
-                                    set_attr_value(question, 'further.value', item.attrib['value'])
+                                    set_quest_attr_value(question, 'further.value', item.attrib['value'])
                                 else:
-                                    set_attr_value(question, 'further.value', None)
+                                    set_quest_attr_value(question, 'further.value', None)
                                 if 'label' in item.attrib:
-                                    set_attr_value(question, 'further.label', item.attrib['label'])
+                                    set_quest_attr_value(question, 'further.label', item.attrib['label'])
                                 else:
-                                    set_attr_value(question, 'further.label', None)
+                                    set_quest_attr_value(question, 'further.label', None)
                             if q_type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
                                 for attr_group in get_attr_groups(question, 'answer'):
                                     dbsession.delete(attr_group)
