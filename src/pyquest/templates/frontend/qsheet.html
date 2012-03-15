@@ -20,6 +20,7 @@
       <h1>${survey.title}</h1>
     </hgroup>
     <aside class="progress right" py:if="progress">${progress[0]} of ${progress[0] + progress[1]} pages completed<span class="done">${progress[0]} of ${progress[0] + progress[1]} pages completed</span></aside>
+    <aside py:if="control">Your success rate is: ${int(100.0 * control[0] / control[1])}%</aside>
     <section id="${qsheet.name}" class="qsheet">
       <hgroup>
         <h1>${qsheet.title}</h1>

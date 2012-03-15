@@ -170,10 +170,12 @@ class Question(Base):
                               backref='question',
                               order_by='QuestionAttributeGroup.order',
                               cascade='all, delete, delete-orphan')
-    
     answers = relationship('Answer',
                            backref='question',
                            cascade='all, delete, delete-orphan')
+    control_answers = relationship('DataItemControlAnswer',
+                                   backref='question',
+                                   cascade='all, delete, delete-orphan')
 
 class QuestionAttributeGroup(Base):
     
@@ -227,6 +229,9 @@ class DataItem(Base):
     answers = relationship('Answer',
                            backref='data_item',
                            cascade='all, delete, delete-orphan')
+    control_answers = relationship('DataItemControlAnswer',
+                                   backref='data_item',
+                                   cascade='all, delete, delete-orphan')
 
 class DataItemAttribute(Base):
     
@@ -246,7 +251,16 @@ class DataItemCount(Base):
     data_item_id = Column(ForeignKey(DataItem.id))
     qsheet_id = Column(ForeignKey(QSheet.id))
     count = Column(Integer)
-     
+
+class DataItemControlAnswer(Base):
+    
+    __tablename__ = 'data_item_control_answers'
+    
+    id = Column(Integer, primary_key=True)
+    data_item_id = Column(ForeignKey(DataItem.id))
+    question_id = Column(ForeignKey(Question.id))
+    answer = Column(Unicode)
+    
 class Participant(Base):
     
     __tablename__ = 'participants'

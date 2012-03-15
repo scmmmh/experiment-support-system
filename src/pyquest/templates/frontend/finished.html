@@ -15,6 +15,7 @@
       <h1>${survey.title} - Completed</h1>
     </hgroup>
     <p>Thank you very much for participating in this survey.</p>
+    <p py:if="control">You got ${control[0]} of the ${control[1]} control questions right.</p> 
     <div py:if="survey.status == 'testing'" class="info">This survey is currently being tested and is not live yet.
       Your answers have been recored and you can now <a href="${r.route_url('survey.run', sid=survey.id)}">test the survey again</a>,
       if you wish to do so.</div>

@@ -14,7 +14,8 @@ from sqlalchemy import engine_from_config
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             Question, QuestionAttributeGroup, QuestionAttribute,
-                            QSheetTransition, QSheetAttribute)
+                            QSheetTransition, QSheetAttribute,
+    DataItemControlAnswer)
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -389,6 +390,7 @@ def init_test_data(DBSession):
         data_item = DataItem(order=3, control=True)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the third item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/3.html'))
+        data_item.control_answers.append(DataItemControlAnswer(answer='0', question=question))
         survey.data_items.append(data_item)
         data_item = DataItem(order=4)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the fourth item'))
@@ -405,6 +407,7 @@ def init_test_data(DBSession):
         data_item = DataItem(order=7, control=True)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the seventh item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/7.html'))
+        data_item.control_answers.append(DataItemControlAnswer(answer='4', question=question))
         survey.data_items.append(data_item)
         data_item = DataItem(order=8)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the eighth item'))

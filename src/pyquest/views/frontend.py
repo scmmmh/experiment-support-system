@@ -159,6 +159,19 @@ def calculate_progress(qsheet, participant):
     else:
         return (done, remaining)
 
+def calculate_control_items(qsheet, participant):
+    correct = 0
+    total = 0
+    for answer in participant.answers:
+        if (not qsheet or answer.question.qsheet_id == qsheet.id) and answer.data_item and answer.data_item.control:
+            total = total + 1
+            if answer.values[0].value == answer.data_item.control_answers[0].answer:
+                correct = correct + 1
+    if total == 0:
+        return None
+    else:
+        return (correct, total)
+
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/qsheet.html'})
 def run_survey(request):
@@ -175,7 +188,6 @@ def run_survey(request):
         qsheet = dbsession.query(QSheet).filter(QSheet.id==safe_int(state['qsid'])).first()
         if not qsheet:
             response = HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
-            response.delete_cookie('survey.%s' % request.matchdict['sid'])
             raise response
         if request.method == 'GET':
             if 'dids' not in state:
@@ -191,12 +203,14 @@ def run_survey(request):
                     response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
                     raise response
             data_items = load_data_items(state, dbsession)
+            participant = get_participant(dbsession, survey, state)
             request.response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
             return {'survey': survey,
                     'qsheet': qsheet,
                     'data_items': data_items,
                     'submit_options': determine_submit_options(qsheet),
-                    'progress': calculate_progress(qsheet, get_participant(dbsession, survey, state))}
+                    'progress': calculate_progress(qsheet, participant),
+                    'control': calculate_control_items(qsheet, participant)}
         elif request.method == 'POST':
             data_items = load_data_items(state, dbsession)
             validator = PageSchema(qsheet, data_items)
@@ -287,11 +301,13 @@ def run_survey(request):
             except api.Invalid as ie:
                 ie = flatten_invalid(ie)
                 ie.params = request.POST
+                participant = get_participant(dbsession, survey, state)
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'data_items': data_items,
                         'submit_options': determine_submit_options(qsheet, get_participant(dbsession, survey, state)),
-                        'progress': calculate_progress(qsheet),
+                        'progress': calculate_progress(qsheet, participant),
+                        'control': calculate_control_items(qsheet, participant),
                         'e': ie}
         else:
             raise HTTPNotAcceptable()
@@ -306,7 +322,8 @@ def finished_survey(request):
     if survey:
         if survey.status == 'testing':
             request.response.delete_cookie('survey.%s' % request.matchdict['sid'])
-        return {'survey': survey}
+        return {'survey': survey,
+                'control': calculate_control_items(None, get_participant(dbsession, survey, init_state(request, dbsession, survey)))}
     else:
         raise HTTPNotFound()
 
