@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:py="http://genshi.edgewall.org/">
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
   <head>
     <title>${survey.title} - Preview</title>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/screen.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
     <style type="text/css">${survey.styles}</style>
     <style type="text/css" py:for="qsheet in survey.qsheets">${qsheet.styles}</style>
