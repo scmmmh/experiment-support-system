@@ -3,14 +3,9 @@ u"""
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import transaction
 
 from formencode import api
-from operator import itemgetter
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPNotAcceptable
 from pyramid.view import view_config
 from random import sample, shuffle
@@ -306,7 +301,7 @@ def run_survey(request):
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'data_items': data_items,
-                        'submit_options': determine_submit_options(qsheet, get_participant(dbsession, survey, state)),
+                        'submit_options': determine_submit_options(qsheet),
                         'progress': calculate_progress(qsheet, participant),
                         'control': calculate_control_items(qsheet, participant),
                         'e': ie}
