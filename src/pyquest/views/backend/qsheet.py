@@ -32,7 +32,7 @@ class QSheetSourceSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">%s</pq:qsheet>', strip_wrapper=False)
+    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name=""><pq:questions>%s</pq:questions></pq:qsheet>', strip_wrapper=False)
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
 
@@ -404,7 +404,7 @@ def edit_source(request):
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
                         seen_ids = []
-                        for idx, item in enumerate(params['content']):
+                        for idx, item in enumerate(params['content'][0]):
                             q_type = None
                             if item.tag == '{http://paths.sheffield.ac.uk/pyquest}static_text':
                                 q_type = 'text'

@@ -7,11 +7,15 @@ Created on 3 Feb 2012
 import datetime
 import re
 
+from pkg_resources import resource_stream
 from formencode import validators, variabledecode
 from formencode import FancyValidator, Schema, Invalid
 from lxml import etree
 
 from pyquest.helpers.qsheet import get_q_attr_value, get_qg_attr_value, get_attr_groups
+
+
+schema = etree.XMLSchema(etree.parse(resource_stream('pyquest', 'static/survey.xsd')))
 
 class DateTimeValidator(FancyValidator):
     
@@ -137,9 +141,13 @@ class XmlValidator(FancyValidator):
         
     def _to_python(self, value, state):
         try:
-            return etree.fromstring(self.wrapper % value)
+            doc = etree.fromstring(self.wrapper % value)
+            schema.assertValid(doc)
+            return doc
         except etree.XMLSyntaxError as xse:
             raise Invalid(unicode(xse), value, state)
+        except etree.DocumentInvalid as de:
+            raise Invalid(unicode(de), value, state)
     
 class DynamicSchema(Schema):
     
