@@ -63,7 +63,6 @@ def upload(request):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
                 try:
-                    print request.POST['source_file'].__class__
                     if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                         raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
                     reader = csv.DictReader(request.POST['source_file'].file)
