@@ -81,22 +81,24 @@
         <hgroup>
           <h2>Data</h2>
         </hgroup>
-        <table>
-          <thead>
-            <tr>
-              <th>Internal identifier</th>
-              <th py:for="attr in survey.data_items[0].attributes">${attr.key}</th>
-              <th>Sample</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr py:for="data_item in survey.data_items">
-              <td>${data_item.id}</td>
-              <td py:for="attr in data_item.attributes">${attr.value}</td>
-              <td>${h.results.sample_data_answer(data_item)}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="span-24" style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Internal identifier</th>
+                <th py:for="attr in survey.data_items[0].attributes">${attr.key}</th>
+                <th>Sample</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr py:for="data_item in survey.data_items">
+                <td>${data_item.id}</td>
+                <td py:for="attr in data_item.attributes">${attr.value}</td>
+                <td>${h.results.sample_data_answer(data_item)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </article>
   </body>
