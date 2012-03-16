@@ -13,7 +13,7 @@ from formencode import api
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPNotAcceptable
 from pyramid.view import view_config
 from random import sample, shuffle
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, asc
 
 from pyquest.helpers.qsheet import get_qs_attr_value
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
@@ -54,8 +54,8 @@ def select_data_items(sid, state, qsheet, dbsession):
                                                                      DataItem.control==False,
                                                                      not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
                                                                                                                                                                   QSheet.id==qsheet.id)))))
-                                                                ).\
-                                                         order_by(desc(DataItemCount.count)).all())
+                                                                ).all())
+        source_items.sort(key=lambda i: i[1])
         if len(source_items) > 0:
             data_items = []
             threshold = source_items[0][1]
