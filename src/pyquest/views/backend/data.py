@@ -8,7 +8,7 @@ import csv
 import math
 import transaction
 
-from formencode import Schema, validators, api
+from formencode import Schema, validators, api, foreach
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from sqlalchemy import and_, func
@@ -16,12 +16,15 @@ from pywebtools.auth import is_authorised
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, Survey, DataItem, DataItemAttribute)
+from pyquest.models import (DBSession, Survey, DataItem, DataItemAttribute,
+    Question, DataItemControlAnswer)
 from pyquest.renderer import render
 
 class DataItemSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     control_ = validators.StringBool(if_missing=False)
+    control_answer_question = foreach.ForEach(validators.Int())
+    control_answer_answer = foreach.ForEach(validators.UnicodeString())
 
 @view_config(route_name='survey.data')
 @render({'text/html': 'backend/data/index.html'})
@@ -138,6 +141,10 @@ def new(request):
                             new_data_item.attributes.append(DataItemAttribute(key=attribute.key,
                                                                               value=params[attribute.key],
                                                                               order=attribute.order))
+                        for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
+                            question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
+                            if question and params['control_answer_answer'][idx].strip() != '':
+                                new_data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(new_data_item)
                     request.session.flash('Data added', 'info')
                     raise HTTPFound(request.route_url('survey.data',
@@ -172,9 +179,16 @@ def edit(request):
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
+                        data_item = dbsession.query(DataItem).filter(and_(DataItem.survey_id==request.matchdict['sid'],
+                                                                          DataItem.id==request.matchdict['did'])).first()
                         data_item.control = params['control_']
                         for attribute in data_item.attributes:
                             attribute.value = params[attribute.key]
+                        data_item.control_answers = []
+                        for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
+                            question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
+                            if question and params['control_answer_answer'][idx].strip() != '':
+                                data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(data_item)
                     request.session.flash('Data updated', 'info')
                     raise HTTPFound(request.route_url('survey.data',
