@@ -17,6 +17,7 @@ def init(config):
     config.add_route('survey.data.clear', '/surveys/{sid}/data/clear')
     config.add_route('survey.qsheet', '/surveys/{sid}/pages')
     config.add_route('survey.qsheet.new', '/surveys/{sid}/pages/new')
+    config.add_route('survey.qsheet.import', '/surveys/{sid}/pages/import')
     config.add_route('survey.qsheet.edit', '/surveys/{sid}/pages/{qsid}/edit')
     config.add_route('survey.qsheet.edit.add_question', '/surveys/{sid}/pages/{qsid}/add_question')
     config.add_route('survey.qsheet.edit.delete_question', '/surveys/{sid}/pages/{qsid}/delete_question/{qid}')
