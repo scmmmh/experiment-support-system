@@ -335,7 +335,7 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         elif question.type == 'short_text':
             return '<pq:short_text %s/>' % (std_attr(question, no_id))
         elif question.type == 'long_text':
-            return '<pq:long_text s/>' % (std_attr(question, no_id))
+            return '<pq:long_text %s/>' % (std_attr(question, no_id))
         elif question.type == 'number':
             return '<pq:number %s min="%s" max="%s"/>' % (std_attr(question, no_id), get_q_attr_value(question, 'further.min', ''), get_q_attr_value(question, 'further.max', ''))
         elif question.type == 'email':
