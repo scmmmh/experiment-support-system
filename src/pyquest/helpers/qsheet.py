@@ -320,70 +320,79 @@ def ranking(question, item, e):
     shuffle(items)
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)
 
-def as_text(qsheet):
-    def std_attr(question):
-        return 'name="%s" title="%s" help="%s"' % (question.name, question.title, question.help)
-    def to_text(question):
+def as_text(qsheet, as_markup=False, no_ids=False):
+    def std_attr(question, no_id=False):
+        if no_id:
+            return 'name="%s" title="%s" help="%s"' % (question.name, question.title, question.help)
+        else:
+            return 'id="%i" name="%s" title="%s" help="%s"' % (question.id, question.name, question.title, question.help)
+    def to_text(question, no_id):
         if question.type == 'text':
-            return '<pq:static_text id="%i">%s</pq:static_text>' % (question.id, get_q_attr_value(question, 'text.text'))
+            if no_id:
+                return '<pq:static_text>%s</pq:static_text>' % (get_q_attr_value(question, 'text.text'))
+            else:
+                return '<pq:static_text id="%i">%s</pq:static_text>' % (question.id, get_q_attr_value(question, 'text.text'))
         elif question.type == 'short_text':
-            return '<pq:short_text id="%i" %s/>' % (question.id, std_attr(question))
+            return '<pq:short_text %s/>' % (std_attr(question, no_id))
         elif question.type == 'long_text':
-            return '<pq:long_text id="%i" %s/>' % (question.id, std_attr(question))
+            return '<pq:long_text s/>' % (std_attr(question, no_id))
         elif question.type == 'number':
-            return '<pq:number id="%i" %s min="%s" max="%s"/>' % (question.id, std_attr(question), get_q_attr_value(question, 'further.min', ''), get_q_attr_value(question, 'further.max', ''))
+            return '<pq:number %s min="%s" max="%s"/>' % (std_attr(question, no_id), get_q_attr_value(question, 'further.min', ''), get_q_attr_value(question, 'further.max', ''))
         elif question.type == 'email':
-            return '<pq:email id="%i" %s/>' % (question.id, std_attr(question))
+            return '<pq:email %s/>' % (std_attr(question, no_id))
         elif question.type == 'url':
-            return '<pq:url id="%i" %s/>' % (question.id, std_attr(question))
+            return '<pq:url %s/>' % (std_attr(question, no_id))
         elif question.type == 'date':
-            return '<pq:date id="%i" %s/>' % (question.id, std_attr(question))
+            return '<pq:date %s/>' % (std_attr(question, no_id))
         elif question.type == 'time':
-            return '<pq:time id="%i" %s/>' % (question.id, std_attr(question))
+            return '<pq:time %s/>' % (std_attr(question, no_id))
         elif question.type == 'datetime':
-            return '<pq:datetime id="%i" %s/>' % (question.id, std_attr(question))
+            return '<pq:datetime %s/>' % (std_attr(question, no_id))
         elif question.type == 'month':
-            return '<pq:month id="%i" %s/>' % (question.id, std_attr(question))
+            return '<pq:month %s/>' % (std_attr(question, no_id))
         elif question.type == 'rating':
-            lines = ['<pq:rating id="%i" %s>' % (question.id, std_attr(question))]
+            lines = ['<pq:rating %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:rating>')
             return u'\n'.join(lines) 
         elif question.type == 'rating_group':
-            lines = ['<pq:rating_group id="%i" %s>' % (question.id, std_attr(question))]
+            lines = ['<pq:rating_group %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:sub_question name="%s" label="%s"/>' % (get_qg_attr_value(qg, 'name'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'subquestion')])
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:rating_group>')
             return u'\n'.join(lines)
         elif question.type == 'single_list':
-            lines = ['<pq:single_list id="%i" %s>' % (question.id, std_attr(question))]
+            lines = ['<pq:single_list %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:single_list>')
             return u'\n'.join(lines) 
         elif question.type == 'single_select':
-            lines = ['<pq:single_select id="%i" %s>' % (question.id, std_attr(question))]
+            lines = ['<pq:single_select %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:single_select>')
             return u'\n'.join(lines) 
         elif question.type == 'confirm':
-            return '<pq:confirm id="%i" %s value="%s" label="%s"/>' % (question.id, std_attr(question), get_q_attr_value(question, 'further.value', ''), get_q_attr_value(question, 'further.label', ''))
+            return '<pq:confirm %s value="%s" label="%s"/>' % (std_attr(question, no_id), get_q_attr_value(question, 'further.value', ''), get_q_attr_value(question, 'further.label', ''))
         elif question.type == 'multichoice':
-            lines = ['<pq:multichoice id="%i" %s>' % (question.id, std_attr(question))]
+            lines = ['<pq:multichoice %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:multichoice>')
             return u'\n'.join(lines) 
         elif question.type == 'multichoice_group':
-            lines = ['<pq:multichoice_group id="%i" %s>' % (question.id, std_attr(question))]
+            lines = ['<pq:multichoice_group %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:sub_question name="%s" label="%s"/>' % (get_qg_attr_value(qg, 'name'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'subquestion')])
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:multichoice_group>')
             return u'\n'.join(lines)
         elif question.type == 'ranking':
-            lines = ['<pq:ranking id="%i" %s>' % (question.id, std_attr(question))]
+            lines = ['<pq:ranking %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:ranking>')
             return u'\n'.join(lines) 
         else:
             return ''
-
-    return '\n'.join([to_text(q) for q in qsheet.questions])
+    
+    if as_markup:
+        return Markup('\n'.join([to_text(q, no_ids) for q in qsheet.questions]))
+    else:
+        return '\n'.join([to_text(q, no_ids) for q in qsheet.questions])

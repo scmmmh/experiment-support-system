@@ -16,6 +16,8 @@
         </py:if>
         <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the survey &quot;${survey.title}&quot; including its pages, data, and results.">Delete</a></li>
         <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
+          <li><a href="" class="button">Export</a></li>
+          <li class="spacer"></li>
           <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'testing'})}" class="button post-submit" data-confirm="no-confirm">Test</a></li>
           <li py:if="survey.status == 'testing'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'develop'})}" class="button post-submit" data-confirm="no-confirm">Stop Test</a></li>
           <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'running'})}" class="button post-submit" data-confirm="no-confirm">Start</a></li>

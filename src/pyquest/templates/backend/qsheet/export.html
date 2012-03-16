@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${survey.title} - ${qsheet.title} - Export</title>
+  </head>
+  <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Export', {'href': r.route_url('survey.qsheet.export', sid=survey.id, qsid=qsheet.id)})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('pages', survey, r)}
+    <nav class="toolbar">
+      <ul>
+        <li><a href="${r.route_url('survey.qsheet.export.ext', sid=survey.id, qsid=qsheet.id, ext='xml')}" class="button">Download as XML</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>${qsheet.title} - Export</h1>
+      </hgroup>
+      <pre>
+&lt;pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest"&gt;
+  ${h.qsheet.as_text(qsheet, no_ids=True)}
+&lt;/pq:qsheet&gt;
+      </pre>
+    </article>
+  </body>
+</html>

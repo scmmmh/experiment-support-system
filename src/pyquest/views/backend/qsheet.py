@@ -579,3 +579,22 @@ def delete_qsheet(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+@view_config(route_name='survey.qsheet.export')
+@view_config(route_name='survey.qsheet.export.ext')
+@render({'text/html': 'backend/qsheet/export.html',
+         'application/xml': 'backend/qsheet/export.xml'})
+def export(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+    user = current_user(request)
+    if survey and qsheet:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            return {'survey': survey,
+                    'qsheet': qsheet}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()

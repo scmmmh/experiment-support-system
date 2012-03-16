@@ -1,0 +1,3 @@
+<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">
+${h.qsheet.as_text(qsheet, as_markup=True, no_ids=True)}
+</pq:qsheet>

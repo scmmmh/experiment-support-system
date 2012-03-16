@@ -66,6 +66,8 @@ def match_response_type(view_content_types, request):
             accept_header = 'application/json'
         elif request.matchdict['ext'] == 'csv':
             accept_header = 'text/csv'
+        elif request.matchdict['ext'] == 'xml':
+            accept_header = 'application/xml'
     response_type = mimeparse.best_match(view_content_types.keys(), accept_header)
     if not response_type or response_type not in view_content_types:
         raise HTTPNotAcceptable()
@@ -99,6 +101,12 @@ def handle_csv_response(request, result):
     f.close()
     return response
 
+def handle_xml_response(request, response_template, result):
+    template = genshi_loader.load(response_template)
+    template = template.generate(**result)
+    response = Response(template.render('xml'))
+    return response
+
 def render(content_types={}, allow_cache=True):
     def wrapper(f, *args, **kwargs):
         request = request_from_args(*args)
@@ -115,6 +123,8 @@ def render(content_types={}, allow_cache=True):
             response = handle_html_response(request, response_template, result)
         elif response_type == 'text/csv':
             response = handle_csv_response(request, result)
+        elif response_type == 'application/xml':
+            response = handle_xml_response(request, response_template, result)
         response.content_type = response_type
         request.response.merge_cookies(response)
         if not allow_cache:
