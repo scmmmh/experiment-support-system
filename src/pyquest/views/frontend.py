@@ -14,7 +14,7 @@ from operator import itemgetter
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPNotAcceptable
 from pyramid.view import view_config
 from random import sample, shuffle
-from sqlalchemy import and_
+from sqlalchemy import and_, desc
 
 from pyquest.helpers.qsheet import get_qs_attr_value
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
@@ -55,7 +55,8 @@ def select_data_items(sid, state, qsheet, dbsession):
                                                                      DataItem.control==False,
                                                                      not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
                                                                                                                                                                   QSheet.id==qsheet.id)))))
-                                                                ).all())
+                                                                ).\
+                                                         order_by(desc(DataItemCount.count)).all())
         if len(source_items) > 0:
             data_items = []
             threshold = source_items[0][1]
@@ -63,7 +64,7 @@ def select_data_items(sid, state, qsheet, dbsession):
             while len(data_items) < int(get_qs_attr_value(qsheet, 'data-items')):
                 if threshold > max_threshold:
                     return []
-                threshold_items = filter(lambda t: t[1] == threshold and unicode(t[0].id) not in [], source_items)
+                threshold_items = filter(lambda t: t[1] == threshold, source_items)
                 required_count = int(get_qs_attr_value(qsheet, 'data-items')) - len(data_items)
                 if required_count < len(threshold_items):
                     data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
