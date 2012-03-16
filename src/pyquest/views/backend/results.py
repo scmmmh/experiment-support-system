@@ -4,15 +4,13 @@ Created on 8 Feb 2012
 
 @author: mhall
 '''
-from formencode import Schema, validators, api, foreach
-from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
-from sqlalchemy import and_
 from pywebtools.auth import is_authorised
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.helpers.results import fix_na, get_d_attr_value
-from pyquest.models import (DBSession, Survey, QSheet, DataItem)
+from pyquest.models import (DBSession, Survey)
 from pyquest.renderer import render
 from pyquest.helpers.qsheet import get_attr_groups, get_qg_attr_value,\
     get_qs_attr_value
