@@ -18,8 +18,12 @@
         <h1>${qsheet.title} - Export</h1>
       </hgroup>
       <pre>
-&lt;pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest"&gt;
-  ${h.qsheet.as_text(qsheet, no_ids=True)}
+&lt;pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="${qsheet.name}" title="${qsheet.title}"&gt;
+  &lt;pq:styles&gt;${qsheet.styles}&lt;/pq:styles&gt;
+  &lt;pq:scripts&gt;${qsheet.scripts}&lt;/pq:scripts&gt;
+  &lt;pq:questions&gt;
+    ${h.qsheet.as_text(qsheet, no_ids=True)}
+  &lt;/pq:questions&gt;
 &lt;/pq:qsheet&gt;
       </pre>
     </article>

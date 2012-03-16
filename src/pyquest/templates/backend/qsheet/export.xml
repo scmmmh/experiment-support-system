@@ -1,3 +1,7 @@
-<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest">
-${h.qsheet.as_text(qsheet, as_markup=True, no_ids=True)}
+<pq:qsheet name="${qsheet.name}" title="${qsheet.title}" xmlns:pq="http://paths.sheffield.ac.uk/pyquest">
+  <pq:styles>${qsheet.styles}</pq:styles>
+  <pq:scripts>${qsheet.scripts}</pq:scripts>
+  <pq:questions>
+    ${h.qsheet.as_text(qsheet, as_markup=True, no_ids=True)}
+  </pq:questions>
 </pq:qsheet>
