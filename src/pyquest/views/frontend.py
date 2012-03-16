@@ -3,6 +3,10 @@ u"""
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import transaction
 
 from formencode import api
