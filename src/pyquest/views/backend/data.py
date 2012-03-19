@@ -160,6 +160,27 @@ def new(request):
     else:
         raise HTTPNotFound()
 
+@view_config(route_name='survey.data.view')
+@render({'text/html': 'backend/survey/preview.html'})
+def view(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    data_item = dbsession.query(DataItem).filter(and_(DataItem.survey_id==request.matchdict['sid'],
+                                                      DataItem.id==request.matchdict['did'])).first()
+    user = current_user(request)
+    if survey and data_item:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            example = {'did': 0}
+            example['did'] = data_item.id
+            for attr in data_item.attributes:
+                example[attr.key] = attr.value
+            return {'survey': survey,
+                    'example': example}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
 @view_config(route_name='survey.data.edit')
 @render({'text/html': 'backend/data/edit.html'})
 def edit(request):

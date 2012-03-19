@@ -12,6 +12,7 @@ def init(config):
     config.add_route('survey.data', '/surveys/{sid}/data')
     config.add_route('survey.data.upload', '/surveys/{sid}/data/upload')
     config.add_route('survey.data.new', '/surveys/{sid}/data/new')
+    config.add_route('survey.data.view', '/surveys/{sid}/data/{did}')
     config.add_route('survey.data.edit', '/surveys/{sid}/data/{did}/edit')
     config.add_route('survey.data.delete', '/surveys/{sid}/data/{did}/delete')
     config.add_route('survey.data.clear', '/surveys/{sid}/data/clear')

@@ -93,7 +93,7 @@
             </thead>
             <tbody>
               <tr py:for="data_item in survey.data_items">
-                <td>${data_item.id}</td>
+                <td><a href="${r.route_url('survey.data.view', sid=survey.id, did=data_item.id)}">${data_item.id}</a></td>
                 <td py:for="attr in data_item.attributes">${attr.value}</td>
                 <td>${h.results.sample_data_answer(data_item)}</td>
                 <td>${len(data_item.answers)}</td>

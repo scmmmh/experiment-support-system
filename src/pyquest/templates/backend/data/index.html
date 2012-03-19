@@ -46,7 +46,7 @@
             </tr>
             <tr py:for="item in items">
               <td><py:if test="item.control">Yes</py:if></td>
-              <td>${item.id}</td>
+                <td><a href="${r.route_url('survey.data.view', sid=survey.id, did=item.id)}">${item.id}</a></td>
               <td py:for="attribute in item.attributes">${attribute.value}</td>
               <td>
                 <ul class="span-3 inline no-symbol no-margin">
