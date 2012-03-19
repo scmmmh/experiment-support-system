@@ -34,7 +34,7 @@ def index(request):
     user = current_user(request)
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
-            items = dbsession.query(DataItem).filter(DataItem.survey_id==request.matchdict['sid'])
+            items = dbsession.query(DataItem).filter(DataItem.survey_id==request.matchdict['sid']).order_by(DataItem.id)
             pages = int(math.ceil(items.count() / 10.0))
             page = 1
             if 'page' in request.params:
