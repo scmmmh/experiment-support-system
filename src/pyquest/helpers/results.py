@@ -29,7 +29,11 @@ def sample_data_answer(data_item):
         return None
 
 def completed_count(survey):
-    return min([len(set([a.participant_id for a in question.answers])) for qsheet in survey.qsheets for question in qsheet.questions if question.type != 'text' and question.required])
+    participants = [len(set([a.participant_id for a in question.answers])) for qsheet in survey.qsheets for question in qsheet.questions if question.type != 'text' and question.required]
+    if participants:
+        return min(participants)
+    else:
+        return 0
 
 def get_d_attr(qsheet, key):
     for attr in qsheet.attributes:
