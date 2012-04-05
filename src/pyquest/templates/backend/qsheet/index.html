@@ -15,6 +15,7 @@
       </ul>
     </nav>
     <article>
+      <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id)}">${r.route_url('survey.run', sid=survey.id)}</a>.</div>
       <hgroup>
         <h1>${survey.title} - Pages</h1>
       </hgroup>
