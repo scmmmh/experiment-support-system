@@ -22,6 +22,8 @@
           <dd>${h.form.text_field('title', survey.title, e, class_='span-12')}</dd>
           <dt>Summary</dt>
           <dd>${h.form.textarea('summary', survey.summary, e, class_='span-22', style='height:5em;')}</dd>
+          <dt>Display Language</dt>
+          <dd>${h.form.select('language', survey.language, [('en', 'English'), ('de', 'Deutsch')], e)}</dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('survey'))}</li>

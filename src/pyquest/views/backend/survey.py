@@ -28,6 +28,7 @@ class NewSurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
     summary = validators.UnicodeString()
+    language = validators.OneOf(['en', 'de'])
 
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -36,6 +37,7 @@ class SurveySchema(Schema):
     summary = validators.UnicodeString()
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
+    language = validators.OneOf(['en', 'de'])
     
     pre_validators = [variabledecode.NestedVariables()]
 
@@ -153,6 +155,7 @@ def new(request):
                     survey.scripts = ''
                     survey.status = 'develop'
                     survey.owned_by = user.id
+                    survey.language = params['language']
                     dbsession.add(survey)
                     dbsession.flush()
                     sid = survey.id
@@ -189,6 +192,7 @@ def edit(request):
                         survey.styles = params['styles']
                         survey.scripts = params['scripts']
                         survey.start_id = params['start']
+                        survey.language = params['language']
                         for qsheet in survey.qsheets:
                             get_qs_attr(qsheet, 'repeat').value = params[unicode(qsheet.id)]['repeat']
                             get_qs_attr(qsheet, 'data-items').value = params[unicode(qsheet.id)]['data_items']

@@ -91,6 +91,7 @@ class Survey(Base):
     scripts = Column(UnicodeText)
     status = Column(Unicode)
     start_id = Column(Integer, ForeignKey('qsheets.id', use_alter=True, name='fk_start_id'))
+    language = Column(Unicode)
     owned_by = Column(ForeignKey(User.id), default=func.now())
     created_at = Column(DateTime)
     updated_at = Column(DateTime)

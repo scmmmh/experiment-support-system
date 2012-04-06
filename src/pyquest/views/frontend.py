@@ -14,8 +14,10 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPNotAcceptable
 from pyramid.view import view_config
 from random import sample, shuffle
 from sqlalchemy import and_, asc
+from sqlalchemy.sql.expression import not_
 
-from pyquest.helpers.qsheet import get_qs_attr_value
+from pyquest.helpers.qsheet import get_qs_attr_value, get_attr_groups, get_qg_attr_value
+from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
     DataItemCount, Answer, AnswerValue, Question)
 from pyquest.renderer import render
@@ -178,6 +180,7 @@ def run_survey(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     if survey:
+        _ = get_translator(survey.language, 'frontend').ugettext
         if survey.status not in ['running', 'testing']:
             raise HTTPFound(request.route_url('survey.run.inactive', sid=request.matchdict['sid']))
         state = init_state(request, dbsession, survey)
@@ -288,7 +291,7 @@ def run_survey(request):
                             dbsession.add(answer)
                 update_data_item_counts(state, [d['did'] for d in data_items], dbsession)
                 qsheet = dbsession.query(QSheet).filter(QSheet.id==state['qsid']).first()
-                if qsheet_answers['action_'] in ['Next Page', 'Finish Survey']:
+                if qsheet_answers['action_'] in [_('Next Page'), _('Finish Survey')]:
                     next_qsi = next_qsheet(qsheet)
                     if next_qsi:
                         state['qsid'] = next_qsi.id
@@ -338,5 +341,3 @@ def inactive(request):
         return {'survey': survey}
     else:
         raise HTTPNotFound()
-from pyquest.helpers.qsheet import get_attr_groups, get_qg_attr_value
-from sqlalchemy.sql.expression import not_

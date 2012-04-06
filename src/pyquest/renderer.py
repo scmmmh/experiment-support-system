@@ -15,7 +15,7 @@ import mimeparse
 from decorator import decorator
 from genshi import filters
 from genshi.template import TemplateLoader, loader
-from gettext import GNUTranslations
+from gettext import NullTranslations
 from pyramid.httpexceptions import HTTPNotAcceptable
 from pyramid.request import Request
 from pyramid.response import Response
@@ -35,10 +35,9 @@ class RendererException(Exception):
 
 def init(settings):
     def template_loaded(template):
-        pass
-        #if 'frontend' in template.filename:
-        #    translator = filters.Translator(get_translator('de', 'frontend'))
-        #    translator.setup(template)
+        if 'frontend' in template.filename:
+            translator = filters.Translator(NullTranslations())
+            translator.setup(template)
     global genshi_loader
     if 'genshi.template_path' not in settings:
         raise RendererException('genshi.template_path not set in the configuration')
@@ -84,7 +83,12 @@ def match_response_type(view_content_types, request):
 def handle_html_response(request, response_template, result):
     template = genshi_loader.load(response_template)
     if 'frontend' in template.filename:
-        result['_'] = get_translator('None', 'frontend').ugettext
+        if 'survey' in result:
+            translator = get_translator(result['survey'].language, 'frontend')
+        else:
+            translator = NullTranslations()
+        template.filters[0].translate = translator
+        result['_'] = translator.ugettext
     if 'e' in result:
         template = template.generate(**result) | HTMLFormFiller(data=result['e'].params)
     else:
