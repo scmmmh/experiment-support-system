@@ -11,3 +11,7 @@ syntax: regexp
 ^production\.ini$
 syntax: regexp
 ^dist$
+syntax: regexp
+^src/pyquest/l10n/lokalize-scripts$
+syntax: regexp
+^src/pyquest/l10n/pyquest\.lokalize$

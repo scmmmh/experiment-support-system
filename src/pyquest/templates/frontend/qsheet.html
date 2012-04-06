@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:i18n="http://genshi.edgewall.org/i18n">
   <xi:include href="../layout/frontend.html"/>
   <head>
     <title>${survey.title} - ${qsheet.title}</title>
@@ -13,14 +13,14 @@
     <py:if test="survey.status == 'testing'"> 
       ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Test', {'href': r.route_url('survey.run', sid=survey.id)})], r)}
       <div class="error"><div style="padding:0 1em 0.5em 0;" class="left"><img src="${r.static_url('pyquest:static/img/testing.png')}" alt="testing"/></div>This survey is currently being tested and is not live yet.
-        Answers will be validated and recored as when the survey is live, but will be wiped automatically at the end of
+        Answers will be validated and recored as if the survey were live, but will be wiped automatically at the end of
         the test. Testers will also be able to complete the survey multiple times.</div>
     </py:if>
     <hgroup class="hidden">
       <h1>${survey.title}</h1>
     </hgroup>
-    <aside class="progress right" py:if="progress">${progress[0]} of ${progress[0] + progress[1]} pages completed<span class="done">${progress[0]} of ${progress[0] + progress[1]} pages completed</span></aside>
-    <aside py:if="control">Your success rate is: ${int(100.0 * control[0] / control[1])}%</aside>
+    <aside class="progress right" py:if="progress" i18n:msg="p1,p2,p1,p2">${progress[0]} of ${progress[0] + progress[1]} pages completed<span class="done">${progress[0]} of ${progress[0] + progress[1]} pages completed</span></aside>
+    <aside py:if="control" i18n:msg="perc">Your success rate is: ${int(100.0 * control[0] / control[1])}%</aside>
     <section id="${qsheet.name}" class="qsheet">
       <hgroup>
         <h1>${qsheet.title}</h1>
@@ -32,10 +32,10 @@
           <py:for each="question in qsheet.questions">${h.qsheet.display(question, data_item, e)}</py:for>
         </section>
         <ul class="buttons">
-          <li>${h.form.reset('Clear', class_='button')}</li>
-          <li py:if="'more' in submit_options">${h.form.submit('More', name='action_', class_='button')}</li>
-          <li py:if="'next' in submit_options">${h.form.submit('Next', name='action_', class_='button')}</li>
-          <li py:if="'finish' in submit_options">${h.form.submit('Finish', name='action_', class_='button')}</li>
+          <li>${h.form.reset(_('Clear Answers'), class_='button')}</li>
+          <li py:if="'more' in submit_options">${h.form.submit(_('More Questions'), name='action_', class_='button')}</li>
+          <li py:if="'next' in submit_options">${h.form.submit(_('Next Page'), name='action_', class_='button')}</li>
+          <li py:if="'finish' in submit_options">${h.form.submit(_('Finish Survey'), name='action_', class_='button')}</li>
         </ul>
       </form>
     </section>

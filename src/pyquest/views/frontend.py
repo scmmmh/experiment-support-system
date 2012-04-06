@@ -288,7 +288,7 @@ def run_survey(request):
                             dbsession.add(answer)
                 update_data_item_counts(state, [d['did'] for d in data_items], dbsession)
                 qsheet = dbsession.query(QSheet).filter(QSheet.id==state['qsid']).first()
-                if qsheet_answers['action_'] in ['Next', 'Finish']:
+                if qsheet_answers['action_'] in ['Next Page', 'Finish Survey']:
                     next_qsi = next_qsheet(qsheet)
                     if next_qsi:
                         state['qsid'] = next_qsi.id

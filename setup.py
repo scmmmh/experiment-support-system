@@ -15,6 +15,7 @@ requires = [
     'zope.sqlalchemy',
     'waitress',
     'genshi',
+    'babel',
     'decorator',
     'mimeparse',
     'lxml',

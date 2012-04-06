@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:i18n="http://genshi.edgewall.org/i18n">
   <xi:include href="../layout/frontend.html"/>
   <head>
     <title>${survey.title} - ${h.survey.status(survey.status)}</title>
@@ -8,7 +8,7 @@
     <hgroup>
       <h1>${survey.title} - ${h.survey.status(survey.status)}</h1>
     </hgroup>
-    <p>Unfortunately this survey is currently not accessible because it is ${h.survey.status(survey.status, True)}.</p>
+    <p i18n:msg="status">Unfortunately this survey is currently not accessible because it is ${h.survey.status(survey.status, True)}.</p>
     <p py:if="survey.status == 'paused'">Please check again later to see whether it has been re-started.</p>
   </body>
 </html>

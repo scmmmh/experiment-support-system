@@ -15,12 +15,14 @@ import mimeparse
 from decorator import decorator
 from genshi import filters
 from genshi.template import TemplateLoader, loader
+from gettext import GNUTranslations
 from pyramid.httpexceptions import HTTPNotAcceptable
 from pyramid.request import Request
 from pyramid.response import Response
 from StringIO import StringIO
 
 from pyquest import helpers
+from pyquest.l10n import get_translator
 
 genshi_loader = None
 
@@ -31,8 +33,12 @@ class RendererException(Exception):
     def __str__(self):
         return self.value
 
-
 def init(settings):
+    def template_loaded(template):
+        pass
+        #if 'frontend' in template.filename:
+        #    translator = filters.Translator(get_translator('de', 'frontend'))
+        #    translator.setup(template)
     global genshi_loader
     if 'genshi.template_path' not in settings:
         raise RendererException('genshi.template_path not set in the configuration')
@@ -40,10 +46,12 @@ def init(settings):
     auto_reload = ('pyramid.reload_templates' in settings and settings['pyramid.reload_templates'] == 'true')
     if ':' in path:
         genshi_loader = TemplateLoader([loader.package(path[0:path.find(':')], path[path.find(':') + 1:])],
-                                       auto_reload=auto_reload)
+                                       auto_reload=auto_reload,
+                                       callback=template_loaded)
     else:
         genshi_loader = TemplateLoader(path.split(','),
-                                       auto_reload=auto_reload)
+                                       auto_reload=auto_reload,
+                                       callback=template_loaded)
 
 def request_from_args(*args):
     if len(args) == 1 and isinstance(args[0], Request):
@@ -75,6 +83,8 @@ def match_response_type(view_content_types, request):
 
 def handle_html_response(request, response_template, result):
     template = genshi_loader.load(response_template)
+    if 'frontend' in template.filename:
+        result['_'] = get_translator('None', 'frontend').ugettext
     if 'e' in result:
         template = template.generate(**result) | HTMLFormFiller(data=result['e'].params)
     else:
