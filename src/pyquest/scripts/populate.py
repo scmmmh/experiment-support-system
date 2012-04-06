@@ -8,6 +8,8 @@ import os
 import sys
 import transaction
 
+from alembic.config import Config
+from alembic import command
 from pyramid.paster import (get_appsettings, setup_logging)
 from sqlalchemy import engine_from_config
 
@@ -33,6 +35,8 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     init_data(DBSession)
+    alembic_cfg = Config(config_uri)
+    command.stamp(alembic_cfg, "head")
     if len(argv) == 2 or argv[2] != '--no-test-data':
         init_test_data(DBSession)
 
