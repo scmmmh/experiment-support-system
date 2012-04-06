@@ -1,5 +1,5 @@
 <li class="item" xmlns:py="http://genshi.edgewall.org/">
-  ${h.form.hidden_field('%i.id' % (question.id), question.id)}
+  ${h.form.hidden_field('%i.id' % (question.id), question.id, class_='role-id')}
   ${h.form.hidden_field('%i.order' % (question.id), idx, class_='role-order')}
   <hgroup>
     <h2 class="header">
@@ -42,15 +42,21 @@
                 <tr>
                   <th>Value</th>
                   <th>Label</th>
+                  <th></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody class="role-answers">
                 <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'answer')">
-                  <td>${h.form.hidden_field('%i.answer.%i.id' % (question.id, attr_group.id), attr_group.id)}${h.form.hidden_field('%i.answer.%i.order' % (question.id, attr_group.id), attr_group.order)}${h.form.text_field('%i.answer.%i.value' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'value'), e)}</td>
-                  <td>${h.form.text_field('%i.answer.%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
+                  <td>${h.form.hidden_field('%i.answer-%i.order' % (question.id, attr_group.id), attr_group.order, class_='role-answer-order')}${h.form.text_field('%i.answer-%i.value' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'value'), e)}</td>
+                  <td>${h.form.text_field('%i.answer-%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
+                  <td py:if="question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group']"><a href="#" title="Remove this answer" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a></td>
+                  <td py:if="question.type == 'ranking'"><a href="#" title="Remove this item" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                 </tr>
               </tbody>
             </table>
+            <ul class="buttons">
+              <li><a href="#" title="Add an answer" class="button action-add-answer"><span class="ui-icon ui-icon-plusthick"></span></a></li>
+            </ul>
           </dd>
         </py:if>
         <py:if test="question.type in ['rating_group', 'multichoice_group']">
@@ -61,15 +67,20 @@
                 <tr>
                   <th>Name</th>
                   <th>Label</th>
+                  <th></th>
                 </tr>
               </thead>
-            <tbody>
-              <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'subquestion')">
-                <td>${h.form.hidden_field('%i.sub_quest.%i.id' % (question.id, attr_group.id), attr_group.id)}${h.form.hidden_field('%i.sub_quest.%i.order' % (question.id, attr_group.id), attr_group.order)}${h.form.text_field('%i.sub_quest.%i.name' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'name'), e)}</td>
-                <td>${h.form.text_field('%i.sub_quest.%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
+              <tbody class="role-subquestions">
+                <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'subquestion')">
+                  <td>${h.form.hidden_field('%i.sub_quest-%i.order' % (question.id, attr_group.id), attr_group.order, class_='role-subquestion-order')}${h.form.text_field('%i.sub_quest-%i.name' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'name'), e)}</td>
+                  <td>${h.form.text_field('%i.sub_quest-%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
+                  <td><a href="#" title="Remove this sub-question" class="button action-remove-subquestion"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                 </tr>
               </tbody>
             </table>
+            <ul class="buttons">
+              <li><a href="#" title="Add a sub-question" class="button action-add-subquestion"><span class="ui-icon ui-icon-plusthick"></span></a></li>
+            </ul>
           </dd>
         </py:if>
         <py:if test="question.type == 'confirm'">

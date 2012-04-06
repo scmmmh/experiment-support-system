@@ -54,20 +54,15 @@ class QSheetNumberQuestionSchema(QSheetBasicQuestionSchema):
     max = validators.Int()
 
 class QSheetAnswerSchema(Schema):
-    id = validators.Int(not_empty=True)
     value = validators.UnicodeString(not_empty=True)
     label = validators.UnicodeString()
     order = validators.Int(not_empty=True)
 
 class QSheetSubQuestionSchema(Schema):
-    id = validators.Int(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
     label = validators.UnicodeString()
     order = validators.Int(not_empty=True)
     
-class QSheetDynamicSchema(Schema):
-    pass
-
 class QSheetConfirmQuestionSchema(QSheetBasicQuestionSchema):
     value = validators.UnicodeString(not_empty=True)
     label = validators.UnicodeString()
@@ -387,15 +382,9 @@ def edit(request):
                         else:
                             sub_schema = QSheetBasicQuestionSchema()
                             if question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
-                                answer_schema = QSheetDynamicSchema()
-                                for attr_group in get_attr_groups(question, 'answer'):
-                                    answer_schema.add_field(unicode(attr_group.id), QSheetAnswerSchema())
-                                sub_schema.add_field('answer', answer_schema)
+                                sub_schema.add_field('answer', foreach.ForEach(QSheetAnswerSchema()))
                             if question.type in ['rating_group', 'multichoice_group']:
-                                sub_quest_schema = QSheetDynamicSchema()
-                                for attr_group in get_attr_groups(question, 'subquestion'):
-                                    sub_quest_schema.add_field(unicode(attr_group.id), QSheetSubQuestionSchema())
-                                sub_schema.add_field('sub_quest', sub_quest_schema)
+                                sub_schema.add_field('sub_quest', foreach.ForEach(QSheetSubQuestionSchema()))
                             schema.add_field(unicode(question.id), sub_schema)
                     params = schema.to_python(request.POST)
                     with transaction.manager:
@@ -424,15 +413,39 @@ def edit(request):
                                     get_q_attr(question, 'further.label').value = q_params['label']
                                 else:
                                     if question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
-                                        for attr_group in get_attr_groups(question, 'answer'):
-                                            get_qg_attr(attr_group, 'value').value = q_params['answer'][unicode(attr_group.id)]['value']
-                                            get_qg_attr(attr_group, 'label').value = q_params['answer'][unicode(attr_group.id)]['label'] 
-                                            attr_group.order = q_params['answer'][unicode(attr_group.id)]['order']
+                                        new_answers = q_params['answer']
+                                        new_answers.sort(key=lambda a: a['order'])
+                                        old_answers = get_attr_groups(question, 'answer')
+                                        for idx in range(0, max(len(new_answers), len(old_answers))):
+                                            if idx < len(new_answers) and idx < len(old_answers):
+                                                get_qg_attr(old_answers[idx], 'value').value = new_answers[idx]['value']
+                                                get_qg_attr(old_answers[idx], 'label').value = new_answers[idx]['label']
+                                                old_answers[idx].order = new_answers[idx]['order']
+                                            elif idx < len(new_answers):
+                                                qg = QuestionAttributeGroup(key='answer', order=new_answers[idx]['order'])
+                                                qg.attributes.append(QuestionAttribute(key='value', value=new_answers[idx]['value']))
+                                                qg.attributes.append(QuestionAttribute(key='label', value=new_answers[idx]['label']))
+                                                question.attributes.append(qg)
+                                                dbsession.add(qg)
+                                            elif idx < len(old_answers):
+                                                dbsession.delete(old_answers[idx])
                                     if question.type in ['rating_group', 'multichoice_group']:
-                                        for attr_group in get_attr_groups(question, 'subquestion'):
-                                            get_qg_attr(attr_group, 'name').value = q_params['sub_quest'][unicode(attr_group.id)]['name']
-                                            get_qg_attr(attr_group, 'label').value = q_params['sub_quest'][unicode(attr_group.id)]['label'] 
-                                            attr_group.order = q_params['sub_quest'][unicode(attr_group.id)]['order']
+                                        new_subquestion = q_params['sub_quest']
+                                        new_subquestion.sort(key=lambda a: a['order'])
+                                        old_subquestion = get_attr_groups(question, 'subquestion')
+                                        for idx in range(0, max(len(new_subquestion), len(old_subquestion))):
+                                            if idx < len(new_subquestion) and idx < len(old_subquestion):
+                                                get_qg_attr(old_subquestion[idx], 'name').value = new_subquestion[idx]['name']
+                                                get_qg_attr(old_subquestion[idx], 'label').value = new_subquestion[idx]['label']
+                                                old_subquestion[idx].order = new_subquestion[idx]['order']
+                                            elif idx < len(new_subquestion):
+                                                qg = QuestionAttributeGroup(key='subquestion', order=new_subquestion[idx]['order'])
+                                                qg.attributes.append(QuestionAttribute(key='name', value=new_subquestion[idx]['name']))
+                                                qg.attributes.append(QuestionAttribute(key='label', value=new_subquestion[idx]['label']))
+                                                question.attributes.append(qg)
+                                                dbsession.add(qg)
+                                            elif idx < len(old_subquestion):
+                                                dbsession.delete(old_subquestion[idx])
                         dbsession.add(qsheet)
                     request.session.flash('Survey page updated', 'info')
                     raise HTTPFound(request.route_url('survey.qsheet.edit',

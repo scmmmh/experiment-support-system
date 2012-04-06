@@ -217,7 +217,7 @@ class PageSchema(Schema):
     
     pre_validators = [variabledecode.NestedVariables()]
 
-def flatten_invalid(ie):
+def flatten_invalid(ie, message='Unfortunately not all your answers were acceptable'):
     def flatten_dict(e):
         result = {}
         if e and e.error_dict:
@@ -228,7 +228,7 @@ def flatten_invalid(ie):
                 else:
                     result[key] = unicode(value)
         return result
-    return Invalid('Unfortunately not all your answers were acceptable',
+    return Invalid(message,
                    ie.value,
                    ie.state,
                    error_dict=flatten_dict(ie))
