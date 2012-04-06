@@ -165,9 +165,9 @@ class DynamicSchema(Schema):
                 self.add_field(question.name, augment(validators.UnicodeString(), question))
             elif question.type == 'number':
                 number_validator = augment(validators.Number(), question)
-                if get_q_attr_value(question, 'further.min') != '':
+                if get_q_attr_value(question, 'further.min') and get_q_attr_value(question, 'further.min') != '': #TODO: Proper validation needed
                     number_validator.min = int(get_q_attr_value(question, 'further.min'))
-                if get_q_attr_value(question, 'further.max') != '':
+                if get_q_attr_value(question, 'further.max') and get_q_attr_value(question, 'further.max') != '': #TODO: Proper validation needed
                     number_validator.max = int(get_q_attr_value(question, 'further.max'))
                 self.add_field(question.name, number_validator)
             elif question.type == 'email':
