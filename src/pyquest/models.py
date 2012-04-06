@@ -5,11 +5,43 @@ import hashlib
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         Table, DateTime, Boolean, func, Text)
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref)
 from zope.sqlalchemy import ZopeTransactionExtension
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
+
+DB_VERSION = 'b83f6a6695c'
+
+class DBUpgradeException(Exception):
+    
+    def __init__(self, current, required):
+        self.current = current
+        self.required = required
+    
+    def __repr__(self):
+        return "DBUpgradeException('%s', '%s'" % (self.current, self.required)
+    
+    def __str__(self):
+        return """A database upgrade is required.
+
+You are currently running version '%s', but version '%s' is required. Please run
+alembic -c config.ini upgrade to upgrade the database and then start the application
+again.
+""" % (self.current, self.required)
+    
+def check_database_version():
+    dbsession = DBSession()
+    try:
+        result = dbsession.query('version_num').\
+                from_statement('SELECT version_num FROM alembic_version WHERE version_num = :version_num').\
+                params(version_num=DB_VERSION).first()
+        if not result:
+            result = dbsession.query('version_num').from_statement('SELECT version_num FROM alembic_version').first()
+            raise DBUpgradeException(result[0], DB_VERSION)
+    except OperationalError:
+            raise DBUpgradeException('no version-information found', DB_VERSION)
 
 class User(Base):
     
