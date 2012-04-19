@@ -1,2 +1,4 @@
 include *.txt *.ini *.cfg *.rst
 recursive-include src *.ico *.png *.css *.gif *.jpg *.pt *.txt *.mak *.mako *.js *.html *.xml *.xsd
+recursive-include src/pyquest/migrations *.py
+recursive-include src/pyquest/l10n *.*
