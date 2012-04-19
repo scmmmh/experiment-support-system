@@ -17,3 +17,6 @@ syntax: regexp
 ^src/pyquest/l10n/pyquest\.lokalize$
 syntax: glob
 *.pyc
+
+syntax: regexp
+^development\.ini$
