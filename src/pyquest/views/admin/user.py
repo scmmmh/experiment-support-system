@@ -57,7 +57,7 @@ def login(request):
             check_csrf_token(request, params)
             dbsession = DBSession()
             user = dbsession.query(User).filter(User.username==params['username']).first()
-            if user.password_matches(params['password']):
+            if user and user.password_matches(params['password']):
                 if 'redirect-to' in request.session:
                     redirect_to = request.session['redirect-to']
                 else:
