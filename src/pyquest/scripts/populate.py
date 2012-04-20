@@ -42,7 +42,7 @@ def main(argv=sys.argv):
 
 def init_data(DBSession):
     with transaction.manager:
-        user = User(u'mhall', u'm.mhall@sheffield.ac.uk', u'Archchancellor', u'test')
+        user = User(u'admin', u'admin@example.com', u'Admin', u'adminPWD')
         group = Group(title='Site administrator')
         group.permissions.append(Permission(name='admin.users', title='Administer the users'))
         group.permissions.append(Permission(name='admin.groups', title='Administer the permission groups'))
