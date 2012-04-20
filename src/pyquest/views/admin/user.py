@@ -105,12 +105,12 @@ def forgotten_password(request):
 After logging in, please immediately change the password.
 
 PyQuestionnaire Auto-Admin""" % (request.route_url('root'), password))
-            email['Subject'] = 'New password for %s' % (request.route_url('root'))
-            email['From'] = 'noreply@paths.sheffield.ac.uk'
-            email['To'] = user.email
-            smtp = smtplib.SMTP(request.registry.settings['email.smtp_host'])
-            smtp.sendmail('noreply@paths.sheffield.ac.uk', user.email, email.as_string())
-            smtp.quit()
+                email['Subject'] = 'New password for %s' % (request.route_url('root'))
+                email['From'] = 'noreply@paths.sheffield.ac.uk'
+                email['To'] = user.email
+                smtp = smtplib.SMTP(request.registry.settings['email.smtp_host'])
+                smtp.sendmail('noreply@paths.sheffield.ac.uk', user.email, email.as_string())
+                smtp.quit()
             request.session.flash('A new password has been generated and e-mailed to the e-mail account you specified', 'info')
             raise HTTPFound(request.route_url('root'))
         except api.Invalid as e:
