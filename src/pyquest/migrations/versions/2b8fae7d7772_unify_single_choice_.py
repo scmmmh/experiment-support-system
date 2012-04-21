@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.sql import table, column
 from sqlalchemy import Unicode, Integer, Column, Table, MetaData, ForeignKey, and_
 
-metadata = MetaData(bind=op.get_bind())
+metadata = MetaData()
 
 questions = Table('questions', metadata,
                   Column('id', Integer, primary_key=True),
@@ -45,6 +45,7 @@ down_mappings = {'table': 'rating',
                  'select': 'single_select'}
 
 def upgrade():
+    metadata.bind = bind=op.get_bind()
     for question in op.get_bind().execute(questions.select().where(questions.c.type.in_(up_mappings.keys()))):
         qca_pk = op.get_bind().execute(qca.insert().values(question_id=question.id,
                                                   key='further',
@@ -60,6 +61,7 @@ def upgrade():
                               values(type='single_choice'))
     
 def downgrade():
+    metadata.bind = bind=op.get_bind()
     for attr in op.get_bind().execute(qa.select().where(and_(qa.c.key=='subtype', qa.c.value.in_(down_mappings.keys())))):
         for compl_attr in op.get_bind().execute(qca.select().where(qca.c.id==attr[1])):
             op.get_bind().execute(questions.update().\
