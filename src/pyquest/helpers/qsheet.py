@@ -88,12 +88,12 @@ def question_type_title(q_type):
         return 'Month input'
     elif q_type == 'single_choice':
         return 'Single choice'
+    elif q_type == 'multi_choice':
+        return 'Multiple choice'
     elif q_type == 'rating_group':
         return 'Rating grid'
     elif q_type == 'confirm':
         return 'Confirmation checkbox'
-    elif q_type == 'multichoice':
-        return 'Multiple choice'
     elif q_type == 'multichoice_group':
         return 'Multiple choice grid'
     elif q_type == 'ranking':
@@ -152,8 +152,8 @@ def display(question, item, e, csrf_token=None):
         return single_select(question, item, e)
     elif question.type == 'confirm':
         return confirm(question, item, e)
-    elif question.type == 'multichoice':
-        return multichoice(question, item, e)
+    elif question.type == 'multi_choice':
+        return multi_choice(question, item, e)
     elif question.type == 'multichoice_group':
         return multichoice_group(question, item, e)
     elif question.type == 'ranking':
@@ -250,6 +250,17 @@ def single_select(question, item, e):
                               e)
 
 @question()
+def multi_choice(question, item, e):
+    rows = []
+    answers = get_attr_groups(question, 'answer')
+    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))))
+    rows.append(tag.tbody(tag.tr(map(lambda a: tag.td(tag.input(type='checkbox',
+                                                                name='items.%s.%s' % (item['did'], question.name),
+                                                                value=get_qg_attr_value(a, 'value'))),
+                                     answers))))
+    return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
+
+@question()
 def rating_group(question, item, e):
     answers = get_attr_groups(question, 'answer')
     rows = []
@@ -280,17 +291,6 @@ def confirm(question, item, e):
                               for_='items.%s.%s' % (item['did'], question.name)))
     return form.error_wrapper(tag.p(tags), 'items.%s.%s' % (item['did'], question.name), e)
     
-@question()
-def multichoice(question, item, e):
-    rows = []
-    answers = get_attr_groups(question, 'answer')
-    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))))
-    rows.append(tag.tbody(tag.tr(map(lambda a: tag.td(tag.input(type='checkbox',
-                                                                name='items.%s.%s' % (item['did'], question.name),
-                                                                value=get_qg_attr_value(a, 'value'))),
-                                     answers))))
-    return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
-
 @question()
 def multichoice_group(question, item, e):
     answers = get_attr_groups(question, 'answer')
@@ -356,6 +356,11 @@ def as_text(qsheet, as_markup=False, no_ids=False):
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label', '')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:single_choice>')
             return u'\n'.join(lines) 
+        elif question.type == 'multi_choice':
+            lines = ['<pq:multi_choice %s>' % (std_attr(question, no_id))]
+            lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label', '')) for qg in get_attr_groups(question, 'answer')])
+            lines.append('</pq:multi_choice>')
+            return u'\n'.join(lines) 
         elif question.type == 'rating_group':
             lines = ['<pq:rating_group %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:sub_question name="%s" label="%s"/>' % (get_qg_attr_value(qg, 'name'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'subquestion')])
@@ -364,11 +369,6 @@ def as_text(qsheet, as_markup=False, no_ids=False):
             return u'\n'.join(lines)
         elif question.type == 'confirm':
             return '<pq:confirm %s value="%s" label="%s"/>' % (std_attr(question, no_id), get_q_attr_value(question, 'further.value', ''), get_q_attr_value(question, 'further.label', ''))
-        elif question.type == 'multichoice':
-            lines = ['<pq:multichoice %s>' % (std_attr(question, no_id))]
-            lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
-            lines.append('</pq:multichoice>')
-            return u'\n'.join(lines) 
         elif question.type == 'multichoice_group':
             lines = ['<pq:multichoice_group %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:sub_question name="%s" label="%s"/>' % (get_qg_attr_value(qg, 'name'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'subquestion')])

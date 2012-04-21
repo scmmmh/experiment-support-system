@@ -243,7 +243,7 @@ def init_test_data(DBSession):
         qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>The fourth page demonstrates the multi-choice elements</p>', order=0))
         question.attributes.append(qa_group)
         qsheet4.questions.append(question)
-        question = Question(type='multichoice', name='multi_1', title='The pq:rating question lets the user select a value from a scale', required=False, help='', order=1)
+        question = Question(type='multi_choice', name='multi_1', title='The pq:multi_choice question lets the user select a value from a scale', required=False, help='', order=1)
         qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
         qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='0', order=0))
         qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='1', order=1))
