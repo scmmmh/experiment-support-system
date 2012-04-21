@@ -25,10 +25,8 @@
               <xs:element name="time" type="qs:Question"/>
               <xs:element name="datetime" type="qs:Question"/>
               <xs:element name="month" type="qs:Question"/>
-              <xs:element name="rating" type="qs:MultiAnswerQuestion"/>
+              <xs:element name="single_choice" type="qs:SingleChoiceQuestion"/>
               <xs:element name="rating_group" type="qs:MultiAnswerMultiQuestionQuestion"/>
-              <xs:element name="single_list" type="qs:MultiAnswerQuestion"/>
-              <xs:element name="single_select" type="qs:MultiAnswerQuestion"/>
               <xs:element name="confirm" type="qs:ConfirmQuestion"/>
               <xs:element name="multichoice" type="qs:MultiAnswerQuestion"/>
               <xs:element name="multichoice_group" type="qs:MultiAnswerMultiQuestionQuestion"/>
@@ -67,6 +65,17 @@
             <xs:extension base="qs:Question">
                 <xs:attribute name="value" type="xs:string"/>
                 <xs:attribute name="label" type="xs:string"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="SingleChoiceQuestion">
+        <xs:complexContent>
+            <xs:extension base="qs:Question">
+                <xs:sequence>
+                    <xs:element name="answer" type="qs:Answer" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+                <xs:attribute name="display" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

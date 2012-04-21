@@ -79,8 +79,8 @@ class QSheetVisualSchema(Schema):
 class QSheetAddQuestionSchema(Schema):
     type = compound.All(validators.OneOf(['text', 'short_text', 'long_text', 'number',
                                           'email', 'url', 'date', 'time', 'datetime',
-                                          'month', 'rating', 'rating_group', 'single_list',
-                                          'single_select', 'confirm', 'multichoice',
+                                          'month', 'single_choice', 'rating_group',
+                                          'confirm', 'multichoice',
                                           'multichoice_group', 'ranking']),
                         validators.UnicodeString(not_empty=True))
 
@@ -182,14 +182,10 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 q_type = 'datetime'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}month':
                 q_type = 'month'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}rating':
-                q_type = 'rating'
+            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_choice':
+                q_type = 'single_choice'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}rating_group':
                 q_type = 'rating_group'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_list':
-                q_type = 'single_list'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_select':
-                q_type = 'single_select'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}confirm':
                 q_type = 'confirm'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}multichoice':
@@ -251,7 +247,14 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 set_quest_attr_value(question, 'further.label', item.attrib['label'])
             else:
                 set_quest_attr_value(question, 'further.label', None)
-        if q_type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
+        elif q_type == 'single_choice':
+            if 'display' in item.attrib:
+                if item.attrib['display'] not in ['table', 'list', 'select']:
+                    raise api.Invalid('A single choice can only be displayed as table, list, or select.', None, None, error_dict={'content': 'A single choice can only be displayed as table, list, or select.'})
+                set_quest_attr_value(question, 'further.subtype', item.attrib['display'])
+            else:
+                set_quest_attr_value(question, 'further.subtype', 'table')
+        if q_type in ['single_choice', 'rating_group', 'multichoice', 'multichoice_group', 'ranking']:
             for attr_group in get_attr_groups(question, 'answer'):
                 dbsession.delete(attr_group)
             for idx, attr in enumerate(item):
@@ -381,7 +384,9 @@ def edit(request):
                             schema.add_field(unicode(question.id), QSheetConfirmQuestionSchema())
                         else:
                             sub_schema = QSheetBasicQuestionSchema()
-                            if question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
+                            if question.type == 'single_choice':
+                                sub_schema.add_field('display', validators.OneOf(['table', 'list', 'select']))
+                            if question.type in ['single_choice', 'rating_group', 'multichoice', 'multichoice_group', 'ranking']:
                                 sub_schema.add_field('answer', foreach.ForEach(QSheetAnswerSchema()))
                             if question.type in ['rating_group', 'multichoice_group']:
                                 sub_schema.add_field('sub_quest', foreach.ForEach(QSheetSubQuestionSchema()))
@@ -412,7 +417,9 @@ def edit(request):
                                     get_q_attr(question, 'further.value').value = q_params['value']
                                     get_q_attr(question, 'further.label').value = q_params['label']
                                 else:
-                                    if question.type in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
+                                    if question.type == 'single_choice':
+                                        get_q_attr(question, 'further.subtype').value = q_params['display']
+                                    if question.type in ['single_choice', 'rating_group', 'multichoice', 'multichoice_group', 'ranking']:
                                         new_answers = q_params['answer']
                                         new_answers.sort(key=lambda a: a['order'])
                                         old_answers = get_attr_groups(question, 'answer')
@@ -486,7 +493,7 @@ def edit_add_question(request):
                         qag = QuestionAttributeGroup(key='text', order=0)
                         qag.attributes.append(QuestionAttribute(key='text', value='<p>Double-click here to edit the text.</p>', order=0))
                         question.attributes.append(qag)
-                    elif params['type'] in['number', 'confirm']:
+                    elif params['type'] in['number', 'confirm', 'single_choice']:
                         qag = QuestionAttributeGroup(key='further', order=0)
                         if params['type'] == 'number':
                             qag.attributes.append(QuestionAttribute(key='min'))
@@ -494,8 +501,10 @@ def edit_add_question(request):
                         elif params['type'] == 'confirm':
                             qag.attributes.append(QuestionAttribute(key='value'))
                             qag.attributes.append(QuestionAttribute(key='label'))
+                        elif params['type'] == 'single_choice':
+                            qag.attributes.append(QuestionAttribute(key='subtype', value='table'))
                         question.attributes.append(qag)
-                    if params['type'] in ['rating', 'rating_group', 'single_list', 'single_select', 'multichoice', 'multichoice_group', 'ranking']:
+                    if params['type'] in ['single_choice', 'rating_group', 'multichoice', 'multichoice_group', 'ranking']:
                         qag = QuestionAttributeGroup(key='answer', order=0)
                         qag.attributes.append(QuestionAttribute(key='value'))
                         qag.attributes.append(QuestionAttribute(key='label'))

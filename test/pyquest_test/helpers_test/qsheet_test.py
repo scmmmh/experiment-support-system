@@ -11,7 +11,7 @@ from pyquest.helpers.qsheet import (substitute, extract_choices, number_input,
                                     email_input, url_input, date_input,
                                     time_input, datetime_input, month_input,
                                     short_text_input, long_text_input,
-                                    rating, rating_group, listchoice,
+                                    single_table, rating_group, listchoice,
                                     selectchoice, multichoice, multichoice_group,
                                     confirm, ranking)
 
@@ -23,19 +23,19 @@ def substitute_test():
     eq_('I am 4 years old', substitute('I am ${nr} years old', {'nr': 4}))
 
 def extract_choices_test():
-    element = fromstring('<pq:rating xmlns:pq="http://paths.sheffield.ac.uk/pyquest"/>')
+    element = fromstring('<pq:single_table xmlns:pq="http://paths.sheffield.ac.uk/pyquest"/>')
     choices = extract_choices(element)
     eq_(5, len(choices))
     eq_([('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5')], choices)
-    element = fromstring('<pq:rating hide_extra_labels="true" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"/>')
+    element = fromstring('<pq:single_table hide_extra_labels="true" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"/>')
     choices = extract_choices(element)
     eq_(5, len(choices))
     eq_([('1', '1'), ('2', ''), ('3', ''), ('4', ''), ('5', '5')], choices)
-    element = fromstring('<pq:rating min_value="1" min_title="Not at all" max_value="9" max_title="Very" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"/>')
+    element = fromstring('<pq:single_table min_value="1" min_title="Not at all" max_value="9" max_title="Very" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"/>')
     choices = extract_choices(element)
     eq_(9, len(choices))
     eq_([('1', 'Not at all'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6'), ('7', '7'), ('8', '8'), ('9', 'Very')], choices)
-    element = fromstring('<pq:rating xmlns:pq="http://paths.sheffield.ac.uk/pyquest"><pq:option value="1" title="Not at all"/><pq:option value="2"/><pq:option value="3"/><pq:option value="4"/><pq:option value="5" title="Perfectly"/></pq:rating>')
+    element = fromstring('<pq:single_table xmlns:pq="http://paths.sheffield.ac.uk/pyquest"><pq:option value="1" title="Not at all"/><pq:option value="2"/><pq:option value="3"/><pq:option value="4"/><pq:option value="5" title="Perfectly"/></pq:single_table>')
     choices = extract_choices(element)
     eq_(5, len(choices))
     eq_([('1', 'Not at all'), ('2', ''), ('3', ''), ('4', ''), ('5', 'Perfectly')], choices)
@@ -113,21 +113,21 @@ def long_text_input_test():
         tags.generate().render('xhtml'))
 
 def rating_test():
-    """Tests that the rating element is generated correctly."""
-    element = fromstring('<pq:rating name="rating" title="Rate this" min_value="1" min_title="First" max_value="3" max_title="Last" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"/>')
-    tags = rating(element, {'did': 1}, None)
-    eq_('<section class="question rating"><hgroup><h1>Rate this</h1></hgroup><table><thead><tr><th>First</th><th>2</th><th>Last</th></tr></thead><tbody><tr><td><input type="radio" name="items.1.rating" value="1" /></td><td><input type="radio" name="items.1.rating" value="2" /></td><td><input type="radio" name="items.1.rating" value="3" /></td></tr></tbody></table></section>',
+    """Tests that the single_table element is generated correctly."""
+    element = fromstring('<pq:single_table name="single_table" title="Rate this" min_value="1" min_title="First" max_value="3" max_title="Last" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"/>')
+    tags = single_table(element, {'did': 1}, None)
+    eq_('<section class="question single_table"><hgroup><h1>Rate this</h1></hgroup><table><thead><tr><th>First</th><th>2</th><th>Last</th></tr></thead><tbody><tr><td><input type="radio" name="items.1.single_table" value="1" /></td><td><input type="radio" name="items.1.single_table" value="2" /></td><td><input type="radio" name="items.1.single_table" value="3" /></td></tr></tbody></table></section>',
         tags.generate().render('xhtml'))
-    element = fromstring('<pq:rating name="rating" title="Rate this" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"><pq:option value="1" title="First"/><pq:option value="2"/><pq:option value="3" title="Last"/></pq:rating>')
-    tags = rating(element, {'did': 1}, None)
-    eq_('<section class="question rating"><hgroup><h1>Rate this</h1></hgroup><table><thead><tr><th>First</th><th></th><th>Last</th></tr></thead><tbody><tr><td><input type="radio" name="items.1.rating" value="1" /></td><td><input type="radio" name="items.1.rating" value="2" /></td><td><input type="radio" name="items.1.rating" value="3" /></td></tr></tbody></table></section>',
+    element = fromstring('<pq:single_table name="single_table" title="Rate this" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"><pq:option value="1" title="First"/><pq:option value="2"/><pq:option value="3" title="Last"/></pq:single_table>')
+    tags = single_table(element, {'did': 1}, None)
+    eq_('<section class="question single_table"><hgroup><h1>Rate this</h1></hgroup><table><thead><tr><th>First</th><th></th><th>Last</th></tr></thead><tbody><tr><td><input type="radio" name="items.1.single_table" value="1" /></td><td><input type="radio" name="items.1.single_table" value="2" /></td><td><input type="radio" name="items.1.single_table" value="3" /></td></tr></tbody></table></section>',
         tags.generate().render('xhtml'))
 
 def rating_group_test():
-    """Tests that the rating element is generated correctly."""
-    element = fromstring('<pq:rating_group name="rating" title="Rate this" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"><pq:option value="1" title="First"/><pq:option value="2"/><pq:option value="3" title="Last"/><pq:rating name="q1" title="Question 1"/><pq:rating name="q2" title="Question 2"/></pq:rating_group>')
+    """Tests that the single_table element is generated correctly."""
+    element = fromstring('<pq:rating_group name="single_table" title="Rate this" xmlns:pq="http://paths.sheffield.ac.uk/pyquest"><pq:option value="1" title="First"/><pq:option value="2"/><pq:option value="3" title="Last"/><pq:single_table name="q1" title="Question 1"/><pq:single_table name="q2" title="Question 2"/></pq:rating_group>')
     tags = rating_group(element, {'did': 1}, None)
-    eq_('<section class="question rating_group"><hgroup><h1>Rate this</h1></hgroup><table><thead><tr><th></th><th>First</th><th></th><th>Last</th></tr></thead><tbody><tr><th>Question 1</th><td><input type="radio" name="items.1.rating.q1" value="1" /></td><td><input type="radio" name="items.1.rating.q1" value="2" /></td><td><input type="radio" name="items.1.rating.q1" value="3" /></td></tr><tr><th>Question 2</th><td><input type="radio" name="items.1.rating.q2" value="1" /></td><td><input type="radio" name="items.1.rating.q2" value="2" /></td><td><input type="radio" name="items.1.rating.q2" value="3" /></td></tr></tbody></table></section>',
+    eq_('<section class="question rating_group"><hgroup><h1>Rate this</h1></hgroup><table><thead><tr><th></th><th>First</th><th></th><th>Last</th></tr></thead><tbody><tr><th>Question 1</th><td><input type="radio" name="items.1.single_table.q1" value="1" /></td><td><input type="radio" name="items.1.single_table.q1" value="2" /></td><td><input type="radio" name="items.1.single_table.q1" value="3" /></td></tr><tr><th>Question 2</th><td><input type="radio" name="items.1.single_table.q2" value="1" /></td><td><input type="radio" name="items.1.single_table.q2" value="2" /></td><td><input type="radio" name="items.1.single_table.q2" value="3" /></td></tr></tbody></table></section>',
         tags.generate().render('xhtml'))
 
 def listchoice_test():

@@ -86,14 +86,10 @@ def question_type_title(q_type):
         return 'Date & Time input'
     elif q_type == 'month':
         return 'Month input'
-    elif q_type == 'rating':
-        return 'Rating'
+    elif q_type == 'single_choice':
+        return 'Single choice'
     elif q_type == 'rating_group':
         return 'Rating grid'
-    elif q_type == 'single_list':
-        return 'List single choice'
-    elif q_type == 'single_select':
-        return 'Select single choice'
     elif q_type == 'confirm':
         return 'Confirmation checkbox'
     elif q_type == 'multichoice':
@@ -140,8 +136,14 @@ def display(question, item, e, csrf_token=None):
         return datetime_input(question, item, e)
     elif question.type == 'month':
         return month_input(question, item, e)
-    elif question.type == 'rating':
-        return rating(question, item, e)
+    elif question.type == 'single_choice':
+        subtype = get_q_attr_value(question, 'further.subtype', 'table')
+        if subtype == 'table':
+            return single_table(question, item, e)
+        elif subtype == 'list':
+            return single_list(question, item, e)
+        elif subtype == 'select':
+            return single_select(question, item, e)
     elif question.type == 'rating_group':
         return rating_group(question, item, e)
     elif question.type == 'single_list':
@@ -213,7 +215,7 @@ def month_input(question, item, e):
     return tag.p(form.month_field('items.%s.%s' % (item['did'], question.name), '' , e))
 
 @question()
-def rating(question, item, e):
+def single_table(question, item, e):
     rows = []
     answers = get_attr_groups(question, 'answer')
     rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))))
@@ -350,10 +352,10 @@ def as_text(qsheet, as_markup=False, no_ids=False):
             return '<pq:datetime %s/>' % (std_attr(question, no_id))
         elif question.type == 'month':
             return '<pq:month %s/>' % (std_attr(question, no_id))
-        elif question.type == 'rating':
-            lines = ['<pq:rating %s>' % (std_attr(question, no_id))]
-            lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
-            lines.append('</pq:rating>')
+        elif question.type == 'single_choice':
+            lines = ['<pq:single_choice %s display="%s">' % (std_attr(question, no_id), get_q_attr_value(question, 'further.subtype', 'table'))]
+            lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label', '')) for qg in get_attr_groups(question, 'answer')])
+            lines.append('</pq:single_choice>')
             return u'\n'.join(lines) 
         elif question.type == 'rating_group':
             lines = ['<pq:rating_group %s>' % (std_attr(question, no_id))]
@@ -361,16 +363,6 @@ def as_text(qsheet, as_markup=False, no_ids=False):
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:rating_group>')
             return u'\n'.join(lines)
-        elif question.type == 'single_list':
-            lines = ['<pq:single_list %s>' % (std_attr(question, no_id))]
-            lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
-            lines.append('</pq:single_list>')
-            return u'\n'.join(lines) 
-        elif question.type == 'single_select':
-            lines = ['<pq:single_select %s>' % (std_attr(question, no_id))]
-            lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
-            lines.append('</pq:single_select>')
-            return u'\n'.join(lines) 
         elif question.type == 'confirm':
             return '<pq:confirm %s value="%s" label="%s"/>' % (std_attr(question, no_id), get_q_attr_value(question, 'further.value', ''), get_q_attr_value(question, 'further.label', ''))
         elif question.type == 'multichoice':

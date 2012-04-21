@@ -76,14 +76,10 @@
                     q_type = 'datetime';
                 } else if(dropped_type == 'Month') {
                     q_type = 'month';
-                } else if(dropped_type == 'Rating') {
-                    q_type = 'rating';
+                } else if(dropped_type == 'Single choice') {
+                    q_type = 'single_choice';
                 } else if(dropped_type == 'Rating grid') {
                     q_type = 'rating_group';
-                } else if(dropped_type == 'List') {
-                    q_type = 'single_list';
-                } else if(dropped_type == 'Select') {
-                    q_type = 'single_select';
                 } else if(dropped_type == 'Confirmation') {
                     q_type = 'confirm';
                 } else if(dropped_type == 'Multiple choice') {
@@ -274,13 +270,11 @@
               </ol>
               <h3><a href="#">Rating</a></h3>
               <ol>
-                <li>Rating</li>
                 <li>Rating grid</li>
               </ol>
-              <h3><a href="#">Single choice</a></h3>
+              <h3><a href="#">Choice</a></h3>
               <ol>
-                <li>List</li>
-                <li>Select</li>
+                <li>Single choice</li>
               </ol>
               <h3><a href="#">Multiple choice</a></h3>
               <ol>

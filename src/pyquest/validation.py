@@ -176,7 +176,7 @@ class DynamicSchema(Schema):
                 self.add_field(question.name, augment(validators.URL(), question))
             elif question.type in ['date', 'time', 'datetime', 'month']:
                 self.add_field(question.name, augment(DateTimeValidator(question.type), question))
-            elif question.type in ['rating', 'single_list', 'single_select']:
+            elif question.type == 'single_choice':
                 values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 self.add_field(question.name, augment(validators.OneOf(values, hideList=True), question))
             elif question.type == 'rating_group':
