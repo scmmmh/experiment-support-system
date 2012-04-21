@@ -247,7 +247,7 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 set_quest_attr_value(question, 'further.label', item.attrib['label'])
             else:
                 set_quest_attr_value(question, 'further.label', None)
-        elif q_type == 'single_choice':
+        elif q_type in ['single_choice', 'multi_choice']:
             if 'display' in item.attrib:
                 if item.attrib['display'] not in ['table', 'list', 'select']:
                     raise api.Invalid('A single choice can only be displayed as table, list, or select.', None, None, error_dict={'content': 'A single choice can only be displayed as table, list, or select.'})
@@ -384,7 +384,7 @@ def edit(request):
                             schema.add_field(unicode(question.id), QSheetConfirmQuestionSchema())
                         else:
                             sub_schema = QSheetBasicQuestionSchema()
-                            if question.type == 'single_choice':
+                            if question.type in ['single_choice', 'multi_choice']:
                                 sub_schema.add_field('display', validators.OneOf(['table', 'list', 'select']))
                             if question.type in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
                                 sub_schema.add_field('answer', foreach.ForEach(QSheetAnswerSchema()))
@@ -417,8 +417,8 @@ def edit(request):
                                     get_q_attr(question, 'further.value').value = q_params['value']
                                     get_q_attr(question, 'further.label').value = q_params['label']
                                 else:
-                                    if question.type == 'single_choice':
-                                        get_q_attr(question, 'further.subtype').value = q_params['display']
+                                    if question.type in ['single_choice', 'multi_choice']:
+                                        set_quest_attr_value(question, 'further.subtype', q_params['display'])
                                     if question.type in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
                                         new_answers = q_params['answer']
                                         new_answers.sort(key=lambda a: a['order'])
