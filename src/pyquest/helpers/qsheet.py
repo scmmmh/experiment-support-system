@@ -226,22 +226,6 @@ def single_table(question, item, e):
     return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
 
 @question()
-def rating_group(question, item, e):
-    answers = get_attr_groups(question, 'answer')
-    rows = []
-    field_names = ['items.%s.%s' % (item['did'], question.name)]
-    for sub_question in get_attr_groups(question, 'subquestion'):
-        rows.append(tag.tr(tag.th(get_qg_attr_value(sub_question, 'label')),
-                           map(lambda a: tag.td(tag.input(type='radio',
-                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')),
-                                                          value=get_qg_attr_value(a, 'value'))),
-                               answers)))
-        field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')))
-    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))),
-                                        tag.tbody(rows)),
-                              field_names, e)
-
-@question()
 def single_list(question, item, e):
     items = []
     answers = get_attr_groups(question, 'answer')
@@ -264,6 +248,22 @@ def single_select(question, item, e):
                                                name='items.%s.%s' % (item['did'], question.name))),
                               'items.%s.%s' % (item['did'], question.name),
                               e)
+
+@question()
+def rating_group(question, item, e):
+    answers = get_attr_groups(question, 'answer')
+    rows = []
+    field_names = ['items.%s.%s' % (item['did'], question.name)]
+    for sub_question in get_attr_groups(question, 'subquestion'):
+        rows.append(tag.tr(tag.th(get_qg_attr_value(sub_question, 'label')),
+                           map(lambda a: tag.td(tag.input(type='radio',
+                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')),
+                                                          value=get_qg_attr_value(a, 'value'))),
+                               answers)))
+        field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')))
+    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))),
+                                        tag.tbody(rows)),
+                              field_names, e)
 
 @question()
 def confirm(question, item, e):
