@@ -146,10 +146,6 @@ def display(question, item, e, csrf_token=None):
             return single_select(question, item, e)
     elif question.type == 'rating_group':
         return rating_group(question, item, e)
-    elif question.type == 'single_list':
-        return single_list(question, item, e)
-    elif question.type == 'single_select':
-        return single_select(question, item, e)
     elif question.type == 'confirm':
         return confirm(question, item, e)
     elif question.type == 'multi_choice':
