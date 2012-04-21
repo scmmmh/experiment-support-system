@@ -250,9 +250,8 @@ def single_list(question, item, e):
                            id='items.%s.%s-%i' % (item['did'], question.name, idx),
                            name='items.%s.%s' % (item['did'], question.name),
                            value=get_qg_attr_value(answer, 'value'))]
-        if get_qg_attr_value(answer, 'value').strip() != '':
-            parts.append(tag.label(get_qg_attr_value(answer, 'value'),
-                                   for_='items.%s.%s-%i' % (item['did'], question.name, idx)))
+        parts.append(tag.label(get_qg_attr_value(answer, 'label'),
+                               for_='items.%s.%s-%i' % (item['did'], question.name, idx)))
         items.append(tag.li(parts))
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)
 
