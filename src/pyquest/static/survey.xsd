@@ -27,9 +27,9 @@
               <xs:element name="month" type="qs:Question"/>
               <xs:element name="single_choice" type="qs:MultiAnswerDisplayQuestion"/>
               <xs:element name="multi_choice" type="qs:MultiAnswerDisplayQuestion"/>
-              <xs:element name="rating_group" type="qs:MultiAnswerMultiQuestionQuestion"/>
+              <xs:element name="single_choice_grid" type="qs:MultiAnswerMultiQuestionQuestion"/>
               <xs:element name="confirm" type="qs:ConfirmQuestion"/>
-              <xs:element name="multichoice_group" type="qs:MultiAnswerMultiQuestionQuestion"/>
+              <xs:element name="multi_choice_grid" type="qs:MultiAnswerMultiQuestionQuestion"/>
               <xs:element name="ranking" type="qs:MultiAnswerQuestion"/>
             </xs:choice>
         </xs:sequence>
