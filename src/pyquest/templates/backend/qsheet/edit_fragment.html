@@ -63,6 +63,10 @@
             </ul>
           </dd>
         </py:if>
+        <py:if test="question.type in ['single_choice', 'multi_choice']">
+          <dt>Allow other answers</dt>
+          <dd>${h.form.select('%i.allow_other' % (question.id), h.qsheet.get_q_attr_value(question, 'further.allow_other'), [('no', 'No'), ('single', 'Yes')], e)}</dd>
+        </py:if>
         <py:if test="question.type in ['rating_group', 'multichoice_group']">
           <dt>Sub-questions</dt>
           <dd>

@@ -76,6 +76,7 @@
                     <xs:element name="answer" type="qs:Answer" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:sequence>
                 <xs:attribute name="display" type="xs:string"/>
+                <xs:attribute name="allow_other" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

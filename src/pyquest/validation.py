@@ -89,6 +89,55 @@ class DateTimeValidator(FancyValidator):
                     return 12
         raise Invalid('Invalid validation type', value, state)
 
+class ChoiceValidator(FancyValidator):
+
+    def __init__(self, values, allow_multiple, allow_other, **kwargs):
+        FancyValidator.__init__(self, **kwargs)
+        self.values = values
+        self.allow_multiple = allow_multiple
+        self.allow_other = allow_other
+        if self.allow_other:
+            self.values.append('_other')
+
+    def _to_python(self, value, state):
+        if 'answer' not in value:
+            if self.not_empty:
+                raise Invalid('Please provide an answer', value, state)
+            elif self.if_missing:
+                if self.allow_multiple:
+                    return [self.if_missing]
+                else:
+                    return self.if_missing
+                return None
+            else:
+                return None
+        answer = value['answer']
+        if isinstance(answer, list):
+            if not self.allow_multiple:
+                raise Invalid('Please only select a single value', answer, state)
+            for a in answer:
+                if a not in self.values:
+                    raise Invalid('Please only select valid values', answer, state)
+            if '_other' in answer:
+                answer.remove('_other')
+                if self.not_empty and ('other' not in value or value['other'].strip() == ''):
+                    raise Invalid('Please provide an other value', answer, state)
+                answer.append(value['other'])
+            else:
+                if 'other' in value and value['other'].strip() != '':
+                    raise Invalid('If you wish to provide an other value, please select the Other option', answer, state)
+        else:
+            if answer not in self.values:
+                raise Invalid('Please select a valid value', answer, state)
+            if answer == '_other':
+                if self.not_empty and ('other' not in value or value['other'].strip() == ''):
+                    raise Invalid('Please provide an other value', answer, state)
+                answer = value['other']
+            else:
+                if 'other' in value and value['other'].strip() != '':
+                    raise Invalid('If you wish to provide an other value, please select the Other option', answer, state)
+        return answer
+    
 class RankingValidator(FancyValidator):
     
     messages = {'out-of-range': 'You must rank all values between %(min)i and %(max)i.'}
@@ -177,8 +226,14 @@ class DynamicSchema(Schema):
             elif question.type in ['date', 'time', 'datetime', 'month']:
                 self.add_field(question.name, augment(DateTimeValidator(question.type), question))
             elif question.type == 'single_choice':
-                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
-                self.add_field(question.name, augment(validators.OneOf(values, hideList=True), question))
+                self.add_field(question.name, augment(ChoiceValidator([get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')],
+                                                                      False,
+                                                                      get_q_attr_value(question, 'further.allow_other', 'no') == 'single'),
+                                                      question))
+            elif question.type == 'multi_choice':
+                self.add_field(question.name, augment(ChoiceValidator([get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')],
+                                                                      True,
+                                                                      get_q_attr_value(question, 'further.allow_other', 'no') == 'single'), question))
             elif question.type == 'rating_group':
                 values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 sub_schema = DynamicSchema([])
@@ -187,9 +242,6 @@ class DynamicSchema(Schema):
                 self.add_field(question.name, augment(sub_schema, question))
             elif question.type == 'confirm':
                 self.add_field(question.name, augment(validators.UnicodeString(), question, missing_value=None))
-            elif question.type == 'multi_choice':
-                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
-                self.add_field(question.name, augment(validators.OneOf(values, hideList=True, testValueList=True), question))
             elif question.type == 'multichoice_group':
                 values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 sub_schema = DynamicSchema([])

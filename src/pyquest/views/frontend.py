@@ -253,7 +253,7 @@ def run_survey(request):
                                     else:
                                         answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
                                                                          value=None))
-                            elif question.type == 'multichoice':
+                            elif question.type == 'multi_choice':
                                 answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name]
                                 if isinstance(answer_list, list):
                                     for value in answer_list:

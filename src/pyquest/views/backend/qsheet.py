@@ -250,10 +250,16 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
         elif q_type in ['single_choice', 'multi_choice']:
             if 'display' in item.attrib:
                 if item.attrib['display'] not in ['table', 'list', 'select']:
-                    raise api.Invalid('A single choice can only be displayed as table, list, or select.', None, None, error_dict={'content': 'A single choice can only be displayed as table, list, or select.'})
+                    raise api.Invalid('A choice can only be displayed as table, list, or select.', None, None, error_dict={'content': 'A single choice can only be displayed as table, list, or select.'})
                 set_quest_attr_value(question, 'further.subtype', item.attrib['display'])
             else:
                 set_quest_attr_value(question, 'further.subtype', 'table')
+            if 'allow_other' in item.attrib:
+                if item.attrib['allow_other'] not in ['no', 'single']:
+                    raise api.Invalid('The allow_other attribute must be either "no" or "single"', None, None, error_dict={'content': 'The allow_other attribute must be either "no" or "single"'})
+                set_quest_attr_value(question, 'further.allow_other', item.attrib['allow_other'])
+            else:
+                set_quest_attr_value(question, 'further.allow_other', 'no')
         if q_type in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
             for attr_group in get_attr_groups(question, 'answer'):
                 dbsession.delete(attr_group)
@@ -386,6 +392,7 @@ def edit(request):
                             sub_schema = QSheetBasicQuestionSchema()
                             if question.type in ['single_choice', 'multi_choice']:
                                 sub_schema.add_field('display', validators.OneOf(['table', 'list', 'select']))
+                                sub_schema.add_field('allow_other', validators.OneOf(['no', 'single']))
                             if question.type in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
                                 sub_schema.add_field('answer', foreach.ForEach(QSheetAnswerSchema()))
                             if question.type in ['rating_group', 'multichoice_group']:
@@ -419,6 +426,7 @@ def edit(request):
                                 else:
                                     if question.type in ['single_choice', 'multi_choice']:
                                         set_quest_attr_value(question, 'further.subtype', q_params['display'])
+                                        set_quest_attr_value(question, 'further.allow_other', q_params['allow_other'])
                                     if question.type in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
                                         new_answers = q_params['answer']
                                         new_answers.sort(key=lambda a: a['order'])

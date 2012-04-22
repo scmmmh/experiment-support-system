@@ -13,7 +13,7 @@ from pyquest.helpers.results import fix_na, get_d_attr_value
 from pyquest.models import (DBSession, Survey)
 from pyquest.renderer import render
 from pyquest.helpers.qsheet import get_attr_groups, get_qg_attr_value,\
-    get_qs_attr_value
+    get_qs_attr_value, get_q_attr_value
 
 @view_config(route_name='survey.results')
 @render({'text/html': 'backend/results/index.html'})
@@ -119,13 +119,19 @@ def participant(request):
                 has_data_items = safe_int(get_qs_attr_value(qsheet, 'data-items')) > 0
                 for question in qsheet.questions:
                     if question.type != 'text':
-                        if question.type in ['multichoice', 'ranking']:
+                        if question.type in ['multi_choice', 'ranking']:
                             for sub_answer in get_attr_groups(question, 'answer'):
                                 if has_data_items:
                                     for data_item in survey.data_items:
                                         columns.append('%s.%s.%s.%s' % (qsheet.name, question.name, get_qg_attr_value(sub_answer, 'value'), get_data_identifier(data_item, data_identifier)))
                                 else:
                                     columns.append('%s.%s.%s' % (qsheet.name, question.name, get_qg_attr_value(sub_answer, 'value')))
+                            if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
+                                if has_data_items:
+                                    for data_item in survey.data_items:
+                                        columns.append('%s.%s._other.%s' % (qsheet.name, question.name, get_data_identifier(data_item, data_identifier)))
+                                else:
+                                    columns.append('%s.%s._other' % (qsheet.name, question.name))
                         elif question.type in ['rating_group', 'multichoice_group']:
                             for sub_quest in get_attr_groups(question, 'subquestion'):
                                 if question.type == 'multichoice_group':
@@ -165,12 +171,17 @@ def participant(request):
                                 row['%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, get_data_identifier(answer.data_item, data_identifier))] = fix_na(answer_value.value)
                             else:
                                 row['%s.%s.%s' % (qsheet.name, question.name, answer_value.name)] = fix_na(answer_value.value)
-                        elif question.type == 'multichoice':
+                        elif question.type == 'multi_choice':
                             if answer_value.value:
                                 if has_data_items:
                                     row['%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.value, get_data_identifier(answer.data_item, data_identifier))] = 1
                                 else:
                                     row['%s.%s.%s' % (qsheet.name, question.name, answer_value.value)] = 1
+                                if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
+                                    if has_data_items:
+                                        row['%s.%s._other.%s' % (qsheet.name, question.name, get_data_identifier(answer.data_item, data_identifier))] = 1
+                                    else:
+                                        row['%s.%s._other' % (qsheet.name, question.name)] = answer_value.value
                         elif question.type == 'multichoice_group':
                             if answer_value.value:
                                 if has_data_items:

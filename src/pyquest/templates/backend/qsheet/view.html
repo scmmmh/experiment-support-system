@@ -9,21 +9,7 @@
     <style type="text/css">${qsheet.styles}</style>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
-    <script type="text/javascript">
-    $(document).ready(function() {
-    	$('.question.ranking ul select').hide();
-    	$('.question.ranking ul').sortable({
-    		update: function(e, ui) {
-    			var items = $(this).sortable('toArray');
-    			for(var idx in items) {
-    				var id = '#' + items[idx].replace(/\./g, '\\.');
-    				id = id.substring(0, id.length - 5);
-    				$(id).val(idx);
-    			}
-    		}
-    	});
-    });
-    </script>
+    <script type="text/javascript" src="${r.static_url('pyquest:static/js/frontend.js')}"></script>
     <script type="text/javascript">${survey.scripts}</script>
     <script type="text/javascript">${qsheet.scripts}</script>
   </head>

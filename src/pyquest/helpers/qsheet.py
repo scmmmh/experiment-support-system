@@ -139,19 +139,19 @@ def display(question, item, e, csrf_token=None):
     elif question.type == 'single_choice':
         subtype = get_q_attr_value(question, 'further.subtype', 'table')
         if subtype == 'table':
-            return single_table(question, item, e)
+            return choice_table(question, item, e)
         elif subtype == 'list':
-            return single_list(question, item, e)
+            return choice_list(question, item, e)
         elif subtype == 'select':
-            return single_select(question, item, e)
+            return choice_select(question, item, e)
     elif question.type == 'multi_choice':
         subtype = get_q_attr_value(question, 'further.subtype', 'table')
         if subtype == 'table':
-            return multi_table(question, item, e)
+            return choice_table(question, item, e, multiple=True)
         elif subtype == 'list':
-            return multi_list(question, item, e)
+            return choice_list(question, item, e, multiple=True)
         elif subtype == 'select':
-            return multi_select(question, item, e)
+            return choice_select(question, item, e, multiple=True)
     elif question.type == 'rating_group':
         return rating_group(question, item, e)
     elif question.type == 'confirm':
@@ -164,8 +164,8 @@ def display(question, item, e, csrf_token=None):
         return question.type
 
 def question():
-    def wrapper(f, question, item, e):
-        tags = f(question, item, e)
+    def wrapper(f, question, item, e, *args, **kwargs):
+        tags = f(question, item, e, *args, **kwargs)
         if not isinstance(tags, list):
             tags = [tags]
         if question.title:
@@ -217,37 +217,74 @@ def month_input(question, item, e):
     return tag.p(form.month_field('items.%s.%s' % (item['did'], question.name), '' , e))
 
 @question()
-def single_table(question, item, e):
+def choice_table(question, item, e, multiple=False):
+    if multiple:
+        render_type = 'checkbox'
+    else:
+        render_type = 'radio'
     rows = []
     answers = get_attr_groups(question, 'answer')
-    rows.append(tag.thead(tag.tr(map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))))
-    rows.append(tag.tbody(tag.tr(map(lambda a: tag.td(tag.input(type='radio',
-                                                                name='items.%s.%s' % (item['did'], question.name),
-                                                                value=get_qg_attr_value(a, 'value'))),
-                                     answers))))
+    headers = map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers)
+    values = map(lambda a: tag.td(tag.input(type=render_type,
+                                            name='items.%s.%s.answer' % (item['did'], question.name),
+                                            value=get_qg_attr_value(a, 'value'))),
+                 answers)
+    if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
+        headers.append(tag.th('Other'))
+        values.append(tag.td(tag.input(type=render_type,
+                                       name='items.%s.%s.answer' % (item['did'], question.name),
+                                       value='_other'),
+                             tag.input(type='text',
+                                       name='items.%s.%s.other' % (item['did'], question.name),
+                                       class_='role-other-text')))
+    rows.append(tag.thead(tag.tr(headers)))
+    rows.append(tag.tbody(tag.tr(values)))
     return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
 
 @question()
-def single_list(question, item, e):
+def choice_list(question, item, e, multiple=False):
+    if multiple:
+        render_type = 'checkbox'
+    else:
+        render_type = 'radio'
     items = []
     answers = get_attr_groups(question, 'answer')
     for idx, answer in enumerate(answers):
-        parts = [tag.input(type='radio',
+        parts = [tag.input(type=render_type,
                            id='items.%s.%s-%i' % (item['did'], question.name, idx),
-                           name='items.%s.%s' % (item['did'], question.name),
-                           value=get_qg_attr_value(answer, 'value'))]
-        parts.append(tag.label(get_qg_attr_value(answer, 'label'),
-                               for_='items.%s.%s-%i' % (item['did'], question.name, idx)))
+                           name='items.%s.%s.answer' % (item['did'], question.name),
+                           value=get_qg_attr_value(answer, 'value')),
+                 tag.label(get_qg_attr_value(answer, 'label', ''),
+                           for_='items.%s.%s-%i' % (item['did'], question.name, idx))]
         items.append(tag.li(parts))
+    if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
+        items.append(tag.li(tag.input(type=render_type,
+                                      name='items.%s.%s.answer' % (item['did'], question.name),
+                                      value='_other'
+                                      ),
+                            tag.input(type='text',
+                                      name='items.%s.%s.other' % (item['did'], question.name),
+                                      class_='role-other-text')))
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)
 
 @question()
-def single_select(question, item, e):
+def choice_select(question, item, e, multiple=False):
     answers = get_attr_groups(question, 'answer')
     items = [tag.option(get_qg_attr_value(answer, 'label'), value=get_qg_attr_value(answer, 'value')) for answer in answers]
-    items.insert(0, tag.option('--- Please choose ---', value=''))
-    return form.error_wrapper(tag.p(tag.select(items,
-                                               name='items.%s.%s' % (item['did'], question.name))),
+    if not multiple:
+        items.insert(0, tag.option('--- Please choose ---', value=''))
+    if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
+        items.append(tag.option('--- Other ---', value='_other'))
+    if multiple:
+        para = tag.p(tag.select(items, name='items.%s.%s.answer' % (item['did'], question.name), multiple='multiple'))
+    else:
+        para = tag.p(tag.select(items, name='items.%s.%s.answer' % (item['did'], question.name)))
+    if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
+        if multiple:
+            para.append(tag.br)
+        para.append(tag.input(type='text', name='items.%s.%s.other' % (item['did'], question.name),
+                              class_='role-other-text'))
+    return form.error_wrapper(para,
                               'items.%s.%s' % (item['did'], question.name),
                               e)
 
@@ -378,12 +415,16 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         elif question.type == 'month':
             return '<pq:month %s/>' % (std_attr(question, no_id))
         elif question.type == 'single_choice':
-            lines = ['<pq:single_choice %s display="%s">' % (std_attr(question, no_id), get_q_attr_value(question, 'further.subtype', 'table'))]
+            lines = ['<pq:single_choice %s display="%s" allow_other="%s">' % (std_attr(question, no_id),
+                                                                              get_q_attr_value(question, 'further.subtype', 'table'),
+                                                                              get_q_attr_value(question, 'further.allow_other', 'no'))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label', '')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:single_choice>')
             return u'\n'.join(lines) 
         elif question.type == 'multi_choice':
-            lines = ['<pq:multi_choice %s display="%s">' % (std_attr(question, no_id), get_q_attr_value(question, 'further.subtype', 'table'))]
+            lines = ['<pq:multi_choice %s display="%s" allow_other="%s">' % (std_attr(question, no_id),
+                                                                             get_q_attr_value(question, 'further.subtype', 'table'),
+                                                                             get_q_attr_value(question, 'further.allow_other', 'no'))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label', '')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:multi_choice>')
             return u'\n'.join(lines) 

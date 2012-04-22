@@ -8,4 +8,5 @@ section.question td {min-width:45px;min-height:45px;text-align:center;vertical-a
 section.question ul, section.question ol {margin-left:0;padding-left:0;}
 section.question li {list-style-type:none;padding:1em 1.5em;}
 section.question label {padding-left:1em;}
+section.question input[type=text].role-other-text {margin-left:1em;}
 section.question ul li:nth-child(even), section.question ul li.even {background:#e5ecf9;}
