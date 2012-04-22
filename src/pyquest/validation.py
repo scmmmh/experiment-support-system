@@ -242,7 +242,7 @@ class DynamicSchema(Schema):
                 self.add_field(question.name, augment(sub_schema, question))
             elif question.type == 'confirm':
                 self.add_field(question.name, augment(validators.UnicodeString(), question, missing_value=None))
-            elif question.type == 'multichoice_group':
+            elif question.type == 'multi_choice_grid':
                 values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 sub_schema = DynamicSchema([])
                 for sub_question in get_attr_groups(question, 'subquestion'):

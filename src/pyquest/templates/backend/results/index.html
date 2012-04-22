@@ -59,14 +59,14 @@
             </thead>
             <tbody>
               <py:for each="question in qsheet.questions" py:if="question.type != 'text'">
-                <py:if test="question.type in ['single_choice_grid', 'multichoice_group']">
+                <py:if test="question.type in ['single_choice_grid', 'multi_choice_grid']">
                   <tr py:for="sub_quest in h.qsheet.get_attr_groups(question, 'subquestion')">
                     <td>${question.name}.${h.qsheet.get_qg_attr_value(sub_quest, 'name')}</td>
                     <td>${len(question.answers)}</td>
                     <td>${h.results.sample_question_answer(question, h.qsheet.get_qg_attr_value(sub_quest, 'name'))}</td>
                   </tr>
                 </py:if>
-                <py:if test="question.type not in ['single_choice_grid', 'multichoice_group']">
+                <py:if test="question.type not in ['single_choice_grid', 'multi_choice_grid']">
                   <tr>
                     <td>${question.name}</td>
                     <td>${len(question.answers)}</td>

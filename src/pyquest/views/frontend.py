@@ -260,7 +260,7 @@ def run_survey(request):
                                         answer.values.append(AnswerValue(value=value))
                                 else:
                                     answer.values.append(AnswerValue(value=answer_list))
-                            elif question.type == 'multichoice_group':
+                            elif question.type == 'multi_choice_grid':
                                 for sub_question in get_attr_groups(question, 'subquestion'):
                                     print repr(qsheet_answers)
                                     if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:

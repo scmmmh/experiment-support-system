@@ -37,8 +37,8 @@
           <dt>Display as</dt>
           <dd>${h.form.select('%i.display' % (question.id), h.qsheet.get_q_attr_value(question, 'further.subtype', 'table'), [('table', 'Horizontal table'), ('list', 'Vertical list'), ('select', 'Select box')], e)}</dd>
         </py:if>
-        <py:if test="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multichoice_group', 'ranking']">
-          <dt py:if="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multichoice_group']">Answers</dt>
+        <py:if test="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']">
+          <dt py:if="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid']">Answers</dt>
           <dt py:if="question.type == 'ranking'">Items</dt>
           <dd>
             <table>
@@ -53,7 +53,7 @@
                 <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'answer')">
                   <td>${h.form.hidden_field('%i.answer-%i.order' % (question.id, attr_group.id), attr_group.order, class_='role-answer-order')}${h.form.text_field('%i.answer-%i.value' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'value'), e)}</td>
                   <td>${h.form.text_field('%i.answer-%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
-                  <td py:if="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multichoice_group']"><a href="#" title="Remove this answer" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a></td>
+                  <td py:if="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid']"><a href="#" title="Remove this answer" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                   <td py:if="question.type == 'ranking'"><a href="#" title="Remove this item" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                 </tr>
               </tbody>
@@ -67,7 +67,7 @@
           <dt>Allow other answers</dt>
           <dd>${h.form.select('%i.allow_other' % (question.id), h.qsheet.get_q_attr_value(question, 'further.allow_other'), [('no', 'No'), ('single', 'Yes')], e)}</dd>
         </py:if>
-        <py:if test="question.type in ['single_choice_grid', 'multichoice_group']">
+        <py:if test="question.type in ['single_choice_grid', 'multi_choice_grid']">
           <dt>Sub-questions</dt>
           <dd>
             <table>

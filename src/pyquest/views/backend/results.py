@@ -132,9 +132,9 @@ def participant(request):
                                         columns.append('%s.%s._other.%s' % (qsheet.name, question.name, get_data_identifier(data_item, data_identifier)))
                                 else:
                                     columns.append('%s.%s._other' % (qsheet.name, question.name))
-                        elif question.type in ['single_choice_grid', 'multichoice_group']:
+                        elif question.type in ['single_choice_grid', 'multi_choice_grid']:
                             for sub_quest in get_attr_groups(question, 'subquestion'):
-                                if question.type == 'multichoice_group':
+                                if question.type == 'multi_choice_grid':
                                     for sub_answer in get_attr_groups(question, 'answer'):
                                         if has_data_items:
                                             for data_item in survey.data_items:
@@ -182,7 +182,7 @@ def participant(request):
                                         row['%s.%s._other.%s' % (qsheet.name, question.name, get_data_identifier(answer.data_item, data_identifier))] = 1
                                     else:
                                         row['%s.%s._other' % (qsheet.name, question.name)] = answer_value.value
-                        elif question.type == 'multichoice_group':
+                        elif question.type == 'multi_choice_grid':
                             if answer_value.value:
                                 if has_data_items:
                                     row['%s.%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, answer_value.value, get_data_identifier(answer.data_item, data_identifier))] = 1
