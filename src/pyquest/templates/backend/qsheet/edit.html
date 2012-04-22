@@ -47,6 +47,98 @@
         item.find('.role-editable-text').dblclick(function() {
         	show_text_editor($(this), item);
         });
+        item.find('a.action-remove-answer').click(function() {
+            var link = $(this);
+            var row = link.parent().parent();
+            row.fadeOut();
+            setTimeout(function() {row.remove();}, 400);
+            return false;
+        });
+        item.find('a.action-add-answer').click(function() {
+            var link = $(this);
+            var tbody = link.parent().parent().parent().find('table tbody');
+            var qid = tbody.parent().parent().parent().parent().parent().find('input.role-id').val();
+            var aid = 0;
+            var found = true;
+            while(found) {
+                if(tbody.find('input[name=\'' + qid + '.answer-' + aid + '.order\']').length == 0) {
+                    found = false;
+                } else {
+                    aid = aid + 1;
+                }
+            }
+            var row = $('<tr style="display:none;"></tr>');
+            row.append($('<td>${h.form.hidden_field('{qid}.answer-{aid}.order', '{order}', class_='role-answer-order')}${h.form.text_field('{qid}.answer-{aid}.value', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{aid}/g, aid).replace(/{order}/, tbody.children().length)));
+            row.append($('<td>${h.form.text_field('{qid}.answer-{aid}.label', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{aid}/g, aid)));
+            var remove_link = $('<a href="#" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a>');
+            remove_link.click(function() {
+                var link = $(this);
+                var row = link.parent().parent();
+                row.fadeOut();
+                setTimeout(function() {row.remove();}, 400);
+                return false;
+            });
+            var cell = $('<td></td>');
+            cell.append(remove_link);
+            row.append(cell);
+            tbody.append(row);
+            row.fadeIn();
+            tbody.sortable('reload');
+            return false;
+        });
+        item.find('tbody.role-answers').sortable({
+            update: function(ev, ui) {
+                ui.item.parent().find('input.role-answer-order').each(function(idx) {
+                    $(this).val(idx);
+                });
+            }
+        });
+        item.find('a.action-remove-subquestion').click(function() {
+            var link = $(this);
+            var row = link.parent().parent();
+            row.fadeOut();
+            setTimeout(function() {row.remove();}, 400);
+            return false;
+        });
+        item.find('a.action-add-subquestion').click(function() {
+            var link = $(this);
+            var tbody = link.parent().parent().parent().find('table tbody');
+            var qid = tbody.parent().parent().parent().parent().parent().find('input.role-id').val();
+            var sid = 0;
+            var found = true;
+            while(found) {
+                if(tbody.find('input[name=\'' + qid + '.sub_quest-' + sid + '.order\']').length == 0) {
+                    found = false;
+                } else {
+                    sid = sid + 1;
+                }
+            }
+            var row = $('<tr style="display:none;"></tr>');
+            row.append($('<td>${h.form.hidden_field('{qid}.sub_quest-{sid}.order', '{order}', class_='role-subquestion-order')}${h.form.text_field('{qid}.sub_quest-{sid}.name', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{sid}/g, sid).replace(/{order}/, tbody.children().length)));
+            row.append($('<td>${h.form.text_field('{qid}.sub_quest-{sid}.label', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{sid}/g, sid)));
+            var remove_link = $('<a href="#" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a>');
+            remove_link.click(function() {
+                var link = $(this);
+                var row = link.parent().parent();
+                row.fadeOut();
+                setTimeout(function() {row.remove();}, 400);
+                return false;
+            });
+            var cell = $('<td></td>');
+            cell.append(remove_link);
+            row.append(cell);
+            tbody.append(row);
+            row.fadeIn();
+            tbody.sortable('reload');
+            return false;
+        });
+        item.find('tbody.role-subquestions').sortable({
+            update: function(ev, ui) {
+                ui.item.parent().find('input.role-subquestion-order').each(function(idx) {
+                    $(this).val(idx);
+                });
+            }
+        });
     }
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
@@ -114,104 +206,12 @@
         		});
         	}
         });
-        $('#qsheet-content li').each(function() {
+        $('#qsheet-content li.item').each(function() {
         	init_item($(this));
         });
         $('#tools ol li').draggable({
         	helper: 'clone',
         	connectToSortable: '#qsheet-content'
-        });
-        $('#qsheet-content a.action-remove-answer').click(function() {
-        	var link = $(this);
-        	var row = link.parent().parent();
-        	row.fadeOut();
-        	setTimeout(function() {row.remove();}, 400);
-        	return false;
-        });
-        $('#qsheet-content a.action-add-answer').click(function() {
-            var link = $(this);
-            var tbody = link.parent().parent().parent().find('table tbody');
-            var qid = tbody.parent().parent().parent().parent().parent().find('input.role-id').val();
-            var aid = 0;
-            var found = true;
-            while(found) {
-                if(tbody.find('input[name=\'' + qid + '.answer-' + aid + '.order\']').length == 0) {
-                    found = false;
-                } else {
-                    aid = aid + 1;
-                }
-            }
-            var row = $('<tr style="display:none;"></tr>');
-            row.append($('<td>${h.form.hidden_field('{qid}.answer-{aid}.order', '{order}', class_='role-answer-order')}${h.form.text_field('{qid}.answer-{aid}.value', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{aid}/g, aid).replace(/{order}/, tbody.children().length)));
-            row.append($('<td>${h.form.text_field('{qid}.answer-{aid}.label', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{aid}/g, aid)));
-            var remove_link = $('<a href="#" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a>');
-            remove_link.click(function() {
-                var link = $(this);
-                var row = link.parent().parent();
-                row.fadeOut();
-                setTimeout(function() {row.remove();}, 400);
-                return false;
-            });
-            var cell = $('<td></td>');
-            cell.append(remove_link);
-            row.append(cell);
-            tbody.append(row);
-            row.fadeIn();
-            tbody.sortable('reload');
-            return false;
-        });
-        $('#qsheet-content tbody.role-answers').sortable({
-            update: function(ev, ui) {
-                ui.item.parent().find('input.role-answer-order').each(function(idx) {
-                    $(this).val(idx);
-                });
-            }
-        });
-        $('#qsheet-content a.action-remove-subquestion').click(function() {
-            var link = $(this);
-            var row = link.parent().parent();
-            row.fadeOut();
-            setTimeout(function() {row.remove();}, 400);
-            return false;
-        });
-        $('#qsheet-content a.action-add-subquestion').click(function() {
-            var link = $(this);
-            var tbody = link.parent().parent().parent().find('table tbody');
-            var qid = tbody.parent().parent().parent().parent().parent().find('input.role-id').val();
-            var sid = 0;
-            var found = true;
-            while(found) {
-                if(tbody.find('input[name=\'' + qid + '.sub_quest-' + sid + '.order\']').length == 0) {
-                    found = false;
-                } else {
-                    sid = sid + 1;
-                }
-            }
-            var row = $('<tr style="display:none;"></tr>');
-            row.append($('<td>${h.form.hidden_field('{qid}.sub_quest-{sid}.order', '{order}', class_='role-subquestion-order')}${h.form.text_field('{qid}.sub_quest-{sid}.name', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{sid}/g, sid).replace(/{order}/, tbody.children().length)));
-            row.append($('<td>${h.form.text_field('{qid}.sub_quest-{sid}.label', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{sid}/g, sid)));
-            var remove_link = $('<a href="#" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a>');
-            remove_link.click(function() {
-                var link = $(this);
-                var row = link.parent().parent();
-                row.fadeOut();
-                setTimeout(function() {row.remove();}, 400);
-                return false;
-            });
-            var cell = $('<td></td>');
-            cell.append(remove_link);
-            row.append(cell);
-            tbody.append(row);
-            row.fadeIn();
-            tbody.sortable('reload');
-            return false;
-        });
-        $('#qsheet-content tbody.role-subquestions').sortable({
-            update: function(ev, ui) {
-                ui.item.parent().find('input.role-subquestion-order').each(function(idx) {
-                    $(this).val(idx);
-                });
-            }
         });
         if($('#qsheet-content').children().length != 1) {
         	$('#qsheet-content li.placeholder').hide();
