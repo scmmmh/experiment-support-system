@@ -90,8 +90,8 @@ def question_type_title(q_type):
         return 'Single choice'
     elif q_type == 'multi_choice':
         return 'Multiple choice'
-    elif q_type == 'rating_group':
-        return 'Rating grid'
+    elif q_type == 'single_choice_grid':
+        return 'Single choice grid'
     elif q_type == 'confirm':
         return 'Confirmation checkbox'
     elif q_type == 'multichoice_group':
@@ -152,8 +152,8 @@ def display(question, item, e, csrf_token=None):
             return choice_list(question, item, e, multiple=True)
         elif subtype == 'select':
             return choice_select(question, item, e, multiple=True)
-    elif question.type == 'rating_group':
-        return rating_group(question, item, e)
+    elif question.type == 'single_choice_grid':
+        return choice_grid(question, item, e)
     elif question.type == 'confirm':
         return confirm(question, item, e)
     elif question.type == 'multichoice_group':
@@ -324,7 +324,7 @@ def multi_select(question, item, e):
                               e)
 
 @question()
-def rating_group(question, item, e):
+def choice_grid(question, item, e):
     answers = get_attr_groups(question, 'answer')
     rows = []
     field_names = ['items.%s.%s' % (item['did'], question.name)]
@@ -428,11 +428,11 @@ def as_text(qsheet, as_markup=False, no_ids=False):
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label', '')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:multi_choice>')
             return u'\n'.join(lines) 
-        elif question.type == 'rating_group':
-            lines = ['<pq:rating_group %s>' % (std_attr(question, no_id))]
+        elif question.type == 'single_choice_grid':
+            lines = ['<pq:single_choice_grid %s>' % (std_attr(question, no_id))]
             lines.extend(['  <pq:sub_question name="%s" label="%s"/>' % (get_qg_attr_value(qg, 'name'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'subquestion')])
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
-            lines.append('</pq:rating_group>')
+            lines.append('</pq:single_choice_grid>')
             return u'\n'.join(lines)
         elif question.type == 'confirm':
             return '<pq:confirm %s value="%s" label="%s"/>' % (std_attr(question, no_id), get_q_attr_value(question, 'further.value', ''), get_q_attr_value(question, 'further.label', ''))

@@ -245,7 +245,7 @@ def run_survey(request):
                                             question_id=question.id)
                             if data_item:
                                 answer.data_item_id = data_item.id
-                            if question.type == 'rating_group':
+                            if question.type == 'single_choice_grid':
                                 for sub_question in get_attr_groups(question, 'subquestion'):
                                     if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
                                         answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),

@@ -79,7 +79,7 @@ class QSheetVisualSchema(Schema):
 class QSheetAddQuestionSchema(Schema):
     type = compound.All(validators.OneOf(['text', 'short_text', 'long_text', 'number',
                                           'email', 'url', 'date', 'time', 'datetime',
-                                          'month', 'single_choice', 'rating_group',
+                                          'month', 'single_choice', 'single_choice_grid',
                                           'confirm', 'multi_choice',
                                           'multichoice_group', 'ranking']),
                         validators.UnicodeString(not_empty=True))
@@ -184,8 +184,8 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 q_type = 'month'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_choice':
                 q_type = 'single_choice'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}rating_group':
-                q_type = 'rating_group'
+            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_choice_grid':
+                q_type = 'single_choice_grid'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}confirm':
                 q_type = 'confirm'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}multi_choice':
@@ -260,7 +260,7 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 set_quest_attr_value(question, 'further.allow_other', item.attrib['allow_other'])
             else:
                 set_quest_attr_value(question, 'further.allow_other', 'no')
-        if q_type in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
+        if q_type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multichoice_group', 'ranking']:
             for attr_group in get_attr_groups(question, 'answer'):
                 dbsession.delete(attr_group)
             for idx, attr in enumerate(item):
@@ -272,7 +272,7 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                         qag.attributes.append(QuestionAttribute(key='value', value=attr.attrib['value']))
                         qag.attributes.append(QuestionAttribute(key='label', value=attr.attrib['label']))
                         question.attributes.append(qag)
-        if q_type in ['rating_group', 'multichoice_group']:
+        if q_type in ['single_choice_grid', 'multichoice_group']:
             for attr_group in get_attr_groups(question, 'subquestion'):
                 dbsession.delete(attr_group)
             for idx, attr in enumerate(item):
@@ -393,9 +393,9 @@ def edit(request):
                             if question.type in ['single_choice', 'multi_choice']:
                                 sub_schema.add_field('display', validators.OneOf(['table', 'list', 'select']))
                                 sub_schema.add_field('allow_other', validators.OneOf(['no', 'single']))
-                            if question.type in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
+                            if question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multichoice_group', 'ranking']:
                                 sub_schema.add_field('answer', foreach.ForEach(QSheetAnswerSchema()))
-                            if question.type in ['rating_group', 'multichoice_group']:
+                            if question.type in ['single_choice_grid', 'multichoice_group']:
                                 sub_schema.add_field('sub_quest', foreach.ForEach(QSheetSubQuestionSchema()))
                             schema.add_field(unicode(question.id), sub_schema)
                     params = schema.to_python(request.POST)
@@ -427,7 +427,7 @@ def edit(request):
                                     if question.type in ['single_choice', 'multi_choice']:
                                         set_quest_attr_value(question, 'further.subtype', q_params['display'])
                                         set_quest_attr_value(question, 'further.allow_other', q_params['allow_other'])
-                                    if question.type in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
+                                    if question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multichoice_group', 'ranking']:
                                         new_answers = q_params['answer']
                                         new_answers.sort(key=lambda a: a['order'])
                                         old_answers = get_attr_groups(question, 'answer')
@@ -444,7 +444,7 @@ def edit(request):
                                                 dbsession.add(qg)
                                             elif idx < len(old_answers):
                                                 dbsession.delete(old_answers[idx])
-                                    if question.type in ['rating_group', 'multichoice_group']:
+                                    if question.type in ['single_choice_grid', 'multichoice_group']:
                                         new_subquestion = q_params['sub_quest']
                                         new_subquestion.sort(key=lambda a: a['order'])
                                         old_subquestion = get_attr_groups(question, 'subquestion')
@@ -512,7 +512,8 @@ def edit_add_question(request):
                         elif params['type'] == 'single_choice':
                             qag.attributes.append(QuestionAttribute(key='subtype', value='table'))
                         question.attributes.append(qag)
-                    if params['type'] in ['single_choice', 'multi_choice', 'rating_group', 'multichoice_group', 'ranking']:
+                        dbsession.add(qag)
+                    if params['type'] in ['single_choice', 'multi_choice', 'single_choice_grid', 'multichoice_group', 'ranking']:
                         qag = QuestionAttributeGroup(key='answer', order=0)
                         qag.attributes.append(QuestionAttribute(key='value'))
                         qag.attributes.append(QuestionAttribute(key='label'))
@@ -533,7 +534,8 @@ def edit_add_question(request):
                         qag.attributes.append(QuestionAttribute(key='value'))
                         qag.attributes.append(QuestionAttribute(key='label'))
                         question.attributes.append(qag)
-                    if params['type'] in ['rating_group', 'multichoice_group']:
+                        dbsession.add(qag)
+                    if params['type'] in ['single_choice_grid', 'multichoice_group']:
                         qag = QuestionAttributeGroup(key='subquestion', order=0)
                         qag.attributes.append(QuestionAttribute(key='value'))
                         qag.attributes.append(QuestionAttribute(key='label'))
@@ -554,6 +556,7 @@ def edit_add_question(request):
                         qag.attributes.append(QuestionAttribute(key='value'))
                         qag.attributes.append(QuestionAttribute(key='label'))
                         question.attributes.append(qag)
+                        dbsession.add(qag)
                     qsheet.questions.append(question)
                     dbsession.add(question)
                     dbsession.flush()

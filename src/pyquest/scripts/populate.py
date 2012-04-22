@@ -131,7 +131,7 @@ def init_test_data(DBSession):
         qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='5', order=1))
         question.attributes.append(qa_group)
         qsheet2.questions.append(question)
-        question = Question(type='rating_group', name='rating_2', title='The pq:rating_group creates a grid of questions and answers', required=False, help='', order=2)
+        question = Question(type='single_choice_grid', name='rating_2', title='The pq:single_choice_grid creates a grid of questions and answers', required=False, help='', order=2)
         qa_group = QuestionAttributeGroup(key='answer', label='Answer', order=0)
         qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='0', order=0))
         qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='1', order=1))

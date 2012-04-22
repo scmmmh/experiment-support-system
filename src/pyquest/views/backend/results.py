@@ -132,7 +132,7 @@ def participant(request):
                                         columns.append('%s.%s._other.%s' % (qsheet.name, question.name, get_data_identifier(data_item, data_identifier)))
                                 else:
                                     columns.append('%s.%s._other' % (qsheet.name, question.name))
-                        elif question.type in ['rating_group', 'multichoice_group']:
+                        elif question.type in ['single_choice_grid', 'multichoice_group']:
                             for sub_quest in get_attr_groups(question, 'subquestion'):
                                 if question.type == 'multichoice_group':
                                     for sub_answer in get_attr_groups(question, 'answer'):
@@ -166,7 +166,7 @@ def participant(request):
                                 row['%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, get_data_identifier(answer.data_item, data_identifier))] = fix_na(answer_value.value)
                             else:
                                 row['%s.%s.%s' % (qsheet.name, question.name, answer_value.name)] = fix_na(answer_value.value)
-                        elif question.type == 'rating_group':
+                        elif question.type == 'single_choice_grid':
                             if has_data_items:
                                 row['%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, get_data_identifier(answer.data_item, data_identifier))] = fix_na(answer_value.value)
                             else:

@@ -234,7 +234,7 @@ class DynamicSchema(Schema):
                 self.add_field(question.name, augment(ChoiceValidator([get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')],
                                                                       True,
                                                                       get_q_attr_value(question, 'further.allow_other', 'no') == 'single'), question))
-            elif question.type == 'rating_group':
+            elif question.type == 'single_choice_grid':
                 values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 sub_schema = DynamicSchema([])
                 for sub_question in get_attr_groups(question, 'subquestion'):

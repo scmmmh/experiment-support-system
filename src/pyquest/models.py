@@ -12,7 +12,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '2ad62f615ca'
+DB_VERSION = '57962be6396b'
 
 class DBUpgradeException(Exception):
     
