@@ -84,10 +84,17 @@ class QSheetAddQuestionSchema(Schema):
                                           'multi_choice_grid', 'ranking']),
                         validators.UnicodeString(not_empty=True))
 
+def set_qgroup_attr_value(qgroup, key, value):
+    attr = get_qg_attr(qgroup, key)
+    if attr:
+        attr.value = value
+    else:
+        qgroup.attributes.append(QuestionAttribute(key=key, value=value))
+
 def set_quest_attr_value(question, key, value):
     attr = get_q_attr(question, key)
     if attr:
-        attr.value =value
+        attr.value = value
     else:
         keys = key.split('.')
         for attr_group in question.attributes:
@@ -448,10 +455,13 @@ def edit(request):
                                         new_subquestion = q_params['sub_quest']
                                         new_subquestion.sort(key=lambda a: a['order'])
                                         old_subquestion = get_attr_groups(question, 'subquestion')
+                                        print '-------------'
+                                        print old_subquestion
+                                        print '-------------'
                                         for idx in range(0, max(len(new_subquestion), len(old_subquestion))):
                                             if idx < len(new_subquestion) and idx < len(old_subquestion):
-                                                get_qg_attr(old_subquestion[idx], 'name').value = new_subquestion[idx]['name']
-                                                get_qg_attr(old_subquestion[idx], 'label').value = new_subquestion[idx]['label']
+                                                set_qgroup_attr_value(old_subquestion[idx], 'name', new_subquestion[idx]['name'])
+                                                set_qgroup_attr_value(old_subquestion[idx], 'label', new_subquestion[idx]['label'])
                                                 old_subquestion[idx].order = new_subquestion[idx]['order']
                                             elif idx < len(new_subquestion):
                                                 qg = QuestionAttributeGroup(key='subquestion', order=new_subquestion[idx]['order'])
