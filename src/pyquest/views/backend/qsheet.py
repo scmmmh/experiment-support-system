@@ -268,6 +268,10 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
             else:
                 set_quest_attr_value(question, 'further.allow_other', 'no')
         if q_type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
+            if 'before_label' in item.attrib:
+                set_quest_attr_value(question, 'further.before_label', item.attrib['before_label'])
+            if 'after_label' in item.attrib:
+                set_quest_attr_value(question, 'further.after_label', item.attrib['after_label'])
             for attr_group in get_attr_groups(question, 'answer'):
                 dbsession.delete(attr_group)
             for idx, attr in enumerate(item):

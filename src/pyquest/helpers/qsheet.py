@@ -405,21 +405,27 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         elif question.type == 'month':
             return '<pq:month %s/>' % (std_attr(question, no_id))
         elif question.type == 'single_choice':
-            lines = ['<pq:single_choice %s display="%s" allow_other="%s">' % (std_attr(question, no_id),
-                                                                              get_q_attr_value(question, 'further.subtype', 'table'),
-                                                                              get_q_attr_value(question, 'further.allow_other', 'no'))]
+            lines = ['<pq:single_choice %s display="%s" allow_other="%s" before_label="%s" after_label="%s">' % (std_attr(question, no_id),
+                                                                                                                 get_q_attr_value(question, 'further.subtype', 'table'),
+                                                                                                                 get_q_attr_value(question, 'further.allow_other', 'no'),
+                                                                                                                 get_q_attr_value(question, 'further.before_label', ''),
+                                                                                                                 get_q_attr_value(question, 'further.after_label', ''))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label', '')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:single_choice>')
             return u'\n'.join(lines) 
         elif question.type == 'multi_choice':
-            lines = ['<pq:multi_choice %s display="%s" allow_other="%s">' % (std_attr(question, no_id),
-                                                                             get_q_attr_value(question, 'further.subtype', 'table'),
-                                                                             get_q_attr_value(question, 'further.allow_other', 'no'))]
+            lines = ['<pq:multi_choice %s display="%s" allow_other="%s" before_label="%s" after_label="%s">' % (std_attr(question, no_id),
+                                                                                                                get_q_attr_value(question, 'further.subtype', 'table'),
+                                                                                                                get_q_attr_value(question, 'further.allow_other', 'no'),
+                                                                                                                get_q_attr_value(question, 'further.before_label', ''),
+                                                                                                                get_q_attr_value(question, 'further.after_label', ''))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label', '')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:multi_choice>')
             return u'\n'.join(lines) 
         elif question.type == 'single_choice_grid':
-            lines = ['<pq:single_choice_grid %s>' % (std_attr(question, no_id))]
+            lines = ['<pq:single_choice_grid %s before_label="%s" after_label="%s">' % (std_attr(question, no_id),
+                                                                                        get_q_attr_value(question, 'further.before_label', ''),
+                                                                                        get_q_attr_value(question, 'further.after_label', ''))]
             lines.extend(['  <pq:sub_question name="%s" label="%s"/>' % (get_qg_attr_value(qg, 'name'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'subquestion')])
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:single_choice_grid>')
@@ -427,7 +433,9 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         elif question.type == 'confirm':
             return '<pq:confirm %s value="%s" label="%s"/>' % (std_attr(question, no_id), get_q_attr_value(question, 'further.value', ''), get_q_attr_value(question, 'further.label', ''))
         elif question.type == 'multi_choice_grid':
-            lines = ['<pq:multi_choice_grid %s>' % (std_attr(question, no_id))]
+            lines = ['<pq:multi_choice_grid %s before_label="%s" after_label="%s">' % (std_attr(question, no_id),
+                                                                                       get_q_attr_value(question, 'further.before_label', ''),
+                                                                                       get_q_attr_value(question, 'further.after_label', ''))]
             lines.extend(['  <pq:sub_question name="%s" label="%s"/>' % (get_qg_attr_value(qg, 'name'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'subquestion')])
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:multi_choice_grid>')
