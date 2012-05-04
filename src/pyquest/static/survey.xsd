@@ -89,6 +89,8 @@
                 <xs:sequence>
                     <xs:element name="answer" type="qs:Answer" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:sequence>
+                <xs:attribute name="before_label" type="xs:string"/>
+                <xs:attribute name="after_label" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

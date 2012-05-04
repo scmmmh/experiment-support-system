@@ -365,13 +365,23 @@ def ranking(question, item, e):
     answers = get_attr_groups(question, 'answer')
     items = []
     for answer in answers:
-        items.append(tag.li(tag.select(tag.option('--', value=''),
-                                       [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(answers))],
+        options = [tag.option(idx2 + 1, value=idx2) for idx2 in xrange(0, len(answers))]
+        if get_q_attr_value(question, 'further.before_label'):
+            options.insert(0, tag.option('-- %s --' % (get_q_attr_value(question, 'further.before_label'))))
+        else:
+            options.insert(0, tag.option('--', value=''))
+        if get_q_attr_value(question, 'further.after_label'):
+            options.append(tag.option('-- %s --' % (get_q_attr_value(question, 'further.after_label'))))
+        items.append(tag.li(tag.select(options,
                                        id='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(answer, 'value')),
                                        name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(answer, 'value'))),
                             tag.label(get_qg_attr_value(answer, 'label'), for_='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(answer, 'value'))),
                             id='items.%s.%s.%s-item' % (item['did'], question.name, get_qg_attr_value(answer, 'value'))))
     shuffle(items)
+    if get_q_attr_value(question, 'further.before_label'):
+        items.insert(0, tag.li(get_q_attr_value(question, 'further.before_label'), class_='role-label', style="display:none;"))
+    if get_q_attr_value(question, 'further.after_label'):
+        items.append(tag.li(get_q_attr_value(question, 'further.after_label'), class_='role-label', style="display:none;"))
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)
 
 def as_text(qsheet, as_markup=False, no_ids=False):
@@ -441,7 +451,9 @@ def as_text(qsheet, as_markup=False, no_ids=False):
             lines.append('</pq:multi_choice_grid>')
             return u'\n'.join(lines)
         elif question.type == 'ranking':
-            lines = ['<pq:ranking %s>' % (std_attr(question, no_id))]
+            lines = ['<pq:ranking %s before_label="%s" after_label="%s">' % (std_attr(question, no_id),
+                                                                             get_q_attr_value(question, 'further.before_label', ''),
+                                                                             get_q_attr_value(question, 'further.after_label', ''))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:ranking>')
             return u'\n'.join(lines) 
