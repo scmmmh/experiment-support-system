@@ -402,6 +402,8 @@ def edit(request):
                                 sub_schema.add_field('allow_other', validators.OneOf(['no', 'single']))
                             if question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
                                 sub_schema.add_field('answer', foreach.ForEach(QSheetAnswerSchema()))
+                                sub_schema.add_field('before_label', validators.UnicodeString())
+                                sub_schema.add_field('after_label', validators.UnicodeString())
                             if question.type in ['single_choice_grid', 'multi_choice_grid']:
                                 sub_schema.add_field('sub_quest', foreach.ForEach(QSheetSubQuestionSchema()))
                             schema.add_field(unicode(question.id), sub_schema)
@@ -435,6 +437,8 @@ def edit(request):
                                         set_quest_attr_value(question, 'further.subtype', q_params['display'])
                                         set_quest_attr_value(question, 'further.allow_other', q_params['allow_other'])
                                     if question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
+                                        set_quest_attr_value(question, 'further.before_label', q_params['before_label'].strip())
+                                        set_quest_attr_value(question, 'further.after_label', q_params['after_label'].strip())
                                         new_answers = q_params['answer']
                                         new_answers.sort(key=lambda a: a['order'])
                                         old_answers = get_attr_groups(question, 'answer')

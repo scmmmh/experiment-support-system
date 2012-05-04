@@ -237,6 +237,12 @@ def choice_table(question, item, e, multiple=False):
                              tag.input(type='text',
                                        name='items.%s.%s.other' % (item['did'], question.name),
                                        class_='role-other-text')))
+    if get_q_attr_value(question, 'further.before_label'):
+        headers.insert(0, tag.th())
+        values.insert(0, tag.th(get_q_attr_value(question, 'further.before_label')))
+    if get_q_attr_value(question, 'further.after_label'):
+        headers.append(tag.th())
+        values.append(tag.th(get_q_attr_value(question, 'further.after_label')))
     rows.append(tag.thead(tag.tr(headers)))
     rows.append(tag.tbody(tag.tr(values)))
     return form.error_wrapper(tag.table(rows), 'items.%s.%s' % (item['did'], question.name), e)
@@ -265,6 +271,10 @@ def choice_list(question, item, e, multiple=False):
                             tag.input(type='text',
                                       name='items.%s.%s.other' % (item['did'], question.name),
                                       class_='role-other-text')))
+    if get_q_attr_value(question, 'further.before_label'):
+        items.insert(0, tag.li(get_q_attr_value(question, 'further.before_label')))
+    if get_q_attr_value(question, 'further.after_label'):
+        items.append(tag.li(get_q_attr_value(question, 'further.after_label')))
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)
 
 @question()
@@ -298,13 +308,24 @@ def choice_grid(question, item, e, multiple=False):
     rows = []
     field_names = ['items.%s.%s' % (item['did'], question.name)]
     for sub_question in get_attr_groups(question, 'subquestion'):
-        rows.append(tag.tr(tag.th(get_qg_attr_value(sub_question, 'label')),
-                           map(lambda a: tag.td(tag.input(type=render_type,
-                                                          name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')),
-                                                          value=get_qg_attr_value(a, 'value'))),
-                               answers)))
+        items = map(lambda a: tag.td(tag.input(type=render_type,
+                                               name='items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')),
+                                               value=get_qg_attr_value(a, 'value'))),
+                    answers)
+        if get_q_attr_value(question, 'further.before_label'):
+            items.insert(0, tag.th(get_q_attr_value(question, 'further.before_label')))
+        if get_q_attr_value(question, 'further.after_label'):
+            items.append(tag.th(get_q_attr_value(question, 'further.after_label')))
+        items.insert(0, tag.th(get_qg_attr_value(sub_question, 'label')))
+        rows.append(tag.tr(items))
         field_names.append('items.%s.%s.%s' % (item['did'], question.name, get_qg_attr_value(sub_question, 'name')))
-    return form.error_wrapper(tag.table(tag.thead(tag.tr(tag.th(), map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers))),
+    headers = map(lambda a: tag.th(get_qg_attr_value(a, 'label')), answers)
+    if get_q_attr_value(question, 'further.before_label'):
+        headers.insert(0, tag.th())
+    if get_q_attr_value(question, 'further.after_label'):
+        headers.append(tag.th())
+    headers.insert(0, tag.th())
+    return form.error_wrapper(tag.table(tag.thead(tag.tr(headers)),
                                         tag.tbody(rows)),
                               field_names, e)
 

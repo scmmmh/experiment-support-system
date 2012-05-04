@@ -38,6 +38,10 @@
           <dd>${h.form.select('%i.display' % (question.id), h.qsheet.get_q_attr_value(question, 'further.subtype', 'table'), [('table', 'Horizontal table'), ('list', 'Vertical list'), ('select', 'Select box')], e)}</dd>
         </py:if>
         <py:if test="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']">
+          <dt>Pre-label</dt>
+          <dd>${h.form.text_field('%i.before_label' % (question.id), h.qsheet.get_q_attr_value(question, 'further.before_label', ''), e)}</dd>
+          <dt>Post-label</dt>
+          <dd>${h.form.text_field('%i.after_label' % (question.id), h.qsheet.get_q_attr_value(question, 'further.after_label', ''), e)}</dd>
           <dt py:if="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid']">Answers</dt>
           <dt py:if="question.type == 'ranking'">Items</dt>
           <dd>
