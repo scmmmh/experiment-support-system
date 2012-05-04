@@ -93,28 +93,28 @@ def init_test_data(DBSession):
         load_questions(qsheet1, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet1)
         # PAGE 2
-        source = """<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="single_choice" title="Single choice elements">
+        source = """<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="single_choice" title="Single choice questions">
   <pq:styles></pq:styles>
   <pq:scripts></pq:scripts>
   <pq:questions>
     <pq:static_text><p>
     The second page demonstrates the basic single choice questions.</p>
 </pq:static_text>
-<pq:single_choice name="single_choice_1" title="A horizontal single choice" help="" display="table" allow_other="no">
+<pq:single_choice name="single_choice_1" title="A horizontal single choice" help="" display="table" allow_other="no" before_label="Very good" after_label="Very bad">
   <pq:answer value="0" label="1"/>
   <pq:answer value="1" label="2"/>
   <pq:answer value="2" label="3"/>
   <pq:answer value="3" label="4"/>
   <pq:answer value="4" label="5"/>
 </pq:single_choice>
-<pq:single_choice name="single_choice_2" title="A vertical list single choice (with an optional answer)" help="" display="list" allow_other="single">
+<pq:single_choice name="single_choice_2" title="A vertical list single choice (with an optional answer)" help="" display="list" allow_other="single" before_label="First" after_label="Last">
   <pq:answer value="0" label="1"/>
   <pq:answer value="1" label="2"/>
   <pq:answer value="2" label="3"/>
   <pq:answer value="3" label="4"/>
   <pq:answer value="4" label="5"/>
 </pq:single_choice>
-<pq:single_choice name="single_choice_3" title="A drop-down select single choice (required)" help="" display="select" allow_other="no">
+<pq:single_choice name="single_choice_3" title="A drop-down select single choice (required)" help="" display="select" allow_other="no" before_label="" after_label="">
   <pq:answer value="0" label="1"/>
   <pq:answer value="1" label="2"/>
   <pq:answer value="2" label="3"/>
@@ -138,21 +138,21 @@ def init_test_data(DBSession):
     <pq:static_text><p>
     The third page demonstrates the basic multi choice questions.</p>
 </pq:static_text>
-<pq:multi_choice name="multi_choice_1" title="A horizontal multi choice" help="" display="table" allow_other="no">
+<pq:multi_choice name="multi_choice_1" title="A horizontal multi choice" help="" display="table" allow_other="no" before_label="Very good" after_label="Very bad">
   <pq:answer value="0" label="1"/>
   <pq:answer value="1" label="2"/>
   <pq:answer value="2" label="3"/>
   <pq:answer value="3" label="4"/>
   <pq:answer value="4" label="5"/>
 </pq:multi_choice>
-<pq:multi_choice name="multi_choice_2" title="A vertical list multi choice (with an optional answer)" help="" display="list" allow_other="single">
+<pq:multi_choice name="multi_choice_2" title="A vertical list multi choice (with an optional answer)" help="" display="list" allow_other="single" before_label="First" after_label="Last">
   <pq:answer value="0" label="1"/>
   <pq:answer value="1" label="2"/>
   <pq:answer value="2" label="3"/>
   <pq:answer value="3" label="4"/>
   <pq:answer value="4" label="5"/>
 </pq:multi_choice>
-<pq:multi_choice name="multi_choice_3" title="A list select multi choice (required)" help="" display="select" allow_other="no">
+<pq:multi_choice name="multi_choice_3" title="A list select multi choice (required)" help="" display="select" allow_other="no" before_label="" after_label="">
   <pq:answer value="0" label="1"/>
   <pq:answer value="1" label="2"/>
   <pq:answer value="2" label="3"/>
@@ -176,7 +176,7 @@ def init_test_data(DBSession):
     <pq:static_text><p>
     The fourth page demonstrates the grid-based single and multi choice questions.</p>
 </pq:static_text>
-<pq:single_choice_grid name="grid_1" title="A grid of single choice questions" help="">
+<pq:single_choice_grid name="grid_1" title="A grid of single choice questions" help="" before_label="Minimum" after_label="Maximum">
   <pq:sub_question name="q1" label="Question 1"/>
   <pq:sub_question name="q2" label="Question 2"/>
   <pq:sub_question name="q3" label="Question 3"/>
@@ -186,7 +186,7 @@ def init_test_data(DBSession):
   <pq:answer value="3" label="4"/>
   <pq:answer value="4" label="5"/>
 </pq:single_choice_grid>
-<pq:multi_choice_grid name="grid_2" title="A grid of multi choice questions (required)" help="">
+<pq:multi_choice_grid name="grid_2" title="A grid of multi choice questions (required)" help="" before_label="Start" after_label="End">
   <pq:sub_question name="q1" label="Question 1"/>
   <pq:sub_question name="q2" label="Question 2"/>
   <pq:sub_question name="q3" label="Question 3"/>
@@ -214,7 +214,7 @@ def init_test_data(DBSession):
     The fifth page demonstrates the other questions.</p>
 </pq:static_text>
 <pq:confirm name="confirmation_1" title="A checkbox to confirm a value" help="" value="yes" label="Label to show next to the checkbox"/>
-<pq:ranking name="ranking_1" title="Ranking of multiple elements (required)" help="">
+<pq:ranking name="ranking_1" title="Ranking of multiple elements (required)" help="" before_label="Best" after_label="Worst">
   <pq:answer value="dog" label="Dog"/>
   <pq:answer value="cat" label="Cat"/>
   <pq:answer value="mouse" label="Mouse"/>
