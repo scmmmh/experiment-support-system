@@ -97,7 +97,7 @@ def upload(request):
                                 dbsession.add(data_item)
                         except csv.Error:
                             raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
-                    request.session.flash('Data uplodated', 'info')
+                    request.session.flash('Data uploaded', 'info')
                     raise HTTPFound(request.route_url('survey.data', sid=request.matchdict['sid']))
                 except api.Invalid as e:
                     e.params = {}
