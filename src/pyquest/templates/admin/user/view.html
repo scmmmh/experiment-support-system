@@ -37,7 +37,7 @@
         <tbody>
           <tr py:for="survey in surveys">
             <td><a href="${r.route_url('survey.view', sid=survey.id)}">${survey.title}</a></td>
-            <td>${h.survey.fancy_status(r, survey, class_='survey-status')}</td>
+            <td>${h.survey.fancy_status(r, survey, class_='survey-status no-menu')}</td>
             <td>
               <ul class="inline no-symbol no-margin">
                 <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button">Add page</a></li>
