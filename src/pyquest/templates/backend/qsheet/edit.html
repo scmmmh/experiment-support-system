@@ -5,17 +5,36 @@
     <title>${survey.title} - ${qsheet.title} - Edit</title>
     <script type="text/javascript">
     function show_text_editor(text, item) {
-        text.ckeditor(function() {
-            this.on('focus', function() {
-                $('#qsheet-content').sortable('disable');
+    	var editor = $('#editor');
+    	var overlay = $('#editor-overlay');
+        editor.show();
+    	editor-overlay.show();
+    	editor-overlay.css('width', $(window).innerWidth() + 'px').css('height', $(window).innerHeight() + 'px');
+    	content = editor.find('.role-content');
+    	content.html(text.html());
+    	content.ckeditor(function() {
+    		var ckedit = this;
+            editor.position({
+                my: 'center center',
+                at: 'center center',
+                of: $(window)
             });
-            this.on('blur', function() {
-                item.find('.role-stored-text').html(this.getData());
-                this.destroy();
-                $('#qsheet-content').sortable('enable');
+            editor.find('.role-close').click(function() {
+                ckedit.destroy();
+                editor.hide();
+                overlay.hide();
+                $(this).unbind('click');
             });
-            this.focus();
-        });
+            editor.find('.role-save').click(function() {
+            	text.html(ckedit.getData());
+            	item.find('.role-stored-text').html(ckedit.getData());
+                ckedit.destroy();
+                editor.hide();
+                overlay.hide();
+                $(this).unbind('click');
+            });
+    		this.focus();
+    	});
     }
     function init_item(item) {
         var header = item.find('.header .title');
@@ -295,5 +314,13 @@
         </ul>
       </form>
     </article>
+    <div id="editor-overlay" class="overlay hidden"></div>
+    <div id="editor" class="editor hidden">
+      <div class="role-content"></div>
+      <ul class="buttons">
+         <li><a href="#" class="button role-close">Don't save</a></li>
+         <li><a href="#" class="button role-save">Save</a></li>
+      </ul>
+    </div>
   </body>
 </html>

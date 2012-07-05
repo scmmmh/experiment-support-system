@@ -45,3 +45,5 @@ footer {font-size:0.8em;text-align:center;padding-top:0.5em;margin-top:2em;borde
 #qsheet-content li.item, #survey-pages li.item {background-color:#ffffff;border:1px solid #d5d5d5;margin-bottom:10px;}
 #qsheet-content li.item .header, #survey-pages li.item .header {background-color:#c3d9ff;font-size:10pt;font-weight:bold;padding:5px 8px;}
 #qsheet-content li.item .content, #survey-pages li.item .content {padding:5px 8px;}
+.overlay {background-color:#000000;opacity:0.8;z-index:10;position:fixed;left:0px;top:0px;}
+.editor {background-color:#ffffff;z-index:11;width:800px;position:fixed;}
