@@ -77,6 +77,8 @@
                 </xs:sequence>
                 <xs:attribute name="display" type="xs:string"/>
                 <xs:attribute name="allow_other" type="xs:string"/>
+                <xs:attribute name="before_label" type="xs:string"/>
+                <xs:attribute name="after_label" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -87,6 +89,8 @@
                 <xs:sequence>
                     <xs:element name="answer" type="qs:Answer" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:sequence>
+                <xs:attribute name="before_label" type="xs:string"/>
+                <xs:attribute name="after_label" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -98,6 +102,8 @@
                     <xs:element name="sub_question" type="qs:SubQuestion" minOccurs="0" maxOccurs="unbounded"/>
                     <xs:element name="answer" type="qs:Answer" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:sequence>
+                <xs:attribute name="before_label" type="xs:string"/>
+                <xs:attribute name="after_label" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

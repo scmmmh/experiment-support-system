@@ -84,10 +84,17 @@ class QSheetAddQuestionSchema(Schema):
                                           'multi_choice_grid', 'ranking']),
                         validators.UnicodeString(not_empty=True))
 
+def set_qgroup_attr_value(qgroup, key, value):
+    attr = get_qg_attr(qgroup, key)
+    if attr:
+        attr.value = value
+    else:
+        qgroup.attributes.append(QuestionAttribute(key=key, value=value))
+
 def set_quest_attr_value(question, key, value):
     attr = get_q_attr(question, key)
     if attr:
-        attr.value =value
+        attr.value = value
     else:
         keys = key.split('.')
         for attr_group in question.attributes:
@@ -261,6 +268,10 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
             else:
                 set_quest_attr_value(question, 'further.allow_other', 'no')
         if q_type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
+            if 'before_label' in item.attrib:
+                set_quest_attr_value(question, 'further.before_label', item.attrib['before_label'])
+            if 'after_label' in item.attrib:
+                set_quest_attr_value(question, 'further.after_label', item.attrib['after_label'])
             for attr_group in get_attr_groups(question, 'answer'):
                 dbsession.delete(attr_group)
             for idx, attr in enumerate(item):
@@ -395,6 +406,8 @@ def edit(request):
                                 sub_schema.add_field('allow_other', validators.OneOf(['no', 'single']))
                             if question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
                                 sub_schema.add_field('answer', foreach.ForEach(QSheetAnswerSchema()))
+                                sub_schema.add_field('before_label', validators.UnicodeString())
+                                sub_schema.add_field('after_label', validators.UnicodeString())
                             if question.type in ['single_choice_grid', 'multi_choice_grid']:
                                 sub_schema.add_field('sub_quest', foreach.ForEach(QSheetSubQuestionSchema()))
                             schema.add_field(unicode(question.id), sub_schema)
@@ -428,6 +441,8 @@ def edit(request):
                                         set_quest_attr_value(question, 'further.subtype', q_params['display'])
                                         set_quest_attr_value(question, 'further.allow_other', q_params['allow_other'])
                                     if question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
+                                        set_quest_attr_value(question, 'further.before_label', q_params['before_label'].strip())
+                                        set_quest_attr_value(question, 'further.after_label', q_params['after_label'].strip())
                                         new_answers = q_params['answer']
                                         new_answers.sort(key=lambda a: a['order'])
                                         old_answers = get_attr_groups(question, 'answer')
@@ -448,10 +463,13 @@ def edit(request):
                                         new_subquestion = q_params['sub_quest']
                                         new_subquestion.sort(key=lambda a: a['order'])
                                         old_subquestion = get_attr_groups(question, 'subquestion')
+                                        print '-------------'
+                                        print old_subquestion
+                                        print '-------------'
                                         for idx in range(0, max(len(new_subquestion), len(old_subquestion))):
                                             if idx < len(new_subquestion) and idx < len(old_subquestion):
-                                                get_qg_attr(old_subquestion[idx], 'name').value = new_subquestion[idx]['name']
-                                                get_qg_attr(old_subquestion[idx], 'label').value = new_subquestion[idx]['label']
+                                                set_qgroup_attr_value(old_subquestion[idx], 'name', new_subquestion[idx]['name'])
+                                                set_qgroup_attr_value(old_subquestion[idx], 'label', new_subquestion[idx]['label'])
                                                 old_subquestion[idx].order = new_subquestion[idx]['order']
                                             elif idx < len(new_subquestion):
                                                 qg = QuestionAttributeGroup(key='subquestion', order=new_subquestion[idx]['order'])
