@@ -39,9 +39,11 @@ footer {font-size:0.8em;text-align:center;padding-top:0.5em;margin-top:2em;borde
 #tools li {list-style-type:none;padding:5px 8px;background-color:#f0f0f0;}
 #tools li:hover {background-color:#dff4ff;}
 .item .header .button {margin:0;padding:2px;}
-#qsheet-content, #survey-pages {margin:0;padding:0;}
+#qsheet-content, #survey-pages {margin:0;padding:0 0 2em 0;}
+#qsheet-content.focused {border: 1px solid #0066cc;}
+.droppable {border:1px dashed #0066cc;height:40px;margin-bottom:10px;}
 #qsheet-content li, #survey-pages li {list-style-type:none;}
-.placeholder {border:1px dashed #0066cc;padding:10px;}
+.placeholder {border:1px dashed #0066cc;padding:10px;margin-bottom:10px;}
 #qsheet-content li.item, #survey-pages li.item {background-color:#ffffff;border:1px solid #d5d5d5;margin-bottom:10px;}
 #qsheet-content li.item .header, #survey-pages li.item .header {background-color:#c3d9ff;font-size:10pt;font-weight:bold;padding:5px 8px;}
 #qsheet-content li.item .content, #survey-pages li.item .content {padding:5px 8px;}
