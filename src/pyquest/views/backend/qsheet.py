@@ -380,7 +380,8 @@ def view(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.edit')
-@render({'text/html': 'backend/qsheet/edit.html'})
+@render({'text/html': 'backend/qsheet/edit.html',
+         'application/json': True})
 def edit(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -480,16 +481,22 @@ def edit(request):
                                             elif idx < len(old_subquestion):
                                                 dbsession.delete(old_subquestion[idx])
                         dbsession.add(qsheet)
-                    request.session.flash('Survey page updated', 'info')
-                    raise HTTPFound(request.route_url('survey.qsheet.edit',
-                                                      sid=request.matchdict['sid'],
-                                                      qsid=request.matchdict['qsid']))
+                    if request.is_xhr:
+                        return {'flash': 'Survey page updated'}
+                    else:
+                        request.session.flash('Survey page updated', 'info')
+                        raise HTTPFound(request.route_url('survey.qsheet.edit',
+                                                          sid=request.matchdict['sid'],
+                                                          qsid=request.matchdict['qsid']))
                 except api.Invalid as e:
                     e = flatten_invalid(e)
                     e.params = request.POST
-                    return {'survey': survey,
-                            'qsheet': qsheet,
-                            'e': e}
+                    if request.is_xhr:
+                        return {'e': e}
+                    else:
+                        return {'survey': survey,
+                                'qsheet': qsheet,
+                                'e': e}
             else:
                 return {'survey': survey,
                         'qsheet': qsheet}

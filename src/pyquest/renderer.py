@@ -101,7 +101,7 @@ def handle_json_response(request, result):
     del result['h']
     del result['r']
     if 'e' in result:
-        del result['e']
+        result['e'] = result['e'].error_dict
     response = Response(json.dumps(result))
     return response
 
