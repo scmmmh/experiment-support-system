@@ -20,3 +20,5 @@ syntax: glob
 
 syntax: regexp
 ^development\.ini$
+syntax: regexp
+^docs/_build$
