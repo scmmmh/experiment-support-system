@@ -38,7 +38,7 @@
       <hgroup>
         <h1>${survey.title} - Preview</h1>
       </hgroup>
-      <section id="${qsheet.name}" py:for="qsheet in survey.qsheets" class="qsheet">
+      <section id="${qsheet.name}" py:for="qsheet in qsheets" class="qsheet">
         <hgroup>
           <h1><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h1>
         </hgroup>
