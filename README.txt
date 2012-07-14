@@ -1,16 +1,8 @@
 PyQuestionnaire README
 ==================
 
-Getting Started
----------------
+PyQuestionnaire is a online survey and questionnaire system.
 
-- cd <directory containing this file>
+It is built on the Pyramid webframework and lives at https://bitbucket.org/mhall/pyquestionnaire/overview.
 
-- export PYCRYPTOPP_DISABLE_EMBEDDED_CRYPTOPP=1 (if pycryptopp fails to compile)
-
-- $venv/bin/python setup.py develop
-
-- $venv/bin/populate_PyQuestionnaire development.ini
-
-- $venv/bin/pserve development.ini
-
+Documentation can be found at http://readthedocs.org/docs/pyquestionnaire
