@@ -1,5 +1,5 @@
 PyQuestionnaire README
-==================
+======================
 
 PyQuestionnaire is a online survey and questionnaire system.
 
