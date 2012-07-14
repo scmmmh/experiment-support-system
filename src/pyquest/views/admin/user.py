@@ -61,7 +61,7 @@ def login(request):
                 if 'redirect-to' in request.session:
                     redirect_to = request.session['redirect-to']
                 else:
-                    redirect_to = request.route_url('root')
+                    redirect_to = request.route_url('survey')
                 request.session['user-id'] = user.id
                 raise HTTPFound(redirect_to)
             else:
