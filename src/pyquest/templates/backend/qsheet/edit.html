@@ -4,6 +4,15 @@
   <head>
     <title>${survey.title} - ${qsheet.title} - Edit</title>
     <script type="text/javascript">
+    function fix_control_positions() {
+    	clearTimeout($('#qsheet-content').data('pyquest.timeout'));
+    	$('#qsheet-content').data('pyquest.timeout', setTimeout(function() {
+            var top = $(window).scrollTop() - $('#qsheet-content').outerHeight() - $('#qsheet-content').position().top + $(window).innerHeight() - $('#main-buttons').outerHeight() - 30;
+            $('#main-buttons').stop().animate({top: Math.min(top, 0)});
+            top = $(window).scrollTop() - $('#qsheet-content').position().top + 10;
+            $('#tools').stop().animate({top: Math.max(top, 0)});
+    	}, 100));
+    }
     function show_text_editor(text, item) {
     	var editor = $('#editor');
     	var overlay = $('#editor-overlay');
@@ -55,6 +64,7 @@
                             $('#qsheet-content li.placeholder').show();
                         }
                     }, 500);
+                    fix_control_positions();
                 }
             })
             return false;
@@ -71,6 +81,7 @@
             var row = link.parent().parent();
             row.fadeOut();
             setTimeout(function() {row.remove();}, 400);
+            fix_control_positions();
             return false;
         });
         item.find('a.action-add-answer').click(function() {
@@ -103,6 +114,7 @@
             tbody.append(row);
             row.fadeIn();
             tbody.sortable('reload');
+            fix_control_positions();
             return false;
         });
         item.find('tbody.role-answers').sortable({
@@ -117,6 +129,7 @@
             var row = link.parent().parent();
             row.fadeOut();
             setTimeout(function() {row.remove();}, 400);
+            fix_control_positions();
             return false;
         });
         item.find('a.action-add-subquestion').click(function() {
@@ -149,6 +162,7 @@
             tbody.append(row);
             row.fadeIn();
             tbody.sortable('reload');
+            fix_control_positions();
             return false;
         });
         item.find('tbody.role-subquestions').sortable({
@@ -210,6 +224,7 @@
                         $('input.role-order').each(function(idx) {
                             $(this).val(idx);
                         });
+                        fix_control_positions();
         			},
         			error: function() {
         				ui.item.remove();
@@ -239,6 +254,7 @@
         var main_form = $('#qsheet-form');
         main_form.find('.buttons .action-save').click(function() {
         	var btn = $(this);
+        	clearTimeout(btn.data('pyquest.timeout'));
         	btn.val('Saving...');
         	main_form.find('.error').each(function() {
         		var err = $(this);
@@ -250,27 +266,31 @@
         		data: main_form.serialize(),
         		success: function(data) {
         			if(data.e) {
-        				var error_found = false;
         				for(var name in data.e) {
         					$('[name="' + name + '"]').each(function() {
         						var err = $('<div class="error"><div class="input"></div><p class="error-explanation">' + data.e[name] + '</p></div>');
         						var input = $(this);
         						input.replaceWith(err);
         						err.find('.input').append(input);
-        						error_found = true;
         					});
         				}
-        				if(error_found) {
-                            btn.val('Not saved');
-        				}
+                        btn.val('Not saved').css('background-color', '#aa3333').css('color', '#ffffff');
         			} else {
-        				btn.val('Saved');
+        				btn.val('Saved').css('background-color', '#33aa33').css('color', '#ffffff');
         			}
-                    setTimeout(function() {btn.val('Save');}, 10000);
+        			fix_control_positions();
+                    btn.data('pyquest.timeout',
+                    		setTimeout(function() {btn.val('Save').css('background-color', '').css('color', '');}, 10000));
         		}
         	});
         	return false;
         });
+        $(window).scroll(function(ev) {
+        	fix_control_positions();
+        }).resize(function(ev) {
+        	fix_control_positions();
+        });
+        fix_control_positions();
     });
     </script>
   </head>
@@ -306,7 +326,7 @@
           <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22 role-js-edit')}</dd>
           <dt>Content</dt>
           <dd class="clearfix">
-            <aside id="tools" class="right" style="width:200px;">
+            <aside id="tools" class="right" style="width:200px;position:relative;">
               <h3><a href="#">Text</a></h3>
               <ol>
                 <li>Static text</li>
@@ -344,7 +364,7 @@
             </ol>
           </dd>
         </dl>
-        <ul class="buttons" style="position:fixed;bottom:1em;background-color:#ffffff;border:1px dotted;width:698px;padding:0 1.5em;">
+        <ul id="main-buttons" class="buttons" style="position:relative;z-index:1;background-color:#ffffff;border:1px dotted;width:698px;padding:0 1.5em;">
           <li>${h.form.button("Don't save", class_='button', onclick="document.location='%s'" % r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id))}</li>
           <li>${h.form.submit('Save', class_='button action-save')}</li>
         </ul>

@@ -277,6 +277,14 @@ def flatten_invalid(ie, message='Unfortunately not all your answers were accepta
                 if value.error_dict:
                     for (key2, value2) in flatten_dict(value).items():
                         result['%s.%s' % (key, key2)] = value2
+                elif value.error_list:
+                    for idx, value2 in enumerate(value.error_list):
+                        sub_error = flatten_dict(value2)
+                        if isinstance(sub_error, dict):
+                            for (key3, value3) in sub_error.items():
+                                result['%s-%i.%s' % (key, idx, key3)] = value3
+                        else:
+                            result['%s-%i' % (key, idx)] = sub_error
                 else:
                     result[key] = unicode(value)
         return result
