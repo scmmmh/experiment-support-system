@@ -64,7 +64,7 @@ def get_q_attr_value(question, key, default=None):
             return default
     else:
         return default
-    
+
 def question_type_title(q_type):
     if q_type == 'text':
         return 'Static text'

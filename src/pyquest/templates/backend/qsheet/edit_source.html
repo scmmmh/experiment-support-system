@@ -5,9 +5,9 @@
     <title>${survey.title} - ${qsheet.title} - Edit source</title>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Edit source', {'href': r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Edit source', {'href': r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
-    ${h.ui.main_menu('pages', survey, r)}
+    ${h.ui.main_menu('survey', survey, r)}
     <nav class="toolbar">
       <ul>
         <li><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" class="button">Edit Graphically</a></li>

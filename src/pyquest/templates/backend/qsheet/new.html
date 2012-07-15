@@ -5,9 +5,9 @@
     <title>${survey.title} - Add a Page</title>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), ('Add a Page', {'href': r.route_url('survey.qsheet.new', sid=survey.id)})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Add a Page', {'href': r.route_url('survey.qsheet.new', sid=survey.id)})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
-    ${h.ui.main_menu('pages', survey, r)}
+    ${h.ui.main_menu('survey', survey, r)}
     <article>
       <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
@@ -23,7 +23,7 @@
           <dd>${h.form.text_field('title', '', e)}</dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('survey.qsheet', sid=survey.id))}</li>
+          <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id))}</li>
           <li>${h.form.submit('Add', class_='button')}</li>
         </ul>
       </form>

@@ -3,6 +3,12 @@
   <xi:include href="../../layout/backend.html"/>
   <head>
     <title>${survey.title}</title>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('li.role-edit-graphically').show();
+        $('li.role-edit-source').hide();
+    });
+    </script>
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)})], r)}
@@ -12,11 +18,11 @@
       <ul>
         <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
           <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button">Add page</a></li>
+          <li><a href="${r.route_url('survey.qsheet.import', sid=survey.id)}" class="button">Import page</a></li>
           <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
         </py:if>
         <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the survey &quot;${survey.title}&quot; including its pages, data, and results.">Delete</a></li>
         <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
-          <li><a href="" class="button">Export</a></li>
           <li class="spacer"></li>
           <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'testing'})}" class="button post-submit" data-confirm="no-confirm">Test</a></li>
           <li py:if="survey.status == 'testing'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'develop'})}" class="button post-submit" data-confirm="no-confirm">Stop Test</a></li>
@@ -27,28 +33,81 @@
         </py:if>
       </ul>
     </nav>
-    <article>
+    <article class="survey">
       <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id)}">${r.route_url('survey.run', sid=survey.id)}</a>.</div>
       <hgroup>
         <h1>${survey.title}</h1>
       </hgroup>
       <p>${survey.summary}</p>
-      <table>
-        <thead>
-          <tr>
-            <th class="center">Pages</th>
-            <th class="center">Data Items</th>
-            <th class="center">Participants</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="center" style="font-size:28pt;font-weight:bold;"><a href="${r.route_url('survey.qsheet', sid=survey.id)}" style="text-decoration:none;">${len(survey.qsheets)}</a></td>
-            <td class="center" style="font-size:28pt;font-weight:bold;"><a href="${r.route_url('survey.data', sid=survey.id, _query={'show':'data'})}" style="text-decoration:none;">${len(survey.data_items)}</a></td>
-            <td class="center" style="font-size:28pt;font-weight:bold;"><a href="${r.route_url('survey.results', sid=survey.id)}" style="text-decoration:none;">${len(survey.participants)}</a></td>
-          </tr>
-        </tbody>
-      </table>
+      <section class="span-15 append-1">
+        <hgroup>
+          <h2>Pages</h2>
+        </hgroup>
+        <ul class="no-symbol no-margin">
+          <li py:for="qsheet in survey.qsheets" class="border page">
+            <hgroup>
+              <h3><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.title}</a></h3>
+            </hgroup>
+            <table>
+              <tbody>
+                <tr>
+                  <th>Questions</th>
+                  <td>${len(filter(lambda q: q.type != 'static_text', qsheet.questions))}</td>
+                </tr>
+                <tr>
+                  <th>Type</th>
+                  <td>${h.text.title(h.qsheet.get_qs_attr_value(qsheet, 'repeat', 'single'))}</td>
+                </tr>
+                <tr>
+                  <th>Next page</th>
+                  <td><py:if test="qsheet.next and qsheet.next[0] and qsheet.next[0].target">${qsheet.next[0].target.title}</py:if><py:if test="not qsheet.next or not qsheet.next[0] or not qsheet.next[0].target">&mdash; Last Page &mdash;</py:if></td>
+                </tr>
+                <py:if test="h.qsheet.get_qs_attr_value(qsheet, 'repeat', 'single') == 'repeat'">
+                  <tr>
+                    <th>Data items</th>
+                    <td>${len(survey.data_items)}</td>
+                  </tr>
+                  <tr>
+                    <th>Data items per page</th>
+                    <td>${h.qsheet.get_qs_attr_value(qsheet, 'data-items', '0')}</td>
+                  </tr>
+                  <tr>
+                    <th>Control items per page</th>
+                    <td>${h.qsheet.get_qs_attr_value(qsheet, 'control-items', '0')}</td>
+                  </tr>
+                </py:if>
+              </tbody>
+            </table>
+            <ul class="no-symbol inline no-margin">
+              <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})" class="role-edit-graphically" style="display:none;"><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" class="button">Edit</a></li>
+              <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})" class="role-edit-source"><a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}" class="button">Edit</a></li>
+              <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.qsheet.export', sid=survey.id, qsid=qsheet.id)}" class="button">Export</a></li>
+              <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.qsheet.delete', sid=survey.id, qsid=qsheet.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the page &quot;${qsheet.title}&quot;.">Delete</a></li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+      <section class="span-8 last">
+        <hgroup>
+          <h2>Stats</h2>
+        </hgroup>
+        <table>
+          <tbody>
+            <tr>
+              <th>Status</th>
+              <td>${h.survey.fancy_status(r, survey, class_='survey-status no-menu')}</td>
+            </tr>
+            <tr>
+              <th>Pages</th>
+              <td>${len(survey.qsheets)}</td>
+            </tr>
+            <tr>
+              <th>Participants</th>
+              <td>${len(survey.participants)} (${h.results.completed_count(survey)} completed <py:if test="len(survey.participants) > 0"> &mdash; ${'%.0f%%' % (100.0 / len(survey.participants) * h.results.completed_count(survey))}</py:if>)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
     </article>
   </body>
 </html>

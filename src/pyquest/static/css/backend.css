@@ -1,4 +1,5 @@
 /* backend */
+.border {border:1px dotted #0066cc;}
 header.flash {position:absolute;z-index: 1;top:0;box-shadow:2px 2px 3px;overflow:hidden;margin:0 70px 0 70px;}
 header.flash li {margin:0;}
 div.survey-status {}
@@ -35,6 +36,12 @@ nav.pager ol li a {text-decoration:none;}
 nav.pager ol li a:hover {text-decoration:underline;}
 nav.pager ol li.current a {font-weight: bold;}
 footer {font-size:0.8em;text-align:center;padding-top:0.5em;margin-top:2em;border-top:1px dashed #0066cc;}
+
+/* Survey styles */
+.survey li.page {margin-bottom:2em;padding:1em;}
+
+/* Other styles */
+
 #tools ol {padding:0;overflow:visible;}
 #tools li {list-style-type:none;padding:5px 8px;background-color:#f0f0f0;}
 #tools li:hover {background-color:#dff4ff;}

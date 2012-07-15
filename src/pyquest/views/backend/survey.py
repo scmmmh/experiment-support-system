@@ -160,7 +160,7 @@ def new(request):
                     dbsession.flush()
                     sid = survey.id
                 request.session.flash('Survey created', 'info')
-                raise HTTPFound(request.route_url('survey.qsheet', sid=sid))
+                raise HTTPFound(request.route_url('survey.view', sid=sid))
             except api.Invalid as e:
                 e.params = request.POST
                 return {'survey': survey,

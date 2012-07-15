@@ -106,18 +106,9 @@ def set_quest_attr_value(question, key, value):
         question.attributes.append(qag)
     
 @view_config(route_name='survey.qsheet')
-@render({'text/html': 'backend/qsheet/index.html'})
+@render({'text/html': True})
 def index(request):
-    dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    user = current_user(request)
-    if survey:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
-            return {'survey': survey}
-        else:
-            redirect_to_login(request)
-    else:
-        raise HTTPNotFound()
+    raise HTTPFound(request.route_url('survey.view', sid=request.matchdict['sid']))
 
 @view_config(route_name='survey.qsheet.new')
 @render({'text/html': 'backend/qsheet/new.html'})
@@ -631,7 +622,7 @@ def delete_qsheet(request):
                             survey.start_id = survey.qsheets[0].id
                             dbsession.add(survey)
                 request.session.flash('Survey page deleted', 'info')
-                raise HTTPFound(request.route_url('survey.qsheet',
+                raise HTTPFound(request.route_url('survey.view',
                                                   sid=request.matchdict['sid']))
             else:
                 return {'survey': survey,

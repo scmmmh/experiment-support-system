@@ -15,9 +15,9 @@
   </head>
   <body>
     <div class="container">
-      ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Pages', {'href': r.route_url('survey.qsheet', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)})], r)}
+      ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)})], r)}
       ${h.survey.fancy_status(r, survey, class_='survey-status right')}
-      ${h.ui.main_menu('pages', survey, r)}
+      ${h.ui.main_menu('survey', survey, r)}
       <nav class="toolbar">
         <ul>
           <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" class="button">Edit</a></li>
