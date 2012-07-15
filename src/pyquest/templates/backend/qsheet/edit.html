@@ -63,8 +63,8 @@
                         if($('#qsheet-content').children().length == 1) {
                             $('#qsheet-content li.placeholder').show();
                         }
+                        fix_control_positions();
                     }, 500);
-                    fix_control_positions();
                 }
             })
             return false;
@@ -80,8 +80,7 @@
             var link = $(this);
             var row = link.parent().parent();
             row.fadeOut();
-            setTimeout(function() {row.remove();}, 400);
-            fix_control_positions();
+            setTimeout(function() {row.remove();fix_control_positions();}, 400);
             return false;
         });
         item.find('a.action-add-answer').click(function() {
@@ -285,6 +284,26 @@
         	});
         	return false;
         });
+        $('.action-edit-layout').click(function() {
+        	var btn = $(this);
+        	btn.parent().addClass('current');
+            $('.action-edit-settings').parent().removeClass('current');
+            $('.role-edit-layout').show();
+            $('.role-edit-settings').hide();
+            fix_control_positions();
+            return false;
+        }).parent().addClass('current');
+        $('.action-edit-settings').click(function() {
+            var btn = $(this);
+            btn.parent().addClass('current');
+            $('.action-edit-layout').parent().removeClass('current');
+            $('.role-edit-layout').hide();
+            $('.role-edit-settings').show();
+            fix_control_positions();
+            return false;
+        });
+        $('.role-edit-layout').show();
+        $('.role-edit-settings').hide();
         $(window).scroll(function(ev) {
         	fix_control_positions();
         }).resize(function(ev) {
@@ -315,17 +334,25 @@
       <form id="qsheet-form" action="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" method="post">
         <div class="error" py:if="e">${repr(e.error_dict)}</div>
         ${h.form.csrf_token(r.session.get_csrf_token())}
-        <dl>
-          <dt>Name</dt>
-          <dd>${h.form.text_field('name', qsheet.name, e)}</dd>
-          <dt>Title</dt>
-          <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
-          <dt class="role-css-edit-toggle">CSS styles</dt>
-          <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>
-          <dt class="role-js-edit-toggle">Javascript</dt>
-          <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22 role-js-edit')}</dd>
-          <dt>Content</dt>
-          <dd class="clearfix">
+        <nav class="sections">
+          <ul>
+            <li><a href="#" class="action-edit-layout">Layout</a></li>
+            <li><a href="#" class="action-edit-settings">Settings</a></li>
+          </ul>
+        </nav>
+        <section class="role-edit-settings">
+          <dl>
+           <dt>Name</dt>
+           <dd>${h.form.text_field('name', qsheet.name, e)}</dd>
+           <dt>Title</dt>
+           <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
+           <dt class="role-css-edit-toggle">CSS styles</dt>
+           <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>
+           <dt class="role-js-edit-toggle">Javascript</dt>
+           <dd>${h.form.textarea('scripts', qsheet.scripts, e, class_='span-22 role-js-edit')}</dd>
+          </dl>
+        </section>
+        <section class="role-edit-layout clearfix">
             <aside id="tools" class="right" style="width:200px;position:relative;">
               <h3><a href="#">Text</a></h3>
               <ol>
@@ -362,8 +389,7 @@
                 <xi:include href="edit_fragment.html"/>
               </py:for>
             </ol>
-          </dd>
-        </dl>
+        </section>
         <ul id="main-buttons" class="buttons" style="position:relative;z-index:1;background-color:#ffffff;border:1px dotted;width:698px;padding:0 1.5em;">
           <li>${h.form.button("Don't save", class_='button', onclick="document.location='%s'" % r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id))}</li>
           <li>${h.form.submit('Save', class_='button action-save')}</li>
