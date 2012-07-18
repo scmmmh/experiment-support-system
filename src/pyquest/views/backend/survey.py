@@ -41,12 +41,6 @@ class SurveySchema(Schema):
     
     pre_validators = [variabledecode.NestedVariables()]
 
-class QSheetInstanceSchema(Schema):
-    repeat = validators.UnicodeString(not_empty=True)
-    data_items = validators.Int(if_missing=0, if_empty=0)
-    control_items = validators.Int(if_missing=0, if_empty=0)
-    transition = validators.Int(if_missing=None, if_empty=None)
-
 class SurveyStatusSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     status = validators.OneOf(['develop', 'testing', 'running', 'paused', 'finished'])
@@ -181,8 +175,6 @@ def edit(request):
             if request.method == 'POST':
                 try:
                     schema = SurveySchema()
-                    for qsheet in survey.qsheets:
-                        schema.add_field(unicode(qsheet.id), QSheetInstanceSchema())
                     params = schema.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
@@ -193,17 +185,6 @@ def edit(request):
                         survey.scripts = params['scripts']
                         survey.start_id = params['start']
                         survey.language = params['language']
-                        for qsheet in survey.qsheets:
-                            get_qs_attr(qsheet, 'repeat').value = params[unicode(qsheet.id)]['repeat']
-                            get_qs_attr(qsheet, 'data-items').value = params[unicode(qsheet.id)]['data_items']
-                            get_qs_attr(qsheet, 'control-items').value = params[unicode(qsheet.id)]['control_items']
-                            if len(qsheet.next) > 0:
-                                if params[unicode(qsheet.id)]['transition']:
-                                    qsheet.next[0].target_id = params[unicode(qsheet.id)]['transition']
-                                else:
-                                    dbsession.delete(qsheet.next[0])
-                            elif params[unicode(qsheet.id)]['transition']:
-                                qsheet.next.append(QSheetTransition(target_id=params[unicode(qsheet.id)]['transition']))
                         dbsession.add(survey)
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.edit',
@@ -262,8 +243,8 @@ def preview(request):
             qids = [qsheets[0].id]
             while qsheets[-1]:
                 if qsheets[-1].next and qsheets[-1].next[0].target.id not in qids:
-                    qsheets.append(qsheets[-1].next[0].target)
                     qids.append(qsheets[-1].next[0].target.id)
+                    qsheets.append(qsheets[-1].next[0].target)
                 else:
                     qsheets.append(None)
             return {'survey': survey,
