@@ -15,10 +15,12 @@ from pywebtools.auth import is_authorised
 
 from pyquest.views.frontend import safe_int
 from pyquest.helpers.auth import check_csrf_token
-from pyquest.helpers.qsheet import get_q_attr, get_attr_groups, get_qg_attr
+from pyquest.helpers.qsheet import get_q_attr, get_attr_groups, get_qg_attr,\
+    get_qs_attr
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question,
-    QuestionAttribute, QuestionAttributeGroup, QSheetAttribute)
+    QuestionAttribute, QuestionAttributeGroup, QSheetAttribute,
+    QSheetTransition)
 from pyquest.renderer import render
 from pyquest.validation import (PageSchema, flatten_invalid,
                                 ValidationState, XmlValidator)
@@ -35,6 +37,10 @@ class QSheetSourceSchema(Schema):
     content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="dummy"><pq:questions>%s</pq:questions></pq:qsheet>', strip_wrapper=False)
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
+    repeat = validators.UnicodeString(not_empty=True)
+    data_items = validators.Int(if_missing=0, if_empty=0)
+    control_items = validators.Int(if_missing=0, if_empty=0)
+    transition = validators.Int(if_missing=None, if_empty=None)
 
 class QSheetTextSchema(Schema):
     id = validators.Int()
@@ -73,6 +79,10 @@ class QSheetVisualSchema(Schema):
     title = validators.UnicodeString(not_empty=True)
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
+    repeat = validators.UnicodeString(not_empty=True)
+    data_items = validators.Int(if_missing=0, if_empty=0)
+    control_items = validators.Int(if_missing=0, if_empty=0)
+    transition = validators.Int(if_missing=None, if_empty=None)
     
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -411,6 +421,20 @@ def edit(request):
                         qsheet.title = params['title']
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
+                        get_qs_attr(qsheet, 'repeat').value = params['repeat']
+                        get_qs_attr(qsheet, 'data-items').value = params['data_items']
+                        get_qs_attr(qsheet, 'control-items').value = params['control_items']
+                        next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
+                                                                          QSheet.survey_id==request.matchdict['sid'])).first()
+                        if qsheet.next:
+                            if next_qsheet:
+                                qsheet.next[0].target_id = next_qsheet.id
+                            else:
+                                dbsession.delete(qsheet.next[0])
+                                qsheet.next = []
+                        else:
+                            if next_qsheet:
+                                qsheet.next.append(QSheetTransition(target_id=next_qsheet.id))
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
                             if question.type == 'text':
@@ -572,6 +596,20 @@ def edit_source(request):
                                                                      QSheet.survey_id==request.matchdict['sid'])).first()
                         qsheet.name = params['name']
                         qsheet.title = params['title']
+                        get_qs_attr(qsheet, 'repeat').value = params['repeat']
+                        get_qs_attr(qsheet, 'data-items').value = params['data_items']
+                        get_qs_attr(qsheet, 'control-items').value = params['control_items']
+                        next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
+                                                                          QSheet.survey_id==request.matchdict['sid'])).first()
+                        if qsheet.next:
+                            if next_qsheet:
+                                qsheet.next[0].target_id = next_qsheet.id
+                            else:
+                                dbsession.delete(qsheet.next[0])
+                                qsheet.next = []
+                        else:
+                            if next_qsheet:
+                                qsheet.next.append(QSheetTransition(target_id=next_qsheet.id))
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
                         for item in params['content']:
