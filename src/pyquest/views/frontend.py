@@ -208,6 +208,7 @@ def run_survey(request):
             data_items = load_data_items(state, dbsession)
             participant = get_participant(dbsession, survey, state)
             request.response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
+            dbsession.add(qsheet)
             return {'survey': survey,
                     'qsheet': qsheet,
                     'data_items': data_items,
@@ -305,6 +306,7 @@ def run_survey(request):
                 ie = flatten_invalid(ie)
                 ie.params = request.POST
                 participant = get_participant(dbsession, survey, state)
+                dbsession.add(qsheet)
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'data_items': data_items,
