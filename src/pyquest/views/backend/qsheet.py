@@ -421,9 +421,18 @@ def edit(request):
                         qsheet.title = params['title']
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
-                        get_qs_attr(qsheet, 'repeat').value = params['repeat']
-                        get_qs_attr(qsheet, 'data-items').value = params['data_items']
-                        get_qs_attr(qsheet, 'control-items').value = params['control_items']
+                        if get_qs_attr(qsheet, 'repeat'):
+                            get_qs_attr(qsheet, 'repeat').value = params['repeat']
+                        else:
+                            qsheet.attributes.append(QSheetAttribute(key='repeat', value=params['repeat']))
+                        if get_qs_attr(qsheet, 'data-items'):
+                            get_qs_attr(qsheet, 'data-items').value = params['data_items']
+                        else:
+                            qsheet.attributes.append(QSheetAttribute(key='data-items', value=params['data_items']))
+                        if get_qs_attr(qsheet, 'control-items'):
+                            get_qs_attr(qsheet, 'control-items').value = params['control_items']
+                        else:
+                            qsheet.attributes.append(QSheetAttribute(key='control-items', value=params['control_items']))
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
                         if qsheet.next:
@@ -596,9 +605,18 @@ def edit_source(request):
                                                                      QSheet.survey_id==request.matchdict['sid'])).first()
                         qsheet.name = params['name']
                         qsheet.title = params['title']
-                        get_qs_attr(qsheet, 'repeat').value = params['repeat']
-                        get_qs_attr(qsheet, 'data-items').value = params['data_items']
-                        get_qs_attr(qsheet, 'control-items').value = params['control_items']
+                        if get_qs_attr(qsheet, 'repeat'):
+                            get_qs_attr(qsheet, 'repeat').value = params['repeat']
+                        else:
+                            qsheet.attributes.append(QSheetAttribute(key='repeat', value=params['repeat']))
+                        if get_qs_attr(qsheet, 'data-items'):
+                            get_qs_attr(qsheet, 'data-items').value = params['data_items']
+                        else:
+                            qsheet.attributes.append(QSheetAttribute(key='data-items', value=params['data_items']))
+                        if get_qs_attr(qsheet, 'control-items'):
+                            get_qs_attr(qsheet, 'control-items').value = params['control_items']
+                        else:
+                            qsheet.attributes.append(QSheetAttribute(key='control-items', value=params['control_items']))
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
                         if qsheet.next:
