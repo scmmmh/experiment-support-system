@@ -91,7 +91,7 @@ def upload(request):
                                 for idx, (key, value) in enumerate(item.items()):
                                     if key != 'control_':
                                         data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
-                                                                                      value=value.decode('utf-8'),
+                                                                                      value=value.decode('utf-8') if value else u'',
                                                                                       order=idx + 1))
                                 survey.data_items.append(data_item)
                                 dbsession.add(data_item)
