@@ -101,12 +101,14 @@ def question_type_title(q_type):
     else:
         return q_type
     
-def substitute(text, item):
+def substitute(text, item, participant=None):
     if text:
         m = search('\${.+?}', text)
         while(m):
             tag = m.group(0)[2:-1]
-            if tag in item:
+            if participant and tag == 'pid_':
+                text = text.replace(m.group(0), unicode(participant.id))
+            elif tag in item:
                 text = text.replace(m.group(0), unicode(item[tag]))
             else:
                 text = text.replace(m.group(0), tag)
@@ -115,9 +117,9 @@ def substitute(text, item):
     else:
         return None
 
-def display(question, item, e, csrf_token=None):
+def display(question, item, e, csrf_token=None, participant=None):
     if question.type == 'text':
-        return tag.section(Markup(substitute(get_q_attr_value(question, 'text.text'), item)))
+        return tag.section(Markup(substitute(get_q_attr_value(question, 'text.text'), item, participant=participant)))
     elif question.type == 'short_text':
         return short_text_input(question, item, e)
     elif question.type == 'long_text':

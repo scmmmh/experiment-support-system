@@ -20,7 +20,7 @@ from pyquest.helpers.qsheet import get_q_attr, get_attr_groups, get_qg_attr,\
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question,
     QuestionAttribute, QuestionAttributeGroup, QSheetAttribute,
-    QSheetTransition)
+    QSheetTransition, Participant)
 from pyquest.renderer import render
 from pyquest.validation import (PageSchema, flatten_invalid,
                                 ValidationState, XmlValidator)
@@ -374,7 +374,8 @@ def view(request):
                             'e': ie}
             return {'survey': survey,
                     'qsheet': qsheet,
-                    'example': example}
+                    'example': example,
+                    'participant': Participant(id=-1)}
         else:
             redirect_to_login(request)
     else:

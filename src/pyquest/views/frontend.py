@@ -214,7 +214,8 @@ def run_survey(request):
                     'data_items': data_items,
                     'submit_options': determine_submit_options(qsheet),
                     'progress': calculate_progress(qsheet, participant),
-                    'control': calculate_control_items(qsheet, participant)}
+                    'control': calculate_control_items(qsheet, participant),
+                    'participant': participant}
         elif request.method == 'POST':
             data_items = load_data_items(state, dbsession)
             validator = PageSchema(qsheet, data_items)
@@ -313,6 +314,7 @@ def run_survey(request):
                         'submit_options': determine_submit_options(qsheet),
                         'progress': calculate_progress(qsheet, participant),
                         'control': calculate_control_items(qsheet, participant),
+                        'participant': participant,
                         'e': ie}
         else:
             raise HTTPNotAcceptable()

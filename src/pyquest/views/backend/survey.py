@@ -20,7 +20,8 @@ from pywebtools.auth import is_authorised
 from pyquest import helpers
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet)
+from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
+                            Participant)
 from pyquest.renderer import render
 from pyquest.validation import XmlValidator
 
@@ -243,7 +244,8 @@ def preview(request):
                 else:
                     qsheets.append(None)
             return {'survey': survey,
-                    'qsheets': qsheets[:-1]}
+                    'qsheets': qsheets[:-1],
+                    'participant': Participant(id=-1)}
         else:
             redirect_to_login(request)
     else:
