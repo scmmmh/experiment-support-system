@@ -9,3 +9,7 @@ def title(string):
         return string[0].upper() + string[1:]
     else:
         return string
+
+def nice_float(value, decimal_places=2):
+    fmt_str = '%%.%if' % (decimal_places)
+    return fmt_str % (value)

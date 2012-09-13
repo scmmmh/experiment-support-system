@@ -254,7 +254,7 @@
         main_form.find('.buttons .action-save').click(function() {
         	var btn = $(this);
         	clearTimeout(btn.data('pyquest.timeout'));
-        	btn.val('Saving...');
+        	btn.val('Updating...');
         	main_form.find('.error').each(function() {
         		var err = $(this);
         		err.replaceWith(err.find('.input').children());
@@ -273,13 +273,13 @@
         						err.find('.input').append(input);
         					});
         				}
-                        btn.val('Not saved').css('background-color', '#aa3333').css('color', '#ffffff');
+                        btn.val('Not updated').css('background-color', '#aa3333').css('color', '#ffffff');
         			} else {
-        				btn.val('Saved').css('background-color', '#33aa33').css('color', '#ffffff');
+        				btn.val('Updated').css('background-color', '#33aa33').css('color', '#ffffff');
         			}
         			fix_control_positions();
                     btn.data('pyquest.timeout',
-                    		setTimeout(function() {btn.val('Save').css('background-color', '').css('color', '');}, 10000));
+                    		setTimeout(function() {btn.val('Update').css('background-color', '').css('color', '');}, 10000));
         		}
         	});
         	return false;
@@ -321,6 +321,7 @@
       <ul>
         <li><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" class="button">Preview</a></li>
         <li><a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}" class="button">Edit Source</a></li>
+        <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data', sid=survey.id, qsid=qsheet.id)}" class="button">Data</a></li>
       </ul>
     </nav>
     <article>
@@ -399,8 +400,8 @@
             </ol>
         </section>
         <ul id="main-buttons" class="buttons" style="position:relative;z-index:1;background-color:#ffffff;border:1px dotted;width:698px;padding:0 1.5em;">
-          <li>${h.form.button("Don't save", class_='button', onclick="document.location='%s'" % r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id))}</li>
-          <li>${h.form.submit('Save', class_='button action-save')}</li>
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id))}</li>
+          <li>${h.form.submit('Update', class_='button action-save')}</li>
         </ul>
       </form>
     </article>

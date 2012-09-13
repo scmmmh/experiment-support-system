@@ -12,7 +12,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '582fe131cec4'
+DB_VERSION = '1341b5a7b155'
 
 class DBUpgradeException(Exception):
     
@@ -124,8 +124,8 @@ class Survey(Base):
     status = Column(Unicode)
     start_id = Column(Integer, ForeignKey('qsheets.id', use_alter=True, name='fk_start_id'))
     language = Column(Unicode)
-    owned_by = Column(ForeignKey(User.id), default=func.now())
-    created_at = Column(DateTime)
+    owned_by = Column(ForeignKey(User.id))
+    created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime)
     
     owner = relationship('User', backref='surveys')
@@ -133,10 +133,6 @@ class Survey(Base):
                            backref='survey',
                            primaryjoin='Survey.id==QSheet.survey_id',
                            cascade='all, delete, delete-orphan')
-    data_items = relationship('DataItem',
-                             backref='survey',
-                             order_by='DataItem.order',
-                             cascade='all, delete, delete-orphan')
     participants = relationship('Participant',
                                 backref='survey',
                                 cascade='all, delete, delete-orphan')
@@ -176,6 +172,10 @@ class QSheet(Base):
                         backref='target',
                         primaryjoin='QSheet.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
+    data_items = relationship('DataItem',
+                             backref='qsheet',
+                             order_by='DataItem.order',
+                             cascade='all, delete, delete-orphan')
 
 class QSheetAttribute(Base):
     
@@ -249,7 +249,7 @@ class DataItem(Base):
     __tablename__ = 'data_items'
     
     id = Column(Integer, primary_key=True)
-    survey_id = Column(ForeignKey(Survey.id))
+    qsheet_id = Column(ForeignKey(QSheet.id))
     order = Column(Integer)
     control = Column(Boolean, default=False)
     

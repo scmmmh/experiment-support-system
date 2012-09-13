@@ -146,7 +146,7 @@
     <ownedAttribute xmi:id="_WXz6QM5vEeGhzsVSo0zW2Q" name="control" type="_5tVS0M5uEeGhzsVSo0zW2Q"/>
   </packagedElement>
   <packagedElement xmi:type="uml:Association" xmi:id="_veHeUM3VEeGmP85UBK6MTQ" name="data_items" memberEnd="_veHeUc3VEeGmP85UBK6MTQ _veG3QM3VEeGmP85UBK6MTQ">
-    <ownedEnd xmi:id="_veHeUc3VEeGmP85UBK6MTQ" name="survey" type="_lBDCgM3VEeGmP85UBK6MTQ" association="_veHeUM3VEeGmP85UBK6MTQ">
+    <ownedEnd xmi:id="_veHeUc3VEeGmP85UBK6MTQ" name="survey" type="_nIi6gM3VEeGmP85UBK6MTQ" association="_veHeUM3VEeGmP85UBK6MTQ">
       <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_veHeUs3VEeGmP85UBK6MTQ" value="1"/>
       <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_veHeU83VEeGmP85UBK6MTQ" value="1"/>
     </ownedEnd>

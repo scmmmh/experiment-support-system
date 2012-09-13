@@ -19,7 +19,6 @@ def survey_breadcrumbs(items, request):
 def main_menu(current, survey, request):
     menu_items = [('back', [Markup('&larr;'),  ' All my surveys'], {'href': request.route_url('survey'), 'class': 'no-tab', 'style': 'font-weight:normal;'}),
                   ('survey', 'Survey', {'href': request.route_url('survey.view', sid=survey.id)}),
-                  ('data', 'Data', {'href': request.route_url('survey.data', sid=survey.id)}),
                   ('preview', 'Preview', {'href': request.route_url('survey.preview', sid=survey.id)}),
                   ('results', 'Results', {'href': request.route_url('survey.results', sid=survey.id)})]
     if survey.status == 'testing':

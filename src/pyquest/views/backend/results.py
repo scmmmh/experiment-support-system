@@ -52,11 +52,14 @@ def raw_data(request):
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             rows = []
             columns = ['page', 'participant_id']
-            if len(survey.data_items) > 0:
+            data_item_columns = []
+            for qsheet in survey.qsheets:
+                if qsheet.data_items:
+                    for attr in qsheet.data_items[0].attributes:
+                        data_item_columns.append('%s.%s' % (qsheet.name, attr.key))
+            if data_item_columns:
                 columns.append('data_id')
-                if len(survey.data_items) > 0:
-                    for attr in survey.data_items[0].attributes:
-                        columns.append(attr.key) 
+                columns.extend(data_item_columns)
             columns.append('question')
             columns.append('answer')
             for qsheet in survey.qsheets:
@@ -78,7 +81,7 @@ def raw_data(request):
                                 if answer.data_item_id:
                                     row['data_id'] = answer.data_item_id
                                     for attr in answer.data_item.attributes:
-                                        row[attr.key] = attr.value
+                                        row['%s.%s' % (qsheet.name, attr.key)] = attr.value
                                 rows.append(row)
             return {'columns': columns,
                     'rows': rows,
@@ -108,8 +111,11 @@ def participant(request):
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             data_attr = []
-            if survey.data_items:
-                data_attr = [('pyquest_id_', 'Internal Identifier')] + [(a.key, a.key) for a in survey.data_items[0].attributes]
+            for qsheet in survey.qsheets:
+                if qsheet.data_items:
+                    data_attr.extend([(a.key, a.key) for a in qsheet.data_items[0].attributes])
+            if data_attr:
+                data_attr.insert(0, ('pyquest_id_', 'Internal Identifier'))
             data_identifier = None
             if 'data_identifier' in request.params and request.params['data_identifier'] != 'pyquest_id_':
                 if request.params['data_identifier'] in [d[0] for d in data_attr]:
@@ -122,13 +128,13 @@ def participant(request):
                         if question.type in ['multi_choice', 'ranking']:
                             for sub_answer in get_attr_groups(question, 'answer'):
                                 if has_data_items:
-                                    for data_item in survey.data_items:
+                                    for data_item in qsheet.data_items:
                                         columns.append('%s.%s.%s.%s' % (qsheet.name, question.name, get_qg_attr_value(sub_answer, 'value'), get_data_identifier(data_item, data_identifier)))
                                 else:
                                     columns.append('%s.%s.%s' % (qsheet.name, question.name, get_qg_attr_value(sub_answer, 'value')))
                             if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
                                 if has_data_items:
-                                    for data_item in survey.data_items:
+                                    for data_item in qsheet.data_items:
                                         columns.append('%s.%s._other.%s' % (qsheet.name, question.name, get_data_identifier(data_item, data_identifier)))
                                 else:
                                     columns.append('%s.%s._other' % (qsheet.name, question.name))
@@ -137,19 +143,19 @@ def participant(request):
                                 if question.type == 'multi_choice_grid':
                                     for sub_answer in get_attr_groups(question, 'answer'):
                                         if has_data_items:
-                                            for data_item in survey.data_items:
+                                            for data_item in qsheet.data_items:
                                                 columns.append('%s.%s.%s.%s.%s' % (qsheet.name, question.name, get_qg_attr_value(sub_quest, 'name'), get_qg_attr_value(sub_answer, 'value'), get_data_identifier(data_item, data_identifier)))
                                         else:
                                             columns.append('%s.%s.%s.%s' % (qsheet.name, question.name, get_qg_attr_value(sub_quest, 'name'), get_qg_attr_value(sub_answer, 'value')))
                                 else:
                                     if has_data_items:
-                                        for data_item in survey.data_items:
+                                        for data_item in qsheet.data_items:
                                             columns.append('%s.%s.%s.%s' % (qsheet.name, question.name, get_qg_attr_value(sub_quest, 'name'), get_data_identifier(data_item, data_identifier)))
                                     else:
                                         columns.append('%s.%s.%s' % (qsheet.name, question.name, get_qg_attr_value(sub_quest, 'name')))
                         else:
                             if has_data_items:
-                                for data_item in survey.data_items:
+                                for data_item in qsheet.data_items:
                                     columns.append('%s.%s.%s' % (qsheet.name, question.name, get_data_identifier(data_item, data_identifier)))
                             else:
                                 columns.append('%s.%s' % (qsheet.name, question.name))

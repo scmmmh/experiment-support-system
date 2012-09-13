@@ -357,9 +357,9 @@ def view(request):
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             example = {'did': 0}
-            if survey.data_items:
-                example['did'] = survey.data_items[0].id
-                for attr in survey.data_items[0].attributes:
+            if qsheet.data_items:
+                example['did'] = qsheet.data_items[0].id
+                for attr in qsheet.data_items[0].attributes:
                     example[attr.key] = attr.value
             if request.method == 'POST':
                 validator = PageSchema(qsheet, [example])

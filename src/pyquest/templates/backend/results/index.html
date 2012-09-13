@@ -76,9 +76,27 @@
               </py:for>
             </tbody>
           </table>
+          <table py:if="qsheet.data_items" py:with="summary = h.data.generate_summary(qsheet)">
+            <thead>
+              <tr>
+                <th># of Data Items</th>
+                <th>Minimum # of Answers per Data Item</th>
+                <th>Avergage # of Answers per Data Item</th>
+                <th>Maximum # of Answers per Data Item</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${summary[0]}</td>
+                <td>${summary[1]}</td>
+                <td>${h.text.nice_float(summary[2])}</td>
+                <td>${summary[3]}</td>
+              </tr>
+            </tbody>
+          </table>
         </section>
       </section>
-      <section style="margin-top:2em;" py:if="survey.data_items">
+      <section style="margin-top:2em;" py:if="False">
         <hgroup>
           <h2>Data</h2>
         </hgroup>

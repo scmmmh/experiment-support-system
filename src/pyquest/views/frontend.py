@@ -41,7 +41,7 @@ def data_item_to_dict(data_item):
         result[attr.key] = attr.value
     return result
 
-def select_data_items(sid, state, qsheet, dbsession):
+def select_data_items(qsid, state, qsheet, dbsession):
     def data_item_transform(t):
         if t[1]:
             return (t[0], t[1].count)
@@ -52,7 +52,7 @@ def select_data_items(sid, state, qsheet, dbsession):
     elif get_qs_attr_value(qsheet, 'repeat') == 'repeat':
         source_items = map(data_item_transform,
                            dbsession.query(DataItem, DataItemCount).\
-                                outerjoin(DataItemCount).filter(and_(DataItem.survey_id==sid,
+                                outerjoin(DataItemCount).filter(and_(DataItem.qsheet_id==qsid,
                                                                      DataItem.control==False,
                                                                      not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
                                                                                                                                                                   QSheet.id==qsheet.id)))))
@@ -73,7 +73,7 @@ def select_data_items(sid, state, qsheet, dbsession):
                     data_items.extend(map(lambda t: {'did': t[0].id}, threshold_items))
                 threshold = threshold + 1
             control_items = map(lambda d: {'did': d.id},
-                                dbsession.query(DataItem).filter(and_(DataItem.survey_id==sid,
+                                dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==qsid,
                                                                       DataItem.control==True)).all())
             if len(control_items) < int(get_qs_attr_value(qsheet, 'control-items')):
                 data_items.extend(control_items)
@@ -194,7 +194,7 @@ def run_survey(request):
             raise response
         if request.method == 'GET':
             if 'dids' not in state:
-                state['dids'] = select_data_items(request.matchdict['sid'], state, qsheet, dbsession)
+                state['dids'] = select_data_items(qsheet.id, state, qsheet, dbsession)
                 if len(state['dids']) == 0:
                     response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
                     next_qsi = next_qsheet(qsheet)

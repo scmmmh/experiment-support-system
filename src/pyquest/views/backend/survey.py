@@ -234,11 +234,6 @@ def preview(request):
     user = current_user(request)
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
-            example = {'did': 0}
-            if survey.data_items:
-                example['did'] = survey.data_items[0].id
-                for attr in survey.data_items[0].attributes:
-                    example[attr.key] = attr.value
             qsheets = [dbsession.query(QSheet).filter(QSheet.id==survey.start_id).first()]
             qids = [qsheets[0].id]
             while qsheets[-1]:
@@ -248,8 +243,7 @@ def preview(request):
                 else:
                     qsheets.append(None)
             return {'survey': survey,
-                    'qsheets': qsheets[:-1],
-                    'example': example}
+                    'qsheets': qsheets[:-1]}
         else:
             redirect_to_login(request)
     else:
@@ -271,9 +265,10 @@ def status(request):
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
-                            for data_item in survey.data_items:
-                                data_item.counts = []
-                                dbsession.add(data_item)
+                            for qsheet in survey.qsheets:
+                                for data_item in qsheet.data_items:
+                                    data_item.counts = []
+                                    dbsession.add(data_item)
                         survey.status = params['status']
                         dbsession.add(survey)
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
