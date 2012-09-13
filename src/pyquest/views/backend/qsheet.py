@@ -46,6 +46,12 @@ class QSheetTextSchema(Schema):
     id = validators.Int()
     text = validators.UnicodeString()
     order = validators.Int()
+
+class QSheetInvisibleQuestionSchema(Schema):
+    id = validators.Int(not_empty=True)
+    name = validators.UnicodeString(not_empty=True)
+    timeout = validators.Int(not_empty=True)
+    order = validators.Int(not_empty=True)
     
 class QSheetBasicQuestionSchema(Schema):
     id = validators.Int(not_empty=True)
@@ -91,7 +97,8 @@ class QSheetAddQuestionSchema(Schema):
                                           'email', 'url', 'date', 'time', 'datetime',
                                           'month', 'single_choice', 'single_choice_grid',
                                           'confirm', 'multi_choice',
-                                          'multi_choice_grid', 'ranking']),
+                                          'multi_choice_grid', 'ranking',
+                                          'auto_commit']),
                         validators.UnicodeString(not_empty=True))
 
 def set_qgroup_attr_value(qgroup, key, value):
@@ -371,6 +378,7 @@ def view(request):
                     return {'survey': survey,
                             'qsheet': qsheet,
                             'example': example,
+                            'participant': Participant(id=-1),
                             'e': ie}
             return {'survey': survey,
                     'qsheet': qsheet,
@@ -402,6 +410,8 @@ def edit(request):
                             schema.add_field(unicode(question.id), QSheetNumberQuestionSchema())
                         elif question.type == 'confirm':
                             schema.add_field(unicode(question.id), QSheetConfirmQuestionSchema())
+                        elif question.type == 'auto_commit':
+                            schema.add_field(unicode(question.id), QSheetInvisibleQuestionSchema())
                         else:
                             sub_schema = QSheetBasicQuestionSchema()
                             if question.type in ['single_choice', 'multi_choice']:
@@ -450,6 +460,9 @@ def edit(request):
                             if question.type == 'text':
                                 question.order = q_params['order']
                                 get_q_attr(question, 'text.text').value = q_params['text']
+                            elif question.type == 'auto_commit':
+                                question.order = q_params['order']
+                                set_quest_attr_value(question, 'further.timeout', unicode(q_params['timeout']))
                             else:
                                 question.name = q_params['name']
                                 question.title = q_params['title']
@@ -547,6 +560,10 @@ def edit_add_question(request):
                     if params['type'] == 'text':
                         qag = QuestionAttributeGroup(key='text', order=0)
                         qag.attributes.append(QuestionAttribute(key='text', value='<p>Double-click here to edit the text.</p>', order=0))
+                        question.attributes.append(qag)
+                    elif params['type'] == 'auto_commit':
+                        qag = QuestionAttributeGroup(key='further', order=0)
+                        qag.attributes.append(QuestionAttribute(key='timeout', value='10', order=0))
                         question.attributes.append(qag)
                     elif params['type'] in['number', 'confirm', 'single_choice']:
                         qag = QuestionAttributeGroup(key='further', order=0)

@@ -213,6 +213,8 @@
                     q_type = 'multi_choice_grid';
                 } else if(dropped_type == 'Ranking') {
                     q_type = 'ranking';
+        		} else if(dropped_type == 'Automatic next page') {
+        			q_type = 'auto_commit'
         		}
         		ui.item.html('Loading...');
         		ui.item.addClass('item');
@@ -391,6 +393,10 @@
               <ol>
                 <li>Confirmation</li>
                 <li>Ranking</li>
+              </ol>
+              <h3><a href="#">Invisible</a></h3>
+              <ol>
+                <li>Automatic next page</li>
               </ol>
             </aside>
             <ol id="qsheet-content" style="width:700px;">

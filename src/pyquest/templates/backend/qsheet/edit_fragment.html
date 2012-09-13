@@ -17,7 +17,16 @@
         ${Markup(h.qsheet.get_q_attr_value(question, 'text.text'))}
       </div>
     </py:if>
-    <py:if test="question.type != 'text'">
+    <py:if test="question.type == 'auto_commit'">
+      ${h.form.hidden_field('%i.name' % (question.id), 'auto_commit_%i')}
+      <p>Automatically save all answers on the current page and move on to the next page
+        after a given timeout.</p>
+      <dl>
+        <dt>Timeout (seconds)</dt>
+        <dd>${h.form.number_field('%i.timeout' % (question.id), h.qsheet.get_q_attr_value(question, 'further.timeout', '0'), e, class_='span-16')}</dd>
+      </dl>
+    </py:if>
+    <py:if test="question.type not in ['text', 'auto_commit']">
       <dl>
         <dt>Name</dt>
         <dd>${h.form.text_field('%i.name' % (question.id), question.name, e)}</dd>

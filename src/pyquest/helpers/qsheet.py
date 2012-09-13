@@ -98,6 +98,8 @@ def question_type_title(q_type):
         return 'Multiple choice grid'
     elif q_type == 'ranking':
         return 'Ranking'
+    elif q_type == 'auto_commit':
+        return 'Automatic next page'
     else:
         return q_type
     
@@ -162,6 +164,8 @@ def display(question, item, e, csrf_token=None, participant=None):
         return confirm(question, item, e)
     elif question.type == 'ranking':
         return ranking(question, item, e)
+    elif question.type == 'auto_commit':
+        return auto_commit(question, item, e)
     else:
         return question.type
 
@@ -385,6 +389,9 @@ def ranking(question, item, e):
     if get_q_attr_value(question, 'further.after_label'):
         items.append(tag.li(get_q_attr_value(question, 'further.after_label'), class_='role-label', style="display:none;"))
     return form.error_wrapper(tag.ul(items), 'items.%s.%s' % (item['did'], question.name), e)
+
+def auto_commit(question, item, e):
+    return Markup('''<script type="text/javascript">$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('<input type="hidden" name="action_" value="Next Page"/>'); frm.submit();}, %i)});</script>''' % (int(get_q_attr_value(question, 'further.timeout')) * 1000))
 
 def as_text(qsheet, as_markup=False, no_ids=False):
     def std_attr(question, no_id=False):

@@ -285,6 +285,8 @@ def run_survey(request):
                                     else:
                                         answer.values.append(AnswerValue(name=get_qg_attr_value(sub_answer, 'value'),
                                                                          value=None))
+                            elif question.type == 'auto_commit':
+                                pass
                             else:
                                 if qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
                                     answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][unicode(data_item_src['did'])][question.name])))
