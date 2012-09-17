@@ -42,7 +42,6 @@ def upgrade():
                                                                         qsa.c.key=='repeat',
                                                                         qsa.c.value=='repeat'))).first()
         if qsheet:
-            print qsheet
             qs_pk = qsheet[0]
         else:
             qs_pk = op.get_bind().execute(qs.insert().values(survey_id=data_item.survey_id)).inserted_primary_key[0]
