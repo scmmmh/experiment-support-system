@@ -398,7 +398,7 @@ def auto_commit(question, item, e):
     return Markup('''<script type="text/javascript">$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('<input type="hidden" name="action_" value="Next Page"/>'); frm.submit();}, %i)});</script>''' % (int(get_q_attr_value(question, 'further.timeout')) * 1000))
 
 def hidden_value(question, item, e):
-    return form.hidden_field('items.%s.%s' % (item['did'], question.name), get_q_attr_value(question, 'further.value', ''))
+    return form.hidden_field('items.%s.%s' % (item['did'], question.name), substitute(get_q_attr_value(question, 'further.value', ''), item))
 
 def as_text(qsheet, as_markup=False, no_ids=False):
     def std_attr(question, no_id=False):
