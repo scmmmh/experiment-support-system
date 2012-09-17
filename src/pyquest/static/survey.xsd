@@ -31,6 +31,7 @@
               <xs:element name="confirm" type="qs:ConfirmQuestion"/>
               <xs:element name="multi_choice_grid" type="qs:MultiAnswerMultiQuestionQuestion"/>
               <xs:element name="ranking" type="qs:MultiAnswerQuestion"/>
+              <xs:element name="auto_commit" type="qs:AutoCommitQuestion"/>
             </xs:choice>
         </xs:sequence>
     </xs:complexType>
@@ -121,4 +122,9 @@
         <xs:attribute name="name" type="xs:string"/>
         <xs:attribute name="label" type="xs:string"/>
     </xs:complexType>
+
+    <xs:complexType name="AutoCommitQuestion">
+        <xs:attribute name="timeout" type="xs:int"/>
+    </xs:complexType>
+    
 </xs:schema>

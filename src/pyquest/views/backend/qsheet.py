@@ -177,7 +177,7 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
         if item.tag == '{http://paths.sheffield.ac.uk/pyquest}static_text':
             q_type = 'text'
         else:
-            if 'name' not in item.attrib:
+            if item.tag != '{http://paths.sheffield.ac.uk/pyquest}auto_commit' and 'name' not in item.attrib:
                 raise api.Invalid('All questions must have a name', None, None, error_dict={'content': 'All questions must have a name'})
             if item.tag == '{http://paths.sheffield.ac.uk/pyquest}short_text':
                 q_type = 'short_text'
@@ -209,6 +209,8 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 q_type = 'multi_choice_grid'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}ranking':
                 q_type = 'ranking'
+            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}auto_commit':
+                q_type = 'auto_commit'
         question = None
         if not q_type:
             continue
@@ -223,7 +225,8 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
             qsheet.questions.append(question)
             dbsession.add(question)
         if q_type != 'text':
-            question.name = item.attrib['name']
+            if 'name' in item.attrib:
+                question.name = item.attrib['name']
             if 'required' in item.attrib and item.attrib['required'].lower() == 'true':
                 question.required = True
             else:
@@ -275,6 +278,8 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 set_quest_attr_value(question, 'further.allow_other', item.attrib['allow_other'])
             else:
                 set_quest_attr_value(question, 'further.allow_other', 'no')
+        elif q_type == 'auto_commit':
+            set_quest_attr_value(question, 'further.timeout', item.attrib['timeout'])
         if q_type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
             if 'before_label' in item.attrib:
                 set_quest_attr_value(question, 'further.before_label', item.attrib['before_label'])
@@ -619,6 +624,7 @@ def edit_source(request):
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
+                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                                      QSheet.survey_id==request.matchdict['sid'])).first()
                         qsheet.name = params['name']
@@ -657,6 +663,7 @@ def edit_source(request):
                                                       qsid=request.matchdict['qsid']))
                 except api.Invalid as e:
                     e.params = request.POST
+                    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                                  QSheet.survey_id==request.matchdict['sid'])).first()
                     return {'survey': survey,
