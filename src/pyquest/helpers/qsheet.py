@@ -465,7 +465,9 @@ def as_text(qsheet, as_markup=False, no_ids=False):
                                                                              get_q_attr_value(question, 'further.after_label', ''))]
             lines.extend(['  <pq:answer value="%s" label="%s"/>' % (get_qg_attr_value(qg, 'value'), get_qg_attr_value(qg, 'label')) for qg in get_attr_groups(question, 'answer')])
             lines.append('</pq:ranking>')
-            return u'\n'.join(lines) 
+            return u'\n'.join(lines)
+        elif question.type == 'auto_commit':
+            return '<pq:auto_commit timeout="%s"/>' % (get_q_attr_value(question, 'further.timeout', '60')) 
         else:
             return ''
     
