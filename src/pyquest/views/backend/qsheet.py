@@ -171,6 +171,7 @@ def new_qsheet(request):
         raise HTTPNotFound()
 
 def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
+    original_ids = [q.id for q in qsheet.questions]
     seen_ids = []
     for idx, item in enumerate(root):
         q_type = None
@@ -309,8 +310,9 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                         qag.attributes.append(QuestionAttribute(key='label', value=attr.attrib['label']))
                         question.attributes.append(qag)
     if cleanup:
-        for question in qsheet.questions:
-            if question.id and question.id not in seen_ids:
+        for qid in original_ids:
+            if qid not in seen_ids:
+                question = dbsession.query(Question).filter(Question.id==qid).first()
                 dbsession.delete(question)
     
 @view_config(route_name='survey.qsheet.import')
