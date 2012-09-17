@@ -47,9 +47,9 @@ def select_data_items(qsid, state, qsheet, dbsession):
             return (t[0], t[1].count)
         else:
             return (t[0], 0)
-    if get_qs_attr_value(qsheet, 'repeat') == 'single':
+    if not qsheet.data_items:
         return [{'did': 'none'}]
-    elif get_qs_attr_value(qsheet, 'repeat') == 'repeat':
+    else:
         source_items = map(data_item_transform,
                            dbsession.query(DataItem, DataItemCount).\
                                 outerjoin(DataItemCount).filter(and_(DataItem.qsheet_id==qsid,
@@ -83,8 +83,6 @@ def select_data_items(qsid, state, qsheet, dbsession):
             return data_items
         else:
             return []
-    else:
-        return []
 
 def update_data_item_counts(state, dids, dbsession):
     for did in dids:
