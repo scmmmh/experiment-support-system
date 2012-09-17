@@ -124,7 +124,7 @@ def participant(request):
             for qsheet in survey.qsheets:
                 has_data_items = safe_int(get_qs_attr_value(qsheet, 'data-items')) > 0
                 for question in qsheet.questions:
-                    if question.type != 'text':
+                    if question.type not in ['text', 'auto_commit']:
                         if question.type in ['multi_choice', 'ranking']:
                             for sub_answer in get_attr_groups(question, 'answer'):
                                 if has_data_items:
