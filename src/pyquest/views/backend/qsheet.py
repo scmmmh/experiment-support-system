@@ -79,6 +79,9 @@ class QSheetConfirmQuestionSchema(QSheetBasicQuestionSchema):
     value = validators.UnicodeString(not_empty=True)
     label = validators.UnicodeString()
 
+class QSheetHiddenValueQuestionSchema(QSheetBasicQuestionSchema):
+    value = validators.UnicodeString()
+
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
@@ -98,7 +101,7 @@ class QSheetAddQuestionSchema(Schema):
                                           'month', 'single_choice', 'single_choice_grid',
                                           'confirm', 'multi_choice',
                                           'multi_choice_grid', 'ranking',
-                                          'auto_commit']),
+                                          'auto_commit', 'hidden_value']),
                         validators.UnicodeString(not_empty=True))
 
 def set_qgroup_attr_value(qgroup, key, value):
@@ -212,6 +215,8 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 q_type = 'ranking'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}auto_commit':
                 q_type = 'auto_commit'
+            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}hidden_value':
+                q_type = 'hidden_value'
         question = None
         if not q_type:
             continue
@@ -281,6 +286,8 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 set_quest_attr_value(question, 'further.allow_other', 'no')
         elif q_type == 'auto_commit':
             set_quest_attr_value(question, 'further.timeout', item.attrib['timeout'])
+        elif q_type == 'hidden_value':
+            set_quest_attr_value(question, 'further.value', item.attrib['value'])
         if q_type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
             if 'before_label' in item.attrib:
                 set_quest_attr_value(question, 'further.before_label', item.attrib['before_label'])
@@ -419,6 +426,8 @@ def edit(request):
                             schema.add_field(unicode(question.id), QSheetConfirmQuestionSchema())
                         elif question.type == 'auto_commit':
                             schema.add_field(unicode(question.id), QSheetInvisibleQuestionSchema())
+                        elif question.type == 'hidden_value':
+                            schema.add_field(unicode(question.id), QSheetHiddenValueQuestionSchema())
                         else:
                             sub_schema = QSheetBasicQuestionSchema()
                             if question.type in ['single_choice', 'multi_choice']:
@@ -482,6 +491,8 @@ def edit(request):
                                 elif question.type == 'confirm':
                                     get_q_attr(question, 'further.value').value = q_params['value']
                                     get_q_attr(question, 'further.label').value = q_params['label']
+                                elif question.type == 'hidden_value':
+                                    get_q_attr(question, 'further.value').value = q_params['value']
                                 else:
                                     if question.type in ['single_choice', 'multi_choice']:
                                         set_quest_attr_value(question, 'further.subtype', q_params['display'])
@@ -584,6 +595,10 @@ def edit_add_question(request):
                             qag.attributes.append(QuestionAttribute(key='subtype', value='table'))
                         question.attributes.append(qag)
                         dbsession.add(qag)
+                    elif params['type'] == 'hidden_value':
+                        qag = QuestionAttributeGroup(key='further', order=0)
+                        qag.attributes.append(QuestionAttribute(key='value', value='', order=0))
+                        question.attributes.append(qag)
                     qsheet.questions.append(question)
                     dbsession.add(question)
                     dbsession.flush()

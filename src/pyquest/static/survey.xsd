@@ -32,6 +32,7 @@
               <xs:element name="multi_choice_grid" type="qs:MultiAnswerMultiQuestionQuestion"/>
               <xs:element name="ranking" type="qs:MultiAnswerQuestion"/>
               <xs:element name="auto_commit" type="qs:AutoCommitQuestion"/>
+              <xs:element name="hidden_value" type="qs:HiddenValueQuestion"/>
             </xs:choice>
         </xs:sequence>
     </xs:complexType>
@@ -126,5 +127,13 @@
     <xs:complexType name="AutoCommitQuestion">
         <xs:attribute name="timeout" type="xs:int"/>
     </xs:complexType>
-    
+
+    <xs:complexType name="HiddenValueQuestion">
+        <xs:complexContent>
+            <xs:extension base="qs:Question">
+                <xs:attribute name="value" type="xs:string"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
 </xs:schema>

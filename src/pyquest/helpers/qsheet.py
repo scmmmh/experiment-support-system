@@ -100,6 +100,8 @@ def question_type_title(q_type):
         return 'Ranking'
     elif q_type == 'auto_commit':
         return 'Automatic next page'
+    elif q_type == 'hidden_value':
+        return 'Hidden value'
     else:
         return q_type
     
@@ -166,6 +168,8 @@ def display(question, item, e, csrf_token=None, participant=None):
         return ranking(question, item, e)
     elif question.type == 'auto_commit':
         return auto_commit(question, item, e)
+    elif question.type == 'hidden_value':
+        return hidden_value(question, item, e)
     else:
         return question.type
 
@@ -393,6 +397,9 @@ def ranking(question, item, e):
 def auto_commit(question, item, e):
     return Markup('''<script type="text/javascript">$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('<input type="hidden" name="action_" value="Next Page"/>'); frm.submit();}, %i)});</script>''' % (int(get_q_attr_value(question, 'further.timeout')) * 1000))
 
+def hidden_value(question, item, e):
+    return form.hidden_field('items.%s.%s' % (item['did'], question.name), get_q_attr_value(question, 'further.value', ''))
+
 def as_text(qsheet, as_markup=False, no_ids=False):
     def std_attr(question, no_id=False):
         if no_id:
@@ -468,6 +475,9 @@ def as_text(qsheet, as_markup=False, no_ids=False):
             return u'\n'.join(lines)
         elif question.type == 'auto_commit':
             return '<pq:auto_commit timeout="%s"/>' % (get_q_attr_value(question, 'further.timeout', '60')) 
+        elif question.type == 'hidden_value':
+            return '<pq:hidden_value name="%s" value="%s"/>' % (question.name,
+                                                                get_q_attr_value(question, 'further.value', '')) 
         else:
             return ''
     

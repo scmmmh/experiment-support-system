@@ -30,12 +30,14 @@
       <dl>
         <dt>Name</dt>
         <dd>${h.form.text_field('%i.name' % (question.id), question.name, e)}</dd>
-        <dt>Title</dt>
-        <dd>${h.form.text_field('%i.title' % (question.id), question.title, e, class_='span-16')}</dd>
-        <dt>Help</dt>
-        <dd>${h.form.textarea('%i.help' % (question.id), question.help, e, class_='span-16', style='height:50px;')}</dd>
-        <dt>Required</dt>
-        <dd>${h.form.checkbox('%i.required' % (question.id), 'true', e, checked=question.required, label='This question must be answered')}</dd>
+        <py:if test="question.type != 'hidden_value'">
+          <dt>Title</dt>
+          <dd>${h.form.text_field('%i.title' % (question.id), question.title, e, class_='span-16')}</dd>
+          <dt>Help</dt>
+          <dd>${h.form.textarea('%i.help' % (question.id), question.help, e, class_='span-16', style='height:50px;')}</dd>
+          <dt>Required</dt>
+          <dd>${h.form.checkbox('%i.required' % (question.id), 'true', e, checked=question.required, label='This question must be answered')}</dd>
+        </py:if>
         <py:if test="question.type == 'number'">
           <dt>Minimum value</dt>
           <dd>${h.form.number_field('%i.min' % (question.id), h.qsheet.get_q_attr_value(question, 'further.min'), e)}</dd>
@@ -109,6 +111,13 @@
           <dd>${h.form.number_field('%i.value' % (question.id), h.qsheet.get_q_attr_value(question, 'further.value'), e, class_='span-16')}</dd>
           <dt>Label</dt>
           <dd>${h.form.number_field('%i.label' % (question.id), h.qsheet.get_q_attr_value(question, 'further.label'), e, class_='span-16')}</dd>
+        </py:if>
+        <py:if test="question.type == 'hidden_value'">
+          ${h.form.hidden_field('%i.title' % (question.id), '[Hidden title]')}
+          ${h.form.hidden_field('%i.help' % (question.id), '')}
+          ${h.form.hidden_field('%i.required' % (question.id), 'true')}
+          <dt>Value</dt>
+          <dd>${h.form.text_field('%i.value' % (question.id), h.qsheet.get_q_attr_value(question, 'further.value'), e)}</dd>
         </py:if>
       </dl>
     </py:if>

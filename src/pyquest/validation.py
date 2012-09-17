@@ -210,7 +210,7 @@ class DynamicSchema(Schema):
             return validator
         Schema.__init__(self, **kwargs)
         for question in questions:
-            if question.type in ['short_text', 'long_text']:
+            if question.type in ['short_text', 'long_text', 'hidden_value']:
                 self.add_field(question.name, augment(validators.UnicodeString(), question))
             elif question.type == 'number':
                 number_validator = augment(validators.Number(), question)
