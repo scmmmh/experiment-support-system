@@ -251,6 +251,8 @@ class DynamicSchema(Schema):
             elif question.type == 'ranking':
                 values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
                 self.add_field(question.name, augment(RankingValidator(values), question))
+            elif question.type == 'js_check':
+                self.add_field(question.name, augment(validators.UnicodeString(), question))
             
 class PageSchema(Schema):
     

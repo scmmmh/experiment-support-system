@@ -102,6 +102,8 @@ def question_type_title(q_type):
         return 'Automatic next page'
     elif q_type == 'hidden_value':
         return 'Hidden value'
+    elif q_type == 'js_check':
+        return 'JavaScript check'
     else:
         return q_type
     
@@ -170,6 +172,8 @@ def display(question, item, e, csrf_token=None, participant=None):
         return auto_commit(question, item, e)
     elif question.type == 'hidden_value':
         return hidden_value(question, item, e)
+    elif question.type == 'js_check':
+        return js_check(question, item, e)
     else:
         return question.type
 
@@ -402,12 +406,23 @@ def auto_commit(question, item, e):
 def hidden_value(question, item, e):
     return form.hidden_field('items.%s.%s' % (item['did'], question.name), substitute(get_q_attr_value(question, 'further.value', ''), item))
 
+def js_check(q, item, e):
+    @question()
+    def js_warning(q, item, e):
+        if q.required:
+            return tag.p('JavaScript is required for this questionnaire')
+        else:
+            return tag.p('JavaScript is preferred for this questionnaire')
+    return tag(tag.noscript(form.error_wrapper(js_warning(q, item, e), 'items.%s.%s' % (item['did'], q.name), e)),
+               tag.script(Markup("document.write('%s');" % (Markup(form.hidden_field('items.%s.%s' % (item['did'], q.name), 'yes')))),
+                          type_='text/javascript'))
+
 def as_text(qsheet, as_markup=False, no_ids=False):
     def std_attr(question, no_id=False):
         if no_id:
-            return 'name="%s" title="%s" help="%s"' % (question.name, question.title, question.help)
+            return 'name="%s" title="%s" help="%s" required="%s"' % (question.name, question.title, question.help, 'true' if question.required else 'false')
         else:
-            return 'id="%i" name="%s" title="%s" help="%s"' % (question.id, question.name, question.title, question.help)
+            return 'id="%i" name="%s" title="%s" help="%s" required="%s"' % (question.id, question.name, question.title, question.help, 'true' if question.required else 'false')
     def to_text(question, no_id):
         if question.type == 'text':
             if no_id:
@@ -480,6 +495,8 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         elif question.type == 'hidden_value':
             return '<pq:hidden_value name="%s" value="%s"/>' % (question.name,
                                                                 get_q_attr_value(question, 'further.value', '')) 
+        elif question.type == 'js_check':
+            return '<pq:js_check %s/>' % (std_attr(question, no_id))
         else:
             return ''
     

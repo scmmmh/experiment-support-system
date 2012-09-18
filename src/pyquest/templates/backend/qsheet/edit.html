@@ -214,9 +214,11 @@
                 } else if(dropped_type == 'Ranking') {
                     q_type = 'ranking';
                 } else if(dropped_type == 'Automatic next page') {
-                    q_type = 'auto_commit'
+                    q_type = 'auto_commit';
                 } else if(dropped_type == 'Hidden value') {
-                    q_type = 'hidden_value'
+                    q_type = 'hidden_value';
+                } else if(dropped_type == 'JavaScript check') {
+                    q_type = 'js_check';
         		}
         		ui.item.html('Loading...');
         		ui.item.addClass('item');
@@ -395,6 +397,7 @@
               <ol>
                 <li>Confirmation</li>
                 <li>Ranking</li>
+                <li>JavaScript check</li>
               </ol>
               <h3><a href="#">Invisible</a></h3>
               <ol>

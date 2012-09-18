@@ -33,6 +33,7 @@
               <xs:element name="ranking" type="qs:MultiAnswerQuestion"/>
               <xs:element name="auto_commit" type="qs:AutoCommitQuestion"/>
               <xs:element name="hidden_value" type="qs:HiddenValueQuestion"/>
+              <xs:element name="js_check" type="qs:Question"/>
             </xs:choice>
         </xs:sequence>
     </xs:complexType>
@@ -51,6 +52,7 @@
         <xs:attribute name="name" type="xs:string" use="required"/>
         <xs:attribute name="title" type="xs:string"/>
         <xs:attribute name="help" type="xs:string"/>
+        <xs:attribute name="required" type="xs:boolean"/>
     </xs:complexType>
     
     <xs:complexType name="NumberQuestion">

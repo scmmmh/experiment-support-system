@@ -101,7 +101,7 @@ class QSheetAddQuestionSchema(Schema):
                                           'month', 'single_choice', 'single_choice_grid',
                                           'confirm', 'multi_choice',
                                           'multi_choice_grid', 'ranking',
-                                          'auto_commit', 'hidden_value']),
+                                          'auto_commit', 'hidden_value', 'js_check']),
                         validators.UnicodeString(not_empty=True))
 
 def set_qgroup_attr_value(qgroup, key, value):
@@ -217,6 +217,8 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 q_type = 'auto_commit'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}hidden_value':
                 q_type = 'hidden_value'
+            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}js_check':
+                q_type = 'js_check'
         question = None
         if not q_type:
             continue
