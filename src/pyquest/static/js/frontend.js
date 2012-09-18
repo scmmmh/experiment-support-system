@@ -18,4 +18,20 @@ $(document).ready(function() {
         $('input[name="' + other_name + '"][value="_other"]').attr('checked', 'checked');
         $('select[name="' + other_name + '"]').val('_other');
     });
+    $('select.role-with-other').each(function() {
+    	var select = $(this);
+    	var other_text = select.parent().find('input.role-other-text');
+		if(select.val() == '_other') {
+			other_text.show();
+		} else {
+			other_text.hide();
+		}
+    	select.change(function() {
+    		if(select.val() == '_other') {
+    			other_text.show();
+    		} else {
+    			other_text.hide();
+    		}
+    	})
+    });
 });

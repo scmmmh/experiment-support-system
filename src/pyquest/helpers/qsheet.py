@@ -291,14 +291,16 @@ def choice_list(question, item, e, multiple=False):
 def choice_select(question, item, e, multiple=False):
     answers = get_attr_groups(question, 'answer')
     items = [tag.option(get_qg_attr_value(answer, 'label'), value=get_qg_attr_value(answer, 'value')) for answer in answers]
+    class_ = ''
     if not multiple:
         items.insert(0, tag.option('--- Please choose ---', value=''))
     if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
         items.append(tag.option('--- Other ---', value='_other'))
+        class_ = 'role-with-other'
     if multiple:
-        para = tag.p(tag.select(items, name='items.%s.%s.answer' % (item['did'], question.name), multiple='multiple'))
+        para = tag.p(tag.select(items, name='items.%s.%s.answer' % (item['did'], question.name), multiple='multiple', class_=class_))
     else:
-        para = tag.p(tag.select(items, name='items.%s.%s.answer' % (item['did'], question.name)))
+        para = tag.p(tag.select(items, name='items.%s.%s.answer' % (item['did'], question.name), class_=class_))
     if get_q_attr_value(question, 'further.allow_other', 'no') == 'single':
         if multiple:
             para.append(tag.br)
