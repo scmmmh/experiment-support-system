@@ -127,6 +127,8 @@ class ChoiceValidator(FancyValidator):
                 if 'other' in value and value['other'].strip() != '':
                     raise Invalid('If you wish to provide an other value, please select the Other option', answer, state)
         else:
+            if answer == '' and not self.not_empty:
+                return ''
             if answer not in self.values:
                 raise Invalid('Please select a valid value', answer, state)
             if answer == '_other':
