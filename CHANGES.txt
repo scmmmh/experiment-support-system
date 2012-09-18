@@ -1,3 +1,14 @@
+0.2
+---
+
+- UPDATE: Moved the DataItems from the Survey to the QSheet to allow multiple
+  QSheets with different lists of data-items.
+- NEW: Added a substitution ${pid_} for use in static text areas, that outputs
+  the current participants id.
+- NEW: Added an auto-submit question type that allows for the automatic submission
+  and moving to the next page after a given timeout.
+- NEW: Added a hidden-value question type that can store one pre-defined value
+
 0.1
 ---
 
