@@ -34,6 +34,7 @@
               <xs:element name="auto_commit" type="qs:AutoCommitQuestion"/>
               <xs:element name="hidden_value" type="qs:HiddenValueQuestion"/>
               <xs:element name="js_check" type="qs:Question"/>
+              <xs:element name="page_timer" type="qs:PageTimerQuestion"/>
             </xs:choice>
         </xs:sequence>
     </xs:complexType>
@@ -127,6 +128,7 @@
     </xs:complexType>
 
     <xs:complexType name="AutoCommitQuestion">
+        <xs:attribute name="id" type="xs:int"/>
         <xs:attribute name="timeout" type="xs:int"/>
     </xs:complexType>
 
@@ -136,6 +138,11 @@
                 <xs:attribute name="value" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="PageTimerQuestion">
+        <xs:attribute name="id" type="xs:int"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
     </xs:complexType>
 
 </xs:schema>

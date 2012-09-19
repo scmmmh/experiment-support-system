@@ -255,6 +255,8 @@ class DynamicSchema(Schema):
                 self.add_field(question.name, augment(RankingValidator(values), question))
             elif question.type == 'js_check':
                 self.add_field(question.name, augment(validators.UnicodeString(), question))
+            elif question.type == 'page_timer':
+                self.add_field(question.name, augment(validators.Number(), question))
             
 class PageSchema(Schema):
     

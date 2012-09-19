@@ -1,3 +1,18 @@
+function update_timer() {
+    ts = new Date().getTime();
+    stop = false;
+    $('input.role-timer').each(function() {
+    	var timer = $(this);
+    	timer.val(ts - timer.data('pyquest.start'));
+    	if(timer.data('pyquest.stop')) {
+    		stop = true;
+    	}
+    });
+    if(!stop) {
+    	setTimeout(update_timer, 500);
+    }
+}
+
 $(document).ready(function() {
 	$('.question.ranking ul select').hide();
     $('.question.ranking ul').sortable({
@@ -33,5 +48,17 @@ $(document).ready(function() {
     			other_text.hide();
     		}
     	})
+    });
+    ts = new Date().getTime();
+    $('input.role-timer').each(function() {
+    	var timer = $(this);
+    	timer.data('pyquest.start', ts);
+    });
+    setTimeout(update_timer, 500);
+    $('form').submit(function() {
+        $('input.role-timer').each(function() {
+        	var timer = $(this);
+        	timer.data('pyquest.stop', true);
+        });
     });
 });

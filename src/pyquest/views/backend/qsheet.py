@@ -47,10 +47,15 @@ class QSheetTextSchema(Schema):
     text = validators.UnicodeString()
     order = validators.Int()
 
-class QSheetInvisibleQuestionSchema(Schema):
+class QSheetAutoCommitQuestionSchema(Schema):
     id = validators.Int(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
     timeout = validators.Int(not_empty=True)
+    order = validators.Int(not_empty=True)
+    
+class QSheetPageTimerQuestionSchema(Schema):
+    id = validators.Int(not_empty=True)
+    name = validators.UnicodeString(not_empty=True)
     order = validators.Int(not_empty=True)
     
 class QSheetBasicQuestionSchema(Schema):
@@ -101,7 +106,8 @@ class QSheetAddQuestionSchema(Schema):
                                           'month', 'single_choice', 'single_choice_grid',
                                           'confirm', 'multi_choice',
                                           'multi_choice_grid', 'ranking',
-                                          'auto_commit', 'hidden_value', 'js_check']),
+                                          'auto_commit', 'hidden_value', 'js_check',
+                                          'page_timer']),
                         validators.UnicodeString(not_empty=True))
 
 def set_qgroup_attr_value(qgroup, key, value):
@@ -219,6 +225,8 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 q_type = 'hidden_value'
             elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}js_check':
                 q_type = 'js_check'
+            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}page_timer':
+                q_type = 'page_timer'
         question = None
         if not q_type:
             continue
@@ -427,9 +435,11 @@ def edit(request):
                         elif question.type == 'confirm':
                             schema.add_field(unicode(question.id), QSheetConfirmQuestionSchema())
                         elif question.type == 'auto_commit':
-                            schema.add_field(unicode(question.id), QSheetInvisibleQuestionSchema())
+                            schema.add_field(unicode(question.id), QSheetAutoCommitQuestionSchema())
                         elif question.type == 'hidden_value':
                             schema.add_field(unicode(question.id), QSheetHiddenValueQuestionSchema())
+                        elif question.type == 'page_timer':
+                            schema.add_field(unicode(question.id), QSheetPageTimerQuestionSchema())
                         else:
                             sub_schema = QSheetBasicQuestionSchema()
                             if question.type in ['single_choice', 'multi_choice']:
@@ -481,6 +491,9 @@ def edit(request):
                             elif question.type == 'auto_commit':
                                 question.order = q_params['order']
                                 set_quest_attr_value(question, 'further.timeout', unicode(q_params['timeout']))
+                            elif question.type == 'page_timer':
+                                question.name = q_params['name']
+                                question.order = q_params['order']
                             else:
                                 question.name = q_params['name']
                                 question.title = q_params['title']

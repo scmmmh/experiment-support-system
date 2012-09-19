@@ -104,6 +104,8 @@ def question_type_title(q_type):
         return 'Hidden value'
     elif q_type == 'js_check':
         return 'JavaScript check'
+    elif q_type == 'page_timer':
+        return 'Page timer'
     else:
         return q_type
     
@@ -174,6 +176,8 @@ def display(question, item, e, csrf_token=None, participant=None):
         return hidden_value(question, item, e)
     elif question.type == 'js_check':
         return js_check(question, item, e)
+    elif question.type == 'page_timer':
+        return page_timer(question, item, e)
     else:
         return question.type
 
@@ -417,6 +421,9 @@ def js_check(q, item, e):
                tag.script(Markup("document.write('%s');" % (Markup(form.hidden_field('items.%s.%s' % (item['did'], q.name), 'yes')))),
                           type_='text/javascript'))
 
+def page_timer(question, item, e):
+    return form.hidden_field('items.%s.%s' % (item['did'], question.name), '0', class_='role-timer')
+
 def as_text(qsheet, as_markup=False, no_ids=False):
     def std_attr(question, no_id=False):
         if no_id:
@@ -491,12 +498,25 @@ def as_text(qsheet, as_markup=False, no_ids=False):
             lines.append('</pq:ranking>')
             return u'\n'.join(lines)
         elif question.type == 'auto_commit':
-            return '<pq:auto_commit timeout="%s"/>' % (get_q_attr_value(question, 'further.timeout', '60')) 
+            if no_id:
+                return '<pq:auto_commit timeout="%s"/>' % (get_q_attr_value(question, 'further.timeout', '60'))
+            else:
+                return '<pq:auto_commit id="%s" timeout="%s"/>' % (question.id, get_q_attr_value(question, 'further.timeout', '60'))
         elif question.type == 'hidden_value':
-            return '<pq:hidden_value name="%s" value="%s"/>' % (question.name,
-                                                                get_q_attr_value(question, 'further.value', '')) 
+            if no_id:
+                return '<pq:hidden_value name="%s" value="%s"/>' % (question.name,
+                                                                    get_q_attr_value(question, 'further.value', ''))
+            else:
+                return '<pq:hidden_value id="%s" name="%s" value="%s"/>' % (question.id,
+                                                                            question.name,
+                                                                            get_q_attr_value(question, 'further.value', ''))
         elif question.type == 'js_check':
             return '<pq:js_check %s/>' % (std_attr(question, no_id))
+        elif question.type == 'page_timer':
+            if no_id:
+                return '<pq:page_timer name="%s"/>' % (question.name)
+            else:
+                return '<pq:page_timer id="%s" name="%s"/>' % (question.id, question.name)
         else:
             return ''
     

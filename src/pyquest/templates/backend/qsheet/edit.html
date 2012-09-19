@@ -219,6 +219,8 @@
                     q_type = 'hidden_value';
                 } else if(dropped_type == 'JavaScript check') {
                     q_type = 'js_check';
+                } else if(dropped_type == 'Page timer') {
+                    q_type = 'page_timer';
         		}
         		ui.item.html('Loading...');
         		ui.item.addClass('item');
@@ -403,6 +405,7 @@
               <ol>
                 <li>Hidden value</li>
                 <li>Automatic next page</li>
+                <li>Page timer</li>
               </ol>
             </aside>
             <ol id="qsheet-content" style="width:700px;">
