@@ -45,7 +45,7 @@
         <hgroup>
           <h2>Pages</h2>
         </hgroup>
-        <section py:for="qsheet in survey.qsheets">
+        <section py:for="qsheet in survey.qsheets" py:if="h.results.has_data_questions(qsheet)">
           <hgroup>
             <h3>${qsheet.title}</h3>
           </hgroup>

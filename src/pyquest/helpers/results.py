@@ -47,3 +47,9 @@ def get_d_attr_value(qsheet, key):
         return attr.value
     else:
         return None
+
+def has_data_questions(qsheet):
+    for question in qsheet.questions:
+        if question.type != 'text':
+            return True
+    return False
