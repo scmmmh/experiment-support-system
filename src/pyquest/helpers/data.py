@@ -17,7 +17,15 @@ def sample_for_qsheet(qsheet):
     return data_item
 
 def generate_summary(qsheet):
+    data_questions = 0
+    for question in qsheet.questions:
+        if question.type != 'text':
+            data_questions = data_questions + 1
+    data_questions = float(data_questions)
     counts = []
     for data_item in qsheet.data_items:
-        counts.append(len(data_item.answers))
-    return (len(qsheet.data_items), min(counts), sum(counts) / float(len(counts)), max(counts))
+        if data_questions > 0:
+            counts.append(len(data_item.answers) / data_questions)
+        else:
+            counts.append(len(data_item.answers))
+    return (len(qsheet.data_items), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))
