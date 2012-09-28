@@ -7,11 +7,11 @@ Created on 8 Feb 2012
 
 from random import sample
 
-def fix_na(value):
+def fix_na(value, na_value='N/A'):
     if value:
-        return value
+        return value.encode('utf-8')
     else:
-        return 'N/A'
+        return na_value
     
 def sample_question_answer(question, subquest=None):
     if len(question.answers) > 0:
@@ -41,12 +41,12 @@ def get_d_attr(qsheet, key):
             return attr
     return None
 
-def get_d_attr_value(qsheet, key):
+def get_d_attr_value(qsheet, key, default=None):
     attr = get_d_attr(qsheet, key)
     if attr:
         return attr.value
     else:
-        return None
+        return default
 
 def has_data_questions(qsheet):
     for question in qsheet.questions:

@@ -105,7 +105,7 @@ def handle_json_response(request, result):
 
 def handle_csv_response(request, result):
     f = StringIO()
-    writer = csv.DictWriter(f, result['columns'])
+    writer = csv.DictWriter(f, result['columns'], extrasaction='ignore')
     writer.writeheader()
     for row in result['rows']:
         writer.writerow(row)
