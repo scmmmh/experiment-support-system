@@ -53,10 +53,8 @@ def init(settings):
                                        callback=template_loaded)
 
 def request_from_args(*args):
-    if len(args) == 1 and isinstance(args[0], Request):
+    if len(args) >= 1 and isinstance(args[0], Request):
         return args[0]
-    elif len(args) == 2 and isinstance(args[1], Request):
-        return args[1]
     else:
         raise RendererException('No request found')
     
@@ -111,7 +109,7 @@ def handle_csv_response(request, result):
     writer.writeheader()
     for row in result['rows']:
         writer.writerow(row)
-    response = Response(unicode(f.getvalue()))
+    response = Response(f.getvalue())
     f.close()
     return response
 
@@ -121,12 +119,14 @@ def handle_xml_response(request, response_template, result):
     response = Response(template.render('xml'))
     return response
 
-def render(content_types={}, allow_cache=True):
+def render(content_types={}, allow_cache=True, expose_response_format=False):
     def wrapper(f, *args, **kwargs):
         request = request_from_args(*args)
-        result = template_defaults(request)
-        result.update(f(*args, **kwargs))
         response_type = match_response_type(content_types, request)
+        result = template_defaults(request)
+        if expose_response_format:
+            args = (args[0], response_type)
+        result.update(f(*args, **kwargs))
         response_template = content_types[response_type]
         if response_type == 'application/json':
             response = handle_json_response(request, result)
