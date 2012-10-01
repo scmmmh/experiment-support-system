@@ -290,4 +290,27 @@ def clear(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
-            
+
+@view_config(route_name='survey.data.download')
+@render({'text/csv': ''})
+def download(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+    user = current_user(request)
+    if survey and qsheet:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
+            columns = []
+            rows = []
+            if qsheet.data_items:
+                columns = ['id_', 'control_'] + [a.key.encode('utf-8') for a in qsheet.data_items[0].attributes]
+                for data_item in qsheet.data_items:
+                    row = dict([(a.key.encode('utf-8'), a.value.encode('utf-8')) for a in data_item.attributes])
+                    row.update(dict([('id_', data_item.id), ('control_', data_item.control)]))
+                    rows.append(row)
+            return {'columns': columns,
+                    'rows': rows}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
