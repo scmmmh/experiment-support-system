@@ -1,3 +1,11 @@
+0.4
+---
+
+- UPDATE: The By-Participant results export is now fully configurable
+- UPDATE: In the results overview hide pages that have no questions
+- BUGFIX: Fix the number-of-answers per data-item to take into account
+  the number of questions
+
 0.3
 ---
 
