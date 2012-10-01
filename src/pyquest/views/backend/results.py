@@ -179,7 +179,7 @@ def participant(request, response_format='text/html'):
                     data_identifiers[qsheet.name] = 'id_'
             selected_columns.sort()
             columns = generate_columns(survey, selected_columns, data_identifiers)
-            na_value = 'N/A'
+            na_value = 'NA'
             if request.method == 'POST':
                 try :
                     params = ByParticipantSchema().to_python(request.POST)
