@@ -2,6 +2,7 @@
 ---
 
 - NEW: The uploaded data can now be downloaded as well
+- NEW: Added support for tooltips
 
 0.4
 ---

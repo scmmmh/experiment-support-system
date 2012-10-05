@@ -6,12 +6,14 @@
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/jquery-ui/screen.css')}"/>
+    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/qtip2.min.css')}"/>
     ${select('link')}
     ${select('style')}
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/ckeditor/ckeditor.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/ckeditor/adapters/jquery.js')}"></script>
+    <script type="text/javascript" src="${r.static_url('pyquest:static/js/qtip2.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/backend.js')}"></script>
     <script type="text/javascript">
     $(document).ready(function() {
@@ -20,6 +22,74 @@
     	}, 2000);
     	$('header.flash').click(function(ev, ui) {$(this).hide();});
     	$('.post-submit').click(post_submit);
+        $('*[data-qtip-new!=""]').qtip({
+        	content: {
+        		attr: 'data-qtip-new',
+        		title: {
+        			text: 'Welcome to PyQuestionnaire',
+        			button: true
+        		}
+        	},
+            position: {
+                my: 'top center',
+                at: 'bottom center'
+            },
+            show: {
+            	delay: 0,
+            	event: '',
+                ready: true
+            },
+            hide: {
+            	event: 'unfocus'
+            },
+            style: {
+                classes: 'ui-tooltip-dark ui-tooltip-shadow'
+            }
+        });
+        $('.button[title], a[title]').qtip({
+            position: {
+                my: 'top center',
+                at: 'bottom center'
+            },
+            show: {
+                delay: 500
+            },
+            style: {
+                classes: 'ui-tooltip-dark ui-tooltip-shadow'
+            }
+        });
+        $('input[type="text"][title],select[title]').qtip({
+            position: {
+                my: 'center left',
+                at: 'center right'
+            },
+            show: {
+                event: 'focus',
+                solo: true
+            },
+            hide: {
+                event: 'unfocus'
+            },
+            style: {
+                classes: 'ui-tooltip-dark ui-tooltip-shadow'
+            }
+        });
+        $('textarea[title]').qtip({
+            position: {
+                my: 'top center',
+                at: 'bottom center'
+            },
+            show: {
+                event: 'focus',
+                solo: true
+            },
+            hide: {
+                event: 'unfocus'
+            },
+            style: {
+                classes: 'ui-tooltip-dark ui-tooltip-shadow'
+            }
+        });
     	setup_status_changer();
     });
     CSRF_TOKEN = '${r.session.get_csrf_token()}';

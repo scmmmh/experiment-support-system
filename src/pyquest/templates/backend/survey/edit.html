@@ -37,21 +37,21 @@
         ${h.form.csrf_token(r.session.get_csrf_token())}
         <dl>
           <dt>Title</dt>
-          <dd>${h.form.text_field('title', survey.title, e, class_='span-12')}</dd>
+          <dd>${h.form.text_field('title', survey.title, e, class_='span-12', title='This is the title that is displayed to the participants')}</dd>
           <dt>Summary</dt>
-          <dd>${h.form.textarea('summary', survey.summary, e, class_='span-22', style='height:5em;')}</dd>
+          <dd>${h.form.textarea('summary', survey.summary, e, class_='span-22', style='height:5em;', title='This is a brief summary of the experiments that is displayed on the list of active experiments')}</dd>
           <dt>Display Language</dt>
-          <dd>${h.form.select('language', survey.language, [('en', 'English'), ('de', 'Deutsch')], e)}</dd>
+          <dd>${h.form.select('language', survey.language, [('en', 'English'), ('de', 'Deutsch')], e, title='This is the language that the standard interface elements are shown in')}</dd>
           <dt class="role-css-edit-toggle">CSS styles</dt>
-          <dd>${h.form.textarea('styles', survey.styles, e, class_='span-22 role-css-edit')}</dd>
+          <dd>${h.form.textarea('styles', survey.styles, e, class_='span-22 role-css-edit', title='Specify any additional CSS styles that you wish to have applied on all survey pages')}</dd>
           <dt class="role-js-edit-toggle">Javascript</dt>
-          <dd>${h.form.textarea('scripts', survey.scripts, e, class_='span-22 role-js-edit')}</dd>
+          <dd>${h.form.textarea('scripts', survey.scripts, e, class_='span-22 role-js-edit', title='Specify any additional JavaScript code that you wish to have added to all survey pages')}</dd>
           <dt>First page</dt>
-          <dd>${h.form.select('start', survey.start_id, [(qs.id, qs.title) for qs in survey.qsheets], e)}</dd>
+          <dd>${h.form.select('start', survey.start_id, [(qs.id, qs.title) for qs in survey.qsheets], e, title='Select the first survey page to show to the participants')}</dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id))}</li>
-          <li>${h.form.submit('Update', class_='button')}</li>
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id), title='Go back to the survey overview and without updating the survey')}</li>
+          <li>${h.form.submit('Update', class_='button', title='Update the survey and then go back to the survey overview')}</li>
         </ul>
       </form>
     </article>
