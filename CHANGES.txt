@@ -3,6 +3,7 @@
 
 - NEW: The uploaded data can now be downloaded as well
 - NEW: Added support for tooltips
+- BUGFIX: Fixed the delete link on the survey list page
 
 0.4
 ---
