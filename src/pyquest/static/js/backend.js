@@ -51,3 +51,78 @@ function make_toggle_link(id) {
 	}).html(toggle.html());
 	toggle.html(link);
 }
+
+function setup_tooltips(new_user, tooltips_enabled) {
+	if(new_user && tooltips_enabled) {
+		$('*[data-tooltip-new!=""]').qtip({
+			content: {
+				attr: 'data-qtip-new',
+				title: {
+					text: 'Welcome to PyQuestionnaire',
+					button: true
+				}
+			},
+			position: {
+				my: 'top center',
+				at: 'bottom center'
+			},
+			show: {
+				delay: 0,
+				event: '',
+				ready: true
+			},
+			hide: {
+				event: 'unfocus'
+			},
+			style: {
+				classes: 'ui-tooltip-dark ui-tooltip-shadow'
+			}
+		});
+	}
+	if(tooltips_enabled) {
+		$('.button[title], a[title]').qtip({
+			position: {
+				my: 'top center',
+				at: 'bottom center'
+			},
+			show: {
+				delay: 500
+			},
+			style: {
+				classes: 'ui-tooltip-dark ui-tooltip-shadow'
+			}
+		});
+		$('input[type="text"][title],select[title]').qtip({
+			position: {
+				my: 'center left',
+				at: 'center right'
+			},
+			show: {
+				event: 'focus',
+				solo: true
+			},
+			hide: {
+				event: 'unfocus'
+			},
+			style: {
+				classes: 'ui-tooltip-dark ui-tooltip-shadow'
+			}
+		});	
+		$('textarea[title]').qtip({
+			position: {
+				my: 'top center',
+				at: 'bottom center'
+			},
+			show: {
+				event: 'focus',
+				solo: true
+			},
+			hide: {
+				event: 'unfocus'
+			},
+			style: {
+				classes: 'ui-tooltip-dark ui-tooltip-shadow'
+			}
+		});
+	}
+}

@@ -22,75 +22,8 @@
     	}, 2000);
     	$('header.flash').click(function(ev, ui) {$(this).hide();});
     	$('.post-submit').click(post_submit);
-        $('*[data-qtip-new!=""]').qtip({
-        	content: {
-        		attr: 'data-qtip-new',
-        		title: {
-        			text: 'Welcome to PyQuestionnaire',
-        			button: true
-        		}
-        	},
-            position: {
-                my: 'top center',
-                at: 'bottom center'
-            },
-            show: {
-            	delay: 0,
-            	event: '',
-                ready: true
-            },
-            hide: {
-            	event: 'unfocus'
-            },
-            style: {
-                classes: 'ui-tooltip-dark ui-tooltip-shadow'
-            }
-        });
-        $('.button[title], a[title]').qtip({
-            position: {
-                my: 'top center',
-                at: 'bottom center'
-            },
-            show: {
-                delay: 500
-            },
-            style: {
-                classes: 'ui-tooltip-dark ui-tooltip-shadow'
-            }
-        });
-        $('input[type="text"][title],select[title]').qtip({
-            position: {
-                my: 'center left',
-                at: 'center right'
-            },
-            show: {
-                event: 'focus',
-                solo: true
-            },
-            hide: {
-                event: 'unfocus'
-            },
-            style: {
-                classes: 'ui-tooltip-dark ui-tooltip-shadow'
-            }
-        });
-        $('textarea[title]').qtip({
-            position: {
-                my: 'top center',
-                at: 'bottom center'
-            },
-            show: {
-                event: 'focus',
-                solo: true
-            },
-            hide: {
-                event: 'unfocus'
-            },
-            style: {
-                classes: 'ui-tooltip-dark ui-tooltip-shadow'
-            }
-        });
     	setup_status_changer();
+    	setup_tooltips(false, true);
     });
     CSRF_TOKEN = '${r.session.get_csrf_token()}';
     </script>
