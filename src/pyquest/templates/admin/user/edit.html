@@ -10,7 +10,7 @@
       <h1>${user.display_name} - Edit</h1>
     </hgroup>
     <form action="${r.route_url('user.edit', uid=user.id)}" method="post">
-      ${h.form.csrf_token(r.session.get_csrf_token())}
+      ${h.form.csrf_token_field(r.session.get_csrf_token())}
       <dl>
         <dt>Display Name</dt>
         <dd>${h.form.text_field('display_name', user.display_name, e, title='This is the name that is shown for surveys that are owned by you')}</dd>

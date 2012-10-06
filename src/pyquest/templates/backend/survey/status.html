@@ -13,7 +13,7 @@
         <h1>${survey.title} - Change Status</h1>
       </hgroup>
       <form action="${r.route_url('survey.status', sid=survey.id)}" method="post">
-        ${h.form.csrf_token(r.session.get_csrf_token())}
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
         ${h.form.hidden_field('status', status)}
         <p>Please confirm that you wish to change the status or "${survey.title}" from "${h.survey.status(survey.status)}" to "${h.survey.status(status)}"</p>
         <ul class="buttons span-22">

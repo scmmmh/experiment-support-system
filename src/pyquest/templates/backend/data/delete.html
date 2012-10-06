@@ -15,7 +15,7 @@
         <h1>${qsheet.title} - Delete Data</h1>
       </hgroup>
       <form action="${r.route_url('survey.data.delete', sid=survey.id, qsid=qsheet.id, did=data_item.id)}" method="post">
-        ${h.form.csrf_token(r.session.get_csrf_token())}
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <p>Please confirm that you wish to delete the following data:</p>
         <dl>
           <py:for each="attribute in data_item.attributes">

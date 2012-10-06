@@ -343,7 +343,7 @@
         JavaScript, it is recommended that you use the <a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}">source-editing page</a> instead.</noscript>
       <form id="qsheet-form" action="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" method="post">
         <div class="error" py:if="e">${repr(e.error_dict)}</div>
-        ${h.form.csrf_token(r.session.get_csrf_token())}
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <nav class="sections">
           <ul>
             <li><a href="#" class="action-edit-layout">Layout</a></li>

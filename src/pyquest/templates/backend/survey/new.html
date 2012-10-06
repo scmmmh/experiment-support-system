@@ -16,7 +16,7 @@
         <h1>New Survey</h1>
       </hgroup>
       <form action="${r.route_url('survey.new')}" method="post">
-        ${h.form.csrf_token(r.session.get_csrf_token())}
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt>Title</dt>
           <dd>${h.form.text_field('title', survey.title, e, class_='span-12')}</dd>

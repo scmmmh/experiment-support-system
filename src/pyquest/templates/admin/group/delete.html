@@ -11,7 +11,7 @@
     </hgroup>
     <form action="${r.route_url('group.delete', gid=group.id)}" method="post">
       <p>Please confirm that you wish to delete the group "${group.title}".</p>
-      ${h.form.csrf_token(r.session.get_csrf_token())}
+      ${h.form.csrf_token_field(r.session.get_csrf_token())}
       <ul class="buttons">
         <li>${h.form.button("Don't delete", class_='button', onclick="document.location='%s'" % r.route_url('group.view', gid=group.id))}</li>
         <li>${h.form.submit('Delete', class_='button')}</li>

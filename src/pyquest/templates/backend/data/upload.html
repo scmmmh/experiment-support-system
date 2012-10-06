@@ -15,7 +15,7 @@
         <h1>${qsheet.title} - Upload Data</h1>
       </hgroup>
       <form action="${r.route_url('survey.data.upload', sid=survey.id, qsid=qsheet.id)}" method="post" enctype="multipart/form-data">
-        ${h.form.csrf_token(r.session.get_csrf_token())}
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <p>Please select the CSV (comma-separated-value) file that contains the data you wish to upload:</p>
         <dl>
           <dt>File</dt>

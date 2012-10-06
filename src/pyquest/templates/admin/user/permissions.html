@@ -10,7 +10,7 @@
       <h1>${user.display_name} - Permissions</h1>
     </hgroup>
     <form action="${r.route_url('user.permissions', uid=user.id)}" method="post">
-      ${h.form.csrf_token(r.session.get_csrf_token())}
+      ${h.form.csrf_token_field(r.session.get_csrf_token())}
       ${e}
       <section>
         <hgroup>

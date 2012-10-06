@@ -15,7 +15,7 @@
         <h1>${survey.title} - Add a Page</h1>
       </hgroup>
       <form action="${r.route_url('survey.qsheet.new', sid=survey.id)}" method="post">
-        ${h.form.csrf_token(r.session.get_csrf_token())}
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt>Name</dt>
           <dd>${h.form.text_field('name', '', e)}</dd>

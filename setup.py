@@ -23,7 +23,8 @@ requires = [
     'formencode',
     'pyramid_beaker',
     'pycryptopp',
-    'nose'
+    'nose',
+    'pywebtools>=0.2.1'
     ]
 
 setup(name='PyQuestionnaire',

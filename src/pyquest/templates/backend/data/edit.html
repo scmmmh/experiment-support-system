@@ -34,7 +34,7 @@
         <h1>${qsheet.title} - Edit Data</h1>
       </hgroup>
       <form action="${r.route_url('survey.data.edit', sid=survey.id, qsid=qsheet.id, did=data_item.id)}" method="post">
-        ${h.form.csrf_token(r.session.get_csrf_token())}
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt><label for="control_item">Control item</label></dt>
           <dd>${h.form.checkbox('control_', 'True', e, checked=data_item.control, label='Yes', id='control_item')}</dd>
