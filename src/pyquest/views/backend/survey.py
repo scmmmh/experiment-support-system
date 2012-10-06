@@ -188,7 +188,7 @@ def edit(request):
                         survey.language = params['language']
                         dbsession.add(survey)
                     request.session.flash('Survey updated', 'info')
-                    raise HTTPFound(request.route_url('survey.edit',
+                    raise HTTPFound(request.route_url('survey.view',
                                                       sid=request.matchdict['sid']))
                 except api.Invalid as e:
                     e.params = request.POST
