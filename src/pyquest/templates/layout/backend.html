@@ -23,7 +23,7 @@
     	$('header.flash').click(function(ev, ui) {$(this).hide();});
     	$('.post-submit').click(post_submit);
     	setup_status_changer();
-    	setup_tooltips(false, true);
+    	setup_tooltips(${h.user.current_user(r).preference('show.tooltips', default='true', data_type='js_boolean')});
     });
     CSRF_TOKEN = '${r.session.get_csrf_token()}';
     </script>

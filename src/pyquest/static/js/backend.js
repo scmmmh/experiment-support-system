@@ -52,76 +52,46 @@ function make_toggle_link(id) {
 	toggle.html(link);
 }
 
-function setup_tooltips(new_user, tooltips_enabled) {
-	if(new_user && tooltips_enabled) {
-		$('*[data-tooltip-new!=""]').qtip({
-			content: {
-				attr: 'data-qtip-new',
-				title: {
-					text: 'Welcome to PyQuestionnaire',
-					button: true
-				}
-			},
-			position: {
-				my: 'top center',
-				at: 'bottom center'
-			},
-			show: {
-				delay: 0,
-				event: '',
-				ready: true
-			},
-			hide: {
-				event: 'unfocus'
-			},
-			style: {
-				classes: 'ui-tooltip-dark ui-tooltip-shadow'
-			}
-		});
-	}
+var RIGHT_HAND_INPUT_ELEMENTS = Array('text', 'email', 'url', 'number', 'date', 'time', 'datetime', 'month', 'password');
+
+function setup_tooltips(tooltips_enabled) {
 	if(tooltips_enabled) {
-		$('.button[title], a[title]').qtip({
-			position: {
-				my: 'top center',
-				at: 'bottom center'
-			},
-			show: {
-				delay: 500
-			},
-			style: {
-				classes: 'ui-tooltip-dark ui-tooltip-shadow'
-			}
-		});
-		$('input[type="text"][title],select[title]').qtip({
-			position: {
-				my: 'center left',
-				at: 'center right'
-			},
-			show: {
-				event: 'focus',
-				solo: true
-			},
-			hide: {
-				event: 'unfocus'
-			},
-			style: {
-				classes: 'ui-tooltip-dark ui-tooltip-shadow'
-			}
-		});	
-		$('textarea[title]').qtip({
-			position: {
-				my: 'top center',
-				at: 'bottom center'
-			},
-			show: {
-				event: 'focus',
-				solo: true
-			},
-			hide: {
-				event: 'unfocus'
-			},
-			style: {
-				classes: 'ui-tooltip-dark ui-tooltip-shadow'
+		$('.button[title], input[title], textarea[title], select[title], *[data-tooltip-new]').each(function() {
+			var elem = $(this);
+			if(elem.attr('data-tooltip-new')) {
+				elem.qtip({
+					content: {
+						attr: 'data-tooltip-new',
+						title: {text: 'Welcome to PyQuestionnaire', button: true}
+					},
+					position: {my: 'top center', at: 'bottom center'},
+					show: {delay: 1000, event:'hover', ready: true},
+					hide: {event: 'unfocus'},
+					style: {classes: 'ui-tooltip-dark ui-tooltip-shadow'}
+				});
+			} else if(elem.hasClass('button')) {
+				elem.qtip({
+					position: {my: 'top center', at: 'bottom center'},
+					show: {delay: 500},
+					style: {classes: 'ui-tooltip-dark ui-tooltip-shadow'}
+				});
+			} else {
+				var position = {my:'top center', at:'bottom center'}
+				var node_name = elem.prop('nodeName').toLowerCase();
+				if(node_name == 'input') {
+					var input_type = elem.attr('type').toLowerCase();
+					if(RIGHT_HAND_INPUT_ELEMENTS.indexOf(input_type) >= 0) {
+						position = {my:'center left', at:'center right'}
+					}
+				} else if(node_name == 'select') {
+					var position = {my:'center left', at:'center right'}
+				}
+				elem.qtip({
+					position: position,
+					show: {delay: 0, event: 'hover focus', solo: true},
+					hide: {event: 'unfocus'},
+					style: {classes: 'ui-tooltip-dark ui-tooltip-shadow'}
+				});
 			}
 		});
 	}

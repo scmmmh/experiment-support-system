@@ -6,13 +6,16 @@ from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         Table, DateTime, Boolean, func, Text)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref)
+from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref,
+                            reconstructor)
 from zope.sqlalchemy import ZopeTransactionExtension
+
+from pyquest.helpers import as_data_type
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '1341b5a7b155'
+DB_VERSION = '105647470980'
 
 class DBUpgradeException(Exception):
     
@@ -68,7 +71,12 @@ class User(Base):
         else:
             self.password = u''
         self.login_limit = 0
+        self.preferences_ = {}
     
+    @reconstructor
+    def init(self):
+        self.preferences_ = {}
+        
     def new_password(self, password):
         self.salt = u''.join(unichr(random.randint(0, 127)) for _ in range(32))
         self.password = unicode(hashlib.sha512('%s$$%s' % (self.salt, password)).hexdigest())
@@ -82,6 +90,15 @@ class User(Base):
         direct_perm = dbsession.query(Permission.name).join(User, Permission.users).filter(User.id==self.id)
         group_perm = dbsession.query(Permission.name).join(Group, Permission.groups).join(User, Group.users).filter(User.id==self.id)
         return permission in map(lambda p: p[0], direct_perm.union(group_perm))
+    
+    def preference(self, key, default=None, data_type=None):
+        if not self.preferences_:
+            for pref in self.preferences:
+                self.preferences_[pref.key] = pref.value
+        if key in self.preferences_:
+            return as_data_type(self.preferences_[key], data_type)
+        else:
+            return default
     
 users_permissions = Table('users_permissions', Base.metadata,
                           Column('user_id', ForeignKey('users.id'), primary_key=True),
@@ -112,6 +129,17 @@ users_groups = Table('users_groups', Base.metadata,
                      Column('user_id', ForeignKey(User.id), primary_key=True),
                      Column('group_id', ForeignKey(Group.id), primary_key=True))
 
+class Preference(Base):
+    
+    __tablename__ = 'user_preferences'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(ForeignKey(User.id), index=True)
+    key = Column(Unicode)
+    value = Column(Unicode)
+    
+    user = relationship('User', backref='preferences')
+    
 class Survey(Base):
 
     __tablename__ = 'surveys'

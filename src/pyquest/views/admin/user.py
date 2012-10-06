@@ -15,7 +15,8 @@ from random import randint
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, User, Survey, Group, Permission)
+from pyquest.models import (DBSession, User, Survey, Group, Permission,
+                            Preference)
 from pyquest.renderer import render
 
 class LoginSchema(Schema):
@@ -37,6 +38,7 @@ class UserEditSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     display_name = validators.UnicodeString(not_empty=True)
     email = validators.Email(not_empty=True)
+    show_tooltips = validators.StringBool(if_missing='False')
     
 class UserPermissionSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -186,8 +188,15 @@ def edit(request):
                     params = UserEditSchema().to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
+                        user = dbsession.query(User).filter(User.id==request.matchdict['uid']).first()
                         user.display_name = params['display_name']
                         user.email = params['email']
+                        found = False
+                        for pref in user.preferences:
+                            if pref.key == 'show.tooltips':
+                                pref.value = unicode(params['show_tooltips'])
+                        if not found:
+                            user.preferences.append(Preference(key='show.tooltips', value=unicode(params['show_tooltips'])))
                         dbsession.add(user)
                     request.session.flash('User preferences updated', 'info')
                     raise HTTPFound(request.route_url('user.view', uid=request.matchdict['uid']))
