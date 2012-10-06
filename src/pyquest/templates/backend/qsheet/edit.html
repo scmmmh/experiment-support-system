@@ -222,6 +222,12 @@
                 } else if(dropped_type == 'Page timer') {
                     q_type = 'page_timer';
         		}
+        		var item_order = ui.item.prev('li').find('.role-order').val();
+        		if(!item_order) {
+        			item_order = 0;
+        		} else {
+        			item_order = item_order + 1;
+        		}
         		ui.item.html('Loading...');
         		ui.item.addClass('item');
         		$('#qsheet-content li.placeholder').hide();
@@ -239,7 +245,10 @@
         			},
         			type: 'POST',
         			dataType: 'html',
-        			data: {'type': q_type}
+        			data: {
+        				type: q_type,
+        				order: item_order
+        			}
         		});
         	},
         	update: function(ev, ui) {

@@ -109,6 +109,7 @@ class QSheetAddQuestionSchema(Schema):
                                           'auto_commit', 'hidden_value', 'js_check',
                                           'page_timer']),
                         validators.UnicodeString(not_empty=True))
+    order = validators.Int()
 
 def set_qgroup_attr_value(qgroup, key, value):
     attr = get_qg_attr(qgroup, key)
@@ -589,7 +590,11 @@ def edit_add_question(request):
                 with transaction.manager:
                     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                                  QSheet.survey_id==request.matchdict['sid'])).first()
-                    question = Question(type=params['type'])
+                    for quest in qsheet.questions:
+                        if quest.order >= params['order']:
+                            quest.order = quest.order + 1
+                    question = Question(type=params['type'],
+                                        order=params['order'])
                     if params['type'] == 'text':
                         qag = QuestionAttributeGroup(key='text', order=0)
                         qag.attributes.append(QuestionAttribute(key='text', value='<p>Double-click here to edit the text.</p>', order=0))

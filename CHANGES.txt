@@ -6,6 +6,8 @@
 - NEW: Added support for user preferences
 - UPDATE: Transition to using the published PyWebTools package
 - BUGFIX: Fixed the delete link on the survey list page
+- BUGFIX: Immediately update the ordering of questions when a new question
+  is added
 
 0.4
 ---
