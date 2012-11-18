@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from pyramid.view import view_config
+from pywebtools.renderer import render
 from sqlalchemy import func
 
 from pyquest.models import DBSession, Survey
-from pyquest.renderer import render
 
 def init(config):
     from pyquest.views import backend, admin
