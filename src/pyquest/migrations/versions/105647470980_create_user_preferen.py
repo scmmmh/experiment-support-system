@@ -23,8 +23,8 @@ def upgrade():
     op.create_table('user_preferences',
                     sa.Column('id', sa.Integer, primary_key=True),
                     sa.Column('user_id', sa.Integer, sa.ForeignKey('users.id'), index=True),
-                    sa.Column('key', sa.Unicode()),
-                    sa.Column('value', sa.Unicode()))
+                    sa.Column('key', sa.Unicode(255)),
+                    sa.Column('value', sa.Unicode(255)))
 
 
 def downgrade():
