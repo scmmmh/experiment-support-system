@@ -110,14 +110,14 @@ class Permission(Base):
     
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255), index=True, unique=True)
-    title = Column(Unicode)
+    title = Column(Unicode(255))
     
 class Group(Base):
     
     __tablename__ = 'groups'
     
     id = Column(Integer, primary_key=True)
-    title = Column(Unicode)
+    title = Column(Unicode(255))
     
     permissions = relationship('Permission', backref='groups', secondary='groups_permissions')
     
@@ -135,8 +135,8 @@ class Preference(Base):
     
     id = Column(Integer, primary_key=True)
     user_id = Column(ForeignKey(User.id), index=True)
-    key = Column(Unicode)
-    value = Column(Unicode)
+    key = Column(Unicode(255))
+    value = Column(Unicode(255))
     
     user = relationship('User', backref='preferences')
     
@@ -145,13 +145,13 @@ class Survey(Base):
     __tablename__ = 'surveys'
     
     id = Column(Integer, primary_key=True)
-    title = Column(Unicode)
-    summary = Column(Unicode)
+    title = Column(Unicode(1024))
+    summary = Column(Unicode(4096))
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
-    status = Column(Unicode)
+    status = Column(Unicode(64))
     start_id = Column(Integer, ForeignKey('qsheets.id', use_alter=True, name='fk_start_id'))
-    language = Column(Unicode)
+    language = Column(Unicode(64))
     owned_by = Column(ForeignKey(User.id))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime)
@@ -180,8 +180,8 @@ class QSheet(Base):
     
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id))
-    name = Column(Unicode)
-    title = Column(Unicode)
+    name = Column(Unicode(255))
+    title = Column(Unicode(255))
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
     
@@ -211,8 +211,8 @@ class QSheetAttribute(Base):
     
     id = Column(Integer, primary_key=True)
     qsheet_id = Column(ForeignKey(QSheet.id))
-    key = Column(Unicode)
-    value = Column(Unicode)
+    key = Column(Unicode(255))
+    value = Column(Unicode(255))
 
 class Question(Base):
     
@@ -220,11 +220,11 @@ class Question(Base):
     
     id = Column(Integer, primary_key=True)
     qsheet_id = Column(ForeignKey(QSheet.id))
-    type = Column(Unicode)
-    name = Column(Unicode)
-    title = Column(Unicode)
+    type = Column(Unicode(255))
+    name = Column(Unicode(255))
+    title = Column(Unicode(255))
     required = Column(Boolean)
-    help = Column(Unicode)
+    help = Column(Unicode(255))
     order = Column(Integer)
     
     attributes = relationship('QuestionAttributeGroup',
@@ -244,8 +244,8 @@ class QuestionAttributeGroup(Base):
     
     id = Column(Integer, primary_key=True)
     question_id = Column(ForeignKey(Question.id))
-    key = Column(Unicode)
-    label = Column(Unicode)
+    key = Column(Unicode(255))
+    label = Column(Unicode(255))
     order = Column(Integer)
     
     attributes = relationship('QuestionAttribute',
@@ -259,9 +259,9 @@ class QuestionAttribute(Base):
     
     id = Column(Integer, primary_key=True)
     question_group_id = Column(ForeignKey(QuestionAttributeGroup.id))
-    key = Column(Unicode)
-    label = Column(Unicode)
-    value = Column(Unicode)
+    key = Column(Unicode(255))
+    label = Column(Unicode(255))
+    value = Column(Unicode(255))
     order = Column(Integer)
 
 class QSheetTransition(Base):
@@ -301,8 +301,8 @@ class DataItemAttribute(Base):
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id))
     order = Column(Integer)
-    key = Column(Unicode)
-    value = Column(Unicode)
+    key = Column(Unicode(255))
+    value = Column(Unicode(255))
 
 class DataItemCount(Base):
     
@@ -320,7 +320,7 @@ class DataItemControlAnswer(Base):
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id))
     question_id = Column(ForeignKey(Question.id))
-    answer = Column(Unicode)
+    answer = Column(Unicode(4096))
     
 class Participant(Base):
     
@@ -352,6 +352,5 @@ class AnswerValue(Base):
     
     id = Column(Integer, primary_key=True)
     answer_id = Column(ForeignKey(Answer.id))
-    name = Column(Unicode)
-    value = Column(Unicode)
-        
+    name = Column(Unicode(255))
+    value = Column(Unicode(4096))
