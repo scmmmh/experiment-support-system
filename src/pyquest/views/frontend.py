@@ -125,6 +125,8 @@ def determine_submit_options(qsheet):
             return ['more', 'next']
         else:
             return ['more', 'finish']
+    else:
+        return ['next']
 
 def get_participant(dbsession, survey, state):
     participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()

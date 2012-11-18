@@ -1,3 +1,9 @@
+0.5.1
+-----
+
+- BUGFIX: Add a fall-back to the "next-page" button selection in the
+  questionnaire frontend
+
 0.5
 ---
 
