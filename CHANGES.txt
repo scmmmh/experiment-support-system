@@ -1,3 +1,8 @@
+0.5.1
+-----
+
+- BUGFIX: Fixed the data upload form
+
 0.5
 ---
 
