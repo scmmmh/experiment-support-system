@@ -17,7 +17,8 @@ from pywebtools.auth import is_authorised
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
-                            DataItemAttribute, Question, DataItemControlAnswer)
+                            DataItemAttribute, Question, DataItemControlAnswer,
+                            Participant)
 from pyquest.renderer import render
 
 class DataItemSchema(Schema):
@@ -186,7 +187,8 @@ def view(request):
                 example[attr.key] = attr.value
             return {'survey': survey,
                     'qsheet': qsheet,
-                    'example': example}
+                    'example': example,
+                    'participant': Participant(id=-1)}
         else:
             redirect_to_login(request)
     else:
