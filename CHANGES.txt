@@ -8,7 +8,8 @@
 - BUGFIX: Fixed the delete link on the survey list page
 - BUGFIX: Immediately update the ordering of questions when a new question
   is added
-
+- BUGFIX: Fixed the display of individual data items
+ 
 0.4
 ---
 
