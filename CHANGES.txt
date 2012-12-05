@@ -1,7 +1,13 @@
-0.5.1
+0.5.2
 -----
 
 - BUGFIX: Fixed the data upload form
+
+0.5.1
+-----
+
+- BUGFIX: Add a fall-back to the "next-page" button selection in the
+  questionnaire frontend
 
 0.5
 ---
@@ -10,6 +16,7 @@
 - NEW: Added support for tooltips
 - NEW: Added support for user preferences
 - UPDATE: Transition to using the published PyWebTools package
+- UPDATE: Deactivated the front-end translation
 - BUGFIX: Fixed the delete link on the survey list page
 - BUGFIX: Immediately update the ordering of questions when a new question
   is added

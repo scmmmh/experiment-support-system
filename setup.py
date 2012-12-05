@@ -24,11 +24,11 @@ requires = [
     'pyramid_beaker',
     'pycryptopp',
     'nose',
-    'pywebtools>=0.2.1'
+    'pywebtools>=0.3'
     ]
 
 setup(name='PyQuestionnaire',
-      version='0.5.1',
+      version='0.5.2',
       description='PyQuestionnaire',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[

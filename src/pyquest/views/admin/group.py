@@ -9,11 +9,11 @@ import transaction
 from formencode import Schema, validators, api
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
+from pywebtools.renderer import render
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Group, Permission)
-from pyquest.renderer import render
 
 class GroupSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)

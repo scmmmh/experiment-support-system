@@ -8,12 +8,12 @@ from formencode import Schema, validators, foreach, api, variabledecode
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
+from pywebtools.renderer import render
 from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.helpers.results import fix_na, get_d_attr_value
 from pyquest.models import (DBSession, Survey, Answer)
-from pyquest.renderer import render
 from pyquest.helpers.qsheet import get_attr_groups, get_qg_attr_value,\
     get_qs_attr_value, get_q_attr_value
 
@@ -157,8 +157,8 @@ def generate_columns(survey, selected_columns, data_identifiers):
 
 @view_config(route_name='survey.results.by_participant')
 @view_config(route_name='survey.results.by_participant.ext')
-@render({'text/html': 'backend/results/by_participant.html', 'text/csv': ''}, expose_response_format=True)
-def participant(request, response_format='text/html'):
+@render({'text/html': 'backend/results/by_participant.html', 'text/csv': ''})
+def participant(request):
     def safe_int(value):
         try:
             return int(value)
@@ -255,8 +255,6 @@ def participant(request, response_format='text/html'):
                         row[key] = na_value
                 rows.append(row)
                 count = count + 1
-                if response_format == 'text/html' and count >= 20:
-                    break
             return {'selected_columns': selected_columns,
                     'data_identifiers': data_identifiers,
                     'na_value': na_value,

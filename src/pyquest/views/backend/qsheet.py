@@ -10,8 +10,9 @@ from formencode import Schema, validators, api, foreach, variabledecode, compoun
 from lxml import etree
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
-from sqlalchemy import and_
 from pywebtools.auth import is_authorised
+from pywebtools.renderer import render
+from sqlalchemy import and_
 
 from pyquest.views.frontend import safe_int
 from pyquest.helpers.auth import check_csrf_token
@@ -21,7 +22,6 @@ from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question,
     QuestionAttribute, QuestionAttributeGroup, QSheetAttribute,
     QSheetTransition, Participant)
-from pyquest.renderer import render
 from pyquest.validation import (PageSchema, flatten_invalid,
                                 ValidationState, XmlValidator)
 

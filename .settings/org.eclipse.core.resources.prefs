@@ -10,7 +10,6 @@ encoding//src/pyquest/helpers/ui.py=utf-8
 encoding//src/pyquest/helpers/user.py=utf-8
 encoding//src/pyquest/l10n.py=utf-8
 encoding//src/pyquest/models.py=utf-8
-encoding//src/pyquest/renderer.py=utf-8
 encoding//src/pyquest/scripts/__init__.py=utf-8
 encoding//src/pyquest/scripts/populate.py=utf-8
 encoding//src/pyquest/validation.py=utf-8

@@ -12,6 +12,7 @@ import transaction
 from formencode import api
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPNotAcceptable
 from pyramid.view import view_config
+from pywebtools.renderer import render
 from random import sample, shuffle
 from sqlalchemy import and_, asc
 from sqlalchemy.sql.expression import not_
@@ -20,7 +21,6 @@ from pyquest.helpers.qsheet import get_qs_attr_value, get_attr_groups, get_qg_at
 from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
     DataItemCount, Answer, AnswerValue, Question)
-from pyquest.renderer import render
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 
 def safe_int(value):
@@ -125,6 +125,8 @@ def determine_submit_options(qsheet):
             return ['more', 'next']
         else:
             return ['more', 'finish']
+    else:
+        return ['next']
 
 def get_participant(dbsession, survey, state):
     participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
