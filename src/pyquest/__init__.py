@@ -18,7 +18,8 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, session_factory=session_factory)
     config.add_static_view('static', 'static', cache_max_age=3600)
     l10n.init(settings)
-    renderer.init(settings, {'h': helpers, '_': l10n.get_translator('no', 'translations').ugettext})
+    template_defaults = {'h': helpers, '_': l10n.get_translator('no', 'translations').ugettext}
+    renderer.init(settings, {'text/html': template_defaults, 'application/xml': template_defaults})
     views.init(config)
     config.scan()
     return config.make_wsgi_app()
