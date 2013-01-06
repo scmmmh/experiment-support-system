@@ -19,7 +19,7 @@
         <p>Please select the CSV (comma-separated-value) file that contains the data you wish to upload:</p>
         <dl>
           <dt>File</dt>
-          <dd>${h.form.file_input('source_file', e)}</dd>
+          <dd>${h.form.file_input_field('source_file', e)}</dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't upload", class_='button', onclick="document.location='%s'" % r.route_url('survey.data', sid=survey.id, qsid=qsheet.id))}</li>

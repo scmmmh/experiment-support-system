@@ -9,7 +9,7 @@ import math
 import transaction
 
 from formencode import Schema, validators, api, foreach
-from pyramid.httpexceptions import HTTPNotFound, HTTPFound
+from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
@@ -18,7 +18,8 @@ from sqlalchemy import and_, func
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
-                            DataItemAttribute, Question, DataItemControlAnswer)
+                            DataItemAttribute, Question, DataItemControlAnswer,
+                            Participant)
 
 class DataItemSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -186,7 +187,8 @@ def view(request):
                 example[attr.key] = attr.value
             return {'survey': survey,
                     'qsheet': qsheet,
-                    'example': example}
+                    'example': example,
+                    'participant': Participant(id=-1)}
         else:
             redirect_to_login(request)
     else:

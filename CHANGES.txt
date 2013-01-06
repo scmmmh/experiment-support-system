@@ -1,13 +1,14 @@
-0.7
----
-
-- UPDATE: Re-factored the question types so that they are now arbitrarily
-  expandable
-
 0.6
 ---
 
 - UPDATE: Added lengths to all Unicode columns to support MySQL
+- UPDATE: Re-factored the question types so that they are now arbitrarily
+  expandable
+
+0.5.2
+-----
+
+- BUGFIX: Fixed the data upload form
 
 0.5.1
 -----
@@ -26,7 +27,8 @@
 - BUGFIX: Fixed the delete link on the survey list page
 - BUGFIX: Immediately update the ordering of questions when a new question
   is added
-
+- BUGFIX: Fixed the display of individual data items
+ 
 0.4
 ---
 
