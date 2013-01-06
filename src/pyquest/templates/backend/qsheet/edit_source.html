@@ -28,11 +28,11 @@
           <dt>Title</dt>
           <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
           <dt>Type</dt>
-          <dd>${h.form.select('repeat', h.qsheet.get_qs_attr_value(qsheet, 'repeat'), [('single', 'Single'), ('repeat', 'Repeated')], e, class_='role-qsheet-repeat')}</dd>
+          <dd>${h.form.select('repeat', qsheet.attr_value('repeat', default='single'), [('single', 'Single'), ('repeat', 'Repeated')], e, class_='role-qsheet-repeat')}</dd>
           <dt>Data Items</dt>
-          <dd>${h.form.number_field('data_items', h.qsheet.get_qs_attr_value(qsheet, 'data-items'), e, class_='role-qsheet-data-items')}</dd>
+          <dd>${h.form.number_field('data_items', qsheet.attr_value('data-items', default='0'), e, class_='role-qsheet-data-items')}</dd>
           <dt>Control Items</dt>
-          <dd>${h.form.number_field('control_items', h.qsheet.get_qs_attr_value(qsheet, 'control-items'), e, class_='role-qsheet-control-items')}</dd>
+          <dd>${h.form.number_field('control_items', qsheet.attr_value('control-items', default='0'), e, class_='role-qsheet-control-items')}</dd>
           <dt>Transition to</dt>
           <dd>${h.form.select('transition', qsheet.next[0].target.id if len(qsheet.next) > 0 else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}</dd>
           <dt>Content</dt>

@@ -48,8 +48,25 @@
     }
     function init_item(item) {
         var header = item.find('.header .title');
-        var link = $('<a href="#"></a>').append(header.html()).click(function() {
-            item.find('.content').slideToggle();
+        var link = $('<a href="#"></a>').append(header.html());
+        link.click(function() {
+            if(link.data('pyquest-status') == 'compressed') {
+            	link.data('pyquest-status', 'expanded');
+            	link.html(link.html().replace(/\s-\s.*/, ''));
+                item.addClass('status-expanded');
+                item.removeClass('status-compressed');
+                item.find('.content').slideDown();
+            } else {
+                link.data('pyquest-status', 'compressed');
+                var q_name = item.find('.role-question-name');
+                if(q_name.length != 0) {
+                	link.html(link.html() + ' - ' + q_name.val());
+                }
+                item.removeClass('status-expanded');
+                item.addClass('status-compressed');
+                item.find('.content').slideUp();
+            }
+            setTimeout(fix_control_positions, 500);
             return false;
         });
         header.html(link);
@@ -77,54 +94,14 @@
         item.find('.role-editable-text').dblclick(function() {
         	show_text_editor($(this), item);
         });
-        item.find('a.action-remove-answer').click(function() {
-            var link = $(this);
-            var row = link.parent().parent();
-            row.fadeOut();
-            setTimeout(function() {row.remove();fix_control_positions();}, 400);
-            return false;
-        });
-        item.find('a.action-add-answer').click(function() {
-            var link = $(this);
-            var tbody = link.parent().parent().parent().find('table tbody');
-            var qid = tbody.parent().parent().parent().parent().parent().find('input.role-id').val();
-            var aid = 0;
-            var found = true;
-            while(found) {
-                if(tbody.find('input[name=\'' + qid + '.answer-' + aid + '.order\']').length == 0) {
-                    found = false;
-                } else {
-                    aid = aid + 1;
-                }
-            }
-            var row = $('<tr style="display:none;"></tr>');
-            row.append($('<td>${h.form.hidden_field('{qid}.answer-{aid}.order', '{order}', class_='role-answer-order')}${h.form.text_field('{qid}.answer-{aid}.value', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{aid}/g, aid).replace(/{order}/, tbody.children().length)));
-            row.append($('<td>${h.form.text_field('{qid}.answer-{aid}.label', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{aid}/g, aid)));
-            var remove_link = $('<a href="#" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a>');
-            remove_link.click(function() {
-                var link = $(this);
-                var row = link.parent().parent();
-                row.fadeOut();
-                setTimeout(function() {row.remove();}, 400);
-                return false;
-            });
-            var cell = $('<td></td>');
-            cell.append(remove_link);
-            row.append(cell);
-            tbody.append(row);
-            row.fadeIn();
-            tbody.sortable('reload');
-            fix_control_positions();
-            return false;
-        });
-        item.find('tbody.role-answers').sortable({
+        item.find('tbody.role-sortable').sortable({
             update: function(ev, ui) {
-                ui.item.parent().find('input.role-answer-order').each(function(idx) {
+                ui.item.parent().find('input.role-row-order').each(function(idx) {
                     $(this).val(idx);
                 });
             }
         });
-        item.find('a.action-remove-subquestion').click(function() {
+        item.find('a.action-remove-row').click(function() {
             var link = $(this);
             var row = link.parent().parent();
             row.fadeOut();
@@ -132,45 +109,40 @@
             fix_control_positions();
             return false;
         });
-        item.find('a.action-add-subquestion').click(function() {
+        item.find('a.action-add-row').click(function() {
             var link = $(this);
-            var tbody = link.parent().parent().parent().find('table tbody');
-            var qid = tbody.parent().parent().parent().parent().parent().find('input.role-id').val();
-            var sid = 0;
-            var found = true;
-            while(found) {
-                if(tbody.find('input[name=\'' + qid + '.sub_quest-' + sid + '.order\']').length == 0) {
-                    found = false;
-                } else {
-                    sid = sid + 1;
-                }
+            var tbody = link.parent().parent().parent().parent().find('tbody');
+            var row_id = 0;
+            tbody.find('input[type="text"]').each(function() {
+            	row_id = Math.max(row_id, parseInt($(this).attr('name').match(/-[0-9]+/)[0].slice(1)));
+            });
+            row_id = row_id + 1;
+            var row = $('<tr></tr>');
+            var input_field = '${h.form.text_field('field_name', '', None)}';
+            var part = link.data('pyquest-part');
+            var col = null;
+            for(var idx in part.columns) {
+            	var input_text = input_field.replace('field_name', link.data('pyquest-qid') + '.' + part['name'] + '-' + row_id + '.' + part['columns'][idx]['name']);
+            	col = $('<td>' + input_text + '</td>');
+            	row.append(col);
             }
-            var row = $('<tr style="display:none;"></tr>');
-            row.append($('<td>${h.form.hidden_field('{qid}.sub_quest-{sid}.order', '{order}', class_='role-subquestion-order')}${h.form.text_field('{qid}.sub_quest-{sid}.name', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{sid}/g, sid).replace(/{order}/, tbody.children().length)));
-            row.append($('<td>${h.form.text_field('{qid}.sub_quest-{sid}.label', '', e)}</td>'.replace(/{qid}/g, qid).replace(/{sid}/g, sid)));
-            var remove_link = $('<a href="#" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a>');
+            var remove_link = $('<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a>');
             remove_link.click(function() {
                 var link = $(this);
                 var row = link.parent().parent();
                 row.fadeOut();
                 setTimeout(function() {row.remove();}, 400);
+                fix_control_positions();
                 return false;
             });
-            var cell = $('<td></td>');
-            cell.append(remove_link);
-            row.append(cell);
+            col = $('<td></td>');
+            col.append('<input type="hidden" name="' + link.data('pyquest-qid') + '.' + part['name'] + '-' + row_id + '.' + '_order" value="' + row_id + '" class="role-row-order"/>');
+            col.append(remove_link);
+            row.append(col);
             tbody.append(row);
-            row.fadeIn();
             tbody.sortable('reload');
             fix_control_positions();
             return false;
-        });
-        item.find('tbody.role-subquestions').sortable({
-            update: function(ev, ui) {
-                ui.item.parent().find('input.role-subquestion-order').each(function(idx) {
-                    $(this).val(idx);
-                });
-            }
         });
     }
     $(document).ready(function() {
@@ -179,49 +151,7 @@
         $('#tools').accordion();
         $('#qsheet-content').sortable({
         	receive: function(ev, ui) {
-        		var q_type = 'unknown';
-        		var dropped_type = ui.item.html();
-        		if(dropped_type == 'Static text') {
-        			q_type = 'text';
-                } else if(dropped_type == 'Single-line text') {
-                    q_type = 'short_text';
-                } else if(dropped_type == 'Multi-line text') {
-                    q_type = 'long_text';
-                } else if(dropped_type == 'Number') {
-                    q_type = 'number';
-                } else if(dropped_type == 'E-Mail') {
-                    q_type = 'email';
-                } else if(dropped_type == 'URL') {
-                    q_type = 'url';
-                } else if(dropped_type == 'Date') {
-                    q_type = 'date';
-                } else if(dropped_type == 'Time') {
-                    q_type = 'time';
-                } else if(dropped_type == 'Date &amp; Time') {
-                    q_type = 'datetime';
-                } else if(dropped_type == 'Month') {
-                    q_type = 'month';
-                } else if(dropped_type == 'Single choice') {
-                    q_type = 'single_choice';
-                } else if(dropped_type == 'Single choice grid') {
-                    q_type = 'single_choice_grid';
-                } else if(dropped_type == 'Confirmation') {
-                    q_type = 'confirm';
-                } else if(dropped_type == 'Multiple choice') {
-                    q_type = 'multi_choice';
-                } else if(dropped_type == 'Multiple choice grid') {
-                    q_type = 'multi_choice_grid';
-                } else if(dropped_type == 'Ranking') {
-                    q_type = 'ranking';
-                } else if(dropped_type == 'Automatic next page') {
-                    q_type = 'auto_commit';
-                } else if(dropped_type == 'Hidden value') {
-                    q_type = 'hidden_value';
-                } else if(dropped_type == 'JavaScript check') {
-                    q_type = 'js_check';
-                } else if(dropped_type == 'Page timer') {
-                    q_type = 'page_timer';
-        		}
+        		var q_type = ui.item.data('pyquest-name');
         		var item_order = ui.item.prev('li').find('.role-order').val();
         		if(!item_order) {
         			item_order = 0;
@@ -230,9 +160,9 @@
         		}
         		ui.item.html('Loading...');
         		ui.item.addClass('item');
-        		$('#qsheet-content li.placeholder').hide();
         		$.ajax('${r.route_url('survey.qsheet.edit.add_question', sid=survey.id, qsid=qsheet.id)}', {
         			success: function(response) {
+                        $('#qsheet-content li.placeholder').hide();
         				ui.item.html($(response).children());
         				init_item(ui.item);
                         $('input.role-order').each(function(idx) {
@@ -246,7 +176,7 @@
         			type: 'POST',
         			dataType: 'html',
         			data: {
-        				type: q_type,
+        				q_type: q_type,
         				order: item_order
         			}
         		});
@@ -366,11 +296,11 @@
             <dt>Title</dt>
             <dd>${h.form.text_field('title', qsheet.title, e)}</dd>
             <dt>Type</dt>
-            <dd>${h.form.select('repeat', h.qsheet.get_qs_attr_value(qsheet, 'repeat'), [('single', 'Single'), ('repeat', 'Repeated')], e, class_='role-qsheet-repeat')}</dd>
+            <dd>${h.form.select('repeat', qsheet.attr_value('repeat', default='single'), [('single', 'Single'), ('repeat', 'Repeated')], e, class_='role-qsheet-repeat')}</dd>
             <dt>Data Items</dt>
-            <dd>${h.form.number_field('data_items', h.qsheet.get_qs_attr_value(qsheet, 'data-items'), e, class_='role-qsheet-data-items')}</dd>
+            <dd>${h.form.number_field('data_items', qsheet.attr_value('data-items', default='0'), e, class_='role-qsheet-data-items')}</dd>
             <dt>Control Items</dt>
-            <dd>${h.form.number_field('control_items', h.qsheet.get_qs_attr_value(qsheet, 'control-items'), e, class_='role-qsheet-control-items')}</dd>
+            <dd>${h.form.number_field('control_items', qsheet.attr_value('control-items', default='0'), e, class_='role-qsheet-control-items')}</dd>
             <dt>Transition to</dt>
             <dd>${h.form.select('transition', qsheet.next[0].target.id if len(qsheet.next) > 0 else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}</dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>
@@ -381,40 +311,9 @@
         </section>
         <section class="role-edit-layout clearfix">
             <aside id="tools" class="right" style="width:200px;position:relative;">
-              <h3><a href="#">Text</a></h3>
+              <h3><a href="#">Core Questions</a></h3>
               <ol>
-                <li>Static text</li>
-              </ol>
-              <h3><a href="#">Text Input</a></h3>
-              <ol>
-                <li>Single-line text</li>
-                <li>Multi-line text</li>
-                <li>Number</li>
-                <li>E-Mail</li>
-                <li>URL</li>
-                <li>Date</li>
-                <li>Time</li>
-                <li>Date &amp; Time</li>
-                <li>Month</li>
-              </ol>
-              <h3><a href="#">Choice</a></h3>
-              <ol>
-                <li>Single choice</li>
-                <li>Single choice grid</li>
-                <li>Multiple choice</li>
-                <li>Multiple choice grid</li>
-              </ol>
-              <h3><a href="#">Other</a></h3>
-              <ol>
-                <li>Confirmation</li>
-                <li>Ranking</li>
-                <li>JavaScript check</li>
-              </ol>
-              <h3><a href="#">Invisible</a></h3>
-              <ol>
-                <li>Hidden value</li>
-                <li>Automatic next page</li>
-                <li>Page timer</li>
+                <li py:for="q_type in question_types" data-pyquest-name="${q_type.name}">${q_type.title}</li>
               </ol>
             </aside>
             <ol id="qsheet-content" style="width:700px;">

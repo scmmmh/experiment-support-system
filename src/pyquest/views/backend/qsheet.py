@@ -5,6 +5,7 @@ Created on 24 Jan 2012
 @author: mhall
 '''
 import transaction
+import json
 
 from formencode import Schema, validators, api, foreach, variabledecode, compound
 from lxml import etree
@@ -16,14 +17,12 @@ from sqlalchemy import and_
 
 from pyquest.views.frontend import safe_int
 from pyquest.helpers.auth import check_csrf_token
-from pyquest.helpers.qsheet import get_q_attr, get_attr_groups, get_qg_attr,\
-    get_qs_attr
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, Survey, QSheet, Question,
-    QuestionAttribute, QuestionAttributeGroup, QSheetAttribute,
-    QSheetTransition, Participant)
-from pyquest.validation import (PageSchema, flatten_invalid,
-                                ValidationState, XmlValidator)
+from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
+                            QuestionAttributeGroup, QSheetAttribute, QSheetTransition,
+                            Participant, QuestionType)
+from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
+                                XmlValidator, QuestionTypeSchema)
 
 class QSheetNewSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -42,51 +41,6 @@ class QSheetSourceSchema(Schema):
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition = validators.Int(if_missing=None, if_empty=None)
 
-class QSheetTextSchema(Schema):
-    id = validators.Int()
-    text = validators.UnicodeString()
-    order = validators.Int()
-
-class QSheetAutoCommitQuestionSchema(Schema):
-    id = validators.Int(not_empty=True)
-    name = validators.UnicodeString(not_empty=True)
-    timeout = validators.Int(not_empty=True)
-    order = validators.Int(not_empty=True)
-    
-class QSheetPageTimerQuestionSchema(Schema):
-    id = validators.Int(not_empty=True)
-    name = validators.UnicodeString(not_empty=True)
-    order = validators.Int(not_empty=True)
-    
-class QSheetBasicQuestionSchema(Schema):
-    id = validators.Int(not_empty=True)
-    name = validators.UnicodeString(not_empty=True)
-    title = validators.UnicodeString(not_empty=True)
-    help = validators.UnicodeString()
-    required = validators.StringBool(if_missing=False)
-    order = validators.Int(not_empty=True)
-
-class QSheetNumberQuestionSchema(QSheetBasicQuestionSchema):
-    min = validators.Int()
-    max = validators.Int()
-
-class QSheetAnswerSchema(Schema):
-    value = validators.UnicodeString(not_empty=True)
-    label = validators.UnicodeString()
-    order = validators.Int(not_empty=True)
-
-class QSheetSubQuestionSchema(Schema):
-    name = validators.UnicodeString(not_empty=True)
-    label = validators.UnicodeString()
-    order = validators.Int(not_empty=True)
-    
-class QSheetConfirmQuestionSchema(QSheetBasicQuestionSchema):
-    value = validators.UnicodeString(not_empty=True)
-    label = validators.UnicodeString()
-
-class QSheetHiddenValueQuestionSchema(QSheetBasicQuestionSchema):
-    value = validators.UnicodeString()
-
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
@@ -101,36 +55,10 @@ class QSheetVisualSchema(Schema):
     pre_validators = [variabledecode.NestedVariables()]
     
 class QSheetAddQuestionSchema(Schema):
-    type = compound.All(validators.OneOf(['text', 'short_text', 'long_text', 'number',
-                                          'email', 'url', 'date', 'time', 'datetime',
-                                          'month', 'single_choice', 'single_choice_grid',
-                                          'confirm', 'multi_choice',
-                                          'multi_choice_grid', 'ranking',
-                                          'auto_commit', 'hidden_value', 'js_check',
-                                          'page_timer']),
-                        validators.UnicodeString(not_empty=True))
+    q_type = validators.UnicodeString(not_empty=True)
     order = validators.Int()
 
-def set_qgroup_attr_value(qgroup, key, value):
-    attr = get_qg_attr(qgroup, key)
-    if attr:
-        attr.value = value
-    else:
-        qgroup.attributes.append(QuestionAttribute(key=key, value=value))
-
-def set_quest_attr_value(question, key, value):
-    attr = get_q_attr(question, key)
-    if attr:
-        attr.value = value
-    else:
-        keys = key.split('.')
-        for attr_group in question.attributes:
-            if attr_group.key == keys[0]:
-                attr_group.attributes.append(QuestionAttribute(key=keys[1], value=value))
-                return
-        qag = QuestionAttributeGroup(key=keys[0])
-        qag.attributes.append(QuestionAttribute(key=keys[1], value=value))
-        question.attributes.append(qag)
+NAMESPACES = {'pq': 'http://paths.sheffield.ac.uk/pyquest'}
     
 @view_config(route_name='survey.qsheet')
 @render({'text/html': True})
@@ -181,157 +109,71 @@ def new_qsheet(request):
         raise HTTPNotFound()
 
 def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
+    def single_xpath_value(element, path, default=None):
+        value = element.xpath(path, namespaces=NAMESPACES)
+        if value:
+            return value[0]
+        else:
+            return default
     original_ids = [q.id for q in qsheet.questions]
     seen_ids = []
     for idx, item in enumerate(root):
-        q_type = None
-        if item.tag == '{http://paths.sheffield.ac.uk/pyquest}static_text':
-            q_type = 'text'
-        else:
-            if item.tag != '{http://paths.sheffield.ac.uk/pyquest}auto_commit' and 'name' not in item.attrib:
-                raise api.Invalid('All questions must have a name', None, None, error_dict={'content': 'All questions must have a name'})
-            if item.tag == '{http://paths.sheffield.ac.uk/pyquest}short_text':
-                q_type = 'short_text'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}long_text':
-                q_type = 'long_text'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}number':
-                q_type = 'number'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}email':
-                q_type = 'email'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}url':
-                q_type = 'url'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}date':
-                q_type = 'date'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}time':
-                q_type = 'time'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}datetime':
-                q_type = 'datetime'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}month':
-                q_type = 'month'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_choice':
-                q_type = 'single_choice'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}single_choice_grid':
-                q_type = 'single_choice_grid'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}confirm':
-                q_type = 'confirm'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}multi_choice':
-                q_type = 'multi_choice'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}multi_choice_grid':
-                q_type = 'multi_choice_grid'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}ranking':
-                q_type = 'ranking'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}auto_commit':
-                q_type = 'auto_commit'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}hidden_value':
-                q_type = 'hidden_value'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}js_check':
-                q_type = 'js_check'
-            elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}page_timer':
-                q_type = 'page_timer'
         question = None
-        if not q_type:
-            continue
-        if q_type and 'id' in item.attrib:
-            question = dbsession.query(Question).filter(and_(Question.id==safe_int(item.attrib['id']),
-                                                             Question.qsheet_id==qsheet.id,
-                                                             Question.type==q_type)).first()
-        if question:
-            seen_ids.append(question.id)
-        else:
-            question = Question(type=q_type)
+        if 'id' in item.attrib:
+            question = dbsession.query(Question).filter(and_(Question.id==item.attrib['id'],
+                                                             Question.qsheet_id==qsheet.id)).first()
+            if question:
+                dbsession.add(question)
+                seen_ids.append(question.id)
+        if not question:
+            question = Question()
             qsheet.questions.append(question)
-            dbsession.add(question)
-        if q_type != 'text':
-            if 'name' in item.attrib:
-                question.name = item.attrib['name']
-            if 'required' in item.attrib and item.attrib['required'].lower() == 'true':
-                question.required = True
-            else:
-                question.required = False
-            if 'title' in item.attrib:
-                question.title = item.attrib['title']
-            else:
-                question.title = ''
-            if 'help' in item.attrib:
-                question.help = item.attrib['help']
-            else:
-                question.help = ''
+        q_type = dbsession.query(QuestionType).filter(QuestionType.name==single_xpath_value(item, 'pq:type/text()', default=None)).first()
+        if q_type:
+            question.q_type = q_type
+        else:
+            raise api.Invalid('Unknown question type', None, None)
         question.order = idx
-        if q_type == 'text':
-            text = []
-            if item.text:
-                text.append(item.text)
-            for child in item:
-                text.append(etree.tostring(child, encoding="UTF-8"))
-            set_quest_attr_value(question, 'text.text', u''.join(text).replace(' xmlns:pq="http://paths.sheffield.ac.uk/pyquest"', ''))
-        elif q_type == 'number':
-            if 'min' in item.attrib:
-                set_quest_attr_value(question, 'further.min', safe_int(item.attrib['min']))
-            else:
-                set_quest_attr_value(question, 'further.min', None)
-            if 'max' in item.attrib:
-                set_quest_attr_value(question, 'further.max', safe_int(item.attrib['max']))
-            else:
-                set_quest_attr_value(question, 'further.max', None)
-        elif q_type == 'confirm':
-            if 'value' in item.attrib:
-                set_quest_attr_value(question, 'further.value', item.attrib['value'])
-            else:
-                set_quest_attr_value(question, 'further.value', None)
-            if 'label' in item.attrib:
-                set_quest_attr_value(question, 'further.label', item.attrib['label'])
-            else:
-                set_quest_attr_value(question, 'further.label', None)
-        elif q_type in ['single_choice', 'multi_choice']:
-            if 'display' in item.attrib:
-                if item.attrib['display'] not in ['table', 'list', 'select']:
-                    raise api.Invalid('A choice can only be displayed as table, list, or select.', None, None, error_dict={'content': 'A single choice can only be displayed as table, list, or select.'})
-                set_quest_attr_value(question, 'further.subtype', item.attrib['display'])
-            else:
-                set_quest_attr_value(question, 'further.subtype', 'table')
-            if 'allow_other' in item.attrib:
-                if item.attrib['allow_other'] not in ['no', 'single']:
-                    raise api.Invalid('The allow_other attribute must be either "no" or "single"', None, None, error_dict={'content': 'The allow_other attribute must be either "no" or "single"'})
-                set_quest_attr_value(question, 'further.allow_other', item.attrib['allow_other'])
-            else:
-                set_quest_attr_value(question, 'further.allow_other', 'no')
-        elif q_type == 'auto_commit':
-            set_quest_attr_value(question, 'further.timeout', item.attrib['timeout'])
-        elif q_type == 'hidden_value':
-            set_quest_attr_value(question, 'further.value', item.attrib['value'])
-        if q_type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
-            if 'before_label' in item.attrib:
-                set_quest_attr_value(question, 'further.before_label', item.attrib['before_label'])
-            if 'after_label' in item.attrib:
-                set_quest_attr_value(question, 'further.after_label', item.attrib['after_label'])
-            for attr_group in get_attr_groups(question, 'answer'):
-                dbsession.delete(attr_group)
-            for idx, attr in enumerate(item):
-                if attr.tag == '{http://paths.sheffield.ac.uk/pyquest}answer':
-                    if 'value' in attr.attrib and 'label' in attr.attrib:
-                        if attr.attrib['value'].strip() == '':
-                            raise api.Invalid('Every answer must have a value', None, None, error_dict={'content': 'Every answer must have a value'})
-                        qag = QuestionAttributeGroup(key='answer', order=idx)
-                        qag.attributes.append(QuestionAttribute(key='value', value=attr.attrib['value']))
-                        qag.attributes.append(QuestionAttribute(key='label', value=attr.attrib['label']))
-                        question.attributes.append(qag)
-        if q_type in ['single_choice_grid', 'multi_choice_grid']:
-            for attr_group in get_attr_groups(question, 'subquestion'):
-                dbsession.delete(attr_group)
-            for idx, attr in enumerate(item):
-                if attr.tag == '{http://paths.sheffield.ac.uk/pyquest}sub_question':
-                    if 'name' in attr.attrib and 'label' in attr.attrib:
-                        if attr.attrib['name'].strip() == '':
-                            raise api.Invalid('Every question must have a name', None, None, error_dict={'content': 'Every question must have a name'})
-                        qag = QuestionAttributeGroup(key='subquestion', order=idx)
-                        qag.attributes.append(QuestionAttribute(key='name', value=attr.attrib['name']))
-                        qag.attributes.append(QuestionAttribute(key='label', value=attr.attrib['label']))
+        for schema in question.q_type.backend_schema():
+            if schema['type'] == 'question-name':
+                question.name = single_xpath_value(item, 'pq:name/text()', default='unnamed')
+            elif schema['type'] == 'question-title':
+                question.title = single_xpath_value(item, 'pq:title/text()', default='Missing title')
+            elif schema['type'] == 'question-required':
+                question.required = True if single_xpath_value(item, 'pq:required/text()', default='false').lower() == 'true' else False
+            elif schema['type'] == 'question-help':
+                question.help = single_xpath_value(item, 'pq:help/text()', default='')
+            elif schema['type'] in ['unicode', 'richtext', 'int', 'select']:
+                print "pq:attribute[@name='%s']" % (schema['attr'])
+                value = single_xpath_value(item, "pq:attribute[@name='%s']" % (schema['attr']))
+                if value is not None:
+                    value = etree.tostring(value)
+                    value = value[value.find('>') + 1:value.rfind('<')]
+                    question.set_attr_value(schema['attr'], value)
+                elif 'default' in schema:
+                    question.set_attr_value(schema['attr'], schema['default'])
+                else:
+                    'a'.stop()
+                    question.set_attr_value(schema['attr'], '')
+            elif schema['type'] == 'table':
+                attr_groups = question.attr_group(schema['attr'], default=[], multi=True)
+                doc_groups = item.xpath("pq:attribute_group[@name='%s']/pq:attribute" % (schema['attr']), namespaces=NAMESPACES)
+                for idx2 in range(0, max(len(attr_groups), len(doc_groups))):
+                    if idx2 < len(attr_groups) and idx2 < len(doc_groups):
+                        for column in schema['columns']:
+                            attr_groups[idx2].set_attr_value(column['attr'], single_xpath_value(doc_groups[idx2], "pq:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''))
+                    elif idx2 < len(attr_groups):
+                        dbsession.delete(attr_groups[idx2])
+                    elif idx2 < len(doc_groups):
+                        qag = QuestionAttributeGroup(key=schema['attr'], order=idx2)
+                        for idx3, column in enumerate(schema['columns']):
+                            qag.attributes.append(QuestionAttribute(key=column['attr'],
+                                                                    value=single_xpath_value(doc_groups[idx2], "pq:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''),
+                                                                    order=idx3))
                         question.attributes.append(qag)
     if cleanup:
-        for qid in original_ids:
-            if qid not in seen_ids:
-                question = dbsession.query(Question).filter(Question.id==qid).first()
-                dbsession.delete(question)
+        remove_ids = [qid for qid in original_ids if qid not in seen_ids]
+        dbsession.query(Question).filter(Question.id.in_(remove_ids)).delete()
     
 @view_config(route_name='survey.qsheet.import')
 @render({'text/html': 'backend/qsheet/import.html'})
@@ -425,34 +267,15 @@ def edit(request):
     user = current_user(request)
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            question_types = dbsession.query(QuestionType)
             if request.method == 'POST':
                 try:
                     schema = QSheetVisualSchema()
                     for question in qsheet.questions:
-                        if question.type == 'text':
-                            schema.add_field(unicode(question.id), QSheetTextSchema())
-                        elif question.type == 'number':
-                            schema.add_field(unicode(question.id), QSheetNumberQuestionSchema())
-                        elif question.type == 'confirm':
-                            schema.add_field(unicode(question.id), QSheetConfirmQuestionSchema())
-                        elif question.type == 'auto_commit':
-                            schema.add_field(unicode(question.id), QSheetAutoCommitQuestionSchema())
-                        elif question.type == 'hidden_value':
-                            schema.add_field(unicode(question.id), QSheetHiddenValueQuestionSchema())
-                        elif question.type == 'page_timer':
-                            schema.add_field(unicode(question.id), QSheetPageTimerQuestionSchema())
-                        else:
-                            sub_schema = QSheetBasicQuestionSchema()
-                            if question.type in ['single_choice', 'multi_choice']:
-                                sub_schema.add_field('display', validators.OneOf(['table', 'list', 'select']))
-                                sub_schema.add_field('allow_other', validators.OneOf(['no', 'single']))
-                            if question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
-                                sub_schema.add_field('answer', foreach.ForEach(QSheetAnswerSchema()))
-                                sub_schema.add_field('before_label', validators.UnicodeString())
-                                sub_schema.add_field('after_label', validators.UnicodeString())
-                            if question.type in ['single_choice_grid', 'multi_choice_grid']:
-                                sub_schema.add_field('sub_quest', foreach.ForEach(QSheetSubQuestionSchema()))
-                            schema.add_field(unicode(question.id), sub_schema)
+                        sub_schema = QuestionTypeSchema(question.q_type.backend_schema())
+                        sub_schema.add_field('id', validators.Int(not_empty=True))
+                        sub_schema.add_field('order', validators.Int(not_empty=True))
+                        schema.add_field(unicode(question.id), sub_schema)
                     params = schema.to_python(request.POST)
                     with transaction.manager:
                         qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -461,18 +284,9 @@ def edit(request):
                         qsheet.title = params['title']
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
-                        if get_qs_attr(qsheet, 'repeat'):
-                            get_qs_attr(qsheet, 'repeat').value = params['repeat']
-                        else:
-                            qsheet.attributes.append(QSheetAttribute(key='repeat', value=params['repeat']))
-                        if get_qs_attr(qsheet, 'data-items'):
-                            get_qs_attr(qsheet, 'data-items').value = params['data_items']
-                        else:
-                            qsheet.attributes.append(QSheetAttribute(key='data-items', value=params['data_items']))
-                        if get_qs_attr(qsheet, 'control-items'):
-                            get_qs_attr(qsheet, 'control-items').value = params['control_items']
-                        else:
-                            qsheet.attributes.append(QSheetAttribute(key='control-items', value=params['control_items']))
+                        qsheet.set_attr_value('repeat', params['repeat'])
+                        qsheet.set_attr_value('data-items', params['data_items'])
+                        qsheet.set_attr_value('control-items', params['control_items'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
                         if qsheet.next:
@@ -486,69 +300,30 @@ def edit(request):
                                 qsheet.next.append(QSheetTransition(target_id=next_qsheet.id))
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
-                            if question.type == 'text':
-                                question.order = q_params['order']
-                                get_q_attr(question, 'text.text').value = q_params['text']
-                            elif question.type == 'auto_commit':
-                                question.order = q_params['order']
-                                set_quest_attr_value(question, 'further.timeout', unicode(q_params['timeout']))
-                            elif question.type == 'page_timer':
-                                question.name = q_params['name']
-                                question.order = q_params['order']
-                            else:
-                                question.name = q_params['name']
-                                question.title = q_params['title']
-                                question.help = q_params['help']
-                                question.required = q_params['required']
-                                question.order = q_params['order']
-                                if question.type == 'number':
-                                    get_q_attr(question, 'further.min').value = q_params['min']
-                                    get_q_attr(question, 'further.max').value = q_params['max']
-                                elif question.type == 'confirm':
-                                    get_q_attr(question, 'further.value').value = q_params['value']
-                                    get_q_attr(question, 'further.label').value = q_params['label']
-                                elif question.type == 'hidden_value':
-                                    get_q_attr(question, 'further.value').value = q_params['value']
-                                else:
-                                    if question.type in ['single_choice', 'multi_choice']:
-                                        set_quest_attr_value(question, 'further.subtype', q_params['display'])
-                                        set_quest_attr_value(question, 'further.allow_other', q_params['allow_other'])
-                                    if question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']:
-                                        set_quest_attr_value(question, 'further.before_label', q_params['before_label'].strip())
-                                        set_quest_attr_value(question, 'further.after_label', q_params['after_label'].strip())
-                                        new_answers = q_params['answer']
-                                        new_answers.sort(key=lambda a: a['order'])
-                                        old_answers = get_attr_groups(question, 'answer')
-                                        for idx in range(0, max(len(new_answers), len(old_answers))):
-                                            if idx < len(new_answers) and idx < len(old_answers):
-                                                get_qg_attr(old_answers[idx], 'value').value = new_answers[idx]['value']
-                                                get_qg_attr(old_answers[idx], 'label').value = new_answers[idx]['label']
-                                                old_answers[idx].order = new_answers[idx]['order']
-                                            elif idx < len(new_answers):
-                                                qg = QuestionAttributeGroup(key='answer', order=new_answers[idx]['order'])
-                                                qg.attributes.append(QuestionAttribute(key='value', value=new_answers[idx]['value']))
-                                                qg.attributes.append(QuestionAttribute(key='label', value=new_answers[idx]['label']))
-                                                question.attributes.append(qg)
-                                                dbsession.add(qg)
-                                            elif idx < len(old_answers):
-                                                dbsession.delete(old_answers[idx])
-                                    if question.type in ['single_choice_grid', 'multi_choice_grid']:
-                                        new_subquestion = q_params['sub_quest']
-                                        new_subquestion.sort(key=lambda a: a['order'])
-                                        old_subquestion = get_attr_groups(question, 'subquestion')
-                                        for idx in range(0, max(len(new_subquestion), len(old_subquestion))):
-                                            if idx < len(new_subquestion) and idx < len(old_subquestion):
-                                                set_qgroup_attr_value(old_subquestion[idx], 'name', new_subquestion[idx]['name'])
-                                                set_qgroup_attr_value(old_subquestion[idx], 'label', new_subquestion[idx]['label'])
-                                                old_subquestion[idx].order = new_subquestion[idx]['order']
-                                            elif idx < len(new_subquestion):
-                                                qg = QuestionAttributeGroup(key='subquestion', order=new_subquestion[idx]['order'])
-                                                qg.attributes.append(QuestionAttribute(key='name', value=new_subquestion[idx]['name']))
-                                                qg.attributes.append(QuestionAttribute(key='label', value=new_subquestion[idx]['label']))
-                                                question.attributes.append(qg)
-                                                dbsession.add(qg)
-                                            elif idx < len(old_subquestion):
-                                                dbsession.delete(old_subquestion[idx])
+                            for field in question.q_type.backend_schema():
+                                if field['type'] == 'question-name':
+                                    question.name = q_params['name']
+                                elif field['type'] == 'question-title':
+                                    question.title = q_params['title']
+                                elif field['type'] == 'question-help':
+                                    question.help = q_params['help']
+                                elif field['type'] == 'question-required':
+                                    question.required = q_params['required']
+                                elif field['type'] in ['richtext', 'unicode', 'int', 'select']:
+                                    question.set_attr_value(field['attr'], q_params[field['name']])
+                                elif field['type'] == 'table':
+                                    q_params[field['name']].sort(key=lambda i: i['_order'])
+                                    for value, attr_group in zip(q_params[field['name']], question.attr_group(field['name'], default=[], multi=True)):
+                                        for column in field['columns']:
+                                            attr_group.set_attr_value(column['attr'], value[column['name']])
+                                    for value in q_params[field['name']][len(question.attr_group(field['name'], default=[], multi=True)):]:
+                                        attr_group = QuestionAttributeGroup(key=field['name'], order=value['_order'])
+                                        for column in field['columns']:
+                                            attr_group.set_attr_value(column['attr'], value[column['name']])
+                                        dbsession.add(attr_group)
+                                        question.attributes.append(attr_group)
+                                    for attr_group in question.attr_group(field['name'], multi=True)[len(q_params[field['name']]):]:
+                                        dbsession.delete(attr_group)
                         dbsession.add(qsheet)
                     if request.is_xhr:
                         return {'flash': 'Survey page updated'}
@@ -558,6 +333,7 @@ def edit(request):
                                                           sid=request.matchdict['sid'],
                                                           qsid=request.matchdict['qsid']))
                 except api.Invalid as e:
+                    print e
                     e = flatten_invalid(e)
                     e.params = request.POST
                     if request.is_xhr:
@@ -565,10 +341,12 @@ def edit(request):
                     else:
                         return {'survey': survey,
                                 'qsheet': qsheet,
+                                'question_types': question_types,
                                 'e': e}
             else:
                 return {'survey': survey,
-                        'qsheet': qsheet}
+                        'qsheet': qsheet,
+                        'question_types': question_types}
         else:
             redirect_to_login(request)
     else:
@@ -590,35 +368,16 @@ def edit_add_question(request):
                 with transaction.manager:
                     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                                  QSheet.survey_id==request.matchdict['sid'])).first()
+                    q_type = dbsession.query(QuestionType).filter(QuestionType.name==params['q_type']).first()
+                    if not q_type:
+                        raise HTTPNotFound()
                     for quest in qsheet.questions:
                         if quest.order >= params['order']:
                             quest.order = quest.order + 1
-                    question = Question(type=params['type'],
-                                        order=params['order'])
-                    if params['type'] == 'text':
-                        qag = QuestionAttributeGroup(key='text', order=0)
-                        qag.attributes.append(QuestionAttribute(key='text', value='<p>Double-click here to edit the text.</p>', order=0))
-                        question.attributes.append(qag)
-                    elif params['type'] == 'auto_commit':
-                        qag = QuestionAttributeGroup(key='further', order=0)
-                        qag.attributes.append(QuestionAttribute(key='timeout', value='10', order=0))
-                        question.attributes.append(qag)
-                    elif params['type'] in['number', 'confirm', 'single_choice']:
-                        qag = QuestionAttributeGroup(key='further', order=0)
-                        if params['type'] == 'number':
-                            qag.attributes.append(QuestionAttribute(key='min'))
-                            qag.attributes.append(QuestionAttribute(key='max'))
-                        elif params['type'] == 'confirm':
-                            qag.attributes.append(QuestionAttribute(key='value'))
-                            qag.attributes.append(QuestionAttribute(key='label'))
-                        elif params['type'] == 'single_choice':
-                            qag.attributes.append(QuestionAttribute(key='subtype', value='table'))
-                        question.attributes.append(qag)
-                        dbsession.add(qag)
-                    elif params['type'] == 'hidden_value':
-                        qag = QuestionAttributeGroup(key='further', order=0)
-                        qag.attributes.append(QuestionAttribute(key='value', value='', order=0))
-                        question.attributes.append(qag)
+                    question = Question(order=params['order'], q_type=q_type)
+                    for entry in q_type.dbschema_schema():
+                        if entry['type'] == 'attr':
+                            question.set_attr_value(entry['attr'], entry['default'], entry['order'] if 'order' in entry else 0, entry['group_order'] if 'group_order' in entry else 0)
                     qsheet.questions.append(question)
                     dbsession.add(question)
                     dbsession.flush()
@@ -666,18 +425,11 @@ def edit_source(request):
                                                                      QSheet.survey_id==request.matchdict['sid'])).first()
                         qsheet.name = params['name']
                         qsheet.title = params['title']
-                        if get_qs_attr(qsheet, 'repeat'):
-                            get_qs_attr(qsheet, 'repeat').value = params['repeat']
-                        else:
-                            qsheet.attributes.append(QSheetAttribute(key='repeat', value=params['repeat']))
-                        if get_qs_attr(qsheet, 'data-items'):
-                            get_qs_attr(qsheet, 'data-items').value = params['data_items']
-                        else:
-                            qsheet.attributes.append(QSheetAttribute(key='data-items', value=params['data_items']))
-                        if get_qs_attr(qsheet, 'control-items'):
-                            get_qs_attr(qsheet, 'control-items').value = params['control_items']
-                        else:
-                            qsheet.attributes.append(QSheetAttribute(key='control-items', value=params['control_items']))
+                        qsheet.styles = params['styles']
+                        qsheet.scripts = params['scripts']
+                        qsheet.set_attr_value('repeat', params['repeat'])
+                        qsheet.set_attr_value('data-items', params['data_items'])
+                        qsheet.set_attr_value('control-items', params['control_items'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
                         if qsheet.next:
@@ -689,8 +441,6 @@ def edit_source(request):
                         else:
                             if next_qsheet:
                                 qsheet.next.append(QSheetTransition(target_id=next_qsheet.id))
-                        qsheet.styles = params['styles']
-                        qsheet.scripts = params['scripts']
                         for item in params['content']:
                             if item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
                                 load_questions_from_xml(qsheet, item, dbsession)

@@ -8,23 +8,22 @@ import datetime
 import re
 
 from pkg_resources import resource_stream
-from formencode import validators, variabledecode
+from formencode import validators, variabledecode, foreach, compound
 from formencode import FancyValidator, Schema, Invalid
 from lxml import etree
 
-from pyquest.helpers.qsheet import get_q_attr_value, get_qg_attr_value, get_attr_groups
-
+from pyquest.util import convert_type
 
 schema = etree.XMLSchema(etree.parse(resource_stream('pyquest', 'static/survey.xsd')))
 
 class DateTimeValidator(FancyValidator):
     
-    def __init__(self, type, **kwargs):
+    def __init__(self, date_type, **kwargs):
         FancyValidator.__init__(self, **kwargs)
-        self.type = type
+        self.date_type = date_type
     
     def _to_python(self, value, state):
-        if self.type == 'date':
+        if self.date_type == 'date':
             match = re.match(r'([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})', value)
             if match:
                 try:
@@ -33,7 +32,7 @@ class DateTimeValidator(FancyValidator):
                     raise Invalid(ve.message, value, state)
             else:
                 raise Invalid('Please specify a valid date', value, state)
-        elif self.type == 'time':
+        elif self.date_type == 'time':
             match = re.match(r'([0-9]{1,2}):([0-9]{1,2})', value)
             if match:
                 try:
@@ -42,7 +41,7 @@ class DateTimeValidator(FancyValidator):
                     raise Invalid(ve.message, value, state)
             else:
                 raise Invalid('Please specify a valid time', value, state)
-        elif self.type == 'datetime':
+        elif self.date_type == 'datetime':
             match = re.match(r'([0-9]{1,2})/([0-9]{1,2})/([0-9]{4}) ([0-9]{2}):([0-9]{2})', value)
             if match:
                 try:
@@ -51,7 +50,7 @@ class DateTimeValidator(FancyValidator):
                     raise Invalid(ve.message, value, state)
             else:
                 raise Invalid('Please specify a valid date and time', value, state)
-        elif self.type == 'month':
+        elif self.date_type == 'month':
             match = re.match(r'([0-9]{1,2})', value)
             if match:
                 try:
@@ -87,31 +86,34 @@ class DateTimeValidator(FancyValidator):
                     return 11
                 elif re.match(r'dec(ember)?', value):
                     return 12
-        raise Invalid('Invalid validation type', value, state)
+        raise Invalid('Invalid validation date_type', value, state)
 
 class ChoiceValidator(FancyValidator):
 
-    def __init__(self, values, allow_multiple, allow_other, **kwargs):
+    def __init__(self, values, allow_multiple, allow_other=False, **kwargs):
         FancyValidator.__init__(self, **kwargs)
         self.values = values
         self.allow_multiple = allow_multiple
-        self.allow_other = allow_other
+        self.allow_other = allow_other == 'single'
         if self.allow_other:
             self.values.append('_other')
 
     def _to_python(self, value, state):
-        if 'answer' not in value:
-            if self.not_empty:
-                raise Invalid('Please provide an answer', value, state)
-            elif self.if_missing:
-                if self.allow_multiple:
-                    return [self.if_missing]
+        if isinstance(value, dict):
+            if 'answer' not in value:
+                if self.not_empty:
+                    raise Invalid('Please provide an answer', value, state)
+                elif self.if_missing:
+                    if self.allow_multiple:
+                        return [self.if_missing]
+                    else:
+                        return self.if_missing
+                    return None
                 else:
-                    return self.if_missing
-                return None
-            else:
-                return None
-        answer = value['answer']
+                    return None
+            answer = value['answer']
+        else:
+            answer = value
         if isinstance(answer, list):
             if not self.allow_multiple:
                 raise Invalid('Please only select a single value', answer, state)
@@ -199,64 +201,66 @@ class XmlValidator(FancyValidator):
             raise Invalid(unicode(xse), value, state)
         except etree.DocumentInvalid as de:
             raise Invalid(unicode(de), value, state)
-    
+
 class DynamicSchema(Schema):
     
+    def __init__(self, **kwargs):
+        Schema.__init__(self, **kwargs)
+
+def validators_for_params(params, question):
+    def augment(validator, question, missing_value=None):
+        if question.required:
+            validator.not_empty = True
+        else:
+            validator.not_empty = False
+            validator.if_missing = missing_value
+        return validator
+    v_params = {}
+    if not params:
+        return None
+    if 'params' in params:
+        for key, value in params['params'].items():
+            if value['type'] == 'attr':
+                v_params[key] = convert_type(question.attr_value(value['attr'], default=value['default'] if 'default' in value else None),
+                                             value['data_type'] if 'data_type' in value else 'unicode',
+                                             value['default'] if 'default' in value else None)
+            elif value['type'] == 'value':
+                v_params[key] = value['value']
+    if params['type'] == 'unicode':
+        return augment(validators.UnicodeString(**v_params), question)
+    elif params['type'] == 'number':
+        return augment(validators.Number(**v_params), question)
+    elif params['type'] == 'date':
+        return augment(DateTimeValidator('date', **v_params), question)
+    elif params['type'] == 'time':
+        return augment(DateTimeValidator('time', **v_params), question)
+    elif params['type'] == 'datetime':
+        return augment(DateTimeValidator('datetime', **v_params), question)
+    elif params['type'] == 'month':
+        return augment(DateTimeValidator('month', **v_params), question)
+    elif params['type'] == 'choice':
+        return augment(ChoiceValidator(question.attr_value(params['attr'], multi=True, default=[]), **v_params), question)
+    elif params['type'] == 'ranking':
+        return augment(RankingValidator(question.attr_value(params['attr'], multi=True, default=[]), **v_params), question)
+    elif params['type'] == 'multiple':
+        schema = DynamicSchema()
+        for attr in question.attr_value(params['attr'], multi=True, default=[]):
+            validator = validators_for_params(params['schema'], question)
+            if validator:
+                schema.add_field(attr, validator)
+        return schema
+    else:
+        return augment(validators.UnicodeString(), question)
+    return None
+
+
+class QuestionSchema(Schema):
     def __init__(self, questions, **kwargs):
-        def augment(validator, question, missing_value=None):
-            if question.required:
-                validator.not_empty = True
-            else:
-                validator.not_empty = False
-                validator.if_missing = missing_value
-            return validator
         Schema.__init__(self, **kwargs)
         for question in questions:
-            if question.type in ['short_text', 'long_text', 'hidden_value']:
-                self.add_field(question.name, augment(validators.UnicodeString(), question))
-            elif question.type == 'number':
-                number_validator = augment(validators.Number(), question)
-                if get_q_attr_value(question, 'further.min') and get_q_attr_value(question, 'further.min') != '': #TODO: Proper validation needed
-                    number_validator.min = int(get_q_attr_value(question, 'further.min'))
-                if get_q_attr_value(question, 'further.max') and get_q_attr_value(question, 'further.max') != '': #TODO: Proper validation needed
-                    number_validator.max = int(get_q_attr_value(question, 'further.max'))
-                self.add_field(question.name, number_validator)
-            elif question.type == 'email':
-                self.add_field(question.name, augment(validators.Email(), question))
-            elif question.type == 'url':
-                self.add_field(question.name, augment(validators.URL(), question))
-            elif question.type in ['date', 'time', 'datetime', 'month']:
-                self.add_field(question.name, augment(DateTimeValidator(question.type), question))
-            elif question.type == 'single_choice':
-                self.add_field(question.name, augment(ChoiceValidator([get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')],
-                                                                      False,
-                                                                      get_q_attr_value(question, 'further.allow_other', 'no') == 'single'),
-                                                      question))
-            elif question.type == 'multi_choice':
-                self.add_field(question.name, augment(ChoiceValidator([get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')],
-                                                                      True,
-                                                                      get_q_attr_value(question, 'further.allow_other', 'no') == 'single'), question))
-            elif question.type == 'single_choice_grid':
-                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
-                sub_schema = DynamicSchema([])
-                for sub_question in get_attr_groups(question, 'subquestion'):
-                    sub_schema.add_field(get_qg_attr_value(sub_question, 'name'), augment(validators.OneOf(values, hideList=True), question))
-                self.add_field(question.name, augment(sub_schema, question))
-            elif question.type == 'confirm':
-                self.add_field(question.name, augment(validators.UnicodeString(), question, missing_value=None))
-            elif question.type == 'multi_choice_grid':
-                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
-                sub_schema = DynamicSchema([])
-                for sub_question in get_attr_groups(question, 'subquestion'):
-                    sub_schema.add_field(get_qg_attr_value(sub_question, 'name'), augment(validators.OneOf(values, hideList=True, testValueList=True), question))
-                self.add_field(question.name, augment(sub_schema, question))
-            elif question.type == 'ranking':
-                values = [get_qg_attr_value(qg, 'value') for qg in get_attr_groups(question, 'answer')]
-                self.add_field(question.name, augment(RankingValidator(values), question))
-            elif question.type == 'js_check':
-                self.add_field(question.name, augment(validators.UnicodeString(), question))
-            elif question.type == 'page_timer':
-                self.add_field(question.name, augment(validators.Number(), question))
+            validator = validators_for_params(question.q_type.answer_schema(), question)
+            if validator:
+                self.add_field(question.name, validator)
             
 class PageSchema(Schema):
     
@@ -267,7 +271,7 @@ class PageSchema(Schema):
         items_schema = Schema()
         for item in items:
             if 'did' in item:
-                item_schema = DynamicSchema(qsheet.questions)
+                item_schema = QuestionSchema(qsheet.questions)
                 if csrf_test:
                     item_schema.add_field('csrf_token_', CsrfTokenValidator(not_empty=True))
                 items_schema.add_field(unicode(item['did']), item_schema)
@@ -299,6 +303,7 @@ def flatten_invalid(ie, message='Unfortunately not all your answers were accepta
                    ie.state,
                    error_dict=flatten_dict(ie))
 
+
 class ValidationState(object):
     
     def __init__(self, **kwargs):
@@ -308,4 +313,29 @@ class ValidationState(object):
         self.full_list = None
         for (key, value) in kwargs.items():
             self.__setattr__(key, value)
-        
+
+class QuestionTypeSchema(Schema):
+    
+    def __init__(self, schema, **kwargs):
+        Schema.__init__(self, **kwargs)
+        for field in schema:
+            if field['type'] == 'question-name':
+                self.add_field('name', validators.UnicodeString(not_empty=True))
+            elif field['type'] == 'question-title':
+                self.add_field('title', validators.UnicodeString(not_empty=True))
+            elif field['type'] == 'question-help':
+                self.add_field('help', validators.UnicodeString(if_missing='', if_empty='', not_empty=False))
+            elif field['type'] == 'question-required':
+                self.add_field('required', validators.StringBool(if_missing=False))
+            else:
+                if field['type'] in ['richtext', 'unicode']:
+                    self.add_field(field['name'], validators.UnicodeString(**field['validator']))
+                elif field['type'] == 'int':
+                    self.add_field(field['name'], validators.Int(**field['validator']))
+                elif field['type'] == 'select':
+                    self.add_field(field['name'], validators.OneOf([v[0] for v in field['values']], **field['validator']))
+                elif field['type'] == 'table':
+                    sub_schema = QuestionTypeSchema(field['columns'], **field['validator'])
+                    sub_schema.add_field('_order', validators.Int(not_empty=True))
+                    self.add_field(field['name'], foreach.ForEach(sub_schema))
+                

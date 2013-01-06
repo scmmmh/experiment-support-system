@@ -19,7 +19,7 @@
         <p>Please select the XML file that contains the page you wish to import:</p>
         <dl>
           <dt>File</dt>
-          <dd>${h.form.file_input('source_file', e)}</dd>
+          <dd>${h.form.file_input_field('source_file', e)}</dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't import", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id))}</li>

@@ -3,129 +3,81 @@
   ${h.form.hidden_field('%i.order' % (question.id), idx, class_='role-order')}
   <hgroup>
     <h2 class="header">
-      <span class="title">${h.qsheet.question_type_title(question.type)}</span>
+      <span class="title">${question.q_type.title}</span>
       <ul class="no-symbol no-margin no-padding inline right">
-        <li py:if="question.type == 'text'"><a href="#" class="button action-edit-text"><span class="ui-icon ui-icon-pencil"></span></a></li>
+        <li py:if="False and question.type == 'text'"><a href="#" class="button action-edit-text"><span class="ui-icon ui-icon-pencil"></span></a></li>
         <li><a href="${r.route_url('survey.qsheet.edit.delete_question', sid=question.qsheet.survey.id, qsid=question.qsheet.id, qid=question.id)}" class="button action-delete"><span class="ui-icon ui-icon-closethick"></span></a></li>
       </ul>
     </h2>
   </hgroup>
   <div class="content">
-    <py:if test="question.type == 'text'">
-      ${h.form.textarea('%i.text' % (question.id), h.qsheet.get_q_attr_value(question, 'text.text'), e, class_='hidden role-stored-text')}
-      <div class="role-editable-text">
-        ${Markup(h.qsheet.get_q_attr_value(question, 'text.text'))}
-      </div>
-    </py:if>
-    <py:if test="question.type == 'auto_commit'">
-      ${h.form.hidden_field('%i.name' % (question.id), 'auto_commit_%i')}
-      <p>Automatically save all answers on the current page and move on to the next page
-        after a given timeout.</p>
-      <dl>
-        <dt>Timeout (seconds)</dt>
-        <dd>${h.form.number_field('%i.timeout' % (question.id), h.qsheet.get_q_attr_value(question, 'further.timeout', '0'), e, class_='span-16')}</dd>
-      </dl>
-    </py:if>
-    <py:if test="question.type == 'page_timer'">
-      <dl>
-        <dt>Name</dt>
-        <dd>${h.form.text_field('%i.name' % (question.id), question.name, e)}</dd>
-      </dl>
-    </py:if>
-    <py:if test="question.type not in ['text', 'auto_commit', 'page_timer']">
-      <dl>
-        <dt>Name</dt>
-        <dd>${h.form.text_field('%i.name' % (question.id), question.name, e)}</dd>
-        <py:if test="question.type != 'hidden_value'">
+    <dl>
+    <py:for each="part in question.q_type.backend_schema()">
+        <py:if test="part['type'] == 'richtext'">
+          <dt>
+            <span class="right"><a href="#" class="button action-edit-text"><span class="ui-icon ui-icon-pencil"></span></a></span>
+            ${h.form.textarea('%i.text' % (question.id), question.attr_value(part['attr']), e, class_='hidden role-stored-text')}
+          </dt>
+          <dd>
+            <div class="role-editable-text">${Markup(question.attr_value(part['attr']))}</div>
+          </dd>
+        </py:if>
+        <py:if test="part['type'] == 'question-name'">
+          <dt>Name</dt>
+          <dd>${h.form.text_field('%i.name' % (question.id), question.name, e, class_='role-question-name')}</dd>
+        </py:if>
+        <py:if test="part['type'] == 'question-title'">
           <dt>Title</dt>
           <dd>${h.form.text_field('%i.title' % (question.id), question.title, e, class_='span-16')}</dd>
+        </py:if>
+        <py:if test="part['type'] == 'question-help'">
           <dt>Help</dt>
           <dd>${h.form.textarea('%i.help' % (question.id), question.help, e, class_='span-16', style='height:50px;')}</dd>
+        </py:if>
+        <py:if test="part['type'] == 'question-required'">
           <dt>Required</dt>
           <dd>${h.form.checkbox('%i.required' % (question.id), 'true', e, checked=question.required, label='This question must be answered')}</dd>
         </py:if>
-        <py:if test="question.type == 'number'">
-          <dt>Minimum value</dt>
-          <dd>${h.form.number_field('%i.min' % (question.id), h.qsheet.get_q_attr_value(question, 'further.min'), e)}</dd>
-          <dt>Maximum value</dt>
-          <dd>${h.form.number_field('%i.max' % (question.id), h.qsheet.get_q_attr_value(question, 'further.max'), e)}</dd>
+        <py:if test="part['type'] == 'int'">
+          <dt>${part['title']}</dt>
+          <dd>${h.form.number_field('%i.%s' % (question.id, part['name']), question.attr_value(part['attr']), e)}</dd>
         </py:if>
-        <py:if test="question.type in ['single_choice', 'multi_choice']">
-          <dt>Display as</dt>
-          <dd>${h.form.select('%i.display' % (question.id), h.qsheet.get_q_attr_value(question, 'further.subtype', 'table'), [('table', 'Horizontal table'), ('list', 'Vertical list'), ('select', 'Select box')], e)}</dd>
+        <py:if test="part['type'] == 'unicode'">
+          <dt>${part['title']}</dt>
+          <dd>${h.form.text_field('%i.%s' % (question.id, part['name']), question.attr_value(part['attr']), e)}</dd>
         </py:if>
-        <py:if test="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid', 'ranking']">
-          <dt>Pre-label</dt>
-          <dd>${h.form.text_field('%i.before_label' % (question.id), h.qsheet.get_q_attr_value(question, 'further.before_label', ''), e)}</dd>
-          <dt>Post-label</dt>
-          <dd>${h.form.text_field('%i.after_label' % (question.id), h.qsheet.get_q_attr_value(question, 'further.after_label', ''), e)}</dd>
-          <dt py:if="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid']">Answers</dt>
-          <dt py:if="question.type == 'ranking'">Items</dt>
+        <py:if test="part['type'] == 'select'">
+          <dt>${part['title']}</dt>
+          <dd>${h.form.select('%i.%s' % (question.id, part['name']), question.attr_value(part['attr'], part['default']), part['values'], e)}</dd>
+        </py:if>
+        <py:if test="part['type'] == 'table'">
+          <dt>${part['title']}</dt>
           <dd>
             <table>
               <thead>
                 <tr>
-                  <th>Value</th>
-                  <th>Label</th>
+                  <th py:for="column in part['columns']">${column['title']}</th>
                   <th></th>
                 </tr>
               </thead>
-              <tbody class="role-answers">
-                <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'answer')">
-                  <td>${h.form.hidden_field('%i.answer-%i.order' % (question.id, attr_group.id), attr_group.order, class_='role-answer-order')}${h.form.text_field('%i.answer-%i.value' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'value'), e)}</td>
-                  <td>${h.form.text_field('%i.answer-%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
-                  <td py:if="question.type in ['single_choice', 'multi_choice', 'single_choice_grid', 'multi_choice_grid']"><a href="#" title="Remove this answer" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a></td>
-                  <td py:if="question.type == 'ranking'"><a href="#" title="Remove this item" class="button action-remove-answer"><span class="ui-icon ui-icon-minusthick"></span></a></td>
-                </tr>
-              </tbody>
-            </table>
-            <ul class="buttons">
-              <li><a href="#" title="Add an answer" class="button action-add-answer"><span class="ui-icon ui-icon-plusthick"></span></a></li>
-            </ul>
-          </dd>
-        </py:if>
-        <py:if test="question.type in ['single_choice', 'multi_choice']">
-          <dt>Allow other answers</dt>
-          <dd>${h.form.select('%i.allow_other' % (question.id), h.qsheet.get_q_attr_value(question, 'further.allow_other'), [('no', 'No'), ('single', 'Yes')], e)}</dd>
-        </py:if>
-        <py:if test="question.type in ['single_choice_grid', 'multi_choice_grid']">
-          <dt>Sub-questions</dt>
-          <dd>
-            <table>
-              <thead>
+              <tfoot>
                 <tr>
-                  <th>Name</th>
-                  <th>Label</th>
-                  <th></th>
+                  <td py:for="column in part['columns']"></td>
+                  <td><a href="#" title="Add a row" class="button action-add-row" data-pyquest-qid="${question.id}" data-pyquest-part="${h.json.dumps(part)}"><span class="ui-icon ui-icon-plusthick"></span></a></td>
                 </tr>
-              </thead>
-              <tbody class="role-subquestions">
-                <tr py:for="attr_group in h.qsheet.get_attr_groups(question, 'subquestion')">
-                  <td>${h.form.hidden_field('%i.sub_quest-%i.order' % (question.id, attr_group.id), attr_group.order, class_='role-subquestion-order')}${h.form.text_field('%i.sub_quest-%i.name' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'name'), e)}</td>
-                  <td>${h.form.text_field('%i.sub_quest-%i.label' % (question.id, attr_group.id), h.qsheet.get_qg_attr_value(attr_group, 'label'), e)}</td>
-                  <td><a href="#" title="Remove this sub-question" class="button action-remove-subquestion"><span class="ui-icon ui-icon-minusthick"></span></a></td>
+              </tfoot>
+              <tbody class="role-sortable">
+                <tr py:for="group in question.attr_group(part['attr'], default=[], multi=True)">
+                  <td py:for="column in part['columns']">
+                    <py:if test="column['type'] == 'unicode'">${h.form.text_field('%i.%s-%i.%s' % (question.id, part['name'], group.id, column['name']), group.attr_value(column['attr']), e)}</py:if>
+                  </td>
+                  <td>${h.form.hidden_field('%i.%s-%i._order' % (question.id, part['name'], group.id), group.order, class_='role-row-order')}<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                 </tr>
               </tbody>
             </table>
-            <ul class="buttons">
-              <li><a href="#" title="Add a sub-question" class="button action-add-subquestion"><span class="ui-icon ui-icon-plusthick"></span></a></li>
-            </ul>
           </dd>
         </py:if>
-        <py:if test="question.type == 'confirm'">
-          <dt>Value</dt>
-          <dd>${h.form.number_field('%i.value' % (question.id), h.qsheet.get_q_attr_value(question, 'further.value'), e, class_='span-16')}</dd>
-          <dt>Label</dt>
-          <dd>${h.form.number_field('%i.label' % (question.id), h.qsheet.get_q_attr_value(question, 'further.label'), e, class_='span-16')}</dd>
-        </py:if>
-        <py:if test="question.type == 'hidden_value'">
-          ${h.form.hidden_field('%i.title' % (question.id), '[Hidden title]')}
-          ${h.form.hidden_field('%i.help' % (question.id), '')}
-          ${h.form.hidden_field('%i.required' % (question.id), 'true')}
-          <dt>Value</dt>
-          <dd>${h.form.text_field('%i.value' % (question.id), h.qsheet.get_q_attr_value(question, 'further.value'), e)}</dd>
-        </py:if>
-      </dl>
-    </py:if>
+      </py:for>
+    </dl>
   </div>
 </li>

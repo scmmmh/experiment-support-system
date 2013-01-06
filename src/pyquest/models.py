@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import random
 import hashlib
 
@@ -15,7 +16,7 @@ from pyquest.helpers import as_data_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '105647470980'
+DB_VERSION = '25b3de3526f'
 
 class DBUpgradeException(Exception):
     
@@ -204,6 +205,26 @@ class QSheet(Base):
                              backref='qsheet',
                              order_by='DataItem.order',
                              cascade='all, delete, delete-orphan')
+    
+    def attr(self, key):
+        for attr in self.attributes:
+            if attr.key == key:
+                return attr
+        return None
+    
+    def attr_value(self, key, default=None):
+        attr = self.attr(key)
+        if attr:
+            return attr.value
+        else:
+            return default
+    
+    def set_attr_value(self, key, value):
+        attr = self.attr(key)
+        if attr:
+            attr.value = value
+        else:
+            self.attributes.add(QSheetAttribute(key=key, value=value))
 
 class QSheetAttribute(Base):
     
@@ -214,13 +235,34 @@ class QSheetAttribute(Base):
     key = Column(Unicode(255))
     value = Column(Unicode(255))
 
+class QuestionType(Base):
+    
+    __tablename__ = 'question_types'
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(255))
+    title = Column(Unicode(255))
+    dbschema = Column(UnicodeText)
+    answer_validation = Column(UnicodeText)
+    backend = Column(UnicodeText)
+    frontend = Column(UnicodeText)
+    
+    def backend_schema(self):
+        return json.loads(self.backend)
+    
+    def dbschema_schema(self):
+        return json.loads(self.dbschema)
+    
+    def answer_schema(self):
+        return json.loads(self.answer_validation)
+
 class Question(Base):
     
     __tablename__ = 'questions'
     
     id = Column(Integer, primary_key=True)
     qsheet_id = Column(ForeignKey(QSheet.id))
-    type = Column(Unicode(255))
+    type_id = Column(ForeignKey(QuestionType.id))
     name = Column(Unicode(255))
     title = Column(Unicode(255))
     required = Column(Boolean)
@@ -237,6 +279,60 @@ class Question(Base):
     control_answers = relationship('DataItemControlAnswer',
                                    backref='question',
                                    cascade='all, delete, delete-orphan')
+    q_type = relationship('QuestionType', backref='questions')
+    
+    def attr_group(self, path, default=None, multi=False):
+        values = []
+        for group in self.attributes:
+            if group.key == path:
+                if multi:
+                    values.append(group)
+                else:
+                    return group
+        if values:
+            return values
+        else:
+            return default
+    
+    def attr(self, path, multi=False):
+        (q_group, q_attr) = path.split('.')
+        values = []
+        for group in self.attributes:
+            if group.key == q_group:
+                for attribute in group.attributes:
+                    if attribute.key == q_attr:
+                        if multi:
+                            values.append(attribute)
+                        else:
+                            return attribute
+        if values:
+            return values
+        else:
+            return None
+        
+    def attr_value(self, path, default=None, multi=False):
+        attr = self.attr(path, multi)
+        if attr:
+            if isinstance(attr, list):
+                return [a.value for a in attr]
+            else:
+                return attr.value
+        else:
+            return default
+    
+    def set_attr_value(self, path, value, order=0, group_order=0):
+        attr = self.attr(path)
+        if attr:
+            attr.value = value
+        else:
+            (q_group, q_attr) = path.split('.')
+            attr_group = self.attr_group(q_group)
+            if attr_group:
+                attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
+            else:
+                attr_group = QuestionAttributeGroup(key=q_group, order=group_order)
+                self.attributes.append(attr_group)
+                attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
 
 class QuestionAttributeGroup(Base):
     
@@ -252,6 +348,36 @@ class QuestionAttributeGroup(Base):
                               backref='question',
                               order_by='QuestionAttribute.order',
                               cascade='all, delete, delete-orphan')
+    
+    def attr(self, path, multi=False):
+        values = []
+        for attr in self.attributes:
+            if attr.key == path:
+                if multi:
+                    values.append(attr)
+                else:
+                    return attr
+        if values:
+            return values
+        else:
+            return None
+        
+    def attr_value(self, path, default=None, multi=False):
+        attr = self.attr(path, multi)
+        if attr:
+            if isinstance(attr, list):
+                return [a.value for a in attr]
+            else:
+                return attr.value
+        else:
+            return default
+    
+    def set_attr_value(self, path, value):
+        attr = self.attr(path, False)
+        if attr:
+            attr.value = value
+        else:
+            self.attributes.append(QuestionAttribute(key=path, value=value, order=len(self.attributes) + 1))
 
 class QuestionAttribute(Base):
     

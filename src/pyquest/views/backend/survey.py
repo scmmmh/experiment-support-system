@@ -4,7 +4,6 @@ Created on 23 Jan 2012
 
 @author: mhall
 '''
-from pyquest.helpers.qsheet import get_qs_attr
 try:
     import cPickle as pickle
 except:

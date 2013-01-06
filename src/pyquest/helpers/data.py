@@ -6,7 +6,7 @@ Created on 16 Mar 2012
 '''
 
 def question_select(qsheet):
-    return [(question.id, question.name) for question in qsheet.questions if question.type != 'text']
+    return [(question.id, question.name) for question in qsheet.questions if question.q_type.answer_schema()]
 
 def sample_for_qsheet(qsheet):
     data_item = {'did': 0}
@@ -19,7 +19,7 @@ def sample_for_qsheet(qsheet):
 def generate_summary(qsheet):
     data_questions = 0
     for question in qsheet.questions:
-        if question.type != 'text':
+        if question.q_type.answer_schema():
             data_questions = data_questions + 1
     data_questions = float(data_questions)
     counts = []

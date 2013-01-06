@@ -33,7 +33,7 @@
             <tr>
               <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.qsheets)}</td>
               <td class="text-center" style="font-size:28pt;font-weight:bold;">${len([q for qsheet in survey.qsheets for q in qsheet.questions])}</td>
-              <td class="text-center" style="font-size:28pt;font-weight:bold;">${h.results.completed_count(survey)} <py:if test="len(survey.participants) > 0">(${'%.0f%%' % (100.0 / len(survey.participants) * h.results.completed_count(survey))})</py:if></td>
+              <td class="text-center" style="font-size:28pt;font-weight:bold;">${h.results.completed_count(survey)} <py:if test="len(survey.participants) > 0">(${100.0 * h.results.completed_count(survey) / len(survey.participants)}%)</py:if></td>
               <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.participants)}</td>
             </tr>
           </tbody>
@@ -58,19 +58,24 @@
               </tr>
             </thead>
             <tbody>
-              <py:for each="question in qsheet.questions" py:if="question.type != 'text'">
-                <py:if test="question.type in ['single_choice_grid', 'multi_choice_grid']">
-                  <tr py:for="sub_quest in h.qsheet.get_attr_groups(question, 'subquestion')">
-                    <td>${question.name}.${h.qsheet.get_qg_attr_value(sub_quest, 'name')}</td>
-                    <td>${len(question.answers)}</td>
-                    <td>${h.results.sample_question_answer(question, h.qsheet.get_qg_attr_value(sub_quest, 'name'))}</td>
+              <py:for each="question in qsheet.questions" py:with="schema=question.q_type.answer_schema()">
+                <tr py:if="schema and schema['type'] in ['unicode', 'int', 'month', 'date', 'time', 'datetime', 'url', 'email', 'number', 'choice']">
+                  <td>${question.name}</td>
+                  <td>${h.results.answer_count(question)}</td>
+                  <td>${h.results.sample_answer(question)}</td>
+                </tr>
+                <py:if test="schema and schema['type'] == 'multiple'">
+                  <tr py:for="attr in question.attr_value(schema['attr'], multi=True)">
+                    <td>${question.name}.${attr}</td>
+                    <td>${h.results.answer_count(question, sub_quest=attr)}</td>
+                    <td>${h.results.sample_answer(question, sub_quest=attr)}</td>
                   </tr>
                 </py:if>
-                <py:if test="question.type not in ['single_choice_grid', 'multi_choice_grid']">
-                  <tr>
-                    <td>${question.name}</td>
-                    <td>${len(question.answers)}</td>
-                    <td>${h.results.sample_question_answer(question)}</td>
+                <py:if test="schema and schema['type'] == 'ranking'">
+                  <tr py:for="attr in question.attr_value(schema['attr'], multi=True)">
+                    <td>${question.name}.${attr}</td>
+                    <td>${h.results.answer_count(question, sub_quest=attr)}</td>
+                    <td>${h.results.sample_answer(question, sub_quest=attr)}</td>
                   </tr>
                 </py:if>
               </py:for>
@@ -89,7 +94,7 @@
               <tr>
                 <td>${summary[0]}</td>
                 <td>${summary[1]}</td>
-                <td>${h.text.nice_float(summary[2])}</td>
+                <td>${summary[2]}</td>
                 <td>${summary[3]}</td>
               </tr>
             </tbody>

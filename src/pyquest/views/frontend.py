@@ -17,7 +17,6 @@ from random import sample, shuffle
 from sqlalchemy import and_, asc
 from sqlalchemy.sql.expression import not_
 
-from pyquest.helpers.qsheet import get_qs_attr_value, get_attr_groups, get_qg_attr_value
 from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
     DataItemCount, Answer, AnswerValue, Question)
@@ -167,6 +166,8 @@ def calculate_control_items(qsheet, participant):
     for answer in participant.answers:
         if (not qsheet or answer.question.qsheet_id == qsheet.id) and answer.data_item and answer.data_item.control:
             total = total + 1
+            print '-------------'
+            print answer.values, answer.data_item.control_answers
             if answer.values[0].value == answer.data_item.control_answers[0].answer:
                 correct = correct + 1
     if total == 0:
@@ -233,66 +234,62 @@ def run_survey(request):
                                     dbsession.delete(answer)
                             else:
                                 for answer in dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
-                                                                                    Answer.question_id==question.id)):
+                                                                                  Answer.question_id==question.id)):
                                     dbsession.delete(answer)
                 with transaction.manager:
                     participant = get_participant(dbsession, survey, state)
                     for question in qsheet.questions:
-                        if question.type == 'text':
-                            continue
                         for data_item_src in data_items:
-                            data_item = None
                             data_item = dbsession.query(DataItem).filter(DataItem.id==safe_int(data_item_src['did'])).first()
                             answer = Answer(participant_id=participant.id,
                                             question_id=question.id)
                             if data_item:
                                 answer.data_item_id = data_item.id
-                            if question.type == 'single_choice_grid':
-                                for sub_question in get_attr_groups(question, 'subquestion'):
-                                    if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
-                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
-                                                                         value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][get_qg_attr_value(sub_question, 'name')]))
+                            schema = question.q_type.answer_schema()
+                            if schema:
+                                if schema['type'] in ['unicode', 'int', 'month', 'date', 'time', 'datetime', 'url', 'email', 'number']:
+                                    if qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
+                                        answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][unicode(data_item_src['did'])][question.name])))
                                     else:
-                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
-                                                                         value=None))
-                            elif question.type == 'multi_choice':
-                                answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name]
-                                if isinstance(answer_list, list):
-                                    for value in answer_list:
-                                        answer.values.append(AnswerValue(value=value))
-                                else:
-                                    answer.values.append(AnswerValue(value=answer_list))
-                            elif question.type == 'multi_choice_grid':
-                                for sub_question in get_attr_groups(question, 'subquestion'):
-                                    print repr(qsheet_answers)
-                                    if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and get_qg_attr_value(sub_question, 'name') in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
-                                        answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name][get_qg_attr_value(sub_question, 'name')]
+                                        answer.values.append(AnswerValue(value=None))
+                                elif schema['type'] == 'choice':
+                                    if schema['params']['allow_multiple']:
+                                        answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name]
                                         if isinstance(answer_list, list):
                                             for value in answer_list:
-                                                answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
-                                                                                 value=value))
+                                                answer.values.append(AnswerValue(value=value))
                                         else:
-                                            answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
-                                                                             value=answer_list))
+                                            answer.values.append(AnswerValue(value=answer_list))
                                     else:
-                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_question, 'name'),
-                                                                         value=None))
-                            elif question.type == 'ranking':
-                                for sub_answer in get_attr_groups(question, 'answer'):
-                                    if get_qg_attr_value(sub_answer, 'value') in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
-                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_answer, 'value'),
-                                                                         value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][get_qg_attr_value(sub_answer, 'value')]))
-                                    else:
-                                        answer.values.append(AnswerValue(name=get_qg_attr_value(sub_answer, 'value'),
-                                                                         value=None))
-                            elif question.type == 'auto_commit':
-                                pass
-                            else:
-                                if qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
-                                    answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][unicode(data_item_src['did'])][question.name])))
-                                else:
-                                    answer.values.append(AnswerValue(value=None))
-                            dbsession.add(answer)
+                                        if qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
+                                            answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][unicode(data_item_src['did'])][question.name])))
+                                        else:
+                                            answer.values.append(AnswerValue(value=None))
+                                elif schema['type'] == 'multiple':
+                                    sub_schema = schema['schema']
+                                    for attr in question.attr_value(schema['attr'], multi=True, default=[]):
+                                        if sub_schema['params']['allow_multiple']:
+                                            if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and attr in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
+                                                answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name][attr]
+                                                if isinstance(answer_list, list):
+                                                    for value in answer_list:
+                                                        answer.values.append(AnswerValue(name=attr, value=value))
+                                                else:
+                                                    answer.values.append(AnswerValue(name=attr, value=answer_list))
+                                            else:
+                                                answer.values.append(AnswerValue(name=attr, value=None))
+                                        else:
+                                            if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and attr in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
+                                                answer.values.append(AnswerValue(name=attr, value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][attr]))
+                                            else:
+                                                answer.values.append(AnswerValue(name=attr, value=None))
+                                elif schema['type'] == 'ranking':
+                                    for attr in question.attr_value(schema['attr'], multi=True, default=[]):
+                                        if attr in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
+                                            answer.values.append(AnswerValue(name=attr, value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][attr]))
+                                        else:
+                                            answer.values.append(AnswerValue(name=attr, value=None))
+                                dbsession.add(answer)
                 update_data_item_counts(state, [d['did'] for d in data_items], dbsession)
                 qsheet = dbsession.query(QSheet).filter(QSheet.id==state['qsid']).first()
                 if qsheet_answers['action_'] in [_('Next Page'), _('Finish Survey')]:

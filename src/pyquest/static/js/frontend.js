@@ -20,9 +20,7 @@ $(document).ready(function() {
     	update: function(e, ui) {
     		var items = $(this).sortable('toArray');
     		for(var idx in items) {
-    			var id = '#' + items[idx].replace(/\./g, '\\.');
-    			id = id.substring(0, id.length - 5);
-    			$(id).val(idx);
+    			$('#' + items[idx].replace(/\./g, '\\.') + '-select').val(idx);
     		}
     	}
     });

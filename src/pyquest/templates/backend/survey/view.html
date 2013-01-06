@@ -52,28 +52,28 @@
               <tbody>
                 <tr>
                   <th>Questions</th>
-                  <td>${len(filter(lambda q: q.type != 'static_text', qsheet.questions))}</td>
+                  <td>${len([q for q in qsheet.questions if q.q_type.answer_schema()])}</td>
                 </tr>
                 <tr>
                   <th>Type</th>
-                  <td>${h.text.title(h.qsheet.get_qs_attr_value(qsheet, 'repeat', 'single'))}</td>
+                  <td>${h.text.title(qsheet.attr_value('repeat', default='single'))}</td>
                 </tr>
                 <tr>
                   <th>Next page</th>
                   <td><py:if test="qsheet.next and qsheet.next[0] and qsheet.next[0].target">${qsheet.next[0].target.title}</py:if><py:if test="not qsheet.next or not qsheet.next[0] or not qsheet.next[0].target">&mdash; Last Page &mdash;</py:if></td>
                 </tr>
-                <py:if test="h.qsheet.get_qs_attr_value(qsheet, 'repeat', 'single') == 'repeat'">
+                <py:if test="qsheet.attr_value('repeat', default='single') == 'repeat'">
                   <tr>
                     <th>Data items</th>
                     <td>${len(qsheet.data_items)}</td>
                   </tr>
                   <tr>
                     <th>Data items per page</th>
-                    <td>${h.qsheet.get_qs_attr_value(qsheet, 'data-items', '0')}</td>
+                    <td>${qsheet.attr_value('data-items', default='0')}</td>
                   </tr>
                   <tr>
                     <th>Control items per page</th>
-                    <td>${h.qsheet.get_qs_attr_value(qsheet, 'control-items', '0')}</td>
+                    <td>${qsheet.attr_value('control-items', default='0')}</td>
                   </tr>
                 </py:if>
               </tbody>
@@ -104,7 +104,7 @@
             </tr>
             <tr>
               <th>Participants</th>
-              <td>${len(survey.participants)} (${h.results.completed_count(survey)} completed <py:if test="len(survey.participants) > 0"> &mdash; ${'%.0f%%' % (100.0 / len(survey.participants) * h.results.completed_count(survey))}</py:if>)</td>
+              <td>${len(survey.participants)} (${h.results.completed_count(survey)} completed <py:if test="len(survey.participants) > 0">&mdash; ${100.0 * h.results.completed_count(survey) / len(survey.participants)}%</py:if>)</td>
             </tr>
           </tbody>
         </table>

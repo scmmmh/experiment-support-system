@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import json
+
 from pywebtools import form, text
 
 def as_data_type(value, data_type=None):

@@ -50,7 +50,7 @@
               <td class="text-top">${qsheet.title}</td>
               <td>
                 <ol>
-                  <li py:for="question in qsheet.questions" py:if="question.type not in ['text', 'auto_commit']">${h.form.checkbox('columns', '%s.%s' % (qsheet.name, question.name), e, label=question.name, checked=('%s.%s' % (qsheet.name, question.name) in selected_columns))}</li>
+                  <li py:for="question in qsheet.questions" py:if="question.q_type.answer_schema()">${h.form.checkbox('columns', '%s.%s' % (qsheet.name, question.name), e, label=question.name, checked=('%s.%s' % (qsheet.name, question.name) in selected_columns))}</li>
                 </ol>
               </td>
               <td class="text-top">

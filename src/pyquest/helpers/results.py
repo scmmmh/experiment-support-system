@@ -12,44 +12,37 @@ def fix_na(value, na_value='N/A'):
         return value.encode('utf-8')
     else:
         return na_value
-    
-def sample_question_answer(question, subquest=None):
+
+def answer_count(question, sub_quest=None):
+    if sub_quest:
+        count = 0
+        for answer in question.answers:
+            for value in answer.values:
+                if value.name == sub_quest:
+                    count = count + 1
+                    break
+        return count
+    else:
+        return len(question.answers)
+
+def sample_answer(question, sub_quest=None):
     if len(question.answers) > 0:
-        if subquest:
-            return ', '.join([fix_na(av.value) for av in list(sample(question.answers, 1)[0].values) if av.name==subquest])
+        if sub_quest:
+            return ', '.join([fix_na(av.value) for av in list(sample(question.answers, 1)[0].values) if av.name == sub_quest])
         else:
             return ', '.join([fix_na(av.value) for av in list(sample(question.answers, 1)[0].values)])
     else:
         return None
 
-def sample_data_answer(data_item):
-    if len(data_item.answers) > 0:
-        return ', '.join([fix_na(av.value) for av in list(sample(data_item.answers, 1)[0].values)])
-    else:
-        return None
-
 def completed_count(survey):
-    participants = [len(set([a.participant_id for a in question.answers])) for qsheet in survey.qsheets for question in qsheet.questions if question.type != 'text' and question.required]
+    participants = [len(set([a.participant_id for a in question.answers])) for qsheet in survey.qsheets for question in qsheet.questions if question.q_type.answer_schema() and question.required]
     if participants:
         return min(participants)
     else:
         return 0
 
-def get_d_attr(qsheet, key):
-    for attr in qsheet.attributes:
-        if attr.key == key:
-            return attr
-    return None
-
-def get_d_attr_value(qsheet, key, default=None):
-    attr = get_d_attr(qsheet, key)
-    if attr:
-        return attr.value
-    else:
-        return default
-
 def has_data_questions(qsheet):
     for question in qsheet.questions:
-        if question.type != 'text':
+        if question.q_type.answer_schema():
             return True
     return False

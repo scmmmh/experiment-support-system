@@ -55,6 +55,7 @@ nav.sections ul li a.no-tab:hover {color:#0066cc;background-color:#ffffff;text-d
 /* Other styles */
 
 .item .header .button {margin:0;padding:2px;}
+.item.status-compressed h2 {margin-bottom:0;}
 #qsheet-content, #survey-pages {margin:0;padding:0 0 2em 0;}
 #qsheet-content.focused {border: 1px solid #0066cc;}
 .droppable {border:1px dashed #0066cc;height:40px;margin-bottom:10px;}
