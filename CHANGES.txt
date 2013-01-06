@@ -3,7 +3,7 @@
 
 - UPDATE: Added lengths to all Unicode columns to support MySQL
 - UPDATE: Re-factored the question types so that they are now arbitrarily
-  expandable
+  expandable and groupable
 - UPDATE: updated to PyWebTools 0.4
 
 0.5.2

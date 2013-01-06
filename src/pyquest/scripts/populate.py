@@ -17,9 +17,9 @@ from lxml import etree
 
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
-                            Question, QuestionAttributeGroup, QuestionAttribute,
-                            QSheetTransition, QSheetAttribute,
-                            DataItemControlAnswer, QuestionType)
+                            Question, QSheetTransition, QSheetAttribute,
+                            DataItemControlAnswer, QuestionType,
+                            QuestionTypeGroup)
 from pyquest.views.backend.qsheet import load_questions_from_xml
 
 def usage(argv):
@@ -393,6 +393,8 @@ def init_data(DBSession):
         group.permissions.append(Permission(name='survey.edit-all', title='Edit all surveys'))
         group.permissions.append(Permission(name='survey.delete-all', title='Delete all surveys'))
         DBSession.add(group)
+        q_type_group = QuestionTypeGroup(name='core', title='Core Questions', order=0)
+        DBSession.add(q_type_group)
         for schema in DEFAULT_QUESTIONS:
             DBSession.add(QuestionType(name=schema['name'],
                                        title=schema['title'],
@@ -400,6 +402,7 @@ def init_data(DBSession):
                                        answer_validation=schema['answer_validation'],
                                        backend=schema['backend'],
                                        frontend=schema['frontend'],
+                                       q_type_group=q_type_group
                                        ))
 
 def init_test_data(DBSession):

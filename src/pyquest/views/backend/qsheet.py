@@ -20,7 +20,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
                             QuestionAttributeGroup, QSheetAttribute, QSheetTransition,
-                            Participant, QuestionType)
+                            Participant, QuestionType, QuestionTypeGroup)
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
                                 XmlValidator, QuestionTypeSchema)
 
@@ -267,7 +267,7 @@ def edit(request):
     user = current_user(request)
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            question_types = dbsession.query(QuestionType)
+            question_type_groups = dbsession.query(QuestionTypeGroup).order_by(QuestionTypeGroup.order)
             if request.method == 'POST':
                 try:
                     schema = QSheetVisualSchema()
@@ -341,12 +341,12 @@ def edit(request):
                     else:
                         return {'survey': survey,
                                 'qsheet': qsheet,
-                                'question_types': question_types,
+                                'question_type_groups': question_type_groups,
                                 'e': e}
             else:
                 return {'survey': survey,
                         'qsheet': qsheet,
-                        'question_types': question_types}
+                        'question_type_groups': question_type_groups}
         else:
             redirect_to_login(request)
     else:
