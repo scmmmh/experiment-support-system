@@ -356,7 +356,7 @@ DEFAULT_QUESTIONS = [{'name': 'text',
                                'dbschema': dumps([]),
                                'answer_validation': dumps({'type': 'int'}),
                                'backend': dumps([{'type': 'question-name'}]),
-                               'frontend': """<script type="text/javascript">$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('<input type="hidden" name="action_" value="Next Page"/>'); frm.submit();}, ${q.attr_value('further.timeout') * 1000})});</script>"""},
+                               'frontend': """${f.hidden_field(name, '0', class_='role-timer')}"""},
                               {'name': 'hidden_value',
                                'title': 'Hidden value',
                                'dbschema': dumps([{'type': 'attr', 'attr': 'further.value', 'default': ''}]),
@@ -379,7 +379,7 @@ DEFAULT_QUESTIONS = [{'name': 'text',
                                'dbschema': dumps([{'type': 'attr', 'attr': 'further.timeout', 'default': '60'}]),
                                'answer_validation': dumps(None),
                                'backend': dumps([{'type': 'int', 'name': 'timeout', 'title': 'Timeout (seconds)', 'attr': 'further.timeout', 'default': '0', 'validator': {'not_empty': True}}]),
-                               'frontend': "${f.hidden_field(name, '0', None, class_='role-timer')}"},]
+                               'frontend': """<script type="text/javascript">$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('<input type="hidden" name="action_" value="Next Page"/>'); frm.submit();}, ${q.attr_value('further.timeout') * 1000})});</script>"""},]
 
 def init_data(DBSession):
     with transaction.manager:

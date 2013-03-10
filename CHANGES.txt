@@ -5,6 +5,8 @@
   large values
 - BUGFIX: Fixed issues in single/multi-choice grid questions related to the
   before / after labels
+- BUGFIX: Fixed an issue with the page_timer and auto_commit questions that were
+  outputting the wrong HTML
 
 0.6
 ---
