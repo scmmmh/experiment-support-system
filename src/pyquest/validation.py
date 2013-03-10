@@ -90,6 +90,8 @@ class DateTimeValidator(FancyValidator):
 
 class ChoiceValidator(FancyValidator):
 
+    accept_iterator = True
+
     def __init__(self, values, allow_multiple, allow_other=False, **kwargs):
         FancyValidator.__init__(self, **kwargs)
         self.values = values
@@ -144,6 +146,7 @@ class ChoiceValidator(FancyValidator):
     
 class RankingValidator(FancyValidator):
     
+    accept_iterator = True
     messages = {'out-of-range': 'You must rank all values between %(min)i and %(max)i.'}
     
     def __init__(self, values, **kwargs):
@@ -204,6 +207,8 @@ class XmlValidator(FancyValidator):
 
 class DynamicSchema(Schema):
     
+    accept_iterator = True
+
     def __init__(self, **kwargs):
         Schema.__init__(self, **kwargs)
 
@@ -255,6 +260,9 @@ def validators_for_params(params, question):
 
 
 class QuestionSchema(Schema):
+    
+    accept_iterator = True
+
     def __init__(self, questions, **kwargs):
         Schema.__init__(self, **kwargs)
         for question in questions:
@@ -264,6 +272,7 @@ class QuestionSchema(Schema):
             
 class PageSchema(Schema):
     
+    accept_iterator = True
     action_ = validators.UnicodeString()
     
     def __init__(self, qsheet, items, csrf_test=True):
@@ -316,6 +325,8 @@ class ValidationState(object):
 
 class QuestionTypeSchema(Schema):
     
+    accept_iterator = True
+
     def __init__(self, schema, **kwargs):
         Schema.__init__(self, **kwargs)
         for field in schema:

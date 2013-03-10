@@ -1,3 +1,9 @@
+0.6.3
+-----
+
+- BUGFIX: Fixed an issue with single/multi-choice drop-down boxes caused by
+  changes to formencode
+  
 0.6.2
 -----
 
