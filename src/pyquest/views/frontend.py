@@ -166,8 +166,6 @@ def calculate_control_items(qsheet, participant):
     for answer in participant.answers:
         if (not qsheet or answer.question.qsheet_id == qsheet.id) and answer.data_item and answer.data_item.control:
             total = total + 1
-            print '-------------'
-            print answer.values, answer.data_item.control_answers
             if answer.values[0].value == answer.data_item.control_answers[0].answer:
                 correct = correct + 1
     if total == 0:

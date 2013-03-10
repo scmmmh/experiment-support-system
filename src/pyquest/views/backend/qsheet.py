@@ -144,7 +144,6 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
             elif schema['type'] == 'question-help':
                 question.help = single_xpath_value(item, 'pq:help/text()', default='')
             elif schema['type'] in ['unicode', 'richtext', 'int', 'select']:
-                print "pq:attribute[@name='%s']" % (schema['attr'])
                 value = single_xpath_value(item, "pq:attribute[@name='%s']" % (schema['attr']))
                 if value is not None:
                     value = etree.tostring(value)
@@ -333,7 +332,6 @@ def edit(request):
                                                           sid=request.matchdict['sid'],
                                                           qsid=request.matchdict['qsid']))
                 except api.Invalid as e:
-                    print e
                     e = flatten_invalid(e)
                     e.params = request.POST
                     if request.is_xhr:
