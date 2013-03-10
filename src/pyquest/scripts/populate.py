@@ -177,7 +177,7 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     <li py:if="q.attr_value('further.after_label')">${q.attr_value('further.after_label')}</li>
   </ul>
   <div py:if="q.attr_value('further.subtype', 'table') == 'select'">
-    <select name="${name}.answer">
+    <select name="${name}.answer" py:attrs="{'class': 'role-with-other' if q.attr_value('further.allow_other', 'no') == 'single' else None}">
       <option value="">--- Please choose ---</option>
       <option py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))" value="${value}">${label}</option>
       <option py:if="q.attr_value('further.allow_other', 'no') == 'single'" value="_other">--- Other ---</option>
@@ -185,8 +185,7 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     <py:if test="q.attr_value('further.allow_other', 'no') == 'single'">${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</py:if>
   </div>
   <p py:if="error_text">${error_text}</p>
-</div>
-"""},
+</div>"""},
                               {'name': 'multi_choice',
                                'title': 'Multiple choice',
                                'dbschema': dumps([{'type': 'attr', 'attr': 'further.subtype', 'default': 'table', 'group_order': 0},
@@ -232,13 +231,11 @@ DEFAULT_QUESTIONS = [{'name': 'text',
   <div py:if="q.attr_value('further.subtype', 'table') == 'select'">
     <select name="${name}.answer" multiple="multiple">
       <option py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))" value="${value}">${label}</option>
-      <option py:if="q.attr_value('further.allow_other', 'no') == 'single'" value="_other">--- Other ---</option>
     </select>
-    <py:if test="q.attr_value('further.allow_other', 'no') == 'single'">${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</py:if>
+    <p py:if="q.attr_value('further.allow_other', 'no') == 'single'">Other: ${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</p>
   </div>
   <p py:if="error_text">${error_text}</p>
-</div>
-"""},
+</div>"""},
                               {'name': 'single_choice_grid',
                                'title': 'Single choice grid',
                                'dbschema': dumps([]),
