@@ -248,6 +248,8 @@ DEFAULT_QUESTIONS = [{'name': 'text',
                                                  {'type': 'question-title'},
                                                  {'type': 'question-help'},
                                                  {'type': 'question-required'},
+                                                 {'type': 'unicode', 'name': 'before_label', 'title': 'Before label', 'attr': 'further.before_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
+                                                 {'type': 'unicode', 'name': 'after_label', 'title': 'After label', 'attr': 'further.after_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
                                                  {'type': 'table', 'name': 'answer', 'title': 'Answers', 'attr': 'answer', 'columns': [{'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'value', 'default': None, 'validator': {'not_empty': True}},
                                                                                                                                        {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}},
                                                  {'type': 'table', 'name': 'subquestion', 'title': 'Sub-questions', 'attr': 'subquestion', 'columns': [{'type': 'unicode', 'name': 'name', 'title': 'Name', 'attr': 'name', 'default': None, 'validator': {'not_empty': True}},
@@ -257,9 +259,9 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     <thead>
       <tr>
         <th></th>
-        <th></th>
+        <th py:if="q.attr_value('further.before_label')"></th>
         <th py:for="label in q.attr_value('answer.label', default=[], multi=True)">${label}</th>
-        <th></th>
+        <th py:if="q.attr_value('further.after_label')"></th>
       </tr>
     </thead>
     <tbody>
@@ -283,6 +285,8 @@ DEFAULT_QUESTIONS = [{'name': 'text',
                                                  {'type': 'question-title'},
                                                  {'type': 'question-help'},
                                                  {'type': 'question-required'},
+                                                 {'type': 'unicode', 'name': 'before_label', 'title': 'Before label', 'attr': 'further.before_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
+                                                 {'type': 'unicode', 'name': 'after_label', 'title': 'After label', 'attr': 'further.after_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
                                                  {'type': 'table', 'name': 'answer', 'title': 'Answers', 'attr': 'answer', 'columns': [{'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'value', 'default': None, 'validator': {'not_empty': True}},
                                                                                                                                        {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}},
                                                  {'type': 'table', 'name': 'subquestion', 'title': 'Sub-questions', 'attr': 'subquestion', 'columns': [{'type': 'unicode', 'name': 'name', 'title': 'Name', 'attr': 'name', 'default': None, 'validator': {'not_empty': True}},
@@ -292,9 +296,9 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     <thead>
       <tr>
         <th></th>
-        <th></th>
+        <th py:if="q.attr_value('further.before_label')"></th>
         <th py:for="label in q.attr_value('answer.label', default=[], multi=True)">${label}</th>
-        <th></th>
+        <th py:if="q.attr_value('further.after_label')"></th>
       </tr>
     </thead>
     <tbody>

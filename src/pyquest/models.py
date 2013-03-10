@@ -16,7 +16,7 @@ from pyquest.helpers import as_data_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '23b66139a952'
+DB_VERSION = '319a0b5f9c3d'
 
 class DBUpgradeException(Exception):
     
@@ -224,7 +224,7 @@ class QSheet(Base):
         if attr:
             attr.value = value
         else:
-            self.attributes.add(QSheetAttribute(key=key, value=value))
+            self.attributes.append(QSheetAttribute(key=key, value=value))
 
 class QSheetAttribute(Base):
     

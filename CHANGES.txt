@@ -1,8 +1,10 @@
 0.6.1
 -----
 
-- BUGFIX: Use UnicodText instead of Unicode on attribute values to support large
-  values
+- BUGFIX: Use UnicodText instead of Unicode on attribute values to support
+  large values
+- BUGFIX: Fixed issues in single/multi-choice grid questions related to the
+  before / after labels
 
 0.6
 ---
