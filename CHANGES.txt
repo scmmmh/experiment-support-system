@@ -7,6 +7,7 @@
   before / after labels
 - BUGFIX: Fixed an issue with the page_timer and auto_commit questions that were
   outputting the wrong HTML
+- BUGFIX: Fixed old uses of get_qs_attr_value
 
 0.6
 ---

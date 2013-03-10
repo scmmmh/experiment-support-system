@@ -61,11 +61,11 @@ def select_data_items(qsid, state, qsheet, dbsession):
             data_items = []
             threshold = source_items[0][1]
             max_threshold = source_items[len(source_items) - 1][1]
-            while len(data_items) < int(get_qs_attr_value(qsheet, 'data-items')):
+            while len(data_items) < int(qsheet.attr_value('data-items')):
                 if threshold > max_threshold:
                     return []
                 threshold_items = filter(lambda t: t[1] == threshold, source_items)
-                required_count = int(get_qs_attr_value(qsheet, 'data-items')) - len(data_items)
+                required_count = int(qsheet.attr_value('data-items')) - len(data_items)
                 if required_count < len(threshold_items):
                     data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
                 else:
@@ -74,10 +74,10 @@ def select_data_items(qsid, state, qsheet, dbsession):
             control_items = map(lambda d: {'did': d.id},
                                 dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==qsid,
                                                                       DataItem.control==True)).all())
-            if len(control_items) < int(get_qs_attr_value(qsheet, 'control-items')):
+            if len(control_items) < int(qsheet.attr_value('control-items')):
                 data_items.extend(control_items)
             else:
-                data_items.extend(sample(control_items, int(get_qs_attr_value(qsheet, 'control-items'))))
+                data_items.extend(sample(control_items, int(qsheet.attr_value('control-items'))))
             shuffle(data_items)
             return data_items
         else:
@@ -114,12 +114,12 @@ def init_state(request, dbsession, survey):
     return state
 
 def determine_submit_options(qsheet):
-    if get_qs_attr_value(qsheet, 'repeat') == 'single':
+    if qsheet.attr_value('repeat') == 'single':
         if len(qsheet.next) > 0:
             return ['next']
         else:
             return ['finish']
-    elif get_qs_attr_value(qsheet, 'repeat') == 'repeat':
+    elif qsheet.attr_value('repeat') == 'repeat':
         if len(qsheet.next) > 0:
             return ['more', 'next']
         else:
