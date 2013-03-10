@@ -1,3 +1,9 @@
+0.6.1
+-----
+
+- BUGFIX: Use UnicodText instead of Unicode on attribute values to support large
+  values
+
 0.6
 ---
 

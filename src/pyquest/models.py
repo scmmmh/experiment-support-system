@@ -16,7 +16,7 @@ from pyquest.helpers import as_data_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '488366bafc98'
+DB_VERSION = '23b66139a952'
 
 class DBUpgradeException(Exception):
     
@@ -233,7 +233,7 @@ class QSheetAttribute(Base):
     id = Column(Integer, primary_key=True)
     qsheet_id = Column(ForeignKey(QSheet.id))
     key = Column(Unicode(255))
-    value = Column(Unicode(255))
+    value = Column(UnicodeText)
 
 class QuestionTypeGroup(Base):
     
@@ -399,7 +399,7 @@ class QuestionAttribute(Base):
     question_group_id = Column(ForeignKey(QuestionAttributeGroup.id))
     key = Column(Unicode(255))
     label = Column(Unicode(255))
-    value = Column(Unicode(255))
+    value = Column(UnicodeText)
     order = Column(Integer)
 
 class QSheetTransition(Base):
