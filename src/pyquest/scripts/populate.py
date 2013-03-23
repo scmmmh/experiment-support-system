@@ -376,7 +376,57 @@ DEFAULT_QUESTIONS = [{'name': 'text',
                                'dbschema': dumps([{'type': 'attr', 'attr': 'further.timeout', 'default': '60'}]),
                                'answer_validation': dumps(None),
                                'backend': dumps([{'type': 'int', 'name': 'timeout', 'title': 'Timeout (seconds)', 'attr': 'further.timeout', 'default': '0', 'validator': {'not_empty': True}}]),
-                               'frontend': """<script type="text/javascript">$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('<input type="hidden" name="action_" value="Next Page"/>'); frm.submit();}, ${q.attr_value('further.timeout') * 1000})});</script>"""},]
+                               'frontend': """<script type="text/javascript">$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('<input type="hidden" name="action_" value="Next Page"/>'); frm.submit();}, ${q.attr_value('further.timeout') * 1000})});</script>"""},
+                     {'name': u'country',
+                                     'title': u'Country selection',
+                                     'dbschema': dumps([{'type': 'attr', 'attr': 'further.priority', 'default': '', 'group_order': 0},
+                                                        {'type': 'attr', 'attr': 'further.allow_multiple', 'default': 'no', 'group_order': 1}]),
+                                     'answer_validation': dumps({'type': 'unicode'}),
+                                     'backend': dumps([{'type': 'question-name'},
+                                                       {'type': 'question-title'},
+                                                       {'type': 'question-help'},
+                                                       {'type': 'question-required'},
+                                                       {'type': 'unicode', 'name': 'priority', 'title': 'Prioritise these countries', 'attr': 'further.priority', 'default': '', 'validator': {'not_empty': False, 'if_empty': ''}},
+                                                       {'type': 'select', 'name': 'multiple', 'title': 'Allow multiple selection', 'attr': 'further.allow_multiple', 'values': [('no', 'No'), ('yes', 'Yes')], 'default': 'no', 'validator': {}}]),
+                                     'frontend': """<?python
+    from babel import Locale
+    locale = Locale('en')
+    territories = locale.territories.items()
+    territories.sort(key=lambda t:t[1])
+?>
+<select name="${name}" py:with="priority=[l.strip().upper() for l in q.attr_value('further.priority', default='').split(',') if l.strip()]" py:attrs="{'multiple': 'multiple' if q.attr_value('further.allow_multiple') == 'yes' else None}">
+  <option value="" py:if="q.attr_value('further.allow_multiple') == 'no'">--- Please choose ---</option>
+  <py:if test="priority">
+    <option py:for="territory in territories" value="${territory[0]}" py:if="territory[0] in priority">${territory[1]}</option>
+    <option value="" disabled="disabled">--------------------</option>
+  </py:if>
+  <option py:for="territory in territories" value="${territory[0]}" py:if="territory[0] not in priority">${territory[1]}</option>
+</select>"""},
+                     {'name': u'language',
+                                     'title': u'Language selection',
+                                     'dbschema': dumps([{'type': 'attr', 'attr': 'further.priority', 'default': '', 'group_order': 0},
+                                                        {'type': 'attr', 'attr': 'further.allow_multiple', 'default': 'no', 'group_order': 1}]),
+                                     'answer_validation': dumps({'type': 'unicode'}),
+                                     'backend': dumps([{'type': 'question-name'},
+                                                       {'type': 'question-title'},
+                                                       {'type': 'question-help'},
+                                                       {'type': 'question-required'},
+                                                       {'type': 'unicode', 'name': 'priority', 'title': 'Prioritise these languages', 'attr': 'further.priority', 'default': '', 'validator': {'not_empty': False, 'if_empty': ''}},
+                                                       {'type': 'select', 'name': 'multiple', 'title': 'Allow multiple selection', 'attr': 'further.allow_multiple', 'values': [('no', 'No'), ('yes', 'Yes')], 'default': 'no', 'validator': {}}]),
+                                     'frontend': """<?python
+    from babel import Locale
+    locale = Locale('en')
+    languages = locale.languages.items()
+    languages.sort(key=lambda t:t[1])
+?>
+<select name="${name}" py:with="priority=[l.strip().lower() for l in q.attr_value('further.priority', default='').split(',') if l.strip()]" py:attrs="{'multiple': 'multiple' if q.attr_value('further.allow_multiple') == 'yes' else None}">
+  <option value="" py:if="q.attr_value('further.allow_multiple') == 'no'">--- Please choose ---</option>
+  <py:if test="priority">
+    <option py:for="language in languages" value="${language[0]}" py:if="language[0] in priority">${language[1]}</option>
+    <option value="" disabled="disabled">--------------------</option>
+  </py:if>
+  <option py:for="language in languages" value="${language[0]}" py:if="language[0] not in priority">${language[1]}</option>
+</select>"""}]
 
 def init_data(DBSession):
     with transaction.manager:
