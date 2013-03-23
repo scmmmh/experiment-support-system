@@ -31,10 +31,10 @@
           <py:for each="question in qsheet.questions">${h.qsheet.display(question, data_item, e, participant=participant)}</py:for>
         </section>
         <ul class="buttons">
-          <li>${h.form.reset(_('Clear Answers'), class_='button')}</li>
-          <li py:if="'more' in submit_options">${h.form.submit(_('More Questions'), name='action_', class_='button')}</li>
-          <li py:if="'next' in submit_options">${h.form.submit(_('Next Page'), name='action_', class_='button')}</li>
-          <li py:if="'finish' in submit_options">${h.form.submit(_('Finish Survey'), name='action_', class_='button')}</li>
+          <li>${h.form.reset(_('Clear Answers on this Page'), class_='button role-clear')}</li>
+          <li py:if="'more' in submit_options">${h.form.submit(_('More Questions'), name='action_', class_='button role-submit')}</li>
+          <li py:if="'next' in submit_options">${h.form.submit(_('Next Page'), name='action_', class_='button role-submit')}</li>
+          <li py:if="'finish' in submit_options">${h.form.submit(_('Finish Survey'), name='action_', class_='button role-submit')}</li>
         </ul>
       </form>
     </section>
