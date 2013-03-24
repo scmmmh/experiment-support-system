@@ -245,6 +245,7 @@ def participant(request):
                         query = dbsession.query(AnswerValue).join(Answer).filter(and_(Answer.participant_id==participant.id,
                                                                                       Answer.question_id==question.id))
                         for answer_value in query:
+                            key = '%s.%s' % (qsheet.name, question.name)
                             value = answer_value.value
                             if q_schema['type'] == 'choice':
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
@@ -265,8 +266,6 @@ def participant(request):
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
                                     key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.value)
                                     value = 1
-                                else:
-                                    key = '%s.%s' % (qsheet.name, question.name)
                             if answer_value.answer.data_item:
                                 key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
                             row[key] = value
