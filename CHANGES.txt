@@ -1,3 +1,9 @@
+0.7.1
+-----
+
+- BUGFIX: Fixed issues with the validation of country and language fields
+- UPDATE: Cleaned up handling of allow_multiple params in the validation
+
 0.7
 ---
 

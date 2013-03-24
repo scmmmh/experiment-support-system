@@ -8,11 +8,11 @@ import datetime
 import re
 
 from pkg_resources import resource_stream
-from formencode import validators, variabledecode, foreach, compound
+from formencode import validators, variabledecode, foreach, compound, api
 from formencode import FancyValidator, Schema, Invalid
 from lxml import etree
 
-from pyquest.util import convert_type
+from pyquest.util import convert_type, load_question_schema_params
 
 schema = etree.XMLSchema(etree.parse(resource_stream('pyquest', 'static/survey.xsd')))
 
@@ -216,6 +216,7 @@ def validators_for_params(params, question):
     def augment(validator, question, missing_value=None):
         if question.required:
             validator.not_empty = True
+            validator.if_missing = api.NoDefault
         else:
             validator.not_empty = False
             validator.if_missing = missing_value
@@ -224,25 +225,37 @@ def validators_for_params(params, question):
     if not params:
         return None
     if 'params' in params:
-        for key, value in params['params'].items():
-            if value['type'] == 'attr':
-                v_params[key] = convert_type(question.attr_value(value['attr'], default=value['default'] if 'default' in value else None),
-                                             value['data_type'] if 'data_type' in value else 'unicode',
-                                             value['default'] if 'default' in value else None)
-            elif value['type'] == 'value':
-                v_params[key] = value['value']
+        v_params = load_question_schema_params(params['params'], question)
     if params['type'] == 'unicode':
-        return augment(validators.UnicodeString(**v_params), question)
+        if 'allow_multiple' in v_params and v_params['allow_multiple']:
+            return augment(foreach.ForEach(validators.UnicodeString(**v_params)), question)
+        else:
+            return augment(validators.UnicodeString(**v_params), question)
     elif params['type'] == 'number':
-        return augment(validators.Number(**v_params), question)
+        if 'allow_multiple' in v_params and v_params['allow_multiple']:
+            return augment(foreach.ForEach(validators.Number(**v_params)), question)
+        else:
+            return augment(validators.Number(**v_params), question)
     elif params['type'] == 'date':
-        return augment(DateTimeValidator('date', **v_params), question)
+        if 'allow_multiple' in v_params and v_params['allow_multiple']:
+            return augment(foreach.ForEach(DateTimeValidator('date', **v_params)), question)
+        else:
+            return augment(DateTimeValidator('date', **v_params), question)
     elif params['type'] == 'time':
-        return augment(DateTimeValidator('time', **v_params), question)
+        if 'allow_multiple' in v_params and v_params['allow_multiple']:
+            return augment(foreach.ForEach(DateTimeValidator('time', **v_params)), question)
+        else:
+            return augment(DateTimeValidator('time', **v_params), question)
     elif params['type'] == 'datetime':
-        return augment(DateTimeValidator('datetime', **v_params), question)
+        if 'allow_multiple' in v_params and v_params['allow_multiple']:
+            return augment(foreach.ForEach(DateTimeValidator('datetime', **v_params)), question)
+        else:
+            return augment(DateTimeValidator('datetime', **v_params), question)
     elif params['type'] == 'month':
-        return augment(DateTimeValidator('month', **v_params), question)
+        if 'allow_multiple' in v_params and v_params['allow_multiple']:
+            return augment(foreach.ForEach(DateTimeValidator('month', **v_params)), question)
+        else:
+            return augment(DateTimeValidator('month', **v_params), question)
     elif params['type'] == 'choice':
         return augment(ChoiceValidator(question.attr_value(params['attr'], multi=True, default=[]), **v_params), question)
     elif params['type'] == 'ranking':

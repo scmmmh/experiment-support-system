@@ -13,7 +13,8 @@ from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.helpers.results import fix_na
-from pyquest.models import (DBSession, Survey, Answer, AnswerValue)
+from pyquest.models import (DBSession, Survey, Answer, AnswerValue, Question)
+from pyquest.util import load_question_schema_params
 
 class DataIdentifierSchema(Schema):
     qsheet = validators.UnicodeString(not_empty=True)
@@ -110,10 +111,14 @@ def get_data_identifier(data_item, data_identifier):
     else:
         return data_item.id
 
-def generate_question_columns(base_name, question, q_schema, data_items, data_identifier):
+def generate_question_columns(base_name, question, q_schema, data_items, data_identifier, dbsession):
+    if 'params' in q_schema:
+        v_params = load_question_schema_params(q_schema['params'], question)
+    else:
+        v_params = {}
     columns = []
     if q_schema['type'] == 'choice':
-        if q_schema['params']['allow_multiple']['value']: #TODO: Fully parse the param settings after merging the two question types.
+        if 'allow_multiple' in v_params and v_params['allow_multiple']:
             for sub_answer in question.attr_value(q_schema['attr'], multi=True):
                 if data_items:
                     for data_item in data_items:
@@ -134,7 +139,7 @@ def generate_question_columns(base_name, question, q_schema, data_items, data_id
                 columns.append(base_name)
     elif q_schema['type'] == 'multiple':
         for sub_question in question.attr_value(q_schema['attr'], multi=True):
-            columns.extend(generate_question_columns('%s.%s' % (base_name, sub_question), question, q_schema['schema'], data_items, data_identifier))
+            columns.extend(generate_question_columns('%s.%s' % (base_name, sub_question), question, q_schema['schema'], data_items, data_identifier, dbsession))
     elif q_schema['type'] == 'ranking':
         for sub_answer in question.attr_value(q_schema['attr'], multi=True):
             if data_items:
@@ -144,13 +149,23 @@ def generate_question_columns(base_name, question, q_schema, data_items, data_id
                 columns.append('%s.%s' % (base_name, sub_answer))
     else:
         if data_items:
-            for data_item in data_items:
+            if 'allow_multiple' in v_params and v_params['allow_multiple']:
+                for data_item in data_items:
+                    for (value,) in dbsession.query(AnswerValue.value.distinct()).join(Answer).filter(Answer.question_id==question.id):
+                        if value:
+                            columns.append('%s.%s.%s' % (base_name, value, get_data_identifier(data_item, data_identifier)))
+            else:
                 columns.append('%s.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
         else:
-            columns.append(base_name)
+            if 'allow_multiple' in v_params and v_params['allow_multiple']:
+                for (value,) in dbsession.query(AnswerValue.value.distinct()).join(Answer).filter(Answer.question_id==question.id):
+                    if value:
+                        columns.append('%s.%s' % (base_name, value))
+            else:
+                columns.append(base_name)
     return columns
 
-def generate_columns(survey, selected_columns, data_identifiers):
+def generate_columns(survey, selected_columns, data_identifiers, dbsession):
     columns = []
     for qsheet in survey.qsheets:
         for question in qsheet.questions:
@@ -159,7 +174,8 @@ def generate_columns(survey, selected_columns, data_identifiers):
                                                          question,
                                                          question.q_type.answer_schema(),
                                                          qsheet.data_items,
-                                                         data_identifiers[qsheet.name] if qsheet.name in data_identifiers else ''))
+                                                         data_identifiers[qsheet.name] if qsheet.name in data_identifiers else '',
+                                                         dbsession))
     columns.sort()
     if '_.completed' in selected_columns:
         columns.insert(0, 'completed_')
@@ -190,8 +206,6 @@ def participant(request):
                 if qsheet.data_items:
                     data_identifiers[qsheet.name] = 'id_'
             selected_columns.sort()
-            columns = generate_columns(survey, selected_columns, data_identifiers)
-            na_value = 'NA'
             if request.method == 'POST':
                 try :
                     params = ByParticipantSchema().to_python(request.POST)
@@ -199,7 +213,7 @@ def participant(request):
                     selected_columns.sort()
                     for data_identifier in params['data_identifier']:
                         data_identifiers[data_identifier['qsheet']] = data_identifier['column']
-                    columns = generate_columns(survey, selected_columns, data_identifiers)
+                    columns = generate_columns(survey, selected_columns, data_identifiers, dbsession)
                     na_value = params['na_value']
                 except api.Invalid as e:
                     e.params = request.POST
@@ -210,6 +224,9 @@ def participant(request):
                             'na_value': na_value,
                             'columns': columns,
                             'rows': []}
+            else:
+                columns = generate_columns(survey, selected_columns, data_identifiers, dbsession)
+                na_value = 'NA'
             rows = []
             count = 0
             for participant in survey.participants:
@@ -221,26 +238,35 @@ def participant(request):
                         q_schema = question.q_type.answer_schema()
                         if not q_schema:
                             continue
+                        if 'params' in q_schema:
+                            v_params = load_question_schema_params(q_schema['params'], question)
+                        else:
+                            v_params = {}
                         query = dbsession.query(AnswerValue).join(Answer).filter(and_(Answer.participant_id==participant.id,
                                                                                       Answer.question_id==question.id))
                         for answer_value in query:
-                            key = '%s.%s' % (qsheet.name, question.name)
                             value = answer_value.value
                             if q_schema['type'] == 'choice':
-                                if q_schema['params']['allow_multiple']['value']:
+                                if 'allow_multiple' in v_params and v_params['allow_multiple']:
                                     if '%s.%s.%s' % (qsheet.name, question.name, answer_value.value) in columns:
                                         key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.value)
                                         value = 1
                                     else:
                                         key = '%s.%s.other_' % (qsheet.name, question.name)
                             elif q_schema['type'] == 'multiple':
-                                if q_schema['schema']['params']['allow_multiple']['value']:
+                                if 'allow_multiple' in v_params and v_params['allow_multiple']:
                                     key = '%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, answer_value.value)
                                     value = 1
                                 else:
                                     key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.name)
                             elif q_schema['type'] == 'ranking':
                                 key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.name)
+                            else:
+                                if 'allow_multiple' in v_params and v_params['allow_multiple']:
+                                    key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.value)
+                                    value = 1
+                                else:
+                                    key = '%s.%s' % (qsheet.name, question.name)
                             if answer_value.answer.data_item:
                                 key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
                             row[key] = value

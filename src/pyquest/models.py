@@ -12,11 +12,12 @@ from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref,
 from zope.sqlalchemy import ZopeTransactionExtension
 
 from pyquest.helpers import as_data_type
+from pyquest.util import convert_type
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '56964e32266d'
+DB_VERSION = '33d37cab0f8a'
 
 class DBUpgradeException(Exception):
     
@@ -322,13 +323,19 @@ class Question(Base):
         else:
             return None
         
-    def attr_value(self, path, default=None, multi=False):
+    def attr_value(self, path, default=None, multi=False, data_type=None):
         attr = self.attr(path, multi)
         if attr:
             if isinstance(attr, list):
-                return [a.value for a in attr]
+                if data_type:
+                    return [convert_type(a.value, target_type=data_type, default=default) for a in attr]
+                else:
+                    return [a.value for a in attr]
             else:
-                return attr.value
+                if data_type:
+                    return convert_type(attr.value, target_type=data_type, default=default)
+                else:
+                    return attr.value
         else:
             return default
     

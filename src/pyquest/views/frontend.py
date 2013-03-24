@@ -247,7 +247,12 @@ def run_survey(request):
                             if schema:
                                 if schema['type'] in ['unicode', 'int', 'month', 'date', 'time', 'datetime', 'url', 'email', 'number']:
                                     if qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
-                                        answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][unicode(data_item_src['did'])][question.name])))
+                                        answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name]
+                                        if isinstance(answer_list, list):
+                                            for value in answer_list:
+                                                answer.values.append(AnswerValue(value=unicode(value)))
+                                        else:
+                                            answer.values.append(AnswerValue(value=unicode(answer_list)))
                                     else:
                                         answer.values.append(AnswerValue(value=None))
                                 elif schema['type'] == 'choice':
