@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="20110701" xmlns:xmi="http://www.omg.org/spec/XMI/20110701" xmlns:uml="http://www.eclipse.org/uml2/4.0.0/UML" xmi:id="_GIS5gKB3EeKY2sZgntvG5Q" name="model">
+  <packagedElement xmi:type="uml:Class" xmi:id="_G66pQKB3EeKY2sZgntvG5Q" name="Frontend"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_LZo3UKB3EeKY2sZgntvG5Q" clientDependency="_XZLLcKB3EeKY2sZgntvG5Q" name="Backend">
+    <substitution xmi:id="_XZLLcKB3EeKY2sZgntvG5Q" name="Substitution1" client="_LZo3UKB3EeKY2sZgntvG5Q" supplier="_PAuSwKB3EeKY2sZgntvG5Q" contract="_PAuSwKB3EeKY2sZgntvG5Q"/>
+    <ownedAttribute xmi:id="_VfzPAKB3EeKY2sZgntvG5Q" name="qsheet" type="_PAuSwKB3EeKY2sZgntvG5Q" association="_Vf0dIKB3EeKY2sZgntvG5Q">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Vfz2EKB3EeKY2sZgntvG5Q" value="1"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Vfz2EaB3EeKY2sZgntvG5Q" value="1"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_Nlx-wKB3EeKY2sZgntvG5Q" clientDependency="_ZSp1kKB3EeKY2sZgntvG5Q" name="Data"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_PAuSwKB3EeKY2sZgntvG5Q" clientDependency="_beJcwKB3EeKY2sZgntvG5Q _j97FcKB3EeKY2sZgntvG5Q" name="QSheet"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_P487QKB3EeKY2sZgntvG5Q" clientDependency="_cKlE8KB3EeKY2sZgntvG5Q" name="Results"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_Q8teUKB3EeKY2sZgntvG5Q" clientDependency="_c7pVgKB3EeKY2sZgntvG5Q" name="Survey"/>
+  <packagedElement xmi:type="uml:AssociationClass" xmi:id="_Vf0dIKB3EeKY2sZgntvG5Q" name="AssociationClass1" memberEnd="_Vf0dIaB3EeKY2sZgntvG5Q _VfzPAKB3EeKY2sZgntvG5Q">
+    <ownedEnd xmi:id="_Vf0dIaB3EeKY2sZgntvG5Q" name="backend" type="_LZo3UKB3EeKY2sZgntvG5Q" association="_Vf0dIKB3EeKY2sZgntvG5Q">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Vf0dIqB3EeKY2sZgntvG5Q" value="1"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Vf0dI6B3EeKY2sZgntvG5Q" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Abstraction" xmi:id="_ZSp1kKB3EeKY2sZgntvG5Q" name="Abstraction1" client="_Nlx-wKB3EeKY2sZgntvG5Q" supplier="_LZo3UKB3EeKY2sZgntvG5Q"/>
+  <packagedElement xmi:type="uml:Abstraction" xmi:id="_beJcwKB3EeKY2sZgntvG5Q" name="Abstraction2" client="_PAuSwKB3EeKY2sZgntvG5Q" supplier="_LZo3UKB3EeKY2sZgntvG5Q"/>
+  <packagedElement xmi:type="uml:Abstraction" xmi:id="_cKlE8KB3EeKY2sZgntvG5Q" name="Abstraction3" client="_P487QKB3EeKY2sZgntvG5Q" supplier="_LZo3UKB3EeKY2sZgntvG5Q"/>
+  <packagedElement xmi:type="uml:Abstraction" xmi:id="_c7pVgKB3EeKY2sZgntvG5Q" name="Abstraction4" client="_Q8teUKB3EeKY2sZgntvG5Q" supplier="_LZo3UKB3EeKY2sZgntvG5Q"/>
+  <packagedElement xmi:type="uml:Abstraction" xmi:id="_j97FcKB3EeKY2sZgntvG5Q" name="Abstraction5" client="_PAuSwKB3EeKY2sZgntvG5Q" supplier="_LZo3UKB3EeKY2sZgntvG5Q"/>
+</uml:Model>
