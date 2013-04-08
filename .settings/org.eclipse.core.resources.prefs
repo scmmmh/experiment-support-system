@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
+encoding//docs/conf.py=utf-8
 encoding//src/pyquest/__init__.py=utf-8
 encoding//src/pyquest/helpers/__init__.py=utf-8
 encoding//src/pyquest/helpers/auth.py=utf-8
