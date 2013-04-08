@@ -22,7 +22,6 @@ requires = [
     'lxml',
     'formencode',
     'pyramid_beaker',
-    'pycryptopp',
     'nose',
     'pywebtools>=0.4'
     ]
