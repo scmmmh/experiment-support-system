@@ -113,19 +113,25 @@ def init_state(request, dbsession, survey):
             state['ptid'] = participant.id
     return state
 
+# Sets the submit options which control which buttons are shown on the page
+# when the survey is really running.
 def determine_submit_options(qsheet):
-    if qsheet.attr_value('repeat') == 'single':
-        if len(qsheet.next) > 0:
-            return ['next']
-        else:
-            return ['finish']
-    elif qsheet.attr_value('repeat') == 'repeat':
-        if len(qsheet.next) > 0:
-            return ['more', 'next']
-        else:
-            return ['more', 'finish']
+    # Either a 'next' or a 'finish' depending on whether qsheet.next is set
+    if len(qsheet.next) > 0:
+        options = ['next']
     else:
-        return ['next']
+        options = ['finish']
+
+    # If 'repeat' is set then the qsheet has more than one page and a 'more'
+    # is needed
+    if qsheet.attr_value('repeat') == 'repeat':
+        options.append('more')
+
+    # If there are questions on the sheet then a 'clear' is needed
+    if (len([q for q in qsheet.questions if q.q_type.answer_schema()])):
+        options.append('clear');
+
+    return options
 
 def get_participant(dbsession, survey, state):
     participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()

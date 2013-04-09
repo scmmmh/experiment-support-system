@@ -41,7 +41,7 @@ def main(argv=sys.argv):
     init_data(DBSession)
     alembic_cfg = Config(config_uri)
     command.stamp(alembic_cfg, "head")
-    if len(argv) >= 2 and argv[2] == '--with-test-data':
+    if len(argv) > 2 and argv[2] == '--with-test-data':
         init_test_data(DBSession)
 
 DEFAULT_QUESTIONS = [{'name': 'text',
