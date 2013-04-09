@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 u"""
+:mod:`pyquest.views.frontend`
+=============================
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
@@ -113,21 +115,26 @@ def init_state(request, dbsession, survey):
             state['ptid'] = participant.id
     return state
 
-# Sets the submit options which control which buttons are shown on the page
-# when the survey is really running.
-def determine_submit_options(qsheet):
-    # Either a 'next' or a 'finish' depending on whether qsheet.next is set
+def determine_qsheet_buttons(qsheet):
+    """Determines which buttons should be shown for the qsheet.
+    
+    If the :py:class:`~pyquest.models.QSheet` is the last in the :py:class:`~pyquest.models.Survey`
+    the return value will include 'finish' otherwise 'next'. if the :py:class:`~pyquest.models.QSheet`
+    can be answered repeatedly then the return value will include 'more'. If the
+    :py:class:`~pyquest.models.QSheet` has questions that require answering, then
+    'clear' will be included in the return value.
+    
+    :param qsheet: The :py:class:`~pyquest.models.QSheet` to determine the buttons for
+    :return: A `list` with the submit options
+    """
     if len(qsheet.next) > 0:
         options = ['next']
     else:
         options = ['finish']
 
-    # If 'repeat' is set then the qsheet has more than one page and a 'more'
-    # is needed
     if qsheet.attr_value('repeat') == 'repeat':
         options.append('more')
-
-    # If there are questions on the sheet then a 'clear' is needed
+        
     if (len([q for q in qsheet.questions if q.q_type.answer_schema()])):
         options.append('clear');
 
@@ -217,7 +224,7 @@ def run_survey(request):
             return {'survey': survey,
                     'qsheet': qsheet,
                     'data_items': data_items,
-                    'submit_options': determine_submit_options(qsheet),
+                    'submit_options': determine_qsheet_buttons(qsheet),
                     'progress': calculate_progress(qsheet, participant),
                     'control': calculate_control_items(qsheet, participant),
                     'participant': participant}
@@ -319,7 +326,7 @@ def run_survey(request):
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'data_items': data_items,
-                        'submit_options': determine_submit_options(qsheet),
+                        'submit_options': determine_qsheet_buttons(qsheet),
                         'progress': calculate_progress(qsheet, participant),
                         'control': calculate_control_items(qsheet, participant),
                         'participant': participant,

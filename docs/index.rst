@@ -13,6 +13,7 @@ Contents:
 
    installation
    design
+   api/index
 
 
 Indices and tables
