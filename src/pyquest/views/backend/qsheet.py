@@ -37,6 +37,7 @@ class QSheetSourceSchema(Schema):
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
     repeat = validators.UnicodeString(not_empty=True)
+    qnumbers = validators.UnicodeString(not_empty=True)
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition = validators.Int(if_missing=None, if_empty=None)
@@ -48,6 +49,7 @@ class QSheetVisualSchema(Schema):
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
     repeat = validators.UnicodeString(not_empty=True)
+    qnumbers = validators.UnicodeString(not_empty=True)
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition = validators.Int(if_missing=None, if_empty=None)
@@ -87,6 +89,7 @@ def new_qsheet(request):
                         qsheet.attributes.append(QSheetAttribute(key='repeat', value='single'))
                         qsheet.attributes.append(QSheetAttribute(key='data-items', value='0'))
                         qsheet.attributes.append(QSheetAttribute(key='control-items', value='0'))
+                        qsheet.attributes.append(QSheetAttribute(key='qnumbers', value='yes'))
                         survey.qsheets.append(qsheet)
                         if not survey.start:
                             survey.start = qsheet
@@ -284,6 +287,7 @@ def edit(request):
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
                         qsheet.set_attr_value('repeat', params['repeat'])
+                        qsheet.set_attr_value('qnumbers', params['qnumbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
@@ -426,6 +430,7 @@ def edit_source(request):
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
                         qsheet.set_attr_value('repeat', params['repeat'])
+                        qsheet.set_attr_value('qnumbers', params['qnumbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],

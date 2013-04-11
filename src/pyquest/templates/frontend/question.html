@@ -1,6 +1,6 @@
 <section xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" class="question ${q.q_type.name} q-${q.name}">
   <hgroup py:if="q.title">
-    <h1>${sub(q.title, i, p)}</h1>
+    <h1>${sub(q.title, i, p, number)}</h1>
   </hgroup>
   <p py:if="q.help" id="help-${q.name}">${q.help}</p>
   <div><xi:include href="frontend/${q.q_type.name}"/></div>

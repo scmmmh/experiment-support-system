@@ -301,6 +301,8 @@
             <dd>${h.form.number_field('data_items', qsheet.attr_value('data-items', default='0'), e, class_='role-qsheet-data-items')}</dd>
             <dt>Control Items</dt>
             <dd>${h.form.number_field('control_items', qsheet.attr_value('control-items', default='0'), e, class_='role-qsheet-control-items')}</dd>
+	    <dt>Show Question Numbers</dt>
+            <dd>${h.form.select('qnumbers', qsheet.attr_value('qnumbers', default='yes'), [('yes', 'Yes'), ('no', 'No')], e, class_='role-qsheet-qnumbers')}</dd>
             <dt>Transition to</dt>
             <dd>${h.form.select('transition', qsheet.next[0].target.id if len(qsheet.next) > 0 else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}</dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>
