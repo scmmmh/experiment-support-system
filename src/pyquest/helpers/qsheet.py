@@ -144,7 +144,7 @@ def render_questions(qsheet, item, p, error=None):
     e = error
     count = 0
     for question in qsheet.questions:
-        if (qsheet.attr_value('show-question-numbers') == 'yes' and question.q_type.answer_schema()):
+        if (qsheet.attr_value('show-question-numbers', default='yes') == 'yes' and question.q_type.answer_schema()):
             count = count + 1
         section = display(question, item, e, count, participant=p)
         sections.append(section)
