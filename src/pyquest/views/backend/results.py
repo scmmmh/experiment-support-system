@@ -238,8 +238,11 @@ def participant(request):
                         q_schema = question.q_type.answer_schema()
                         if not q_schema:
                             continue
+                        print q_schema, 'params' in q_schema
                         if 'params' in q_schema:
                             v_params = load_question_schema_params(q_schema['params'], question)
+                        elif q_schema['type'] == 'multiple' and 'params' in q_schema['schema']:
+                            v_params = load_question_schema_params(q_schema['schema']['params'], question)
                         else:
                             v_params = {}
                         query = dbsession.query(AnswerValue).join(Answer).filter(and_(Answer.participant_id==participant.id,
@@ -256,8 +259,11 @@ def participant(request):
                                         key = '%s.%s.other_' % (qsheet.name, question.name)
                             elif q_schema['type'] == 'multiple':
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
-                                    key = '%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, answer_value.value)
-                                    value = 1
+                                    if answer_value.value:
+                                        key = '%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, answer_value.value)
+                                        value = 1
+                                    else:
+                                        continue
                                 else:
                                     key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.name)
                             elif q_schema['type'] == 'ranking':
