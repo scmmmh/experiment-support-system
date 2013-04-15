@@ -231,14 +231,16 @@ def participant(request):
             count = 0
             for participant in survey.participants:
                 row = dict([(c, na_value) for c in columns])
-                row['participant_id_'] = participant.id
+                if 'participant_id_' in columns:
+                    row['participant_id_'] = participant.id
                 completed = True
                 for qsheet in survey.qsheets:
                     for question in qsheet.questions:
+                        if '%s.%s' % (qsheet.name, question.name) not in columns:
+                            continue
                         q_schema = question.q_type.answer_schema()
                         if not q_schema:
                             continue
-                        print q_schema, 'params' in q_schema
                         if 'params' in q_schema:
                             v_params = load_question_schema_params(q_schema['params'], question)
                         elif q_schema['type'] == 'multiple' and 'params' in q_schema['schema']:
@@ -279,7 +281,8 @@ def participant(request):
                             if not dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
                                                                        Answer.question_id==question.id)).first():
                                 completed = False
-                row['completed_'] = completed
+                if 'completed_' in columns:
+                    row['completed_'] = completed
                 rows.append(row)
                 count = count + 1
             return {'selected_columns': selected_columns,
