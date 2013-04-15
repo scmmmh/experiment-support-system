@@ -236,6 +236,10 @@ def participant(request):
                 completed = True
                 for qsheet in survey.qsheets:
                     for question in qsheet.questions:
+                        if question.required:
+                            if not dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
+                                                                       Answer.question_id==question.id)).first():
+                                completed = False
                         if '%s.%s' % (qsheet.name, question.name) not in columns:
                             continue
                         q_schema = question.q_type.answer_schema()
@@ -277,10 +281,6 @@ def participant(request):
                             if answer_value.answer.data_item:
                                 key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
                             row[key] = value
-                        if question.required:
-                            if not dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
-                                                                       Answer.question_id==question.id)).first():
-                                completed = False
                 if 'completed_' in columns:
                     row['completed_'] = completed
                 rows.append(row)
