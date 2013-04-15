@@ -547,7 +547,7 @@ def init_test_data(DBSession):
         qsheet1.attributes.append(QSheetAttribute(key='repeat', value='single'))
         qsheet1.attributes.append(QSheetAttribute(key='data-items', value='0'))
         qsheet1.attributes.append(QSheetAttribute(key='control-items', value='0'))
-        qsheet1.attributes.append(QSheetAttribute(key='qnumbers', value='no'))
+        qsheet1.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
         load_questions(qsheet1, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet1)
         # PAGE 2
@@ -660,7 +660,7 @@ def init_test_data(DBSession):
         qsheet2.attributes.append(QSheetAttribute(key='repeat', value='single'))
         qsheet2.attributes.append(QSheetAttribute(key='data-items', value='0'))
         qsheet2.attributes.append(QSheetAttribute(key='control-items', value='0'))
-        qsheet2.attributes.append(QSheetAttribute(key='qnumbers', value='no'))
+        qsheet2.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
         # PAGE 3
@@ -773,7 +773,7 @@ def init_test_data(DBSession):
         qsheet3.attributes.append(QSheetAttribute(key='repeat', value='single'))
         qsheet3.attributes.append(QSheetAttribute(key='data-items', value='0'))
         qsheet3.attributes.append(QSheetAttribute(key='control-items', value='0'))
-        qsheet3.attributes.append(QSheetAttribute(key='qnumbers', value='no'))
+        qsheet3.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
         load_questions(qsheet3, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet3)
         # PAGE 4
@@ -879,7 +879,7 @@ def init_test_data(DBSession):
         qsheet4.attributes.append(QSheetAttribute(key='repeat', value='single'))
         qsheet4.attributes.append(QSheetAttribute(key='data-items', value='0'))
         qsheet4.attributes.append(QSheetAttribute(key='control-items', value='0'))
-        qsheet4.attributes.append(QSheetAttribute(key='qnumbers', value='no'))
+        qsheet4.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
         load_questions(qsheet4, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet4)
         # PAGE 5
@@ -933,7 +933,7 @@ def init_test_data(DBSession):
         qsheet5.attributes.append(QSheetAttribute(key='repeat', value='single'))
         qsheet5.attributes.append(QSheetAttribute(key='data-items', value='0'))
         qsheet5.attributes.append(QSheetAttribute(key='control-items', value='0'))
-        qsheet5.attributes.append(QSheetAttribute(key='qnumbers', value='no'))
+        qsheet5.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
         load_questions(qsheet5, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet5)
         survey.start = qsheet1
@@ -974,7 +974,7 @@ def init_test_data(DBSession):
         qsheet1.attributes.append(QSheetAttribute(key='repeat', value='single'))
         qsheet1.attributes.append(QSheetAttribute(key='data-items', value='0'))
         qsheet1.attributes.append(QSheetAttribute(key='control-items', value='0'))
-        qsheet1.attributes.append(QSheetAttribute(key='qnumbers', value='no'))
+        qsheet1.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
         load_questions(qsheet1, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet1)
         """
@@ -1038,7 +1038,7 @@ def init_test_data(DBSession):
         qsheet2.attributes.append(QSheetAttribute(key='repeat', value='repeat'))
         qsheet2.attributes.append(QSheetAttribute(key='data-items', value='4'))
         qsheet2.attributes.append(QSheetAttribute(key='control-items', value='1'))
-        qsheet2.attributes.append(QSheetAttribute(key='qnumbers', value='no'))
+        qsheet2.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
         survey.start = qsheet1

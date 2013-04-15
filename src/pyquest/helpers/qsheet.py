@@ -13,11 +13,10 @@ from genshi.template import TemplateLoader, TemplateNotFound, loader
 from pywebtools import form
 from re import search
 from StringIO import StringIO
-from data import sample_for_qsheet
 
-from pyquest.models import DBSession, QuestionType, Participant
+from pyquest.models import DBSession, QuestionType
 
-def substitute(text, item, participant=None, number=None):
+def substitute(text, item, participant=None):
     if text:
         m = search('\${.+?}', text)
         while(m):
@@ -29,8 +28,6 @@ def substitute(text, item, participant=None, number=None):
             else:
                 text = text.replace(m.group(0), tag)
             m = search('\${.+?}', text)
-        if number:
-            text = str(number) + ' ' + text
         return text
     else:
         return None
@@ -134,10 +131,10 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         return text
 
 
-def construct_sections(q, item, p, error=None):
-    """ Constructs all the question sections for :py:class:`~pyquest.models.QSheet` q. If the attribute 'qnumbers' is set to 'yes' then questions which are answerable are given a number. 
+def render_questions(qsheet, item, p, error=None):
+    """ Constructs all the question sections for :py:class:`~pyquest.models.QSheet` qsheet. If the attribute 'show-question-numbers' is set to 'yes' then questions which are answerable are given a number. 
 
-    :param q: The :py:class:`~pyquest.models.QSheet` 
+    :param qsheet: The :py:class:`~pyquest.models.QSheet` 
     :param item: A data_item (passed on to display)
     :param p: A participant (passed on to display)
     :param error: An error (passed on to display)
@@ -146,10 +143,10 @@ def construct_sections(q, item, p, error=None):
     sections = []
     e = error
     count = 0
-    for question in q.questions:
-        if (q.attr_value('qnumbers') == 'yes' and question.q_type.answer_schema()):
+    for question in qsheet.questions:
+        if (qsheet.attr_value('show-question-numbers') == 'yes' and question.q_type.answer_schema()):
             count = count + 1
         section = display(question, item, e, count, participant=p)
         sections.append(section)
 
-    return sections
+    return tag(sections)
