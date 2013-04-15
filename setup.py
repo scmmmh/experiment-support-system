@@ -27,7 +27,7 @@ requires = [
     ]
 
 setup(name='PyQuestionnaire',
-      version='0.7.2',
+      version='0.8',
       description='PyQuestionnaire',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[

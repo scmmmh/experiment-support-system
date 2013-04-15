@@ -1,4 +1,4 @@
-DEV
+0.8
 ---
 
 - NEW: Implemented automatic numbering of questions
