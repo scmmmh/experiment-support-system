@@ -296,3 +296,20 @@ def status(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+
+@view_config(route_name='survey.export')
+@view_config(route_name='survey.export.ext')
+@render({'text/html': 'backend/survey/export.html',
+         'application/xml': 'backend/survey/export.xml'})
+def export(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    user = current_user(request)
+    if survey:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            return {'survey': survey}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()

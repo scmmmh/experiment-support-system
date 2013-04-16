@@ -3,6 +3,10 @@ u"""
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
+
+from lxml import etree
+from StringIO import StringIO
+
 def convert_type(value, target_type, default=None):
     if target_type == 'int':
         try:
@@ -26,3 +30,12 @@ def load_question_schema_params(params, question):
         elif value['type'] == 'value':
             v_params[key] = value['value']
     return v_params
+
+def template_as_text(request, template, params, fmt, fancy_xml=False):
+    from pywebtools.renderer import _genshi_loader 
+    template = _genshi_loader.load(template)
+    template = template.generate(**params)
+    text = template.render(fmt)
+    if fmt == 'xml' and fancy_xml:
+        text = etree.tostring(etree.parse(StringIO(text), parser=etree.XMLParser(remove_blank_text=True)), pretty_print=True)
+    return text

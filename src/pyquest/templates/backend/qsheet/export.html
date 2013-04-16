@@ -17,17 +17,7 @@
       <hgroup>
         <h1>${qsheet.title} - Export</h1>
       </hgroup>
-      <pre>
-&lt;pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="${qsheet.name}" title="${qsheet.title}"&gt;
-  &lt;pq:styles&gt;${qsheet.styles}&lt;/pq:styles&gt;
-  &lt;pq:scripts&gt;${qsheet.scripts}&lt;/pq:scripts&gt;
-  <py:for each="attr in qsheet.attributes">&lt;pq:attribute name="${attr.key}"&gt;${attr.value}&lt;/pq:attribute&gt;
-  </py:for>
-  &lt;pq:questions&gt;
-    ${h.qsheet.as_text(qsheet, no_ids=True)}
-  &lt;/pq:questions&gt;
-&lt;/pq:qsheet&gt;
-      </pre>
+      <pre>${h.template_as_text(r, 'backend/qsheet/export.xml', {'qsheet': qsheet, 'h': h}, 'xml', True)}</pre>
     </article>
   </body>
 </html>
