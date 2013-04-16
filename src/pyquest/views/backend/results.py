@@ -60,6 +60,20 @@ def by_question(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
+        if request.method == 'POST':
+            try :
+                params = ByParticipantSchema().to_python(request.POST)
+                na_value = params['na_value']
+            except api.Invalid as e:
+                e.params = request.POST
+                return {'e' : e,
+                        'columns': columns,
+                        'rows': rows,
+                        'na_value': na_value,
+                        'survey': survey}
+        else:
+            na_value = 'NA'
+
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             rows = []
             columns = ['page_', 'participant_id_']
@@ -83,12 +97,12 @@ def by_question(request):
                                     row = {'page_': qsheet.name,
                                            'participant_id_': answer.participant_id,
                                            'question': '%s.%s' % (question.name, answer_value.name),
-                                           'answer': fix_na(answer_value.value)}
+                                           'answer': fix_na(answer_value.value, na_value)}
                                 else:
                                     row = {'page_': qsheet.name,
                                            'participant_id_': answer.participant_id,
                                            'question': question.name,
-                                           'answer': fix_na(answer_value.value)}
+                                           'answer': fix_na(answer_value.value, na_value)}
                                 if answer.data_item_id:
                                     row['data_id_'] = answer.data_item_id
                                     for attr in answer.data_item.attributes:
@@ -96,6 +110,7 @@ def by_question(request):
                                 rows.append(row)
             return {'columns': columns,
                     'rows': rows,
+                    'na_value': na_value,
                     'survey': survey}
         else:
             redirect_to_login(request)
@@ -240,7 +255,7 @@ def participant(request):
                             if not dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
                                                                        Answer.question_id==question.id)).first():
                                 completed = False
-                        if '%s.%s' % (qsheet.name, question.name) not in columns:
+                        if '%s.%s' % (qsheet.name, question.name) not in selected_columns:
                             continue
                         q_schema = question.q_type.answer_schema()
                         if not q_schema:
@@ -255,7 +270,7 @@ def participant(request):
                                                                                       Answer.question_id==question.id))
                         for answer_value in query:
                             key = '%s.%s' % (qsheet.name, question.name)
-                            value = answer_value.value
+                            value = fix_na(answer_value.value, na_value)
                             if q_schema['type'] == 'choice':
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
                                     if '%s.%s.%s' % (qsheet.name, question.name, answer_value.value) in columns:

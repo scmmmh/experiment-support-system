@@ -1,3 +1,13 @@
+DEV
+---
+
+- NEW: The N/A value is now configurable in the by-question results
+
+0.8.1
+-----
+
+- BUGFIX: Fixed a bug in the results-by-participant generation
+
 0.8
 ---
 

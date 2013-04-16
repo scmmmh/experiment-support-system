@@ -330,12 +330,15 @@ class Question(Base):
                 if data_type:
                     return [convert_type(a.value, target_type=data_type, default=default) for a in attr]
                 else:
-                    return [a.value for a in attr]
+                    return [a.value if a.value else default for a in attr]
             else:
                 if data_type:
                     return convert_type(attr.value, target_type=data_type, default=default)
                 else:
-                    return attr.value
+                    if attr.value:
+                        return attr.value
+                    else:
+                        return default
         else:
             return default
     
