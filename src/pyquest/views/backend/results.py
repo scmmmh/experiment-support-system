@@ -240,7 +240,7 @@ def participant(request):
                             if not dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
                                                                        Answer.question_id==question.id)).first():
                                 completed = False
-                        if '%s.%s' % (qsheet.name, question.name) not in columns:
+                        if '%s.%s' % (qsheet.name, question.name) not in selected_columns:
                             continue
                         q_schema = question.q_type.answer_schema()
                         if not q_schema:
