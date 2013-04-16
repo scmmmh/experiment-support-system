@@ -201,6 +201,8 @@ def import_qsheet(request):
                                     qsheet.styles = item.text
                                 elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}scripts':
                                     qsheet.scripts = item.text
+                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}attribute':
+                                    qsheet.set_attr_value(item.attrib['name'], item.text)
                                 elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
                                     load_questions_from_xml(qsheet, item, dbsession, cleanup=False)
                             dbsession.flush()
