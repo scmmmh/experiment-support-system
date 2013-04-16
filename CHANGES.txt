@@ -1,3 +1,9 @@
+0.8
+---
+
+- NEW: Implemented automatic numbering of questions
+- BUGFIX: Fixed a bug in the results-by-participant generation
+
 0.7.2
 -----
 

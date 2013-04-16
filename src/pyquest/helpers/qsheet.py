@@ -4,7 +4,6 @@ Created on 20 Jan 2012
 
 @author: mhall
 '''
-import random
 from random import shuffle
 
 from decorator import decorator
@@ -130,7 +129,6 @@ def as_text(qsheet, as_markup=False, no_ids=False):
     else:
         return text
 
-
 def render_questions(qsheet, item, p, error=None):
     """ Constructs all the question sections for :py:class:`~pyquest.models.QSheet` qsheet. If the attribute 'show-question-numbers' is set to 'yes' then questions which are answerable are given a number. 
 
@@ -142,11 +140,11 @@ def render_questions(qsheet, item, p, error=None):
     """
     sections = []
     e = error
-    count = 0
+    question_number = 0
     for question in qsheet.questions:
-        if (qsheet.attr_value('show-question-numbers') == 'yes' and question.q_type.answer_schema()):
-            count = count + 1
-        section = display(question, item, e, count, participant=p)
+        if (qsheet.attr_value('show-question-numbers', default='yes') == 'yes' and question.q_type.answer_schema()):
+            question_number = question_number + 1
+        section = display(question, item, e, question_number, participant=p)
         sections.append(section)
 
     return tag(sections)

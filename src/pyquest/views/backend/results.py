@@ -246,15 +246,24 @@ def participant(request):
             count = 0
             for participant in survey.participants:
                 row = dict([(c, na_value) for c in columns])
-                row['participant_id_'] = participant.id
+                if 'participant_id_' in columns:
+                    row['participant_id_'] = participant.id
                 completed = True
                 for qsheet in survey.qsheets:
                     for question in qsheet.questions:
+                        if question.required:
+                            if not dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
+                                                                       Answer.question_id==question.id)).first():
+                                completed = False
+                        if '%s.%s' % (qsheet.name, question.name) not in columns:
+                            continue
                         q_schema = question.q_type.answer_schema()
                         if not q_schema:
                             continue
                         if 'params' in q_schema:
                             v_params = load_question_schema_params(q_schema['params'], question)
+                        elif q_schema['type'] == 'multiple' and 'params' in q_schema['schema']:
+                            v_params = load_question_schema_params(q_schema['schema']['params'], question)
                         else:
                             v_params = {}
                         query = dbsession.query(AnswerValue).join(Answer).filter(and_(Answer.participant_id==participant.id,
@@ -271,8 +280,11 @@ def participant(request):
                                         key = '%s.%s.other_' % (qsheet.name, question.name)
                             elif q_schema['type'] == 'multiple':
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
-                                    key = '%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, answer_value.value)
-                                    value = 1
+                                    if answer_value.value:
+                                        key = '%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, answer_value.value)
+                                        value = 1
+                                    else:
+                                        continue
                                 else:
                                     key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.name)
                             elif q_schema['type'] == 'ranking':
@@ -284,11 +296,8 @@ def participant(request):
                             if answer_value.answer.data_item:
                                 key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
                             row[key] = value
-                        if question.required:
-                            if not dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
-                                                                       Answer.question_id==question.id)).first():
-                                completed = False
-                row['completed_'] = completed
+                if 'completed_' in columns:
+                    row['completed_'] = completed
                 rows.append(row)
                 count = count + 1
             return {'selected_columns': selected_columns,
