@@ -1,3 +1,8 @@
+0.8.1
+-----
+
+- BUGFIX: Fixed a bug in the results-by-participant generation
+
 0.8
 ---
 
