@@ -1,3 +1,8 @@
+0.9.1
+-----
+
+- BUGFIX: Fixed issue where QSheet styles/scripts were not duplicated
+
 0.9
 ---
 

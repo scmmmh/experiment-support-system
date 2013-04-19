@@ -217,8 +217,8 @@ def duplicate(request):
                         for qsheet in survey.qsheets:
                             dupl_qsheet = QSheet(name=qsheet.name,
                                                  title=qsheet.title,
-                                                 styles=survey.styles,
-                                                 scripts=survey.scripts)
+                                                 styles=qsheet.styles,
+                                                 scripts=qsheet.scripts)
                             for attr in qsheet.attributes:
                                 dupl_qsheet.attributes.append(QSheetAttribute(key=attr.key, value=attr.value))
                             questions = {}
