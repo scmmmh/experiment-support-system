@@ -18,6 +18,8 @@ from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 
 from pyquest import helpers
+from pyquest.views.backend.qsheet import load_questions_from_xml,\
+    load_qsheet_from_xml
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
@@ -44,69 +46,6 @@ class SurveySchema(Schema):
 class SurveyStatusSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     status = validators.OneOf(['develop', 'testing', 'running', 'paused', 'finished'])
-
-def create_schema(content):
-    def process(element):
-        if element.tag == '{http://paths.sheffield.ac.uk/pyquest}survey':
-            return filter(lambda e: e, map(process, element))
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}single':
-            if 'qsid' in element.attrib:
-                qsheet = {'qsid': element.attrib['qsid'],
-                          'type': 'single'}
-                for child in element:
-                    qsheet.update(process(child))
-                return qsheet
-            else:
-                return {}
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}repeat':
-            if 'qsid' in element.attrib:
-                qsheet = {'qsid': element.attrib['qsid'],
-                          'type': 'repeat'}
-                for child in element:
-                    qsheet.update(process(child))
-                return qsheet
-            else:
-                return {}
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}finish':
-            if 'qsid' in element.attrib:
-                return {'qsid': element.attrib['qsid'],
-                        'type': 'finish'}
-            else:
-                return {}
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}source':
-            source = {'source': {'data_items': 1, 'control_items': 0}}
-            for child in element:
-                source['source'].update(process(child))
-            return source
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}data_items':
-            if 'count' in element.attrib:
-                try:
-                    return {'data_items': int(element.attrib['count'])}
-                except ValueError:
-                    return {'data_items': 1}
-            else:
-                return {'data_items': 1}
-        elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}control_items':
-            if 'count' in element.attrib:
-                try:
-                    return {'control_items': int(element.attrib['count'])}
-                except ValueError:
-                    return {'control_items': 0}
-            else:
-                return {'control_items': 0}
-        else:
-            return {}
-    def link_qsheets(schema):
-        for idx, instr in enumerate(schema):
-            if (idx + 1) < len(schema):
-                instr['next_qsid'] = schema[idx + 1]['qsid']
-            else:
-                instr['next_qsid'] = None
-        return schema
-    if content:
-        return link_qsheets(process(etree.fromstring(content)))
-    else:
-        return []
 
 @view_config(route_name='survey')
 @render({'text/html': 'backend/survey/index.html'})
@@ -161,6 +100,58 @@ def new(request):
                         'e': e}
         else:
             return {'survey': survey}
+    else:
+        redirect_to_login(request)
+
+def load_survey_from_xml(owner, dbsession, doc):
+    survey = Survey(title=doc.attrib['title'], status='develop')
+    survey.owner = owner
+    qsheets = {}
+    for item in doc:
+        if item.tag == '{http://paths.sheffield.ac.uk/pyquest}summary':
+            survey.summary = item.text
+        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}language':
+            survey.language = item.text
+        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}styles':
+            survey.styles = item.text
+        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}scripts':
+            survey.scripts = item.text
+        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}qsheet':
+            qsheet = load_qsheet_from_xml(survey, item, dbsession)
+            qsheets[qsheet.name] = qsheet
+    for item in doc:
+        if item.tag == '{http://paths.sheffield.ac.uk/pyquest}first_page':
+            if item.text in qsheets:
+                survey.start = qsheets[item.text]
+        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}transition':
+            if item.attrib['from'] in qsheets and item.attrib['to'] in qsheets:
+                dbsession.add(QSheetTransition(source=qsheets[item.attrib['from']], target=qsheets[item.attrib['to']]))
+    return survey
+
+@view_config(route_name='survey.import')
+@render({'text/html': 'backend/survey/import.html'})
+def import_survey(request):
+    user = current_user(request)
+    if is_authorised(':user.has_permission("survey.new")', {'user': user}):
+        if request.method == 'POST':
+            try:
+                if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
+                    raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
+                doc = XmlValidator('%s').to_python(''.join(request.POST['source_file'].file))
+                if doc.tag != '{http://paths.sheffield.ac.uk/pyquest}survey':
+                    raise api.Invalid('Not a survey file', {}, None, error_dict={'source_file': 'Only complete surveys can be imported here.'})
+                dbsession = DBSession()
+                with transaction.manager:
+                    survey = load_survey_from_xml(user, dbsession, doc)
+                    dbsession.add(survey)
+                    dbsession.flush()
+                    survey_id = survey.id
+                raise HTTPFound(request.route_url('survey.view', sid=survey_id))
+            except api.Invalid as e:
+                e.params = request.POST
+                return {'e': e}
+        else:
+            return {}
     else:
         redirect_to_login(request)
 

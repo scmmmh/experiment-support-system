@@ -3,6 +3,7 @@
 def init(config):
     config.add_route('survey', '/surveys')
     config.add_route('survey.new', '/surveys/new')
+    config.add_route('survey.import', '/surveys/import')
     config.add_route('survey.view', '/surveys/{sid}')
     config.add_route('survey.edit', '/surveys/{sid}/edit')
     config.add_route('survey.delete', '/surveys/{sid}/delete')
