@@ -367,7 +367,7 @@ class QuestionAttributeGroup(Base):
     order = Column(Integer)
     
     attributes = relationship('QuestionAttribute',
-                              backref='question',
+                              backref='attribute_group',
                               order_by='QuestionAttribute.order',
                               cascade='all, delete, delete-orphan')
     

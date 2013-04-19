@@ -21,6 +21,7 @@
           <li><a href="${r.route_url('survey.qsheet.import', sid=survey.id)}" class="button">Import page</a></li>
           <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button">Edit</a></li>
           <li><a href="${r.route_url('survey.export', sid=survey.id)}" class="button">Export</a></li>
+          <li py:if="h.auth.is_authorised(':user.has_permission(\'survey.new\')', {'user': h.user.current_user(r)})"><a href="${r.route_url('survey.duplicate', sid=survey.id)}" class="button">Duplicate</a></li>
         </py:if>
         <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the survey &quot;${survey.title}&quot; including its pages, data, and results.">Delete</a></li>
         <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">

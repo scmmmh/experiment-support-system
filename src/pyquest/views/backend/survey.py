@@ -4,26 +4,22 @@ Created on 23 Jan 2012
 
 @author: mhall
 '''
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import transaction
 
 from formencode import Schema, validators, api, variabledecode
-from lxml import etree
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 
 from pyquest import helpers
-from pyquest.views.backend.qsheet import load_questions_from_xml,\
-    load_qsheet_from_xml
+from pyquest.views.backend.qsheet import load_qsheet_from_xml
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
-                            Participant)
+                            Participant, QSheetAttribute, Question,
+    QuestionAttributeGroup, QuestionAttribute, DataItem, DataItemAttribute,
+    DataItemControlAnswer)
 from pyquest.validation import XmlValidator
 
 class NewSurveySchema(Schema):
@@ -47,6 +43,10 @@ class SurveyStatusSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     status = validators.OneOf(['develop', 'testing', 'running', 'paused', 'finished'])
 
+class SurveyDuplicateSchema(Schema):
+    csrf_token = validators.UnicodeString(note_empty=True)
+    title = validators.UnicodeString(not_empty=True)
+    
 @view_config(route_name='survey')
 @render({'text/html': 'backend/survey/index.html'})
 def index(request):
@@ -146,6 +146,7 @@ def import_survey(request):
                     dbsession.add(survey)
                     dbsession.flush()
                     survey_id = survey.id
+                request.session.flash('Survey imported', 'info')
                 raise HTTPFound(request.route_url('survey.view', sid=survey_id))
             except api.Invalid as e:
                 e.params = request.POST
@@ -180,6 +181,94 @@ def edit(request):
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.view',
                                                       sid=request.matchdict['sid']))
+                except api.Invalid as e:
+                    e.params = request.POST
+                    return {'survey': survey,
+                            'e': e}
+            else:
+                return {'survey': survey}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
+@view_config(route_name='survey.duplicate')
+@render({'text/html': 'backend/survey/duplicate.html'})
+def duplicate(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    user = current_user(request)
+    if survey:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
+            if request.method == 'POST':
+                try:
+                    check_csrf_token(request, request.POST)
+                    params = SurveyDuplicateSchema().to_python(request.POST)
+                    with transaction.manager:
+                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+                        dupl_survey = Survey(title=params['title'],
+                                             status='develop',
+                                             owner=user,
+                                             summary=survey.summary,
+                                             styles=survey.styles,
+                                             scripts=survey.scripts)
+                        dbsession.add(dupl_survey)
+                        qsheets = {}
+                        for qsheet in survey.qsheets:
+                            dupl_qsheet = QSheet(name=qsheet.name,
+                                                 title=qsheet.title,
+                                                 styles=survey.styles,
+                                                 scripts=survey.scripts)
+                            for attr in qsheet.attributes:
+                                dupl_qsheet.attributes.append(QSheetAttribute(key=attr.key, value=attr.value))
+                            questions = {}
+                            for question in qsheet.questions:
+                                dupl_question = Question(q_type=question.q_type,
+                                                         name=question.name,
+                                                         title=question.title,
+                                                         required=question.required,
+                                                         help=question.help,
+                                                         order=question.order)
+                                questions[dupl_question.name] = dupl_question
+                                dupl_qsheet.questions.append(dupl_question)
+                                for attr_group in question.attributes:
+                                    dupl_attr_group = QuestionAttributeGroup(question=dupl_question,
+                                                                             key=attr_group.key,
+                                                                             label=attr_group.label,
+                                                                             order=attr_group.order)
+                                    for attr in attr_group.attributes:
+                                        QuestionAttribute(attribute_group=dupl_attr_group,
+                                                          key=attr.key,
+                                                          label=attr.label,
+                                                          value=attr.value,
+                                                          order=attr.order)
+                            for data_item in qsheet.data_items:
+                                dupl_data_item = DataItem(qsheet=dupl_qsheet,
+                                                          order=data_item.order,
+                                                          control=data_item.control)
+                                for attr in data_item.attributes:
+                                    DataItemAttribute(data_item=dupl_data_item,
+                                                      order=attr.order,
+                                                      key=attr.key,
+                                                      value=attr.value)
+                                for control_answer in data_item.control_answers:
+                                    if control_answer.question and control_answer.question.name in questions:
+                                        DataItemControlAnswer(data_item=dupl_data_item,
+                                                              question=questions[control_answer.question.name],
+                                                              answer=control_answer.answer)
+                            qsheets[dupl_qsheet.name] = dupl_qsheet
+                            dupl_survey.qsheets.append(dupl_qsheet)
+                        for qsheet in survey.qsheets:
+                            if qsheet.next and qsheet.next[0] and qsheet.next[0].target:
+                                if qsheet.name in qsheets and qsheet.next[0].target.name in qsheets:
+                                    dbsession.add(QSheetTransition(source=qsheets[qsheet.name],
+                                                                   target=qsheets[qsheet.next[0].target.name]))
+                        if survey.start and survey.start.name in qsheets:
+                            dupl_survey.start = qsheets[survey.start.name]
+                        dbsession.flush()
+                        survey_id = dupl_survey.id
+                    request.session.flash('Survey duplicated', 'info')
+                    raise HTTPFound(request.route_url('survey.view', sid=survey_id))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
