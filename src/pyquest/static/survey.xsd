@@ -1,11 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:qs="http://paths.sheffield.ac.uk/pyquest" targetNamespace="http://paths.sheffield.ac.uk/pyquest" elementFormDefault="qualified">
+    <xs:element name="survey" type="qs:Survey"></xs:element>
     <xs:element name="qsheet" type="qs:QSheet"></xs:element>
+    
+    <xs:complexType name="Survey">
+        <xs:sequence>
+            <xs:element name="summary" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="language" type="xs:string"/>
+            <xs:element name="styles" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="scripts" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="first_page" type="xs:string"/>
+            <xs:element name="qsheet" type="qs:QSheet" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="transition" type="qs:QSheetTransition" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="title" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="QSheetTransition">
+        <xs:sequence/>
+        <xs:attribute name="from" type="xs:string" use="required"/>
+        <xs:attribute name="to" type="xs:string" use="required"/>
+    </xs:complexType>
     
     <xs:complexType name="QSheet">
         <xs:sequence>
             <xs:element name="styles" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="scripts" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="attribute" type="qs:QuestionAttributeValue" minOccurs="1" maxOccurs="unbounded"/>
             <xs:element name="questions" type="qs:QuestionSequence"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>

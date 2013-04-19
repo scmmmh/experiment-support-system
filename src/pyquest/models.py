@@ -330,12 +330,15 @@ class Question(Base):
                 if data_type:
                     return [convert_type(a.value, target_type=data_type, default=default) for a in attr]
                 else:
-                    return [a.value for a in attr]
+                    return [a.value if a.value else default for a in attr]
             else:
                 if data_type:
                     return convert_type(attr.value, target_type=data_type, default=default)
                 else:
-                    return attr.value
+                    if attr.value:
+                        return attr.value
+                    else:
+                        return default
         else:
             return default
     
@@ -364,7 +367,7 @@ class QuestionAttributeGroup(Base):
     order = Column(Integer)
     
     attributes = relationship('QuestionAttribute',
-                              backref='question',
+                              backref='attribute_group',
                               order_by='QuestionAttribute.order',
                               cascade='all, delete, delete-orphan')
     

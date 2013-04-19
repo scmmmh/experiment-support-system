@@ -1,0 +1,9 @@
+<pq:survey title="${survey.title}" xmlns:pq="http://paths.sheffield.ac.uk/pyquest" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <pq:summary>${survey.summary}</pq:summary>
+  <pq:language>${survey.language}</pq:language>
+  <pq:styles>${survey.styles}</pq:styles>
+  <pq:scripts>${survey.scripts}</pq:scripts>
+  <pq:first_page>${survey.start.name if survey.start else ''}</pq:first_page>
+  <xi:include href="../qsheet/export.xml" py:for="qsheet in survey.qsheets"/>
+  <pq:transition from="${qsheet.name}" to="${qsheet.next[0].target.name}" py:for="qsheet in survey.qsheets" py:if="qsheet.next and qsheet.next[0] and qsheet.next[0].target"/>
+</pq:survey>

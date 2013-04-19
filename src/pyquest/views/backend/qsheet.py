@@ -5,9 +5,8 @@ Created on 24 Jan 2012
 @author: mhall
 '''
 import transaction
-import json
 
-from formencode import Schema, validators, api, foreach, variabledecode, compound
+from formencode import Schema, validators, api, variabledecode
 from lxml import etree
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
@@ -15,7 +14,6 @@ from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 from sqlalchemy import and_
 
-from pyquest.views.frontend import safe_int
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
@@ -176,7 +174,22 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
     if cleanup:
         remove_ids = [qid for qid in original_ids if qid not in seen_ids]
         dbsession.query(Question).filter(Question.id.in_(remove_ids)).delete()
-    
+
+def load_qsheet_from_xml(survey, doc, dbsession):
+    qsheet = QSheet(survey=survey, name=doc.attrib['name'])
+    if 'title' in doc.attrib:
+        qsheet.title = doc.attrib['title']
+    for item in doc:
+        if item.tag == '{http://paths.sheffield.ac.uk/pyquest}styles':
+            qsheet.styles = item.text
+        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}scripts':
+            qsheet.scripts = item.text
+        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}attribute':
+            qsheet.set_attr_value(item.attrib['name'], item.text)
+        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
+            load_questions_from_xml(qsheet, item, dbsession, cleanup=False)
+    return qsheet
+
 @view_config(route_name='survey.qsheet.import')
 @render({'text/html': 'backend/qsheet/import.html'})
 def import_qsheet(request):
@@ -192,17 +205,8 @@ def import_qsheet(request):
                     doc = XmlValidator('%s').to_python(''.join(request.POST['source_file'].file))
                     if doc.tag == '{http://paths.sheffield.ac.uk/pyquest}qsheet':
                         with transaction.manager:
-                            qsheet = QSheet(survey=survey, name=doc.attrib['name'])
+                            qsheet = load_qsheet_from_xml(survey, doc, dbsession)
                             dbsession.add(qsheet)
-                            if 'title' in doc.attrib:
-                                qsheet.title = doc.attrib['title']
-                            for item in doc:
-                                if item.tag == '{http://paths.sheffield.ac.uk/pyquest}styles':
-                                    qsheet.styles = item.text
-                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}scripts':
-                                    qsheet.scripts = item.text
-                                elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
-                                    load_questions_from_xml(qsheet, item, dbsession, cleanup=False)
                             dbsession.flush()
                             qsid = qsheet.id
                         request.session.flash('Survey page imported', 'info')
@@ -210,7 +214,7 @@ def import_qsheet(request):
                                                           sid=request.matchdict['sid'],
                                                           qsid=qsid))
                     else:
-                        raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'The root element of the source file must be {http://paths.sheffield.ac.uk/pyquest}qsheet'})
+                        raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Only individual questions can be imported here.'})
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,

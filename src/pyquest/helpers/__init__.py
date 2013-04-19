@@ -4,6 +4,8 @@ import json
 
 from pywebtools import form, text
 
+from pyquest.util import template_as_text
+
 def as_data_type(value, data_type=None):
     if data_type:
         if data_type == 'boolean':

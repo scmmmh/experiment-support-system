@@ -1,6 +1,7 @@
-<pq:qsheet name="${qsheet.name}" title="${qsheet.title}" xmlns:pq="http://paths.sheffield.ac.uk/pyquest">
+<pq:qsheet name="${qsheet.name}" title="${qsheet.title}" xmlns:pq="http://paths.sheffield.ac.uk/pyquest" xmlns:py="http://genshi.edgewall.org/">
   <pq:styles>${qsheet.styles}</pq:styles>
   <pq:scripts>${qsheet.scripts}</pq:scripts>
+  <pq:attribute py:for="attr in qsheet.attributes" py:if="attr.value" name="${attr.key}">${attr.value}</pq:attribute>
   <pq:questions>
     ${h.qsheet.as_text(qsheet, as_markup=True, no_ids=True)}
   </pq:questions>

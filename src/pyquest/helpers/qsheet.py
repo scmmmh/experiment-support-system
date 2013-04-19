@@ -84,18 +84,6 @@ def question():
     return decorator(wrapper)
 
 def question_as_text(question, no_ids=False):
-    """text = '''  <pq:type>%s</pq:type>
-  <pq:name>%s</pq:name>
-  <pq:title>%s</pq:title>
-  <pq:required>%s</pq:required>
-  <pq:help>%s</pq:help>
-''' % (question.q_type.name, question.name, question.title, str(question.required).lower(), question.help)
-    for attr_group in question.attributes:
-        text = '%s  <pq:attribute name="%s">\n' % (text, attr_group.key)
-        for attr_value in attr_group.attributes:
-            text = '%s    <pq:value name="%s">%s</pq:value>\n' % (text, attr_value.key, attr_value.value)
-        text = '%s  </pq:attribute>\n' % (text)
-    """
     text = ['  <pq:type>%s</pq:type>' % (question.q_type.name)]
     for schema in question.q_type.backend_schema():
         if schema['type'] == 'question-name':
@@ -107,7 +95,8 @@ def question_as_text(question, no_ids=False):
         elif schema['type'] == 'question-help':
             text.append('  <pq:help>%s</pq:help>' % (question.help))
         elif schema['type'] in ['unicode', 'richtext', 'int', 'select']:
-            text.append('  <pq:attribute name="%s">%s</pq:attribute>' % (schema['attr'], question.attr_value(schema['attr'], default='')))
+            if question.attr_value(schema['attr']):
+                text.append('  <pq:attribute name="%s">%s</pq:attribute>' % (schema['attr'], question.attr_value(schema['attr'], default='')))
         elif schema['type'] == 'table':
             text.append('  <pq:attribute_group name="%s">' % (schema['attr']))
             for attr_group in question.attr_group(schema['attr'], default=[], multi=True):
