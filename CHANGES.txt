@@ -3,6 +3,7 @@ DEV
 
 - NEW: The N/A value is now configurable in the by-question results
 - NEW: Complete surveys can now be exported to XML and re-imported
+- NEW: Surveys can now be duplicated
 - UPDATE: Qsheet attributes are now also serialised on export
 - BUGFIX: Fixed a bug where None was being output in the qsheet XML serialisation
 
