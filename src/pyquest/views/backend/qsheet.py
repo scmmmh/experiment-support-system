@@ -384,6 +384,9 @@ def edit_add_question(request):
                     for entry in q_type.dbschema_schema():
                         if entry['type'] == 'attr':
                             question.set_attr_value(entry['attr'], entry['default'], entry['order'] if 'order' in entry else 0, entry['group_order'] if 'group_order' in entry else 0)
+                        elif entry['type'] == 'core':
+                            if hasattr(question, entry['attr']):
+                                setattr(question, entry['attr'], entry['default'])
                     qsheet.questions.append(question)
                     dbsession.add(question)
                     dbsession.flush()

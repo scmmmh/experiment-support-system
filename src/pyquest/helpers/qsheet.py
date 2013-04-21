@@ -42,7 +42,7 @@ def load_db_template(filename):
     if not q_type:
         raise TemplateNotFound(filename, 'PyQuestionnaire Question Database')
     if component == 'frontend':
-        tmpl = '<html xmlns:py="http://genshi.edgewall.org/" py:strip="True">%s</html>' % (q_type.frontend)
+        tmpl = '<html xmlns:py="http://genshi.edgewall.org/" py:strip="True">%s</html>' % (q_type.frontend_doc())
     return (filename, q_type_name, StringIO(tmpl), None)
 
 ldr = TemplateLoader([loader.package('pyquest', 'templates/frontend'), load_db_template], auto_reload=True)
