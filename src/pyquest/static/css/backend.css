@@ -47,9 +47,11 @@ nav.sections ul li a {font-size:1.2em;font-weight:bold;background-color:#c3d9ff;
 nav.sections ul li a.no-tab {border:0;background-color:#ffffff;}
 nav.sections ul li.current a, nav.level-1 ul li a:hover {color:#ffffff;background-color:#0066cc;}
 nav.sections ul li a.no-tab:hover {color:#0066cc;background-color:#ffffff;text-decoration:underline;}
-#tools ol {padding:0;overflow:visible;}
+#tools ol, #tools div {padding:0;overflow:visible;-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;}
 #tools li {list-style-type:none;padding:5px 8px;background-color:#f0f0f0;}
 #tools li:hover {background-color:#dff4ff;}
+#tools .role-accordion-1 h3 {font-size:95%;}
+#tools .role-accordion-2 h3 {font-size:95%;}
 
 
 /* Other styles */

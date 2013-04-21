@@ -17,7 +17,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '64ef6deb982'
+DB_VERSION = '26421c11f65d'
 
 class DBUpgradeException(Exception):
     
@@ -244,6 +244,9 @@ class QuestionTypeGroup(Base):
     name = Column(Unicode(255))
     title = Column(Unicode(255))
     order = Column(Integer)
+    parent_id = Column(ForeignKey(id))
+
+    parent = relationship('QuestionTypeGroup', backref='children', remote_side=[id])
     
 class QuestionType(Base):
     

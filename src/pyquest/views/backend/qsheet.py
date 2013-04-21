@@ -273,7 +273,7 @@ def edit(request):
     user = current_user(request)
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            question_type_groups = dbsession.query(QuestionTypeGroup).order_by(QuestionTypeGroup.order)
+            question_type_groups = dbsession.query(QuestionTypeGroup).filter(QuestionTypeGroup.parent_id==None).order_by(QuestionTypeGroup.order)
             if request.method == 'POST':
                 try:
                     schema = QSheetVisualSchema()
