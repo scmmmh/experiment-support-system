@@ -14,7 +14,7 @@
           <form action="${r.route_url('survey.results.by_participant.ext', sid=survey.id, ext='csv')}" method="post">${h.form.submit('Download as CSV', class_='button')}
             <py:for each="c in selected_columns">${h.form.hidden_field('columns', c)}</py:for><py:for each="idx, (qsn, col) in enumerate(data_identifiers.items())">${h.form.hidden_field('data_identifier-%i.qsheet' % (idx), qsn)}${h.form.hidden_field('data_identifier-%i.column' % (idx), col)}</py:for>
             ${h.form.hidden_field('na_value', na_value)}
-            ${h.form.checkbox('spss_safe', spss_safe, e, checked=spss_safe)}
+            ${h.form.checkbox('spss_safe', spss_safe, e, checked=spss_safe, style="display:none")}
           </form></li>
       </ul>
     </nav>

@@ -231,7 +231,6 @@ def participant(request):
                     data_identifiers[qsheet.name] = 'id_'
             selected_columns.sort()
             if request.method == 'POST':
-                import pdb; pdb.set_trace()
                 try :
                     params = ByParticipantSchema().to_python(request.POST)
                     selected_columns = params['columns']

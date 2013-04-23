@@ -13,7 +13,7 @@
         <li>          
 	  <form action="${r.route_url('survey.results.by_question.ext', sid=survey.id, ext='csv')}" method="post">${h.form.submit('Download as CSV', class_='button')}
             ${h.form.hidden_field('na_value', na_value)}
-            ${h.form.checkbox('spss_safe', spss_safe, e, checked=spss_safe)}
+            ${h.form.checkbox('spss_safe', spss_safe, e, checked=spss_safe, style="display:none")}
         </form></li>
       </ul>
     </nav>
