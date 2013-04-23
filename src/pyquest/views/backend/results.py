@@ -12,9 +12,10 @@ from pywebtools.renderer import render
 from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.helpers.results import fix_na
+from pyquest.helpers.results import fix_na, make_spss_safe
 from pyquest.models import (DBSession, Survey, Answer, AnswerValue, Question)
 from pyquest.util import load_question_schema_params
+
 
 class DataIdentifierSchema(Schema):
     qsheet = validators.UnicodeString(not_empty=True)
@@ -76,14 +77,14 @@ def by_question(request):
 
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             rows = []
-            columns = ['page_', 'participant_id_']
+            columns = ['page', 'participant_id']
             data_item_columns = []
             for qsheet in survey.qsheets:
                 if qsheet.data_items:
                     for attr in qsheet.data_items[0].attributes:
                         data_item_columns.append('%s.%s' % (qsheet.name, attr.key))
             if data_item_columns:
-                columns.append('data_id_')
+                columns.append('data_id')
                 columns.extend(data_item_columns)
             columns.append('question')
             columns.append('answer')
@@ -94,17 +95,17 @@ def by_question(request):
                             for answer_value in answer.values:
                                 row = {}
                                 if answer_value.name:
-                                    row = {'page_': qsheet.name,
-                                           'participant_id_': answer.participant_id,
+                                    row = {'page': qsheet.name,
+                                           'participant_id': answer.participant_id,
                                            'question': '%s.%s' % (question.name, answer_value.name),
                                            'answer': fix_na(answer_value.value, na_value)}
                                 else:
-                                    row = {'page_': qsheet.name,
-                                           'participant_id_': answer.participant_id,
+                                    row = {'page': qsheet.name,
+                                           'participant_id': answer.participant_id,
                                            'question': question.name,
                                            'answer': fix_na(answer_value.value, na_value)}
                                 if answer.data_item_id:
-                                    row['data_id_'] = answer.data_item_id
+                                    row['data_id'] = answer.data_item_id
                                     for attr in answer.data_item.attributes:
                                         row['%s.%s' % (qsheet.name, attr.key)] = attr.value
                                 rows.append(row)
@@ -145,7 +146,7 @@ def generate_question_columns(base_name, question, q_schema, data_items, data_id
                     for data_item in data_items:
                         columns.append('%s.other_.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
                 else:
-                    columns.append('%s.other_' % (base_name))
+                    columns.append('%s.other' % (base_name))
         else:
             if data_items:
                 for data_item in data_items:
@@ -193,9 +194,9 @@ def generate_columns(survey, selected_columns, data_identifiers, dbsession):
                                                          dbsession))
     columns.sort()
     if '_.completed' in selected_columns:
-        columns.insert(0, 'completed_')
+        columns.insert(0, 'completed')
     if '_.participant_id' in selected_columns:
-        columns.insert(0, 'participant_id_')
+        columns.insert(0, 'participant_id')
     return columns
 
 @view_config(route_name='survey.results.by_participant')
@@ -219,7 +220,7 @@ def participant(request):
                     if question.q_type.answer_schema():
                         selected_columns.append('%s.%s' % (qsheet.name, question.name))
                 if qsheet.data_items:
-                    data_identifiers[qsheet.name] = 'id_'
+                    data_identifiers[qsheet.name] = 'id'
             selected_columns.sort()
             if request.method == 'POST':
                 try :
@@ -246,8 +247,8 @@ def participant(request):
             count = 0
             for participant in survey.participants:
                 row = dict([(c, na_value) for c in columns])
-                if 'participant_id_' in columns:
-                    row['participant_id_'] = participant.id
+                if 'participant_id' in columns:
+                    row['participant_id'] = participant.id
                 completed = True
                 for qsheet in survey.qsheets:
                     for question in qsheet.questions:
@@ -277,7 +278,7 @@ def participant(request):
                                         key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.value)
                                         value = 1
                                     else:
-                                        key = '%s.%s.other_' % (qsheet.name, question.name)
+                                        key = '%s.%s.other' % (qsheet.name, question.name)
                             elif q_schema['type'] == 'multiple':
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
                                     if answer_value.value:
@@ -296,10 +297,12 @@ def participant(request):
                             if answer_value.answer.data_item:
                                 key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
                             row[key] = value
-                if 'completed_' in columns:
-                    row['completed_'] = completed
+                if 'completed' in columns:
+                    row['completed'] = completed
                 rows.append(row)
                 count = count + 1
+            if request.matchdict.has_key('ext'):
+                columns, rows = make_spss_safe(columns, rows)
             return {'selected_columns': selected_columns,
                     'data_identifiers': data_identifiers,
                     'na_value': na_value,
@@ -310,3 +313,7 @@ def participant(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+
+
+
