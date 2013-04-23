@@ -12,9 +12,10 @@ from pywebtools.renderer import render
 from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.helpers.results import fix_na, make_spss_safe
+from pyquest.helpers.results import fix_na
 from pyquest.models import (DBSession, Survey, Answer, AnswerValue, Question)
 from pyquest.util import load_question_schema_params
+import re
 
 
 class DataIdentifierSchema(Schema):
@@ -24,6 +25,7 @@ class ByParticipantSchema(Schema):
     columns = foreach.ForEach(validators.UnicodeString(not_empty=True))
     data_identifier = foreach.ForEach(DataIdentifierSchema(), if_empty=[])
     na_value = validators.UnicodeString()
+    spss_safe = validators.Bool()
 
     pre_validators = [variabledecode.NestedVariables()]
 
@@ -65,26 +67,29 @@ def by_question(request):
             try :
                 params = ByParticipantSchema().to_python(request.POST)
                 na_value = params['na_value']
+                spss_safe = params['spss_safe']
             except api.Invalid as e:
                 e.params = request.POST
                 return {'e' : e,
                         'columns': columns,
                         'rows': rows,
                         'na_value': na_value,
+                        'spss_safe': spss_safe,
                         'survey': survey}
         else:
             na_value = 'NA'
+            spss_safe = False
 
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             rows = []
-            columns = ['page', 'participant_id']
+            columns = ['page_', 'participant_id_']
             data_item_columns = []
             for qsheet in survey.qsheets:
                 if qsheet.data_items:
                     for attr in qsheet.data_items[0].attributes:
                         data_item_columns.append('%s.%s' % (qsheet.name, attr.key))
             if data_item_columns:
-                columns.append('data_id')
+                columns.append('data_id_')
                 columns.extend(data_item_columns)
             columns.append('question')
             columns.append('answer')
@@ -95,23 +100,26 @@ def by_question(request):
                             for answer_value in answer.values:
                                 row = {}
                                 if answer_value.name:
-                                    row = {'page': qsheet.name,
-                                           'participant_id': answer.participant_id,
+                                    row = {'page_': qsheet.name,
+                                           'participant_id_': answer.participant_id,
                                            'question': '%s.%s' % (question.name, answer_value.name),
                                            'answer': fix_na(answer_value.value, na_value)}
                                 else:
-                                    row = {'page': qsheet.name,
-                                           'participant_id': answer.participant_id,
+                                    row = {'page_': qsheet.name,
+                                           'participant_id_': answer.participant_id,
                                            'question': question.name,
                                            'answer': fix_na(answer_value.value, na_value)}
                                 if answer.data_item_id:
-                                    row['data_id'] = answer.data_item_id
+                                    row['data_id_'] = answer.data_item_id
                                     for attr in answer.data_item.attributes:
                                         row['%s.%s' % (qsheet.name, attr.key)] = attr.value
                                 rows.append(row)
+            if spss_safe:
+                columns, rows = make_spss_safe(columns, rows)
             return {'columns': columns,
                     'rows': rows,
                     'na_value': na_value,
+                    'spss_safe': spss_safe,
                     'survey': survey}
         else:
             redirect_to_login(request)
@@ -146,7 +154,7 @@ def generate_question_columns(base_name, question, q_schema, data_items, data_id
                     for data_item in data_items:
                         columns.append('%s.other_.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
                 else:
-                    columns.append('%s.other' % (base_name))
+                    columns.append('%s.other_' % (base_name))
         else:
             if data_items:
                 for data_item in data_items:
@@ -194,9 +202,9 @@ def generate_columns(survey, selected_columns, data_identifiers, dbsession):
                                                          dbsession))
     columns.sort()
     if '_.completed' in selected_columns:
-        columns.insert(0, 'completed')
+        columns.insert(0, 'completed_')
     if '_.participant_id' in selected_columns:
-        columns.insert(0, 'participant_id')
+        columns.insert(0, 'participant_id_')
     return columns
 
 @view_config(route_name='survey.results.by_participant')
@@ -220,9 +228,10 @@ def participant(request):
                     if question.q_type.answer_schema():
                         selected_columns.append('%s.%s' % (qsheet.name, question.name))
                 if qsheet.data_items:
-                    data_identifiers[qsheet.name] = 'id'
+                    data_identifiers[qsheet.name] = 'id_'
             selected_columns.sort()
             if request.method == 'POST':
+                import pdb; pdb.set_trace()
                 try :
                     params = ByParticipantSchema().to_python(request.POST)
                     selected_columns = params['columns']
@@ -231,6 +240,7 @@ def participant(request):
                         data_identifiers[data_identifier['qsheet']] = data_identifier['column']
                     columns = generate_columns(survey, selected_columns, data_identifiers, dbsession)
                     na_value = params['na_value']
+                    spss_safe = params['spss_safe']
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'e': e,
@@ -238,17 +248,19 @@ def participant(request):
                             'selected_columns': selected_columns,
                             'data_identifiers': data_identifiers,
                             'na_value': na_value,
+                            'spss_safe': spss_safe,
                             'columns': columns,
                             'rows': []}
             else:
                 columns = generate_columns(survey, selected_columns, data_identifiers, dbsession)
                 na_value = 'NA'
+                spss_safe = 'off'
             rows = []
             count = 0
             for participant in survey.participants:
                 row = dict([(c, na_value) for c in columns])
-                if 'participant_id' in columns:
-                    row['participant_id'] = participant.id
+                if 'participant_id_' in columns:
+                    row['participant_id_'] = participant.id
                 completed = True
                 for qsheet in survey.qsheets:
                     for question in qsheet.questions:
@@ -278,7 +290,7 @@ def participant(request):
                                         key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.value)
                                         value = 1
                                     else:
-                                        key = '%s.%s.other' % (qsheet.name, question.name)
+                                        key = '%s.%s.other_' % (qsheet.name, question.name)
                             elif q_schema['type'] == 'multiple':
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
                                     if answer_value.value:
@@ -297,15 +309,16 @@ def participant(request):
                             if answer_value.answer.data_item:
                                 key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
                             row[key] = value
-                if 'completed' in columns:
-                    row['completed'] = completed
+                if 'completed_' in columns:
+                    row['completed_'] = completed
                 rows.append(row)
                 count = count + 1
-            if request.matchdict.has_key('ext'):
+            if spss_safe:
                 columns, rows = make_spss_safe(columns, rows)
             return {'selected_columns': selected_columns,
                     'data_identifiers': data_identifiers,
                     'na_value': na_value,
+                    'spss_safe': spss_safe,
                     'columns': columns,
                     'rows': rows,
                     'survey': survey}
@@ -314,6 +327,39 @@ def participant(request):
     else:
         raise HTTPNotFound()
 
+def spss_safe_string(name):
+    """ 
+    Makes string name safe for use as an spss variable name by arbitrary substitutions.
+    These remove any characters which are not allowed and also remove '_' and '.' when 
+    they are at the end of the name.
+    :param name: The name to be processed
+    :return: An SPSS safe version of name
+    """
+    name = re.sub('[^a-zA-Z0-9._]', '', name)
+    name = re.sub('_$', '', name)
+    name = re.sub('\.$', '', name)
+    return name
+
+def make_spss_safe(columns, rows):
+    """ 
+    Modifies the names in Lists of columns and rows to be SPSS safe.
+    :param columns: a List of the columns to be processed 
+    :param rows: a List of the rows to be processed, each row is a Dict 
+    :return: SPSS safe versions of columns and rows
+    """
+    old_columns = columns
+    old_rows = rows
+    columns = []
+    rows = []
+    for column in old_columns:
+        columns.append(spss_safe_string(column))
+    for row in old_rows:
+        new_row = {}
+        for key in row.keys():
+            new_row[spss_safe_string(key)] = row[key]
+        rows.append(new_row)
+
+    return (columns, rows)
 
 
 
