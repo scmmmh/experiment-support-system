@@ -418,6 +418,7 @@ class QSheetTransition(Base):
     
     id = Column(Integer, primary_key=True)
     source_id = Column(ForeignKey(QSheet.id))
+    condition = Column(Unicode(255))
     target_id = Column(ForeignKey(QSheet.id))
 
 class DataItem(Base):

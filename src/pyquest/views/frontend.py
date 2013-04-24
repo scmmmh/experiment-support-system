@@ -152,9 +152,11 @@ def get_participant(dbsession, survey, state):
     else:
         return participant
 
+# PCS LOOK HERE - function to generate next qsheet from list of transitions.
 def next_qsheet(qsheet):
     for transition in qsheet.next:
-        return transition.target
+        if (eval(transition.condition) == True):
+            return transition.target
     return None
 
 def calculate_progress(qsheet, participant):
