@@ -253,7 +253,7 @@ def participant(request):
             else:
                 columns = generate_columns(survey, selected_columns, data_identifiers, dbsession)
                 na_value = 'NA'
-                spss_safe = 'off'
+                spss_safe = False
             rows = []
             count = 0
             for participant in survey.participants:
