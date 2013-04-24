@@ -127,7 +127,11 @@ def determine_qsheet_buttons(qsheet):
     :param qsheet: The :py:class:`~pyquest.models.QSheet` to determine the buttons for
     :return: A `list` with the submit options
     """
-    if len(qsheet.next) > 0:
+#    if len(qsheet.next) > 0:
+#        options = ['next']
+#    else:
+#        options = ['finish']
+    if qsheet.next and qsheet.next[0].target_id != None:
         options = ['next']
     else:
         options = ['finish']
@@ -161,8 +165,8 @@ def next_qsheet(qsheet):
 
 def calculate_progress(qsheet, participant):
     def count_to_end(qsheet):
-        if qsheet.next:
-            return max([count_to_end(t.target) for t in qsheet.next])
+        if qsheet and qsheet.next:
+            return max([count_to_end(t.target_id) for t in qsheet.next])
         else:
             return 1
     answered_qsids = set([a.question.qsheet.id for a in participant.answers])
