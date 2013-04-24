@@ -15,6 +15,8 @@ from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.helpers.results import fix_na
 from pyquest.models import (DBSession, Survey, Answer, AnswerValue, Question)
 from pyquest.util import load_question_schema_params
+import re
+
 
 class DataIdentifierSchema(Schema):
     qsheet = validators.UnicodeString(not_empty=True)
@@ -23,6 +25,7 @@ class ByParticipantSchema(Schema):
     columns = foreach.ForEach(validators.UnicodeString(not_empty=True))
     data_identifier = foreach.ForEach(DataIdentifierSchema(), if_empty=[])
     na_value = validators.UnicodeString()
+    spss_safe = validators.Bool()
 
     pre_validators = [variabledecode.NestedVariables()]
 
@@ -64,15 +67,18 @@ def by_question(request):
             try :
                 params = ByParticipantSchema().to_python(request.POST)
                 na_value = params['na_value']
+                spss_safe = params['spss_safe']
             except api.Invalid as e:
                 e.params = request.POST
                 return {'e' : e,
                         'columns': columns,
                         'rows': rows,
                         'na_value': na_value,
+                        'spss_safe': spss_safe,
                         'survey': survey}
         else:
             na_value = 'NA'
+            spss_safe = False
 
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             rows = []
@@ -108,9 +114,12 @@ def by_question(request):
                                     for attr in answer.data_item.attributes:
                                         row['%s.%s' % (qsheet.name, attr.key)] = attr.value
                                 rows.append(row)
+            if spss_safe:
+                columns, rows = make_spss_safe(columns, rows)
             return {'columns': columns,
                     'rows': rows,
                     'na_value': na_value,
+                    'spss_safe': spss_safe,
                     'survey': survey}
         else:
             redirect_to_login(request)
@@ -230,6 +239,7 @@ def participant(request):
                         data_identifiers[data_identifier['qsheet']] = data_identifier['column']
                     columns = generate_columns(survey, selected_columns, data_identifiers, dbsession)
                     na_value = params['na_value']
+                    spss_safe = params['spss_safe']
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'e': e,
@@ -237,11 +247,13 @@ def participant(request):
                             'selected_columns': selected_columns,
                             'data_identifiers': data_identifiers,
                             'na_value': na_value,
+                            'spss_safe': spss_safe,
                             'columns': columns,
                             'rows': []}
             else:
                 columns = generate_columns(survey, selected_columns, data_identifiers, dbsession)
                 na_value = 'NA'
+                spss_safe = False
             rows = []
             count = 0
             for participant in survey.participants:
@@ -300,9 +312,12 @@ def participant(request):
                     row['completed_'] = completed
                 rows.append(row)
                 count = count + 1
+            if spss_safe:
+                columns, rows = make_spss_safe(columns, rows)
             return {'selected_columns': selected_columns,
                     'data_identifiers': data_identifiers,
                     'na_value': na_value,
+                    'spss_safe': spss_safe,
                     'columns': columns,
                     'rows': rows,
                     'survey': survey}
@@ -310,3 +325,40 @@ def participant(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+def spss_safe_string(name):
+    """ 
+    Makes string name safe for use as an spss variable name by arbitrary substitutions.
+    These remove any characters which are not allowed and also remove '_' and '.' when 
+    they are at the end of the name.
+    :param name: The name to be processed
+    :return: An SPSS safe version of name
+    """
+    name = re.sub('[^a-zA-Z0-9._]', '', name)
+    name = re.sub('_$', '', name)
+    name = re.sub('\.$', '', name)
+    return name
+
+def make_spss_safe(columns, rows):
+    """ 
+    Modifies the names in Lists of columns and rows to be SPSS safe.
+    :param columns: a List of the columns to be processed 
+    :param rows: a List of the rows to be processed, each row is a Dict 
+    :return: SPSS safe versions of columns and rows
+    """
+    old_columns = columns
+    old_rows = rows
+    columns = []
+    rows = []
+    for column in old_columns:
+        columns.append(spss_safe_string(column))
+    for row in old_rows:
+        new_row = {}
+        for key in row.keys():
+            new_row[spss_safe_string(key)] = row[key]
+        rows.append(new_row)
+
+    return (columns, rows)
+
+
+
