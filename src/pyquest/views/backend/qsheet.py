@@ -41,6 +41,7 @@ class QSheetSourceSchema(Schema):
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition = validators.Int(if_missing=None, if_empty=None)
+    transition_a = validators.Int(if_missing=None, if_empty=None)
 
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -55,6 +56,7 @@ class QSheetVisualSchema(Schema):
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition = validators.Int(if_missing=None, if_empty=None)
+    transition_a = validators.Int(if_missing=None, if_empty=None)
     
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -300,7 +302,6 @@ def edit(request):
                         qsheet.set_attr_value('transition-type', params['transition_type'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
-                        import pdb; pdb.set_trace()
                         # next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                         #                                                   QSheet.survey_id==request.matchdict['sid'])).first()
                         # if qsheet.next:
@@ -313,14 +314,14 @@ def edit(request):
                         #     if next_qsheet:
                         #         qsheet.next.append(QSheetTransition(target_id=next_qsheet.id))
 
-                        condition = 'True';
+                        new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition'])
                         if (params['transition_type'] == 'conditional'):
-                            condition = params['transition_condition']
-                        new_transition = QSheetTransition(source_id = qsheet.id, condition = condition, target_id = params['transition'])
+                            new_transition_conditon = TransitionCondition(python_code = params['transition_condition'])
 
                         # if (params['transition_type'] == 'fixed'):
                         if qsheet.next:
                             for transition in qsheet.next:
+                                # delete all TransitionConditions for this transition
                                 dbsession.delete(transition)
                         qsheet.next = [new_transition]
                         # else:

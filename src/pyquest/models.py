@@ -418,8 +418,17 @@ class QSheetTransition(Base):
     
     id = Column(Integer, primary_key=True)
     source_id = Column(ForeignKey(QSheet.id))
-    condition = Column(Unicode(255))
     target_id = Column(ForeignKey(QSheet.id))
+
+class TransitionCondition(Base):
+
+    __tablename__ = 'transition_conditions'
+    id = Column(Integer, primary_key=True)
+    transition_id = Column(ForeignKey(QSheetTransition.id))
+    python_code = Column(Unicode(255))
+
+    def evaluate(self):
+        return eval(self.python_code)
 
 class DataItem(Base):
     

@@ -21,7 +21,7 @@ from sqlalchemy.sql.expression import not_
 
 from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
-    DataItemCount, Answer, AnswerValue, Question)
+    DataItemCount, Answer, AnswerValue, Question, TransitionCondition)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 
 def safe_int(value):
@@ -157,18 +157,22 @@ def get_participant(dbsession, survey, state):
         return participant
 
 # PCS LOOK HERE - function to generate next qsheet from list of transitions.
-def next_qsheet(qsheet):
+def next_qsheet(dbsession, qsheet):
     for transition in qsheet.next:
-        if (eval(transition.condition) == True):
+        condition = dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
+        if (condition == None or condition.evaluate() == True):
             return transition.target
     return None
 
 def calculate_progress(qsheet, participant):
     def count_to_end(qsheet):
-        if qsheet and qsheet.next:
-            return max([count_to_end(t.target_id) for t in qsheet.next])
+        if qsheet:
+            if qsheet.next:
+                return max([count_to_end(t.target) for t in qsheet.next])
+            else:
+                return 1
         else:
-            return 1
+            return 0
     answered_qsids = set([a.question.qsheet.id for a in participant.answers])
     done = len(answered_qsids)
     remaining = count_to_end(qsheet)
@@ -215,7 +219,7 @@ def run_survey(request):
                 state['dids'] = select_data_items(qsheet.id, state, qsheet, dbsession)
                 if len(state['dids']) == 0:
                     response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
-                    next_qsi = next_qsheet(qsheet)
+                    next_qsi = next_qsheet(dbsession, qsheet)
                     if next_qsi:
                         state['qsid'] = next_qsi.id
                     else:
@@ -315,7 +319,7 @@ def run_survey(request):
                 update_data_item_counts(state, [d['did'] for d in data_items], dbsession)
                 qsheet = dbsession.query(QSheet).filter(QSheet.id==state['qsid']).first()
                 if qsheet_answers['action_'] in [_('Next Page'), _('Finish Survey')]:
-                    next_qsi = next_qsheet(qsheet)
+                    next_qsi = next_qsheet(dbsession, qsheet)
                     if next_qsi:
                         state['qsid'] = next_qsi.id
                     else:
