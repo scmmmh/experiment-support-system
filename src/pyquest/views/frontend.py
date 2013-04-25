@@ -160,7 +160,7 @@ def get_participant(dbsession, survey, state):
 def next_qsheet(dbsession, qsheet):
     for transition in qsheet.next:
         condition = dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
-        if (condition == None or condition.evaluate() == True):
+        if (condition == None or condition.evaluate(qsheet) == True):
             return transition.target
     return None
 

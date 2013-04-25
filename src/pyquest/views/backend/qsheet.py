@@ -18,7 +18,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
                             QuestionAttributeGroup, QSheetAttribute, QSheetTransition,
-                            Participant, QuestionType, QuestionTypeGroup)
+                            Participant, QuestionType, QuestionTypeGroup, TransitionCondition)
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
                                 XmlValidator, QuestionTypeSchema)
 
@@ -313,16 +313,18 @@ def edit(request):
                         # else:
                         #     if next_qsheet:
                         #         qsheet.next.append(QSheetTransition(target_id=next_qsheet.id))
-
+#                        import pdb; pdb.set_trace()
                         new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition'])
+ #                       dbsession.flush()
                         if (params['transition_type'] == 'conditional'):
-                            new_transition_conditon = TransitionCondition(python_code = params['transition_condition'])
+                           new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = params['transition_condition'])
+                        dbsession.add(new_transition)
 
                         # if (params['transition_type'] == 'fixed'):
-                        if qsheet.next:
-                            for transition in qsheet.next:
-                                # delete all TransitionConditions for this transition
-                                dbsession.delete(transition)
+                        # if qsheet.next:
+                        #     for transition in qsheet.next:
+                        #         dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).delete()
+                        #         dbsession.delete(transition)
                         qsheet.next = [new_transition]
                         # else:
                         #     qsheet.next.append(new_transition)

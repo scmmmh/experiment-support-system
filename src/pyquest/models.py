@@ -423,11 +423,15 @@ class QSheetTransition(Base):
 class TransitionCondition(Base):
 
     __tablename__ = 'transition_conditions'
+
     id = Column(Integer, primary_key=True)
-    transition_id = Column(ForeignKey(QSheetTransition.id))
+    transition_id = Column(ForeignKey('qsheet_transitions.id'))
     python_code = Column(Unicode(255))
 
-    def evaluate(self):
+    transition = relationship("QSheetTransition", backref=backref('condition', uselist=False))
+
+    def evaluate(self, qsheet):
+        import pdb; pdb.set_trace
         return eval(self.python_code)
 
 class DataItem(Base):
