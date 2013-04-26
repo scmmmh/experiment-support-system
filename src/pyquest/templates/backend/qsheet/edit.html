@@ -306,11 +306,12 @@
 	    <dt>Transition</dt>
 	    <dd>
 	      <dl>
-		<dt>${h.form.radio('transition_type', 'fixed', e, checked=(qsheet.attr_value('transition_type', default='fixed') == 'fixed'), label="fixed transition to:")}</dt>
+		<dt>${h.form.radio('transition_type', 'fixed', e, checked=(qsheet.attr_value('transition-type', default='fixed') == 'fixed'), label="fixed transition to:")}</dt>
 		<dd>${h.form.select('transition', qsheet.next[0].target.id if (len(qsheet.next) > 0 and qsheet.next[0].target_id != None) else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}</dd>
-		<dt>${h.form.radio('transition_type', 'conditional', e, label="conditional transition:")}</dt>
-		<dd>${h.form.text_field('transition_condition', 'True', e)}
-		  ${h.form.select('transition_a', qsheet.next[0].target.id if (len(qsheet.next) > 0 and qsheet.next[0].target_id != None) else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}
+		<dt>${h.form.radio('transition_type', 'conditional', e, checked=(qsheet.attr_value('transition-type', default='fixed') == 'conditional'), label="conditional transition:")}</dt>
+		<dd><b>If </b> ${h.form.text_field('transition_condition', qsheet.next[0].condition.python_code if(qsheet.next[0].condition) else 'True', e)} <b> then </b>
+		  ${h.form.select('transition_a', qsheet.next[0].target.id if (len(qsheet.next) > 0 and qsheet.next[0].target_id != None) else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}<br/>
+		  <b> else </b> ${h.form.select('transition_default', qsheet.next[1].target.id if (len(qsheet.next) > 1 and qsheet.next[1].target_id != None) else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}
 		</dd>
 	      </dl>
 	    </dd>

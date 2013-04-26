@@ -42,6 +42,7 @@ class QSheetSourceSchema(Schema):
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition = validators.Int(if_missing=None, if_empty=None)
     transition_a = validators.Int(if_missing=None, if_empty=None)
+    transition_default = validators.Int(if_missing=None, if_empty=None)
 
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -57,6 +58,7 @@ class QSheetVisualSchema(Schema):
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition = validators.Int(if_missing=None, if_empty=None)
     transition_a = validators.Int(if_missing=None, if_empty=None)
+    transition_default = validators.Int(if_missing=None, if_empty=None)
     
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -302,32 +304,20 @@ def edit(request):
                         qsheet.set_attr_value('transition-type', params['transition_type'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
-                        # next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
-                        #                                                   QSheet.survey_id==request.matchdict['sid'])).first()
-                        # if qsheet.next:
-                        #     if next_qsheet:
-                        #         qsheet.next[0].target_id = next_qsheet.id
-                        #     else:
-                        #         dbsession.delete(qsheet.next[0])
-                        #         qsheet.next = []
-                        # else:
-                        #     if next_qsheet:
-                        #         qsheet.next.append(QSheetTransition(target_id=next_qsheet.id))
-#                        import pdb; pdb.set_trace()
-                        new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition'])
- #                       dbsession.flush()
-                        if (params['transition_type'] == 'conditional'):
-                           new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = params['transition_condition'])
-                        dbsession.add(new_transition)
 
-                        # if (params['transition_type'] == 'fixed'):
-                        # if qsheet.next:
-                        #     for transition in qsheet.next:
-                        #         dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).delete()
-                        #         dbsession.delete(transition)
-                        qsheet.next = [new_transition]
-                        # else:
-                        #     qsheet.next.append(new_transition)
+                        if (params['transition_type'] == 'fixed'):
+                            new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition'])
+                            qsheet.next = [new_transition]
+                            dbsession.add(new_transition)
+                        else:
+                            new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition_a'])
+                            new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = params['transition_condition'])
+                            qsheet.next = [new_transition]
+                            dbsession.add(new_transition)
+                            default_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition_default'])
+                            default_transition.condition = TransitionCondition(transition_id = default_transition.id, python_code = 'True')
+                            dbsession.add(default_transition)
+                            qsheet.next.append(default_transition)
                         
 
                         for question in qsheet.questions:
