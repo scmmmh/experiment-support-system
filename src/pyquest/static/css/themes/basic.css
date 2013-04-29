@@ -21,4 +21,7 @@
 .qsheet .role-survey-form .buttons input[type=submit], .role-survey-form .buttons input[type=reset] {padding:0.3em 0.5em;}
 
 /* Testing-box styles */
-.role-testing {display:none;}
+.role-testing {position:fixed;top:0px;left:0px;max-width:150px;padding:3px 5px;border-right:2px solid #aa0000;border-bottom:2px solid #aa0000;}
+.role-testing a {padding-left:3px;color:#222222;}
+.role-testing a, .role-testing p {display:none;}
+.role-testing:hover a, .role-testing:hover p {display:block;}
