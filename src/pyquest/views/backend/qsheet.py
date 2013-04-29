@@ -21,6 +21,7 @@ from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribu
                             Participant, QuestionType, QuestionTypeGroup)
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
                                 XmlValidator, QuestionTypeSchema)
+from pyquest.views.frontend import calculate_progress
 
 class QSheetNewSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -236,13 +237,30 @@ def view(request):
     user = current_user(request)
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
-            example = {'did': 0}
+            return {'survey': survey,
+                    'qsheet': qsheet}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
+@view_config(route_name='survey.qsheet.preview')
+@render({'text/html': 'backend/qsheet/preview.html'})
+def preview(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+    user = current_user(request)
+    if survey and qsheet:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
+            example = [{'did': 0}]
             if qsheet.data_items:
-                example['did'] = qsheet.data_items[0].id
+                example[0]['did'] = qsheet.data_items[0].id
                 for attr in qsheet.data_items[0].attributes:
-                    example[attr.key] = attr.value
+                    example[0][attr.key] = attr.value
             if request.method == 'POST':
-                validator = PageSchema(qsheet, [example])
+                validator = PageSchema(qsheet, example)
                 try:
                     validator.to_python(request.POST, ValidationState(request=request))
                 except api.Invalid as ie:
@@ -250,13 +268,19 @@ def view(request):
                     ie.params = request.POST
                     return {'survey': survey,
                             'qsheet': qsheet,
-                            'example': example,
+                            'data_items': example,
                             'participant': Participant(id=-1),
+                            'control': None,
+                            'progress': calculate_progress(qsheet, Participant(id=-1)),
+                            'submit_options': ['test-validate'],
                             'e': ie}
             return {'survey': survey,
                     'qsheet': qsheet,
-                    'example': example,
-                    'participant': Participant(id=-1)}
+                    'data_items': example,
+                    'participant': Participant(id=-1),
+                    'control': None,
+                    'progress': calculate_progress(qsheet, Participant(id=-1)),
+                    'submit_options': ['test-validate']}
         else:
             redirect_to_login(request)
     else:
