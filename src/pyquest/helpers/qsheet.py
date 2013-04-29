@@ -137,3 +137,16 @@ def render_questions(qsheet, item, p, error=None):
         sections.append(section)
 
     return tag(sections)
+
+def render_transition(qsheet, transition, h, error=None):
+#    tmpl = TemplateLoader([loader.package('pyquest', 'templates/frontend')]).load('transition.html')
+    global ldr
+    tmpl = ldr.load('transition.html')
+    return tmpl.generate(qsheet=qsheet, t=transition, h=h, e=error)
+
+def render_transitions(qsheet, h, error=None):
+    sections = []
+    e = error
+    for transition in qsheet.next:
+        sections.append(render_transition(qsheet, transition, h, e))
+    return tag(sections)

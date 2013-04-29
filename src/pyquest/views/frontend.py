@@ -127,10 +127,6 @@ def determine_qsheet_buttons(qsheet):
     :param qsheet: The :py:class:`~pyquest.models.QSheet` to determine the buttons for
     :return: A `list` with the submit options
     """
-#    if len(qsheet.next) > 0:
-#        options = ['next']
-#    else:
-#        options = ['finish']
     if qsheet.next and qsheet.next[0].target_id != None:
         options = ['next']
     else:

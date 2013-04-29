@@ -1,0 +1,12 @@
+<section xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" class="transition">
+<py:choose test="t.condition">
+  <py:when test="None">
+   <b> default: </b> ${h.form.select('transition_default', t.target_id, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in qsheet.survey.qsheets if qs.id != qsheet.id], e)}
+${h.form.checkbox('add_condition', False, e, checked=False, label='Add Condition')}
+  </py:when>
+  <py:otherwise>
+<b>condition_one: if answer to question</b> ${h.form.select('condition_one_question', None, [(q.id, q.name) for q in qsheet.questions], e)}<b>is </b> ${h.form.text_field('transition_one_condition', t.condition.python_code, e)} <b> then </b>
+${h.form.select('transition_one', t.target_id, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in qsheet.survey.qsheets if qs.id != qsheet.id], e)}
+   </py:otherwise>
+</py:choose>
+</section>

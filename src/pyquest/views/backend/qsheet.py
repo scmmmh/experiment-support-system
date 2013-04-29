@@ -36,13 +36,14 @@ class QSheetSourceSchema(Schema):
     scripts = validators.UnicodeString()
     repeat = validators.UnicodeString(not_empty=True)
     show_question_numbers = validators.UnicodeString(not_empty=True)
-    transition_type = validators.UnicodeString(not_empty=True)
-    transition_condition = validators.UnicodeString()
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
-    transition = validators.Int(if_missing=None, if_empty=None)
-    transition_a = validators.Int(if_missing=None, if_empty=None)
     transition_default = validators.Int(if_missing=None, if_empty=None)
+    condition_one = validators.Bool(if_missing=False)
+    condition_one_question = validators.Int(if_missing=None, if_empty=None)
+    transition_one_condition = validators.UnicodeString(if_missing=None)
+    transition_one = validators.Int(if_missing=None, if_empty=None)
+    add_condition = validators.Bool()
 
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -52,13 +53,14 @@ class QSheetVisualSchema(Schema):
     scripts = validators.UnicodeString()
     repeat = validators.UnicodeString(not_empty=True)
     show_question_numbers = validators.UnicodeString(not_empty=True)
-    transition_type = validators.UnicodeString(not_empty=True)
-    transition_condition = validators.UnicodeString()
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
-    transition = validators.Int(if_missing=None, if_empty=None)
-    transition_a = validators.Int(if_missing=None, if_empty=None)
     transition_default = validators.Int(if_missing=None, if_empty=None)
+    condition_one = validators.Bool(if_missing=False)
+    condition_one_question = validators.Int(if_missing=None, if_empty=None)
+    transition_one_condition = validators.UnicodeString(if_missing=None)
+    transition_one = validators.Int(if_missing=None, if_empty=None)
+    add_condition = validators.Bool()
     
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -96,7 +98,7 @@ def new_qsheet(request):
                         qsheet.attributes.append(QSheetAttribute(key='data-items', value='0'))
                         qsheet.attributes.append(QSheetAttribute(key='control-items', value='0'))
                         qsheet.attributes.append(QSheetAttribute(key='show-question-numbers', value='yes'))
-                        qsheet.attributes.append(QSheetAttribute(key='transition-type', value='fixed'))
+                        qsheet.attributes.append(QSheetAttribute(key='condition-one', value='False'))
                         survey.qsheets.append(qsheet)
                         if not survey.start:
                             survey.start = qsheet
@@ -301,24 +303,26 @@ def edit(request):
                         qsheet.scripts = params['scripts']
                         qsheet.set_attr_value('repeat', params['repeat'])
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
-                        qsheet.set_attr_value('transition-type', params['transition_type'])
                         qsheet.set_attr_value('data-items', params['data_items'])
+                        qsheet.set_attr_value('condition-one', params['condition_one'])
                         qsheet.set_attr_value('control-items', params['control_items'])
 
-                        if (params['transition_type'] == 'fixed'):
-                            new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition'])
-                            qsheet.next = [new_transition]
+                        qsheet.next = []
+                        if (params['add_condition']):
+                            new_transition = QSheetTransition(source_id = qsheet.id)
+                            new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = '')
+                            qsheet.next.append(new_transition)
                             dbsession.add(new_transition)
-                        else:
-                            new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition_a'])
-                            new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = params['transition_condition'])
-                            qsheet.next = [new_transition]
+
+                        if (params['transition_one']):
+                            new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition_one'])
+                            new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = params['transition_one_condition'])
+                            qsheet.next.append(new_transition)
                             dbsession.add(new_transition)
-                            default_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition_default'])
-                            default_transition.condition = TransitionCondition(transition_id = default_transition.id, python_code = 'True')
-                            dbsession.add(default_transition)
-                            qsheet.next.append(default_transition)
-                        
+
+                        new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition_default'])
+                        qsheet.next.append(new_transition)
+                        dbsession.add(new_transition)
 
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
@@ -450,7 +454,7 @@ def edit_source(request):
                         qsheet.scripts = params['scripts']
                         qsheet.set_attr_value('repeat', params['repeat']) 
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
-                        qsheet.set_attr_value('transition-type', params['transition_type'])
+#                        qsheet.set_attr_value('condition-one', params['condition_one'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
@@ -541,3 +545,5 @@ def export(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+

@@ -431,12 +431,12 @@ class TransitionCondition(Base):
     transition = relationship("QSheetTransition", backref=backref('condition', uselist=False, cascade='all,delete-orphan'))
 
     def evaluate(self, dbsession, qsheet, participant):
-        import pdb; pdb.set_trace()
         question_id = qsheet.questions[0].id
         answer = dbsession.query(Answer).filter(Answer.question_id==question_id).filter(Answer.participant_id==participant.id).first()
-        answer = dbsession.query(AnswerValue).filter(AnswerValue.answer_id==answer.id).first()
-        answer = answer.value
-        return eval(self.python_code)
+        if (answer):
+            answer = dbsession.query(AnswerValue).filter(AnswerValue.answer_id==answer.id).first()
+            answer = answer.value
+        return eval('answer =="' + self.python_code + '"')
 
 class DataItem(Base):
     

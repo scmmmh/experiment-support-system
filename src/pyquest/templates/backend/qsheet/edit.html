@@ -304,17 +304,7 @@
 	        <dt>Show Question Numbers</dt>
             <dd>${h.form.select('show_question_numbers', qsheet.attr_value('show-question-numbers', default='yes'), [('yes', 'Yes'), ('no', 'No')], e, class_='role-qsheet-show-question-numbers')}</dd>
 	    <dt>Transition</dt>
-	    <dd>
-	      <dl>
-		<dt>${h.form.radio('transition_type', 'fixed', e, checked=(qsheet.attr_value('transition-type', default='fixed') == 'fixed'), label="fixed transition to:")}</dt>
-		<dd>${h.form.select('transition', qsheet.next[0].target.id if (len(qsheet.next) > 0 and qsheet.next[0].target_id != None) else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}</dd>
-		<dt>${h.form.radio('transition_type', 'conditional', e, checked=(qsheet.attr_value('transition-type', default='fixed') == 'conditional'), label="conditional transition:")}</dt>
-		<dd><b>If </b> ${h.form.text_field('transition_condition', qsheet.next[0].condition.python_code if(qsheet.next[0].condition) else 'True', e)} <b> then </b>
-		  ${h.form.select('transition_a', qsheet.next[0].target.id if (len(qsheet.next) > 0 and qsheet.next[0].target_id != None) else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}<br/>
-		  <b> else </b> ${h.form.select('transition_default', qsheet.next[1].target.id if (len(qsheet.next) > 1 and qsheet.next[1].target_id != None) else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}
-		</dd>
-	      </dl>
-	    </dd>
+	    <dd>${h.qsheet.render_transitions(qsheet, h)}</dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>
             <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>
             <dt class="role-js-edit-toggle">Javascript</dt>
