@@ -2,10 +2,8 @@
 <html xmlns:py="http://genshi.edgewall.org/" py:strip="True">
   <head py:match="head">
     <title>${select('title/text()')}</title>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/screen.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/backend.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/buttons/screen.css')}"/>
+    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/toast.css')}"/>
+    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/generic.css')}"/>
     <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
     ${select('style')}
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
@@ -14,8 +12,10 @@
     ${select('script')}
   </head>
   <body py:match="body">
-    <article class="survey">
-      ${select('*')}
-    </article>
+    <div class="wrap">
+      <article class="survey grids">
+        ${select('*')}
+      </article>
+    </div>
   </body>
 </html>

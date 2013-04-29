@@ -187,7 +187,7 @@ def calculate_control_items(qsheet, participant):
         return (correct, total)
 
 @view_config(route_name='survey.run')
-@render({'text/html': 'frontend/qsheet.html'})
+@render({'text/html': 'frontend/running.html'})
 def run_survey(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()

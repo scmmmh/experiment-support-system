@@ -1,5 +1,19 @@
-.survey {width:950px;margin:0 auto;padding-top:1em;}
-.qsheet {margin-top:1em;margin-bottom:1em;padding:1em;box-shadow:3px 3px 5px;}
-.qsheet .data-item {margin-bottom: 2em;}
-.qsheet .data-item + .data-item {border-top:1px solid #000000;padding-top:4em;margin-top:4em;}
-.question hgroup h1 {font-size:150%;font-weight:bold;}
+/* General styles */
+.qsheet h1 {font-size:18pt;color:#222222;}
+.question {margin-bottom:1.5em;background-color:#efefef;border:1px solid #aaaaaa;padding:0.5em 0.8em;}
+.question.text {background-color:#ffffff;border:0;margin-bottom:0;}
+.question h1 {font-size:13pt;color:#222222;margin:0 0 1em 0;}
+.question table {width:100%;}
+.question table thead th {padding:0.3em 0.5em;background-color:#bfbfbf;color:#222222;}
+.question table tbody tr th {padding:0.3em 0.5em;background-color:#f0f0f0;color:#222222;}
+.question table tbody td {padding:0.3em 0.5em;background-color:#f0f0f0;color:#222222;}
+.question li {padding:0.3em 0.5em;}
+.question table tbody td:hover, .question li:hover {background-color:#ffffff;}
+
+/* Button styles */
+.role-survey-form .buttons {margin-top:2em;}
+.role-survey-form .buttons li {margin-left:1em;}
+.role-survey-form .buttons input[type=submit], .role-survey-form .buttons input[type=reset] {padding:0.3em 0.5em;}
+
+/* Testing-box styles */
+.role-testing {display:none;}

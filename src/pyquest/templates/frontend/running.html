@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:i18n="http://genshi.edgewall.org/i18n">
+  <xi:include href="../layout/frontend.html"/>
+  <head>
+    <title>${survey.title} - ${qsheet.title}</title>
+    <style type="text/css">${survey.styles}</style>
+    <style type="text/css">${qsheet.styles}</style>
+    <script type="text/javascript">${survey.scripts}</script>
+    <script type="text/javascript">${qsheet.scripts}</script>
+  </head>
+  <body>
+    <div py:if="survey.status == 'testing'" class="role-testing"> 
+      ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Test', {'href': r.route_url('survey.run', sid=survey.id)})], r)}
+      <div class="error"><div style="padding:0 1em 0.5em 0;" class="left"><img src="${r.static_url('pyquest:static/img/testing.png')}" alt="testing"/></div>This survey is currently being tested and is not live yet.
+        Answers will be validated and recored as if the survey were live, but will be wiped automatically at the end of
+        the test. Testers will also be able to complete the survey multiple times.</div>
+    </div>
+    <aside py:if="control" i18n:msg="perc">Your success rate is: ${int(100.0 * control[0] / control[1])}%</aside>
+    <xi:include href="qsheet.html"/>
+  </body>
+</html>
