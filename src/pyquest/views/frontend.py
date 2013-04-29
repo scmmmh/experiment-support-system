@@ -158,20 +158,22 @@ def next_qsheet(qsheet):
     return None
 
 def calculate_progress(qsheet, participant):
-    def count_to_end(qsheet):
+    def count_to_end(qsheet): # TODO: Cycle detection
         if qsheet.next:
-            return max([count_to_end(t.target) for t in qsheet.next])
+            return max([count_to_end(t.target) for t in qsheet.next]) + 1
+        else:
+            return 0
+    def count_to_start(qsheet):
+        if qsheet.prev:
+            return max([count_to_start(p.source) for p in qsheet.prev]) + 1
         else:
             return 1
-    answered_qsids = set([a.question.qsheet.id for a in participant.answers])
-    done = len(answered_qsids)
+    done = count_to_start(qsheet)
     remaining = count_to_end(qsheet)
-    if qsheet.id not in answered_qsids:
-        remaining = remaining + 1
     if done + remaining == 0:
         return None
     else:
-        return (done, remaining)
+        return (done, done + remaining)
 
 def calculate_control_items(qsheet, participant):
     correct = 0

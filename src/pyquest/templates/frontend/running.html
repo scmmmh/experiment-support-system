@@ -15,7 +15,10 @@
         Answers will be validated and recored as if the survey were live, but will be wiped automatically at the end of
         the test. Testers will also be able to complete the survey multiple times.</div>
     </div>
-    <aside py:if="control" i18n:msg="perc">Your success rate is: ${int(100.0 * control[0] / control[1])}%</aside>
+    <aside class="clearfix role-status">
+      <div class="font-small float-left" py:if="control">You have so far answered ${control[0]} of ${control[1]} control questions correctly</div>
+      <div class="font-small text-right" py:if="progress">Page ${progress[0]} of ${progress[1]}</div>
+    </aside>
     <xi:include href="qsheet.html"/>
   </body>
 </html>

@@ -1,5 +1,10 @@
 /* General styles */
+.role-status {border-bottom:1px solid #aaaaaa; padding:0.3em 0.5em;margin-bottom:1em;}
+
+/* QSheet styles */
 .qsheet h1 {font-size:18pt;color:#222222;}
+
+/* Question styles */
 .question {margin-bottom:1.5em;background-color:#efefef;border:1px solid #aaaaaa;padding:0.5em 0.8em;}
 .question.text {background-color:#ffffff;border:0;margin-bottom:0;}
 .question h1 {font-size:13pt;color:#222222;margin:0 0 1em 0;}
@@ -11,9 +16,9 @@
 .question table tbody td:hover, .question li:hover {background-color:#ffffff;}
 
 /* Button styles */
-.role-survey-form .buttons {margin-top:2em;}
-.role-survey-form .buttons li {margin-left:1em;}
-.role-survey-form .buttons input[type=submit], .role-survey-form .buttons input[type=reset] {padding:0.3em 0.5em;}
+.qsheet .role-survey-form .buttons {margin-top:2em;}
+.qsheet .role-survey-form .buttons li {margin-left:0.5em;}
+.qsheet .role-survey-form .buttons input[type=submit], .role-survey-form .buttons input[type=reset] {padding:0.3em 0.5em;}
 
 /* Testing-box styles */
 .role-testing {display:none;}
