@@ -1,6 +1,12 @@
 /* General styles */
 .role-status {border-bottom:1px solid #aaaaaa; padding:0.3em 0.5em;margin-bottom:1em;}
 
+/* Error styles */
+.error-qsheet-marker {padding:0.8em;margin-bottom:1em;}
+.error-border, .question.error-border {border:2px solid #aa0000;}
+.error-background, .question.error-background, .question table tbody tr.error-background td {background:#fbe3e4;}
+.error-text {color:#8a1f11;}
+
 /* QSheet styles */
 .qsheet h1 {font-size:18pt;color:#222222;}
 
