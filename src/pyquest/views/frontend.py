@@ -23,6 +23,7 @@ from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
     DataItemCount, Answer, AnswerValue, Question, TransitionCondition)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
+from pyquest.helpers.qsheet import transition_sorter
 
 def safe_int(value):
     try:
@@ -154,7 +155,8 @@ def get_participant(dbsession, survey, state):
 
 # PCS LOOK HERE - function to generate next qsheet from list of transitions.
 def next_qsheet(dbsession, qsheet, participant):
-    for transition in qsheet.next:
+    import pdb; pdb.set_trace()
+    for transition in sorted(qsheet.next, key=transition_sorter, reverse=True):
         condition = dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
         if (condition == None or condition.evaluate(dbsession, qsheet, participant) == True):
             return transition.target

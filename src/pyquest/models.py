@@ -425,13 +425,15 @@ class TransitionCondition(Base):
     __tablename__ = 'transition_conditions'
 
     id = Column(Integer, primary_key=True)
-    transition_id = Column(ForeignKey('qsheet_transitions.id'))
+    transition_id = Column(ForeignKey(QSheetTransition.id))
+    question_id = Column(ForeignKey(Question.id))
     python_code = Column(Unicode(255))
 
     transition = relationship("QSheetTransition", backref=backref('condition', uselist=False, cascade='all,delete-orphan'))
 
     def evaluate(self, dbsession, qsheet, participant):
-        question_id = qsheet.questions[0].id
+#        question_id = qsheet.questions[0].id
+        question_id = self.question_id
         answer = dbsession.query(Answer).filter(Answer.question_id==question_id).filter(Answer.participant_id==participant.id).first()
         if (answer):
             answer = dbsession.query(AnswerValue).filter(AnswerValue.answer_id==answer.id).first()

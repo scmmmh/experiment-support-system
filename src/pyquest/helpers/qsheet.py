@@ -144,9 +144,18 @@ def render_transition(qsheet, transition, h, error=None):
     tmpl = ldr.load('transition.html')
     return tmpl.generate(qsheet=qsheet, t=transition, h=h, e=error)
 
+def transition_sorter(transition):
+    if transition.condition:
+        return transition.id
+    else:
+        return -1
+
 def render_transitions(qsheet, h, error=None):
     sections = []
     e = error
-    for transition in qsheet.next:
+
+    transitions = qsheet.next
+    transitions = sorted(transitions, key=transition_sorter, reverse=True)
+    for transition in transitions:
         sections.append(render_transition(qsheet, transition, h, e))
     return tag(sections)

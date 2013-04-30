@@ -12,7 +12,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
-from sqlalchemy import and_
+from sqlalchemy import and_, desc
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
@@ -39,8 +39,7 @@ class QSheetSourceSchema(Schema):
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition_default = validators.Int(if_missing=None, if_empty=None)
-    condition_one = validators.Bool(if_missing=False)
-    condition_one_question = validators.Int(if_missing=None, if_empty=None)
+    transition_one_question = validators.Int(if_missing=None, if_empty=None)
     transition_one_condition = validators.UnicodeString(if_missing=None)
     transition_one = validators.Int(if_missing=None, if_empty=None)
     add_condition = validators.Bool()
@@ -56,8 +55,7 @@ class QSheetVisualSchema(Schema):
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
     transition_default = validators.Int(if_missing=None, if_empty=None)
-    condition_one = validators.Bool(if_missing=False)
-    condition_one_question = validators.Int(if_missing=None, if_empty=None)
+    transition_one_question = validators.Int(if_missing=None, if_empty=None)
     transition_one_condition = validators.UnicodeString(if_missing=None)
     transition_one = validators.Int(if_missing=None, if_empty=None)
     add_condition = validators.Bool()
@@ -304,25 +302,15 @@ def edit(request):
                         qsheet.set_attr_value('repeat', params['repeat'])
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
-                        qsheet.set_attr_value('condition-one', params['condition_one'])
                         qsheet.set_attr_value('control-items', params['control_items'])
 
-                        qsheet.next = []
-                        if (params['add_condition']):
-                            new_transition = QSheetTransition(source_id = qsheet.id)
-                            new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = '')
-                            qsheet.next.append(new_transition)
-                            dbsession.add(new_transition)
-
-                        if (params['transition_one']):
-                            new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition_one'])
-                            new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = params['transition_one_condition'])
-                            qsheet.next.append(new_transition)
-                            dbsession.add(new_transition)
-
-                        new_transition = QSheetTransition(source_id = qsheet.id, target_id = params['transition_default'])
-                        qsheet.next.append(new_transition)
-                        dbsession.add(new_transition)
+                        for transition in qsheet.next:
+                            if transition.condition:
+                                transition.target_id = params['transition_one']
+                                transition.condition.question_id = params['transition_one_question']
+                                transition.condition.python_code = params['transition_one_condition']
+                            else:
+                                transition.target_id = params['transition_default']
 
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
@@ -376,6 +364,42 @@ def edit(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+@view_config(route_name='survey.qsheet.edit.add_condition')
+@render({'text/html': 'backend/qsheet/add_condition.html'})
+def edit_add_condition(request):
+    import pyquest
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+
+    # we only allow one condition for now
+    if len(qsheet.next) == 1:
+        new_transition = QSheetTransition(source_id = qsheet.id)
+        new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = '')
+        qsheet.next.append(new_transition)
+        dbsession.add(new_transition)
+
+    return {'qsheet': qsheet,
+            'h' : pyquest.helpers}
+
+@view_config(route_name='survey.qsheet.edit.delete_condition')
+@render({'text/html': 'backend/qsheet/add_condition.html'})
+def edit_delete_condition(request):
+    import pdb; pdb.set_trace()
+    import pyquest
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+
+    to_delete = dbsession.query(QSheetTransition).filter(and_(QSheetTransition.source_id==qsheet.id, QSheetTransition.condition!=None)).order_by(desc(QSheetTransition.id)).first()
+    if to_delete:
+        qsheet.next.remove(to_delete)
+
+    return {'qsheet': qsheet,
+            'h' : pyquest.helpers}
 
 @view_config(route_name='survey.qsheet.edit.add_question')
 @render({'text/html': 'backend/qsheet/edit_fragment.html'}, allow_cache=False)
@@ -454,7 +478,6 @@ def edit_source(request):
                         qsheet.scripts = params['scripts']
                         qsheet.set_attr_value('repeat', params['repeat']) 
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
-#                        qsheet.set_attr_value('condition-one', params['condition_one'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],

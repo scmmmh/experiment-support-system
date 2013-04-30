@@ -145,6 +145,26 @@
             return false;
         });
     }
+    function set_transition_buttons(){
+        $('.add-transition-condition').click(function() {
+            $.ajax('${r.route_url('survey.qsheet.edit.add_condition', sid=survey.id, qsid=qsheet.id)}', {
+        			success: function(response) {
+            $('dd.transition').html(response);
+            set_transition_buttons();
+}
+});
+        return false;
+        });
+        $('.delete-transition-condition').click(function() {
+            $.ajax('${r.route_url('survey.qsheet.edit.delete_condition', sid=survey.id, qsid=qsheet.id)}', {
+        			success: function(response) {
+            $('dd.transition').html(response);
+            set_transition_buttons();
+}
+});
+        return false;
+        });
+    }
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
         make_toggle_link('role-js-edit');
@@ -258,6 +278,7 @@
         	fix_control_positions();
         });
         fix_control_positions();
+        set_transition_buttons();
     });
     </script>
   </head>
@@ -304,7 +325,7 @@
 	        <dt>Show Question Numbers</dt>
             <dd>${h.form.select('show_question_numbers', qsheet.attr_value('show-question-numbers', default='yes'), [('yes', 'Yes'), ('no', 'No')], e, class_='role-qsheet-show-question-numbers')}</dd>
 	    <dt>Transition</dt>
-	    <dd>${h.qsheet.render_transitions(qsheet, h)}</dd>
+	    <dd class="transition">${h.qsheet.render_transitions(qsheet, h)}</dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>
             <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>
             <dt class="role-js-edit-toggle">Javascript</dt>
