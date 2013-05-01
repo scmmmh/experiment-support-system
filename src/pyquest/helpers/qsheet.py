@@ -138,24 +138,9 @@ def render_questions(qsheet, item, p, error=None):
 
     return tag(sections)
 
-def render_transition(qsheet, transition, h, error=None):
-#    tmpl = TemplateLoader([loader.package('pyquest', 'templates/frontend')]).load('transition.html')
-    global ldr
-    tmpl = ldr.load('transition.html')
-    return tmpl.generate(qsheet=qsheet, t=transition, h=h, e=error)
-
 def transition_sorter(transition):
     if transition.condition:
         return transition.id
     else:
         return -1
 
-def render_transitions(qsheet, h, error=None):
-    sections = []
-    e = error
-
-    transitions = qsheet.next
-    transitions = sorted(transitions, key=transition_sorter, reverse=True)
-    for transition in transitions:
-        sections.append(render_transition(qsheet, transition, h, e))
-    return tag(sections)

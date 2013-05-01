@@ -1,0 +1,24 @@
+<span xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <py:for each="idx, t in enumerate(sorted(qsheet.next, key=h.qsheet.transition_sorter, reverse=True))">
+    <section class="transition">
+      <py:with vars="qsheets_available=[('', '--- Finish ---')] + [(qs.id, qs.title) for qs in qsheet.survey.qsheets if qs.id != qsheet.id]">
+	<py:choose test="t.condition">
+	  <py:when test="None">
+	    <b> default: </b>
+	    ${h.form.select('transitions-%i.target_id' %idx, t.target_id, qsheets_available, e)}
+	    ${h.form.button('AddCondition', class_='add-transition-condition')}
+	    ${h.form.button('DeleteCondition', class_='delete-transition-condition')}
+	  </py:when>
+	  <py:otherwise>
+	    <b>condition ${idx}: if answer to question</b> 
+	    ${h.form.select('transitions-%i.condition-0.question_id' %(idx), t.condition.question_id, [(q.id, q.name) for q in qsheet.questions], e)}
+	    <b>is </b> 
+	    ${h.form.text_field('transitions-%i.condition-0.python_code' %(idx), t.condition.python_code, e)} 
+	    <b> then </b>
+	    ${h.form.select('transitions-%i.target_id' % (idx), t.target_id, qsheets_available, e)}
+	  </py:otherwise>
+	</py:choose>
+      </py:with>
+    </section>
+  </py:for>
+</span>

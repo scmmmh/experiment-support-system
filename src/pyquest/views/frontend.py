@@ -155,7 +155,6 @@ def get_participant(dbsession, survey, state):
 
 # PCS LOOK HERE - function to generate next qsheet from list of transitions.
 def next_qsheet(dbsession, qsheet, participant):
-    import pdb; pdb.set_trace()
     for transition in sorted(qsheet.next, key=transition_sorter, reverse=True):
         condition = dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
         if (condition == None or condition.evaluate(dbsession, qsheet, participant) == True):

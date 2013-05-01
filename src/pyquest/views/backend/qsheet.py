@@ -6,7 +6,7 @@ Created on 24 Jan 2012
 '''
 import transaction
 
-from formencode import Schema, validators, api, variabledecode
+from formencode import Schema, validators, api, variabledecode, foreach
 from lxml import etree
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
@@ -44,6 +44,14 @@ class QSheetSourceSchema(Schema):
     transition_one = validators.Int(if_missing=None, if_empty=None)
     add_condition = validators.Bool()
 
+class ConditionSchema(Schema):
+    question_id = validators.Int(if_missing=0)
+    python_code = validators.String()
+
+class TransitionSchema(Schema):
+    target_id = validators.Int(if_missing=0)
+    condition = foreach.ForEach(ConditionSchema())
+
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
@@ -59,12 +67,14 @@ class QSheetVisualSchema(Schema):
     transition_one_condition = validators.UnicodeString(if_missing=None)
     transition_one = validators.Int(if_missing=None, if_empty=None)
     add_condition = validators.Bool()
-    
+    transitions = foreach.ForEach(TransitionSchema())
+
     pre_validators = [variabledecode.NestedVariables()]
     
 class QSheetAddQuestionSchema(Schema):
     q_type = validators.UnicodeString(not_empty=True)
     order = validators.Int()
+
 
 NAMESPACES = {'pq': 'http://paths.sheffield.ac.uk/pyquest'}
     
@@ -306,11 +316,16 @@ def edit(request):
 
                         for transition in qsheet.next:
                             if transition.condition:
-                                transition.target_id = params['transition_one']
-                                transition.condition.question_id = params['transition_one_question']
-                                transition.condition.python_code = params['transition_one_condition']
+                                transition.target_id = params['transitions'][1]['target_id']
+                                transition.condition.question_id = params['transitions'][1]['condition'][0]['question_id']
+                                transition.condition.python_code = params['transitions'][1]['condition'][0]['python_code']
                             else:
-                                transition.target_id = params['transition_default']
+                                transition.target_id = params['transitions'][0]['target_id']
+
+                        # if len(qsheet.next) == 0:
+                        #     new_transition = QSheetTransition(source_id=qsheet.id)
+                        #     qsheet.next = [new_transition]
+                        #     dbsession.add(new_transition)
 
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
@@ -366,7 +381,7 @@ def edit(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.edit.add_condition')
-@render({'text/html': 'backend/qsheet/add_condition.html'})
+@render({'text/html': 'backend/qsheet/transitions.html'})
 def edit_add_condition(request):
     import pyquest
     dbsession = DBSession()
@@ -374,8 +389,8 @@ def edit_add_condition(request):
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
 
-    # we only allow one condition for now
-    if len(qsheet.next) == 1:
+    # we only allow two conditions for now
+    if len(qsheet.next) < 3:
         new_transition = QSheetTransition(source_id = qsheet.id)
         new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = '')
         qsheet.next.append(new_transition)
@@ -385,9 +400,8 @@ def edit_add_condition(request):
             'h' : pyquest.helpers}
 
 @view_config(route_name='survey.qsheet.edit.delete_condition')
-@render({'text/html': 'backend/qsheet/add_condition.html'})
+@render({'text/html': 'backend/qsheet/transitions.html'})
 def edit_delete_condition(request):
-    import pdb; pdb.set_trace()
     import pyquest
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
