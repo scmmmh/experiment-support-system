@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:qs="http://paths.sheffield.ac.uk/pyquest" targetNamespace="http://paths.sheffield.ac.uk/pyquest" elementFormDefault="qualified">
-    <xs:element name="survey" type="qs:Survey"></xs:element>
-    <xs:element name="qsheet" type="qs:QSheet"></xs:element>
+    <xs:element name="survey" type="qs:Survey"/>
+    <xs:element name="qsheet" type="qs:QSheet"/>
+    <xs:element name="question_type_group" type="qs:QuestionTypeGroup"/>
     
     <xs:complexType name="Survey">
         <xs:sequence>
@@ -70,5 +71,26 @@
         <xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="QuestionTypeGroup">
+        <xs:choice>
+            <xs:element name="question_type_group" type="qs:QuestionTypeGroup" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="question_type" type="qs:QuestionType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="title" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="QuestionType">
+        <xs:sequence>
+            <xs:element name="dbschema" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="answer_validation" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="backend" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="frontend" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="inherit_from" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="title" type="xs:string" use="required"/>
     </xs:complexType>
 </xs:schema>

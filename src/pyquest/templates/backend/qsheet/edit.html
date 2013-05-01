@@ -148,7 +148,9 @@
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
         make_toggle_link('role-js-edit');
-        $('#tools').accordion();
+        $('.role-accordion-2').accordion();
+        $('.role-accordion-1').accordion();
+        $('.role-accordion-0').accordion();
         $('#qsheet-content').sortable({
         	receive: function(ev, ui) {
         		var q_type = ui.item.data('pyquest-name');
@@ -312,13 +314,15 @@
           </dl>
         </section>
         <section class="role-edit-layout clearfix">
-            <aside id="tools" class="right" style="width:200px;position:relative;">
+            <aside id="tools" class="right role-accordion-0" style="width:200px;position:relative;">
+              ${h.qsheet.question_type_list(question_type_groups)}
+              <!-- 
               <py:for each="q_type_group in question_type_groups">
                 <h3><a href="#">${q_type_group.title}</a></h3>
-                <ol>
+                <ol py:if="q_type_group.q_types">
                   <li py:for="q_type in q_type_group.q_types" data-pyquest-name="${q_type.name}">${q_type.title}</li>
                 </ol>
-              </py:for>
+              </py:for> -->
             </aside>
             <ol id="qsheet-content" style="width:700px;">
               <li class="placeholder">Drag elements from the right to construct the questionnaire sheet.</li>

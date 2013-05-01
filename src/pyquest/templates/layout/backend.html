@@ -43,6 +43,7 @@
         <ul>
           <li py:if="h.auth.is_authorised(':user.has_permission(\'admin.users\')', {'user': h.user.current_user(r)})"><a href="${r.route_url('user')}">Administer Users</a></li>
           <li py:if="h.auth.is_authorised(':user.has_permission(\'admin.groups\')', {'user': h.user.current_user(r)})"><a href="${r.route_url('group')}">Administer Groups</a></li>
+          <li py:if="h.auth.is_authorised(':user.has_permission(\'admin.question_types\')', {'user': h.user.current_user(r)})"><a href="${r.route_url('admin.question_types')}">Administer Question Types</a></li>
         </ul>
       </nav>
       ${select('*')}
