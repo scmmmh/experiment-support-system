@@ -36,6 +36,8 @@ nav.pager ol li a {text-decoration:none;}
 nav.pager ol li a:hover {text-decoration:underline;}
 nav.pager ol li.current a {font-weight: bold;}
 footer {font-size:0.8em;text-align:center;padding-top:0.5em;margin-top:2em;border-top:1px dashed #0066cc;}
+.inline-block, .ui-icon.inline-block {display:inline-block;}
+.bottom {vertical-align:bottom;}
 
 /* Survey styles */
 .survey li.page {margin-bottom:2em;padding:1em;}
