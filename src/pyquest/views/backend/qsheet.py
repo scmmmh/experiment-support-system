@@ -38,10 +38,6 @@ class QSheetSourceSchema(Schema):
     show_question_numbers = validators.UnicodeString(not_empty=True)
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
-    transition_default = validators.Int(if_missing=None, if_empty=None)
-    transition_one_question = validators.Int(if_missing=None, if_empty=None)
-    transition_one_condition = validators.UnicodeString(if_missing=None)
-    transition_one = validators.Int(if_missing=None, if_empty=None)
     add_condition = validators.Bool()
 
 class ConditionSchema(Schema):
@@ -49,8 +45,9 @@ class ConditionSchema(Schema):
     python_code = validators.String()
 
 class TransitionSchema(Schema):
+    id = validators.Int(if_missing=0)
     target_id = validators.Int(if_missing=0)
-    condition = foreach.ForEach(ConditionSchema())
+    condition = ConditionSchema(if_missing={})
 
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -62,10 +59,6 @@ class QSheetVisualSchema(Schema):
     show_question_numbers = validators.UnicodeString(not_empty=True)
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
-    transition_default = validators.Int(if_missing=None, if_empty=None)
-    transition_one_question = validators.Int(if_missing=None, if_empty=None)
-    transition_one_condition = validators.UnicodeString(if_missing=None)
-    transition_one = validators.Int(if_missing=None, if_empty=None)
     add_condition = validators.Bool()
     transitions = foreach.ForEach(TransitionSchema())
 
@@ -315,17 +308,12 @@ def edit(request):
                         qsheet.set_attr_value('control-items', params['control_items'])
 
                         for transition in qsheet.next:
-                            if transition.condition:
-                                transition.target_id = params['transitions'][1]['target_id']
-                                transition.condition.question_id = params['transitions'][1]['condition'][0]['question_id']
-                                transition.condition.python_code = params['transitions'][1]['condition'][0]['python_code']
-                            else:
-                                transition.target_id = params['transitions'][0]['target_id']
+                            t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
+                            transition.target_id = t_param['target_id']
+                            if len(t_param['condition']) != 0:
+                                 transition.condition.question_id = t_param['condition']['question_id']
+                                 transition.condition.python_code = t_param['condition']['python_code']
 
-                        # if len(qsheet.next) == 0:
-                        #     new_transition = QSheetTransition(source_id=qsheet.id)
-                        #     qsheet.next = [new_transition]
-                        #     dbsession.add(new_transition)
 
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
@@ -372,6 +360,11 @@ def edit(request):
                                 'question_type_groups': question_type_groups,
                                 'e': e}
             else:
+                # This is for backwards compatibility. An old qsheet with a 'Finish' transition will have next=[]
+                if len(qsheet.next) == 0:
+                    new_transition = QSheetTransition(source_id=qsheet.id)
+                    qsheet.next = [new_transition]
+                    dbsession.add(new_transition)
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'question_type_groups': question_type_groups}
