@@ -38,4 +38,3 @@ def init(config):
     config.add_route('survey.results.by_question.ext', '/surveys/{sid}/results/by_question.{ext}')
     config.add_route('survey.results.by_participant', '/surveys/{sid}/results/by_participant')
     config.add_route('survey.results.by_participant.ext', '/surveys/{sid}/results/by_participant.{ext}')
-    
