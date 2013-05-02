@@ -42,7 +42,7 @@ def load_db_template(filename):
     if not q_type:
         raise TemplateNotFound(filename, 'PyQuestionnaire Question Database')
     if component == 'frontend':
-        tmpl = '<html xmlns:py="http://genshi.edgewall.org/" py:strip="True">%s</html>' % (q_type.frontend)
+        tmpl = '<html xmlns:py="http://genshi.edgewall.org/" py:strip="True">%s</html>' % (q_type.frontend_doc())
     return (filename, q_type_name, StringIO(tmpl), None)
 
 ldr = TemplateLoader([loader.package('pyquest', 'templates/frontend'), load_db_template], auto_reload=True)
@@ -137,3 +137,48 @@ def render_questions(qsheet, item, p, error=None):
         sections.append(section)
 
     return tag(sections)
+
+def question_type_list(question_type_groups, depth=1):
+    tags = []
+    for question_type_group in question_type_groups:
+        if question_type_group.enabled:
+            tags.append(tag.h3(tag.a(question_type_group.title)))
+            if question_type_group.children:
+                tags.append(tag.div(question_type_list(question_type_group.children, depth + 1), class_='role-accordion-%i' % (depth)))
+            else:
+                tags.append(tag.ol([tag.li(question_type.title, data_pyquest_name=question_type.name) for question_type in question_type_group.q_types if question_type.enabled]))
+    return tag(tags)
+
+def admin_question_type_list(request, question_type_groups, path='', enabled=True):
+    def qtg_used(qtg):
+        if qtg.children:
+            for child in qtg.children:
+                if qtg_used(child):
+                    return True
+            return False
+        else:
+            for qt in qtg.q_types:
+                if qt.questions or qt.children:
+                    return True
+            return False
+    tags = []
+    for question_type_group in question_type_groups:
+        if question_type_group.children:
+            delete_tag = None
+            if path == '' and not qtg_used(question_type_group):
+                delete_tag = tag.a('Delete', href=request.route_url('admin.question_types.delete', qtgid=question_type_group.id), class_='button post-submit')
+            tags.append(tag.li(form.hidden_field('order.%i' % (question_type_group.id), ','.join(['qtg_%i' % (qtg.id) for qtg in question_type_group.children]), class_='role-order'),
+                               form.checkbox('enabled', 'qtg.%s' % (question_type_group.id), None, checked=question_type_group.enabled, label=question_type_group.title, data_pyquest_enabled='true' if enabled else 'false'),
+                               tag.a(tag.span(class_='ui-icon ui-icon-triangle-1-e inline-block bottom', style='vertical-align:middle;'), href='#', class_='role-expand hidden'),
+                               tag.a(tag.span(class_='ui-icon ui-icon-triangle-1-s inline-block bottom', style='vertical-align:middle;'), href='#', class_='role-collapse'),
+                               delete_tag,
+                               tag.ol(admin_question_type_list(request, question_type_group.children, '%s.%s' % (path, question_type_group.name), enabled and question_type_group.enabled)),
+                               id='qtg_%i' % (question_type_group.id)))
+        else:
+            tags.append(tag.li(form.hidden_field('order.%i' % (question_type_group.id), ','.join(['qt_%i' % (qt.id) for qt in question_type_group.q_types]), class_='role-order'),
+                               form.checkbox('enabled', 'qtg.%s' % (question_type_group.id), None, checked=question_type_group.enabled, label=question_type_group.title, data_pyquest_enabled='true' if enabled else 'false'),
+                               tag.a(tag.span(class_='ui-icon ui-icon-triangle-1-e inline-block bottom'), href='#', class_='role-expand'),
+                               tag.a(tag.span(class_='ui-icon ui-icon-triangle-1-s inline-block bottom'), href='#', class_='role-collapse hidden'),
+                               tag.ol([tag.li(form.checkbox('enabled', 'qt.%s' % (question_type.id), None, checked=question_type.enabled, label=question_type.title, data_pyquest_enabled='true' if enabled and question_type_group.enabled else 'false'), id='qt_%s' % (question_type.id)) for question_type in question_type_group.q_types], class_='hidden'),
+                               id='qtg_%i' % (question_type_group.id)))
+    return tag(tags)

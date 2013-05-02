@@ -1,3 +1,10 @@
+DEV
+---
+
+- NEW: QuestionTypes can now be derived from parent QuestionTypes
+- NEW: QuestionTypeGroups and their QuestionTypes can now be imported and
+  administered
+ 
 0.9.1
 -----
 
