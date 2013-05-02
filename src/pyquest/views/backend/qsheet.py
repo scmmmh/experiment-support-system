@@ -482,7 +482,7 @@ def edit_source(request):
                         qsheet.title = params['title']
                         qsheet.styles = params['styles']
                         qsheet.scripts = params['scripts']
-                        qsheet.set_attr_value('repeat', params['repeat']) 
+                        qsheet.set_attr_value('repeat', params['repeat'])
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
@@ -574,5 +574,3 @@ def export(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
-
-

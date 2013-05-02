@@ -154,6 +154,14 @@ def get_participant(dbsession, survey, state):
         return participant
 
 def next_qsheet(dbsession, qsheet, participant):
+    """ Returns the next qsheet. Goes through all the transitions specified for this qsheet and looks for the first one
+    which either has no condition or has a condition which is fulfilled.
+
+    :param dbsession: a sqlalchemy data base session
+    :param qsheet: The :py:class:`~pyquest.models.QSheet` we are leaving
+    :param participant: The :py:class:`~pyquest.models.Participant`
+    :return The next :py:class:`~pyquest.models.QSheet` or None (which means finish).
+    """
     for transition in sorted(qsheet.next, key=transition_sorter, reverse=True):
         condition = dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
         if (condition == None or condition.evaluate(dbsession, participant) == True):

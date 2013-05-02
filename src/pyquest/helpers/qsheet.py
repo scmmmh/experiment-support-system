@@ -139,15 +139,36 @@ def render_questions(qsheet, item, p, error=None):
     return tag(sections)
 
 def transition_sorter(transition):
+    """ Specified as the key argument to sorted() calls. Returns value such that transitions with conditions are ordered by
+    their id whereas transitions without have a negative value.
+
+    :param transition: the transition whose order key is to be returned
+    :return the order key to use
+    """
     if transition.condition:
         return transition.id
     else:
         return -1
 
 def transition_destinations(qsheet):
+    """ Returns a list of (id, title) tuples for the other qsheets available as transitions for the given qsheet. The
+    list is in the form used by PyWebtools select items.
+
+    :param qsheet: the qsheet 
+    :return a list of tuples for use in the transitions section of qsheet editing
+    """
     return [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in qsheet.survey.qsheets if qs.id != qsheet.id]
 
 def question_list(qsheet):
+    """ Returns a list of (id, name) tuples for the questions available on the given sheet. The list is in the form
+    used by PyWebtools select items. The actual items are specific to their use in the transitions section of qsheet
+    editing: if the question has subquestions then these are added to the list instead of the question itself and the
+    subquestion name is attached to both the value (for later use in qsheet edit view) and the name (for display) 
+    parts of the tuple.
+
+    :param qsheet: the qsheet 
+    :return a list of tuples for use in the transitions section of qsheet editing
+    """
     qlist = []
     for question in qsheet.questions:
         if question.q_type.answer_schema():
