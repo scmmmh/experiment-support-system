@@ -38,11 +38,11 @@ class QSheetSourceSchema(Schema):
     show_question_numbers = validators.UnicodeString(not_empty=True)
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
-    add_condition = validators.Bool()
 
 class ConditionSchema(Schema):
-    question_id = validators.Int(if_missing=0)
-    python_code = validators.String()
+    question_id = validators.String(if_missing=None)
+    expected_answer = validators.String()
+    subquestion_name = validators.String(if_missing=None)
 
 class TransitionSchema(Schema):
     id = validators.Int(if_missing=0)
@@ -59,7 +59,6 @@ class QSheetVisualSchema(Schema):
     show_question_numbers = validators.UnicodeString(not_empty=True)
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
-    add_condition = validators.Bool()
     transitions = foreach.ForEach(TransitionSchema())
 
     pre_validators = [variabledecode.NestedVariables()]
@@ -67,7 +66,6 @@ class QSheetVisualSchema(Schema):
 class QSheetAddQuestionSchema(Schema):
     q_type = validators.UnicodeString(not_empty=True)
     order = validators.Int()
-
 
 NAMESPACES = {'pq': 'http://paths.sheffield.ac.uk/pyquest'}
     
@@ -99,7 +97,6 @@ def new_qsheet(request):
                         qsheet.attributes.append(QSheetAttribute(key='data-items', value='0'))
                         qsheet.attributes.append(QSheetAttribute(key='control-items', value='0'))
                         qsheet.attributes.append(QSheetAttribute(key='show-question-numbers', value='yes'))
-                        qsheet.attributes.append(QSheetAttribute(key='condition-one', value='False'))
                         survey.qsheets.append(qsheet)
                         if not survey.start:
                             survey.start = qsheet
@@ -307,13 +304,16 @@ def edit(request):
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
 
+                        import pdb;pdb.set_trace()
                         for transition in qsheet.next:
                             t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
                             transition.target_id = t_param['target_id']
                             if len(t_param['condition']) != 0:
-                                 transition.condition.question_id = t_param['condition']['question_id']
-                                 transition.condition.python_code = t_param['condition']['python_code']
-
+                                 transition.condition.expected_answer = t_param['condition']['expected_answer']
+                                 vals = t_param['condition']['question_id'].split('.')
+                                 transition.condition.question_id = int(vals[0])
+                                 if len(vals) == 2:
+                                     transition.condition.subquestion_name = vals[1]
 
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
@@ -382,10 +382,9 @@ def edit_add_condition(request):
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
 
-    # we only allow two conditions for now
-    if len(qsheet.next) < 3:
+    if len(pyquest.helpers.qsheet.question_list(qsheet)) > 0:
         new_transition = QSheetTransition(source_id = qsheet.id)
-        new_transition.condition = TransitionCondition(transition_id = new_transition.id, python_code = '')
+        new_transition.condition = TransitionCondition(transition_id = new_transition.id, expected_answer = '')
         qsheet.next.append(new_transition)
         dbsession.add(new_transition)
 

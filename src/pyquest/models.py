@@ -427,18 +427,39 @@ class TransitionCondition(Base):
     id = Column(Integer, primary_key=True)
     transition_id = Column(ForeignKey(QSheetTransition.id))
     question_id = Column(ForeignKey(Question.id))
-    python_code = Column(Unicode(255))
+    expected_answer = Column(Unicode(255))
+    subquestion_name = Column(Unicode(255))
 
     transition = relationship("QSheetTransition", backref=backref('condition', uselist=False, cascade='all,delete-orphan'))
 
-    def evaluate(self, dbsession, qsheet, participant):
-#        question_id = qsheet.questions[0].id
+    def evaluate(self, dbsession, participant):
+        """ Checks whether this TransitionCondition has been fulfilled. If the question is a sub-question then it looks only for the 
+        relevant answer value. If the question has several answers but these are not specified as sub-questions (for example a multi-
+        choice question) these are joined together in a single string for testing. 
+        
+        :param self: the TranstionCondition
+        :param dbsession: a sqlalchemy data base session
+        :param participant: a participant 
+        :return True if the condition is fulfilled, False if not
+        """
         question_id = self.question_id
         answer = dbsession.query(Answer).filter(Answer.question_id==question_id).filter(Answer.participant_id==participant.id).first()
+        actual_answer = ''
         if (answer):
-            answer = dbsession.query(AnswerValue).filter(AnswerValue.answer_id==answer.id).first()
-            answer = answer.value
-        return eval('answer =="' + self.python_code + '"')
+            query = dbsession.query(AnswerValue).filter(AnswerValue.answer_id==answer.id)
+            if self.subquestion_name:
+                answer_value = query.filter(AnswerValue.name==self.subquestion_name).first()
+                actual_answer = answer_value.value
+            else:
+                answer_values = query.all()
+                if len(answer_values) == 1:
+                    actual_answer = answer_values[0].value
+                else:
+                    for av in answer_values:
+                        actual_answer = actual_answer + av.value + ',' 
+                    actual_answer = actual_answer[:-1]
+
+        return eval('actual_answer =="' + self.expected_answer + '"')
 
 class DataItem(Base):
     

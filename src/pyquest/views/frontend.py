@@ -156,19 +156,16 @@ def get_participant(dbsession, survey, state):
 def next_qsheet(dbsession, qsheet, participant):
     for transition in sorted(qsheet.next, key=transition_sorter, reverse=True):
         condition = dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
-        if (condition == None or condition.evaluate(dbsession, qsheet, participant) == True):
+        if (condition == None or condition.evaluate(dbsession, participant) == True):
             return transition.target
     return None
 
 def calculate_progress(qsheet, participant):
     def count_to_end(qsheet):
-        if qsheet:
-            if qsheet.next:
-                return max([count_to_end(t.target) for t in qsheet.next])
-            else:
-                return 1
+        if qsheet and qsheet.next:
+            return max([count_to_end(t.target) for t in qsheet.next])
         else:
-            return 0
+            return 1
     answered_qsids = set([a.question.qsheet.id for a in participant.answers])
     done = len(answered_qsids)
     remaining = count_to_end(qsheet)

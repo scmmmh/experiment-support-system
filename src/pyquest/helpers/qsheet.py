@@ -144,3 +144,18 @@ def transition_sorter(transition):
     else:
         return -1
 
+def transition_destinations(qsheet):
+    return [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in qsheet.survey.qsheets if qs.id != qsheet.id]
+
+def question_list(qsheet):
+    qlist = []
+    for question in qsheet.questions:
+        if question.q_type.answer_schema():
+            if question.attr_value('subquestion.name', default=None, multi=True):
+                subqnames = question.attr_value('subquestion.name', default=[], multi=True)
+                for name in subqnames:
+                    qlist.append((str(question.id) + '.' + name, question.name + '.' + name))
+            else:
+                qlist.append((question.id, question.name))
+
+    return qlist

@@ -317,7 +317,7 @@ def preview(request):
             qsheets = [dbsession.query(QSheet).filter(QSheet.id==survey.start_id).first()]
             qids = [qsheets[0].id]
             while qsheets[-1]:
-                if qsheets[-1].next and qsheets[-1].next[0].target.id not in qids:
+                if qsheets[-1].next and qsheets[-1].next[0].target and qsheets[-1].next[0].target.id not in qids:
                     qids.append(qsheets[-1].next[0].target.id)
                     qsheets.append(qsheets[-1].next[0].target)
                 else:
