@@ -4,6 +4,7 @@ Created on 3 Feb 2012
 
 @author: mhall
 '''
+import cgi
 import datetime
 import re
 
@@ -205,6 +206,14 @@ class XmlValidator(FancyValidator):
         except etree.DocumentInvalid as de:
             raise Invalid(unicode(de), value, state)
 
+class FileReaderValidator(FancyValidator):
+
+    def _to_python(self, value, state):
+        if isinstance(value, cgi.FieldStorage):
+            return ''.join(value.file)
+        else:
+            raise Invalid('No file uploaded', value, state)
+    
 class DynamicSchema(Schema):
     
     accept_iterator = True

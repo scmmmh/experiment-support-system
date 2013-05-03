@@ -282,7 +282,7 @@ def edit(request):
     user = current_user(request)
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            question_type_groups = dbsession.query(QuestionTypeGroup).order_by(QuestionTypeGroup.order)
+            question_type_groups = dbsession.query(QuestionTypeGroup).filter(and_(QuestionTypeGroup.parent_id==None, QuestionTypeGroup.enabled==True)).order_by(QuestionTypeGroup.order)
             if request.method == 'POST':
                 try:
                     schema = QSheetVisualSchema()
@@ -433,6 +433,9 @@ def edit_add_question(request):
                     for entry in q_type.dbschema_schema():
                         if entry['type'] == 'attr':
                             question.set_attr_value(entry['attr'], entry['default'], entry['order'] if 'order' in entry else 0, entry['group_order'] if 'group_order' in entry else 0)
+                        elif entry['type'] == 'core':
+                            if hasattr(question, entry['attr']):
+                                setattr(question, entry['attr'], entry['default'])
                     qsheet.questions.append(question)
                     dbsession.add(question)
                     dbsession.flush()
