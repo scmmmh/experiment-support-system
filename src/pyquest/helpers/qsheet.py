@@ -42,7 +42,7 @@ def load_db_template(filename):
     if not q_type:
         raise TemplateNotFound(filename, 'PyQuestionnaire Question Database')
     if component == 'frontend':
-        tmpl = '<html xmlns:py="http://genshi.edgewall.org/" py:strip="True">%s</html>' % (q_type.frontend)
+        tmpl = '<html xmlns:py="http://genshi.edgewall.org/" py:strip="True">%s</html>' % (q_type.frontend_doc())
     return (filename, q_type_name, StringIO(tmpl), None)
 
 ldr = TemplateLoader([loader.package('pyquest', 'templates/frontend'), load_db_template], auto_reload=True)
@@ -137,6 +137,17 @@ def render_questions(qsheet, item, p, error=None):
         sections.append(section)
 
     return tag(sections)
+
+def question_type_list(question_type_groups, depth=1):
+    tags = []
+    for question_type_group in question_type_groups:
+        if question_type_group.enabled:
+            tags.append(tag.h3(tag.a(question_type_group.title)))
+            if question_type_group.children:
+                tags.append(tag.div(question_type_list(question_type_group.children, depth + 1), class_='role-accordion-%i' % (depth)))
+            else:
+                tags.append(tag.ol([tag.li(question_type.title, data_pyquest_name=question_type.name) for question_type in question_type_group.q_types if question_type.enabled]))
+    return tag(tags)
 
 def admin_question_type_list(request, question_type_groups, path='', enabled=True):
     def qtg_used(qtg):
