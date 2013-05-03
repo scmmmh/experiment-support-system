@@ -304,7 +304,6 @@ def edit(request):
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
 
-                        import pdb;pdb.set_trace()
                         for transition in qsheet.next:
                             t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
                             transition.target_id = t_param['target_id']
