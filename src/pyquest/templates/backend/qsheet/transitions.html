@@ -7,8 +7,16 @@
 	    <b> default: </b>
 	    ${h.form.hidden_field('transitions-%i.id' %(idx), t.id)}
 	    ${h.form.select('transitions-%i.target_id' %(idx), t.target_id, transition_destinations, e)}
-	    ${h.form.button('AddCondition', class_='add-transition-condition')}
-	    ${h.form.button('DeleteCondition', class_='delete-transition-condition')}
+	    <py:choose test="source==True">
+	      <py:when test="True">
+	      ${h.form.submit('AddCondition', name="sbutton", class_='add-transition-condition')}
+	      ${h.form.submit('DeleteCondition', name="sbutton", class_='delete-transition-condition')}
+	      </py:when>
+	      <py:otherwise>
+		${h.form.button('AddCondition', class_='add-transition-condition')}
+		${h.form.button('DeleteCondition', class_='delete-transition-condition')}
+	      </py:otherwise>
+	    </py:choose>
 	  </py:when>
 	  <py:otherwise>
 	    <b>condition ${idx+1}: if answer to question</b> 

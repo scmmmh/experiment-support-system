@@ -14,6 +14,7 @@ from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 from sqlalchemy import and_, desc
 
+from pyquest import helpers
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
@@ -396,39 +397,45 @@ def edit(request):
     else:
         raise HTTPNotFound()
 
-@view_config(route_name='survey.qsheet.edit.add_condition')
-@render({'text/html': 'backend/qsheet/transitions.html'})
-def edit_add_condition(request):
-    import pyquest
-    dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                 QSheet.survey_id==request.matchdict['sid'])).first()
-
-    if len(pyquest.helpers.qsheet.question_list(qsheet)) > 0:
+def add_condition(dbsession, qsheet):
+    if len(helpers.qsheet.question_list(qsheet)) > 0:
         new_transition = QSheetTransition(source_id = qsheet.id)
         new_transition.condition = TransitionCondition(transition_id = new_transition.id, expected_answer = '')
         qsheet.next.append(new_transition)
         dbsession.add(new_transition)
 
-    return {'qsheet': qsheet,
-            'h' : pyquest.helpers}
-
-@view_config(route_name='survey.qsheet.edit.delete_condition')
+@view_config(route_name='survey.qsheet.edit.add_condition')
 @render({'text/html': 'backend/qsheet/transitions.html'})
-def edit_delete_condition(request):
-    import pyquest
+def edit_add_condition(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
 
+    add_condition(dbsession, qsheet)
+
+    return {'qsheet': qsheet,
+            'h' : helpers,
+            'source' : False}
+
+def delete_condition(dbsession, qsheet):
     to_delete = dbsession.query(QSheetTransition).filter(and_(QSheetTransition.source_id==qsheet.id, QSheetTransition.condition!=None)).order_by(desc(QSheetTransition.id)).first()
     if to_delete:
         qsheet.next.remove(to_delete)
 
+@view_config(route_name='survey.qsheet.edit.delete_condition')
+@render({'text/html': 'backend/qsheet/transitions.html'})
+def edit_delete_condition(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+
+    delete_condition(dbsession, qsheet)
+
     return {'qsheet': qsheet,
-            'h' : pyquest.helpers}
+            'h' : helpers,
+            'source' : False}
 
 @view_config(route_name='survey.qsheet.edit.add_question')
 @render({'text/html': 'backend/qsheet/edit_fragment.html'}, allow_cache=False)
@@ -496,6 +503,11 @@ def edit_source(request):
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
+                if request.POST.has_key('sbutton'):
+                    if request.POST['sbutton'] == 'AddCondition':
+                        add_condition(dbsession, qsheet)
+                    else:
+                        delete_condition(dbsession, qsheet)
                 validator = QSheetSourceSchema()
                 try:
                     params = validator.to_python(request.POST)
