@@ -118,6 +118,21 @@ def as_text(qsheet, as_markup=False, no_ids=False):
     else:
         return text
 
+def transition_as_text(transition):
+    text = '<pq:transition from="%s"' % transition.source.name
+
+    if transition.target:
+        text = text + (' to="%s"' % transition.target.name)
+    if transition.condition:
+        text = text + (' question_id="%s"' % transition.condition.question_id)
+        text = text + (' expected_answer="%s"' % transition.condition.expected_answer)
+        if transition.condition.subquestion_name:
+            text = text + (' subquestion_name="%s"' % transition.condition.subquestion_name)
+
+    text = text + '/>'
+
+    return Markup(text)
+
 def render_questions(qsheet, item, p, error=None):
     """ Constructs all the question sections for :py:class:`~pyquest.models.QSheet` qsheet. If the attribute 'show-question-numbers' is set to 'yes' then questions which are answerable are given a number. 
 

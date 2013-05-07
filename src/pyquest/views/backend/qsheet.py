@@ -199,6 +199,30 @@ def load_qsheet_from_xml(survey, doc, dbsession):
             load_questions_from_xml(qsheet, item, dbsession, cleanup=False)
     return qsheet
 
+def load_transition_from_xml(qsheets, transition, dbsession):
+    import pdb; pdb.set_trace()
+    to_attr = None
+    question_id = None
+    expected_answer  = None
+    subquestion_name = None
+    target = None
+    from_attr = transition.attrib['from']
+    if transition.attrib.has_key('to'):
+        to_attr = transition.attrib['to']
+        if to_attr in qsheets:
+            target = qsheets[to_attr]
+
+    if from_attr in qsheets:
+        new_transition = QSheetTransition(source=qsheets[from_attr], target=target)
+
+    if transition.attrib.has_key('question_id'):
+        question_id = transition.attrib['question_id']
+    if transition.attrib.has_key('expected_answer'):
+        expected_answer = transition.attrib['expected_answer']
+        new_transition.condition = TransitionCondition(transition_id=new_transition.id, question_id=question_id, expected_answer=expected_answer, subquestion_name=subquestion_name)
+
+    dbsession.add(new_transition)
+
 @view_config(route_name='survey.qsheet.import')
 @render({'text/html': 'backend/qsheet/import.html'})
 def import_qsheet(request):
@@ -490,15 +514,17 @@ def edit_source(request):
                         qsheet.set_attr_value('control-items', params['control_items'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
-                        if qsheet.next:
-                            if next_qsheet:
-                                qsheet.next[0].target_id = next_qsheet.id
-                            else:
-                                dbsession.delete(qsheet.next[0])
-                                qsheet.next = []
-                        else:
-                            if next_qsheet:
-                                qsheet.next.append(QSheetTransition(target_id=next_qsheet.id))
+
+                        for transition in qsheet.next:
+                            t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
+                            transition.target_id = t_param['target_id']
+                            if len(t_param['condition']) != 0:
+                                 transition.condition.expected_answer = t_param['condition']['expected_answer']
+                                 vals = t_param['condition']['question_id'].split('.')
+                                 transition.condition.question_id = int(vals[0])
+                                 if len(vals) == 2:
+                                     transition.condition.subquestion_name = vals[1]
+
                         for item in params['content']:
                             if item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
                                 load_questions_from_xml(qsheet, item, dbsession)
@@ -515,6 +541,11 @@ def edit_source(request):
                             'qsheet': qsheet,
                             'e': e}
             else:
+                # This is for backwards compatibility. An old qsheet with a 'Finish' transition will have next=[]
+                if len(qsheet.next) == 0:
+                    new_transition = QSheetTransition(source_id=qsheet.id)
+                    qsheet.next = [new_transition]
+                    dbsession.add(new_transition)
                 return {'survey': survey,
                         'qsheet': qsheet}
         else:

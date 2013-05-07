@@ -13,7 +13,7 @@ from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 
 from pyquest import helpers
-from pyquest.views.backend.qsheet import load_qsheet_from_xml
+from pyquest.views.backend.qsheet import load_qsheet_from_xml, load_transition_from_xml
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
@@ -124,8 +124,7 @@ def load_survey_from_xml(owner, dbsession, doc):
             if item.text in qsheets:
                 survey.start = qsheets[item.text]
         elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}transition':
-            if item.attrib['from'] in qsheets and item.attrib['to'] in qsheets:
-                dbsession.add(QSheetTransition(source=qsheets[item.attrib['from']], target=qsheets[item.attrib['to']]))
+            load_transition_from_xml(qsheets, item, dbsession)
     return survey
 
 @view_config(route_name='survey.import')

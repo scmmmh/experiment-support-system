@@ -35,8 +35,8 @@
           <dd>${h.form.number_field('control_items', qsheet.attr_value('control-items', default='0'), e, class_='role-qsheet-control-items')}</dd>
           <dt>Show Question Numbers</dt>
           <dd>${h.form.select('show_question_numbers', qsheet.attr_value('show-question-numbers', default='yes'), [('yes', 'Yes'), ('no', 'No')], e, class_='role-qsheet-show-question-numbers')}</dd>
-          <dt>Transition to</dt>
-          <dd>${h.form.select('transition', qsheet.next[0].target.id if len(qsheet.next) > 0 else None, [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in survey.qsheets if qs.id != qsheet.id], e)}</dd>
+	  <dt>Transition</dt>
+	  <dd class="transition"><xi:include href="transitions.html"/></dd>
           <dt>Content</dt>
           <dd>${h.form.textarea('content', h.qsheet.as_text(qsheet), e, class_='span-22')}</dd>
           <dt>CSS styles</dt>
