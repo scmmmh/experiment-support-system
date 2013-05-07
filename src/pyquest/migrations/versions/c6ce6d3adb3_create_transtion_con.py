@@ -1,4 +1,4 @@
-"""create transtion conditions
+"""Create transition conditions
 
 Revision ID: c6ce6d3adb3
 Revises: 33d37cab0f8a
@@ -8,7 +8,7 @@ Create Date: 2013-05-02 17:07:15.913485
 
 # revision identifiers, used by Alembic.
 revision = 'c6ce6d3adb3'
-down_revision = '33d37cab0f8a'
+down_revision = '305eb54c5d1c'
 
 from alembic import op
 import sqlalchemy as sa
