@@ -551,6 +551,12 @@ class DataItemControlAnswer(Base):
     data_item_id = Column(ForeignKey(DataItem.id))
     question_id = Column(ForeignKey(Question.id))
     answer = Column(Unicode(4096))
+
+class DataItemSet(Base):
+
+    __tablename__ = 'data_item_sets'
+    id = Column(Integer, primary_key=True)
+
     
 class Participant(Base):
     
