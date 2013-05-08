@@ -17,7 +17,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = 'c6ce6d3adb3'
+DB_VERSION = '40af42e8f394'
 
 class DBUpgradeException(Exception):
     
@@ -502,15 +502,24 @@ class TransitionCondition(Base):
 
         return eval('actual_answer =="' + self.expected_answer + '"')
 
+class DataItemSet(Base):
+
+    __tablename__ = 'data_item_sets'
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(255))
+
+    items = relationship('DataItem', backref='item_set')
+    
 class DataItem(Base):
     
     __tablename__ = 'data_items'
     
     id = Column(Integer, primary_key=True)
     qsheet_id = Column(ForeignKey(QSheet.id))
+    data_item_set_id = Column(ForeignKey(DataItemSet.id))
     order = Column(Integer)
     control = Column(Boolean, default=False)
-    
+
     attributes = relationship('DataItemAttribute',
                               backref='data_item', order_by='DataItemAttribute.order',
                               cascade='all, delete, delete-orphan')
@@ -552,12 +561,6 @@ class DataItemControlAnswer(Base):
     question_id = Column(ForeignKey(Question.id))
     answer = Column(Unicode(4096))
 
-class DataItemSet(Base):
-
-    __tablename__ = 'data_item_sets'
-    id = Column(Integer, primary_key=True)
-
-    
 class Participant(Base):
     
     __tablename__ = 'participants'

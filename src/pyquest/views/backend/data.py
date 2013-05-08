@@ -19,7 +19,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
                             DataItemAttribute, Question, DataItemControlAnswer,
-                            Participant)
+                            Participant, DataItemSet)
 
 class DataItemSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -76,6 +76,8 @@ def upload(request):
                         order = 1
                     with transaction.manager:
                         qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+                        dil = DataItemSet(name = request.POST['source_file'].filename)
+                        dbsession.add(dil)
                         try:
                             for item in reader:
                                 if len(qsheet.data_items) > 0:
@@ -97,6 +99,7 @@ def upload(request):
                                         data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
                                                                                       value=value.decode('utf-8') if value else u'',
                                                                                       order=idx + 1))
+                                dil.items.append(data_item)
                                 qsheet.data_items.append(data_item)
                                 dbsession.add(data_item)
                         except csv.Error:
