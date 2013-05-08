@@ -17,7 +17,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '305eb54c5d1c'
+DB_VERSION = 'c6ce6d3adb3'
 
 class DBUpgradeException(Exception):
     
