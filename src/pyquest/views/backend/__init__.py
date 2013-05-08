@@ -23,6 +23,8 @@ def init(config):
     config.add_route('survey.qsheet.new', '/surveys/{sid}/pages/new')
     config.add_route('survey.qsheet.import', '/surveys/{sid}/pages/import')
     config.add_route('survey.qsheet.edit', '/surveys/{sid}/pages/{qsid}/edit')
+    config.add_route('survey.qsheet.edit.add_condition', '/surveys/{sid}/pages/{qsid}/add_condition')
+    config.add_route('survey.qsheet.edit.delete_condition', '/surveys/{sid}/pages/{qsid}/delete_condition')
     config.add_route('survey.qsheet.edit.add_question', '/surveys/{sid}/pages/{qsid}/add_question')
     config.add_route('survey.qsheet.edit.delete_question', '/surveys/{sid}/pages/{qsid}/delete_question/{qid}')
     config.add_route('survey.qsheet.edit.source', '/surveys/{sid}/pages/{qsid}/edit/source')
@@ -36,4 +38,3 @@ def init(config):
     config.add_route('survey.results.by_question.ext', '/surveys/{sid}/results/by_question.{ext}')
     config.add_route('survey.results.by_participant', '/surveys/{sid}/results/by_participant')
     config.add_route('survey.results.by_participant.ext', '/surveys/{sid}/results/by_participant.{ext}')
-    

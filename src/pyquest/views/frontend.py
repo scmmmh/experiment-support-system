@@ -21,8 +21,9 @@ from sqlalchemy.sql.expression import not_
 
 from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
-    DataItemCount, Answer, AnswerValue, Question)
+    DataItemCount, Answer, AnswerValue, Question, TransitionCondition)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
+from pyquest.helpers.qsheet import transition_sorter
 
 def safe_int(value):
     try:
@@ -127,7 +128,7 @@ def determine_qsheet_buttons(qsheet):
     :param qsheet: The :py:class:`~pyquest.models.QSheet` to determine the buttons for
     :return: A `list` with the submit options
     """
-    if len(qsheet.next) > 0:
+    if qsheet.next and qsheet.next[0].target_id != None:
         options = ['next']
     else:
         options = ['finish']
@@ -152,14 +153,24 @@ def get_participant(dbsession, survey, state):
     else:
         return participant
 
-def next_qsheet(qsheet):
-    for transition in qsheet.next:
-        return transition.target
+def next_qsheet(dbsession, qsheet, participant):
+    """ Returns the next qsheet. Goes through all the transitions specified for this qsheet and looks for the first one
+    which either has no condition or has a condition which is fulfilled.
+
+    :param dbsession: a sqlalchemy data base session
+    :param qsheet: The :py:class:`~pyquest.models.QSheet` we are leaving
+    :param participant: The :py:class:`~pyquest.models.Participant`
+    :return The next :py:class:`~pyquest.models.QSheet` or None (which means finish).
+    """
+    for transition in sorted(qsheet.next, key=transition_sorter, reverse=True):
+        condition = dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
+        if (condition == None or condition.evaluate(dbsession, participant) == True):
+            return transition.target
     return None
 
 def calculate_progress(qsheet, participant):
     def count_to_end(qsheet):
-        if qsheet.next:
+        if qsheet and qsheet.next:
             return max([count_to_end(t.target) for t in qsheet.next])
         else:
             return 1
@@ -209,7 +220,8 @@ def run_survey(request):
                 state['dids'] = select_data_items(qsheet.id, state, qsheet, dbsession)
                 if len(state['dids']) == 0:
                     response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
-                    next_qsi = next_qsheet(qsheet)
+                    participant = get_participant(dbsession, survey, state)
+                    next_qsi = next_qsheet(dbsession, qsheet, participant)
                     if next_qsi:
                         state['qsid'] = next_qsi.id
                     else:
@@ -309,7 +321,8 @@ def run_survey(request):
                 update_data_item_counts(state, [d['did'] for d in data_items], dbsession)
                 qsheet = dbsession.query(QSheet).filter(QSheet.id==state['qsid']).first()
                 if qsheet_answers['action_'] in [_('Next Page'), _('Finish Survey')]:
-                    next_qsi = next_qsheet(qsheet)
+                    participant = get_participant(dbsession, survey, state)
+                    next_qsi = next_qsheet(dbsession, qsheet, participant)
                     if next_qsi:
                         state['qsid'] = next_qsi.id
                     else:
