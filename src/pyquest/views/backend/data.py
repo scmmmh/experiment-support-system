@@ -59,7 +59,7 @@ def dataset_delete(request):
 
 @view_config(route_name='survey.dataset.view')
 @render({'text/html': 'backend/data/set_view.html'})
-def view(request):
+def set_view(request):
     dbsession = DBSession
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['did']).first()
@@ -262,6 +262,30 @@ def new(request):
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'data_item': data_item}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
+@view_config(route_name='survey.data.view')
+@render({'text/html': 'backend/qsheet/view.html'})
+def view(request):
+    dbsession = DBSession
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
+                                                      DataItem.id==request.matchdict['did'])).first()
+    user = current_user(request)
+    if survey and qsheet and data_item:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            example = {'did' : 0}
+            example['did'] = data_item.id
+            for attr in data_item.attributes:
+                example[attr.key] = attr.value
+            return {'survey': survey,
+                    'qsheet': qsheet,
+                    'example': example,
+                    'participant': Participant(id=-1)}
         else:
             redirect_to_login(request)
     else:
