@@ -73,6 +73,55 @@ def view(request):
     else:
         raise HTTPNotFound()
 
+
+
+@view_config(route_name='survey.dataset.upload')
+@render({'text/html': 'backend/data/set_upload.html'})
+def set_upload(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    user = current_user(request)
+    if survey:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            if request.method == 'POST':
+                check_csrf_token(request, request.POST)
+                try:
+                    if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
+                        raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
+                    reader = csv.DictReader(request.POST['source_file'].file)
+                    order = 1
+                    with transaction.manager:
+                        dis = DataItemSet(name = request.POST['source_file'].filename)
+                        dbsession.add(dis)
+                        try:
+                            for item in reader:
+                                # removed section that checked matching with previous data for qsheet
+                                data_item = DataItem(order=order)
+                                if 'control_' in item:
+                                    data_item.control = validators.StringBool().to_python(item['control_'])
+                                for idx, (key, value) in enumerate(item.items()):
+                                    if key != 'control_':
+                                        data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
+                                                                                      value=value.decode('utf-8') if value else u'',
+                                                                                      order=idx + 1))
+                                dis.items.append(data_item)
+                        except csv.Error:
+                            raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
+                        dbsession.flush()
+                        did = dis.id
+                    request.session.flash('Data uploaded', 'info')
+                    raise HTTPFound(request.route_url('survey.dataset.list', sid = request.matchdict['sid']))
+                except api.Invalid as e:
+                    e.params = {}
+                    return {'survey': survey,
+                            'e': e}
+            else:
+                return {'survey': survey}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
 @view_config(route_name='survey.data')
 @render({'text/html': 'backend/data/index.html'})
 def index(request):

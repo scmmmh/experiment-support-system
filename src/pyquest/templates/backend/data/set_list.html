@@ -10,6 +10,7 @@
         <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
 	</py:if>
         <li><a href="" class="button">Add</a></li>
+        <li><a href="${r.route_url('survey.dataset.upload', sid=survey.id)}" class="button">Upload</a></li>
       </ul>
     </nav>
     <h1>${survey.title} - List of Data Item Sets</h1>
