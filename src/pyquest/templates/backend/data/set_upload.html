@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>Upload Data</title>
+    <title>Upload Data Item Set</title>
   </head>
   <body>
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
@@ -11,7 +11,7 @@
       <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
       <hgroup>
-        <h1>Upload Data</h1>
+        <h1>Upload Data Item Set</h1>
       </hgroup>
       <form action="${r.route_url('survey.dataset.upload', sid=survey.id)}" method="post" enctype="multipart/form-data">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}

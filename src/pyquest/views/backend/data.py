@@ -42,7 +42,7 @@ def list(request):
 def dataset_delete(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['did']).first()
+    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
     user = current_user(request)
     if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
         if request.method == 'POST':
@@ -62,7 +62,7 @@ def dataset_delete(request):
 def set_edit(request):
     dbsession = DBSession
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['did']).first()
+    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
     user = current_user(request)
     if survey and dis:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
@@ -218,7 +218,7 @@ def upload(request):
 def new(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['did']).first()
+    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
     user = current_user(request)
     if survey and dis:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
@@ -252,7 +252,7 @@ def new(request):
                     request.session.flash('Data added', 'info')
                     raise HTTPFound(request.route_url('survey.dataset.edit',
                                                       sid=request.matchdict['sid'],
-                                                      did=request.matchdict['did']))
+                                                      disid=request.matchdict['disid']))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
@@ -323,11 +323,11 @@ def edit(request):
                             if question and params['control_answer_answer'][idx].strip() != '':
                                 data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(data_item)
-                        did=data_item.data_item_set_id
+                        disid=data_item.data_item_set_id
                     request.session.flash('Data updated', 'info')
                     raise HTTPFound(request.route_url('survey.dataset.edit',
                                                       sid=request.matchdict['sid'],
-                                                      did=did))
+                                                      disid=disid))
 
                 except api.Invalid as e:
                     e.params = request.POST

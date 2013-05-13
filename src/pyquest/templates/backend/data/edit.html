@@ -51,7 +51,7 @@
           </dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.dataset.edit', sid=survey.id, did=data_item.data_item_set_id))}</li>
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.dataset.edit', sid=survey.id, disid=data_item.data_item_set_id))}</li>
           <li>${h.form.submit('Update', class_='button')}</li>
         </ul>
       </form>

@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>${survey.title} - Data</title>
+    <title>Edit Data Item Set</title>
     <script type="text/javascript">
       $(document).ready(function() {
     	  $('#data-filter-form input[type=submit]').hide();
@@ -16,15 +16,15 @@
     <nav class="toolbar">
       <ul>
         <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
-          <li><a href="${r.route_url('survey.data.new', sid=survey.id, did=dis.id)}" class="button">Add Item</a></li>
-          <li><a href="${r.route_url('survey.dataset.delete', sid=survey.id, did=dis.id)}" class="button">Delete</a></li>
+          <li><a href="${r.route_url('survey.data.new', sid=survey.id, disid=dis.id)}" class="button">Add Item</a></li>
+          <li><a href="${r.route_url('survey.dataset.delete', sid=survey.id, disid=dis.id)}" class="button">Delete</a></li>
         </py:if>
       </ul>
     </nav>
     <article>
       <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id)}">${r.route_url('survey.run', sid=survey.id)}</a>.</div>
       <hgroup>
-        <h1>${survey.title} - Data Item Set ${dis.id} ${dis.name}</h1>
+        <h1>Edit Data Item Set: ${dis.id},${dis.name}</h1>
       </hgroup>
       <div class="span-24" style="overflow:auto;">
         <table>
