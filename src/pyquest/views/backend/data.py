@@ -28,6 +28,10 @@ class DataItemSchema(Schema):
     control_answer_question = foreach.ForEach(validators.Int())
     control_answer_answer = foreach.ForEach(validators.UnicodeString())
 
+class DataItemSetSchema(Schema):
+    csrf_token = validators.UnicodeString(not_empty=True)
+    name = validators.String()
+
 @view_config(route_name='survey.dataset.list')
 @render({'text/html': 'backend/data/set_list.html'})
 def list(request):
@@ -60,14 +64,25 @@ def dataset_delete(request):
 @view_config(route_name='survey.dataset.edit')
 @render({'text/html': 'backend/data/set_edit.html'})
 def set_edit(request):
-    dbsession = DBSession
+    dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
     user = current_user(request)
     if survey and dis:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            return {'survey': survey,
-                    'dis': dis}
+            if request.method == 'POST':
+                import pdb; pdb.set_trace()
+                check_csrf_token(request, request.POST)
+                validator = DataItemSetSchema()
+                params = validator.to_python(request.POST)
+                with transaction.manager:
+                    dbsession.add(dis)
+                    dis.name = params['name']
+                    dbsession.flush()
+                raise HTTPFound(request.route_url('survey.dataset.list', sid=survey.id))
+            else:
+                return {'survey': survey,
+                        'dis': dis}
         else:
             redirect_to_login(request)
     else:
