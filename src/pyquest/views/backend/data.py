@@ -57,9 +57,9 @@ def dataset_delete(request):
     else:
         redirect_to_login(request)
 
-@view_config(route_name='survey.dataset.view')
-@render({'text/html': 'backend/data/set_view.html'})
-def set_view(request):
+@view_config(route_name='survey.dataset.edit')
+@render({'text/html': 'backend/data/set_edit.html'})
+def set_edit(request):
     dbsession = DBSession
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['did']).first()
@@ -218,12 +218,12 @@ def upload(request):
 def new(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['did']).first()
     user = current_user(request)
-    if survey and qsheet:
+    if survey and dis:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            if len(qsheet.data_items) > 0:
-                data_item = qsheet.data_items[0]
+            if len(dis.items) > 0:
+                data_item = dis.items[0]
             else:
                 data_item = DataItem()
             if request.method == 'POST':
@@ -234,10 +234,10 @@ def new(request):
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
-                        new_data_item = DataItem(qsheet_id=qsheet.id,
+                        new_data_item = DataItem(data_item_set_id=dis.id,
                                                  control=params['control_'])
-                        if len(qsheet.data_items) > 0:
-                            new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.qsheet_id==qsheet.id).first()[0] + 1
+                        if len(dis.items) > 0:
+                            new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.data_item_set_id==dis.id).first()[0] + 1
                         else:
                             new_data_item.order = 1
                         for attribute in data_item.attributes:
@@ -250,17 +250,17 @@ def new(request):
                                 new_data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(new_data_item)
                     request.session.flash('Data added', 'info')
-                    raise HTTPFound(request.route_url('survey.data',
+                    raise HTTPFound(request.route_url('survey.dataset.edit',
                                                       sid=request.matchdict['sid'],
-                                                      qsid=request.matchdict['qsid']))
+                                                      did=request.matchdict['did']))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
-                            'qsheet': qsheet,
+#                            'qsheet': qsheet,
                             'data_item': data_item}
             else:
                 return {'survey': survey,
-                        'qsheet': qsheet,
+ #                       'qsheet': qsheet,
                         'data_item': data_item}
         else:
             redirect_to_login(request)
@@ -270,7 +270,7 @@ def new(request):
 @view_config(route_name='survey.data.view')
 @render({'text/html': 'backend/qsheet/view.html'})
 def view(request):
-    dbsession = DBSession
+    dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
     data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
@@ -297,11 +297,13 @@ def view(request):
 def edit(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
-    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
-                                                      DataItem.id==request.matchdict['did'])).first()
+#    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+#    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
+#                                                      DataItem.id==request.matchdict['did'])).first()
+    data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
+
     user = current_user(request)
-    if survey and qsheet and data_item:
+    if survey and data_item:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
@@ -311,8 +313,7 @@ def edit(request):
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
-                        data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
-                                                                          DataItem.id==request.matchdict['did'])).first()
+                        data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
                         data_item.control = params['control_']
                         for attribute in data_item.attributes:
                             attribute.value = params[attribute.key]
@@ -322,18 +323,20 @@ def edit(request):
                             if question and params['control_answer_answer'][idx].strip() != '':
                                 data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(data_item)
+                        did=data_item.data_item_set_id
                     request.session.flash('Data updated', 'info')
-                    raise HTTPFound(request.route_url('survey.data',
+                    raise HTTPFound(request.route_url('survey.dataset.edit',
                                                       sid=request.matchdict['sid'],
-                                                      qsid=request.matchdict['qsid']))
+                                                      did=did))
+
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
-                            'qsheet': qsheet,
+#                            'qsheet': qsheet,
                             'data_item': data_item}
             else:
                 return {'survey': survey,
-                        'qsheet': qsheet,
+#                        'qsheet': qsheet,
                         'data_item': data_item}
         else:
             redirect_to_login(request)
@@ -345,21 +348,24 @@ def edit(request):
 def delete(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
-    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
-                                                      DataItem.id==request.matchdict['did'])).first()
+#    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+#    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
+#                                                      DataItem.id==request.matchdict['did'])).first()
+    data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
+
     user = current_user(request)
-    if survey and qsheet and data_item:
+    import pdb; pdb.set_trace()
+    if survey and data_item:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
                 with transaction.manager:
                     dbsession.delete(data_item)
                 request.session.flash('Data deleted', 'info')
-                raise HTTPFound(request.route_url('survey.data', sid=survey.id, qsid=request.matchdict['qsid']))
+                raise HTTPFound(request.route_url('survey.dataset.edit', sid=survey.id, did=data_item.data_item_set_id))
             else:
                 return {'survey': survey,
-                        'qsheet': qsheet,
+#                        'qsheet': qsheet,
                         'data_item': data_item}
         else:
             redirect_to_login(request)
@@ -382,7 +388,7 @@ def clear(request):
                     qsheet.data_items = []
                     dbsession.add(qsheet)
                 request.session.flash('All data deleted', 'info')
-                raise HTTPFound(request.route_url('survey.data', sid=request.matchdict['sid'], qsid=request.matchdict['qsid']))
+                raise HTTPFound(request.route_url('survey.dataset.edit', sid=request.matchdict['sid'], did=data_item.data_item_set_id))
             else:
                 return {'survey': survey,
                         'qsheet': qsheet}

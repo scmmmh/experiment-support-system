@@ -15,6 +15,10 @@
   <body>
     <nav class="toolbar">
       <ul>
+        <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
+          <li><a href="${r.route_url('survey.data.new', sid=survey.id, did=dis.id)}" class="button">Add Item</a></li>
+          <li><a href="${r.route_url('survey.dataset.delete', sid=survey.id, did=dis.id)}" class="button">Delete</a></li>
+        </py:if>
       </ul>
     </nav>
     <article>
@@ -42,6 +46,10 @@
                 <td>${item.id}</td>
               <td py:for="attribute in item.attributes">${attribute.value}</td>
               <td>
+                <ul class="inline no-symbol no-margin">
+                  <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.edit', sid=survey.id, did=item.id)}" class="button">Edit</a></li>
+                  <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.delete', sid=survey.id, did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
+                </ul>
               </td>
             </tr>
           </tbody>
