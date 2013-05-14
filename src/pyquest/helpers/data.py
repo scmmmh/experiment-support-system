@@ -5,6 +5,9 @@ Created on 16 Mar 2012
 @author: mhall
 '''
 
+from sqlalchemy import and_, null
+from pyquest.models import (QSheet, DataItem, DataItemSet)
+
 def question_select(qsheet):
     return [(question.id, question.name) for question in qsheet.questions if question.q_type.answer_schema()]
 
@@ -29,3 +32,18 @@ def generate_summary(qsheet):
         else:
             counts.append(len(data_item.answers))
     return (len(qsheet.data_items), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))
+
+def create_data_item_sets(dbsession, sid):
+    """Creates DataItemSets for data items which are attached to qsheets in the old way. 
+    """
+    qsheets = dbsession.query(QSheet).filter(QSheet.survey_id==sid).all()
+    for qsheet in qsheets:
+        ditems = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==qsheet.id, DataItem.data_item_set_id==null())).all()
+        if (len(ditems) > 0):
+            dis = DataItemSet(name="data items on sheet...")
+            dbsession.add(dis)
+            dbsession.flush()
+            for ditem in ditems:
+                ditem.data_item_set_id = dis.id
+            dbsession.flush()
+

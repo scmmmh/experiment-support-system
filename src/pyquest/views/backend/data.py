@@ -13,8 +13,9 @@ from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, null
 
+from pyquest.helpers.data import create_data_item_sets
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
@@ -37,6 +38,7 @@ class DataItemSetSchema(Schema):
 def list(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    create_data_item_sets(dbsession, survey.id)
     dis = dbsession.query(DataItemSet).all()
     return {'survey': survey,
             'dis': dis}
@@ -369,7 +371,6 @@ def delete(request):
     data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
 
     user = current_user(request)
-    import pdb; pdb.set_trace()
     if survey and data_item:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
