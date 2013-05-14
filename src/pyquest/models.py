@@ -507,8 +507,10 @@ class DataItemSet(Base):
     __tablename__ = 'data_item_sets'
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
+    qsheet_id = Column(Integer, ForeignKey(QSheet.id))
 
     items = relationship('DataItem', backref='item_set')
+    qsheet = relationship('QSheet', backref=backref('dataset', uselist=False))
     
 class DataItem(Base):
     

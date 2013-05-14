@@ -73,7 +73,6 @@ def set_edit(request):
     if survey and dis:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
-                import pdb; pdb.set_trace()
                 check_csrf_token(request, request.POST)
                 validator = DataItemSetSchema()
                 params = validator.to_python(request.POST)
@@ -211,7 +210,6 @@ def upload(request):
                                 dis.items.append(data_item)
                         except csv.Error:
                             raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
-                        import pdb; pdb.set_trace()
                         dbsession.flush()
                         did = dis.id
                     request.session.flash('Data uploaded', 'info')

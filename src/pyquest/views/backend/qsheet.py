@@ -201,7 +201,6 @@ def load_qsheet_from_xml(survey, doc, dbsession):
     return qsheet
 
 def load_transition_from_xml(qsheets, transition, dbsession):
-    import pdb; pdb.set_trace()
     to_attr = None
     question_id = None
     expected_answer  = None

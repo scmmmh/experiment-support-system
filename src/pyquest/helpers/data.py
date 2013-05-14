@@ -13,10 +13,11 @@ def question_select(qsheet):
 
 def sample_for_qsheet(qsheet):
     data_item = {'did': 0}
-    if qsheet.data_items:
-        data_item['did'] = qsheet.data_items[0].id
-        for attr in qsheet.data_items[0].attributes:
+    if qsheet.dataset:
+        data_item['did'] = qsheet.dataset.items[0].id
+        for attr in qsheet.dataset.items[0].attributes:
             data_item[attr.key] = attr.value
+
     return data_item
 
 def generate_summary(qsheet):
@@ -42,8 +43,10 @@ def create_data_item_sets(dbsession, sid):
         if (len(ditems) > 0):
             dis = DataItemSet(name="data items on sheet...")
             dbsession.add(dis)
+            dis.qsheet_id = qsheet.id
             dbsession.flush()
             for ditem in ditems:
                 ditem.data_item_set_id = dis.id
+                ditem.qsheet_id = null()
             dbsession.flush()
 
