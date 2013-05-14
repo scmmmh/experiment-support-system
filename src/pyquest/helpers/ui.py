@@ -16,6 +16,10 @@ def survey_breadcrumbs(items, request):
     items.insert(0, ('All my surveys', {'href': request.route_url('survey')}))
     return breadcrumbs(items, request)
 
+def dataset_breadcrumbs(items, request):
+    items.insert(0, ('All my data', {'href': request.route_url('dataset.list')}))
+    return breadcrumbs(items, request)
+
 def main_menu(current, survey, request):
     menu_items = [('back', [Markup('&larr;'),  ' All my surveys'], {'href': request.route_url('survey'), 'class': 'no-tab', 'style': 'font-weight:normal;'}),
                   ('survey', 'Survey', {'href': request.route_url('survey.view', sid=survey.id)}),
