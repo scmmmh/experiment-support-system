@@ -33,45 +33,41 @@ class DataItemSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
 
-@view_config(route_name='survey.dataset.list')
+@view_config(route_name='dataset.list')
 @render({'text/html': 'backend/data/set_list.html'})
 def list(request):
     dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    create_data_item_sets(dbsession, survey.id)
-    dis = dbsession.query(DataItemSet).all()
-    return {'survey': survey,
-            'dis': dis}
+    user = current_user(request)
+    create_data_item_sets(dbsession, user)
+    dis = dbsession.query(DataItemSet).filter(DataItemSet.owned_by==user.id).all()
+    return {'dis': dis}
 
-@view_config(route_name='survey.dataset.delete')
+@view_config(route_name='dataset.delete')
 @render({'text/html': 'backend/data/set_delete.html'})
 def dataset_delete(request):
     dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
     user = current_user(request)
-    if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
+    if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'dis': dis}):
         if request.method == 'POST':
             check_csrf_token(request, request.POST)
             with transaction.manager:
                 dbsession.delete(dis)
             request.session.flash('Data Item Set deleted', 'info')
-            raise HTTPFound(request.route_url('survey.dataset.list', sid=survey.id))
+            raise HTTPFound(request.route_url('dataset.list'))
         else:
-            return {'survey': survey,
-                    'dis': dis}
+            return {'dis': dis}
     else:
         redirect_to_login(request)
 
-@view_config(route_name='survey.dataset.edit')
+@view_config(route_name='dataset.edit')
 @render({'text/html': 'backend/data/set_edit.html'})
 def set_edit(request):
     dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
     user = current_user(request)
-    if survey and dis:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+    if dis:
+        if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
                 validator = DataItemSetSchema()
@@ -80,10 +76,9 @@ def set_edit(request):
                     dbsession.add(dis)
                     dis.name = params['name']
                     dbsession.flush()
-                raise HTTPFound(request.route_url('survey.dataset.list', sid=survey.id))
+                raise HTTPFound(request.route_url('dataset.list'))
             else:
-                return {'survey': survey,
-                        'dis': dis}
+                return {'dis': dis}
         else:
             redirect_to_login(request)
     else:
@@ -91,52 +86,44 @@ def set_edit(request):
 
 
 
-@view_config(route_name='survey.dataset.upload')
+@view_config(route_name='dataset.upload')
 @render({'text/html': 'backend/data/set_upload.html'})
 def set_upload(request):
     dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
-    if survey:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            if request.method == 'POST':
-                check_csrf_token(request, request.POST)
+    if request.method == 'POST':
+        check_csrf_token(request, request.POST)
+        try:
+            if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
+                raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
+            reader = csv.DictReader(request.POST['source_file'].file)
+            order = 1
+            with transaction.manager:
+                dis = DataItemSet(name = request.POST['source_file'].filename, owned_by=user.id)
+                dbsession.add(dis)
                 try:
-                    if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
-                        raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
-                    reader = csv.DictReader(request.POST['source_file'].file)
-                    order = 1
-                    with transaction.manager:
-                        dis = DataItemSet(name = request.POST['source_file'].filename)
-                        dbsession.add(dis)
-                        try:
-                            for item in reader:
-                                # removed section that checked matching with previous data for qsheet
-                                data_item = DataItem(order=order)
-                                if 'control_' in item:
-                                    data_item.control = validators.StringBool().to_python(item['control_'])
-                                for idx, (key, value) in enumerate(item.items()):
-                                    if key != 'control_':
-                                        data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
-                                                                                      value=value.decode('utf-8') if value else u'',
-                                                                                      order=idx + 1))
+                    for item in reader:
+                        # removed section that checked matching with previous data for qsheet
+                        data_item = DataItem(order=order)
+                        if 'control_' in item:
+                            data_item.control = validators.StringBool().to_python(item['control_'])
+                            for idx, (key, value) in enumerate(item.items()):
+                                if key != 'control_':
+                                    data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
+                                                                                  value=value.decode('utf-8') if value else u'',
+                                                                                  order=idx + 1))
                                 dis.items.append(data_item)
-                        except csv.Error:
-                            raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
-                        dbsession.flush()
-                        did = dis.id
-                    request.session.flash('Data uploaded', 'info')
-                    raise HTTPFound(request.route_url('survey.dataset.list', sid = request.matchdict['sid']))
-                except api.Invalid as e:
-                    e.params = {}
-                    return {'survey': survey,
-                            'e': e}
-            else:
-                return {'survey': survey}
-        else:
-            redirect_to_login(request)
+                except csv.Error:
+                    raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
+                dbsession.flush()
+                did = dis.id
+            request.session.flash('Data uploaded', 'info')
+            raise HTTPFound(request.route_url('dataset.list'))
+        except api.Invalid as e:
+            e.params = {}
+            return {'e': e}
     else:
-        raise HTTPNotFound()
+        return {}
 
 @view_config(route_name='survey.data')
 @render({'text/html': 'backend/data/index.html'})
@@ -307,19 +294,19 @@ def view(request):
         raise HTTPNotFound()
 
 
-@view_config(route_name='survey.data.edit')
+@view_config(route_name='data.edit')
 @render({'text/html': 'backend/data/edit.html'})
 def edit(request):
     dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+#    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
 #    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
 #    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
 #                                                      DataItem.id==request.matchdict['did'])).first()
     data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
 
     user = current_user(request)
-    if survey and data_item:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+    if data_item:
+        if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': data_item.item_set}):
             if request.method == 'POST':
                 try:
                     validator = DataItemSchema()
@@ -340,25 +327,20 @@ def edit(request):
                         dbsession.add(data_item)
                         disid=data_item.data_item_set_id
                     request.session.flash('Data updated', 'info')
-                    raise HTTPFound(request.route_url('survey.dataset.edit',
-                                                      sid=request.matchdict['sid'],
+                    raise HTTPFound(request.route_url('dataset.edit',
                                                       disid=disid))
 
                 except api.Invalid as e:
                     e.params = request.POST
-                    return {'survey': survey,
-#                            'qsheet': qsheet,
-                            'data_item': data_item}
+                    return {'data_item': data_item}
             else:
-                return {'survey': survey,
-#                        'qsheet': qsheet,
-                        'data_item': data_item}
+                return {'data_item': data_item}
         else:
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
 
-@view_config(route_name='survey.data.delete')
+@view_config(route_name='data.delete')
 @render({'text/html': 'backend/data/delete.html'})
 def delete(request):
     dbsession = DBSession()

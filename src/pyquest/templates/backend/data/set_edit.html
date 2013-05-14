@@ -15,18 +15,17 @@
   <body>
     <nav class="toolbar">
       <ul>
-        <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
-          <li><a href="${r.route_url('survey.data.new', sid=survey.id, disid=dis.id)}" class="button">Add Item</a></li>
-          <li><a href="${r.route_url('survey.dataset.delete', sid=survey.id, disid=dis.id)}" class="button">Delete</a></li>
+        <py:if test="h.auth.is_authorised(':user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
+<!--          <li><a href="${r.route_url('survey.data.new', sid=survey.id, disid=dis.id)}" class="button">Add Item</a></li>-->
+          <li><a href="${r.route_url('dataset.delete', disid=dis.id)}" class="button">Delete</a></li>
         </py:if>
       </ul>
     </nav>
     <article>
-      <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id)}">${r.route_url('survey.run', sid=survey.id)}</a>.</div>
       <hgroup>
         <h1>Edit Data Item Set: ${dis.id},${dis.name}</h1>
       </hgroup>
-      <form action="${r.route_url('survey.dataset.edit', sid=survey.id, disid=dis.id)}" method="post">
+      <form action="${r.route_url('dataset.edit', disid=dis.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
 	<div class="span-24" style="overflow:auto;">
           <dt>Name</dt>
@@ -51,15 +50,15 @@
 		<td py:for="attribute in item.attributes">${attribute.value}</td>
 		<td>
                   <ul class="inline no-symbol no-margin">
-                    <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.edit', sid=survey.id, did=item.id)}" class="button">Edit</a></li>
-                    <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.delete', sid=survey.id, did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
+                    <li><a href="${r.route_url('data.edit', did=item.id)}" class="button">Edit</a></li>
+                    <li><a href="${r.route_url('data.delete', did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
                   </ul>
 		</td>
               </tr>
             </tbody>
           </table>
           <ul class="buttons span-22">
-            <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.dataset.list', sid=survey.id))}</li>
+            <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('dataset.list'))}</li>
             <li>${h.form.submit('Update', class_='button')}</li>
           </ul>
 	</div>

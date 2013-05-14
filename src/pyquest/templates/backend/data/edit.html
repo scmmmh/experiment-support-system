@@ -24,16 +24,16 @@
     </script>
   </head>
   <body>
-<!--    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id, qsid=qsheet.id)}), ('Edit', {'href': r.route_url('survey.data.edit', sid=survey.id, qsid=qsheet.id, did=data_item.id)})], r)}-->
+<!--    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id, qsid=qsheet.id)}), ('Edit', {'href': r.route_url('survey.data.edit', sid=survey.id, qsid=qsheet.id, did=data_item.id)})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
-    ${h.ui.main_menu('data', survey, r)}
+    ${h.ui.main_menu('data', survey, r)}-->
     <article>
-      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
-        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
+<!--      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
+        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>-->
       <hgroup>
         <h1>Edit Data</h1>
       </hgroup>
-      <form action="${r.route_url('survey.data.edit', sid=survey.id, did=data_item.id)}" method="post">
+      <form action="${r.route_url('data.edit', did=data_item.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt><label for="control_item">Control item</label></dt>
@@ -51,7 +51,7 @@
           </dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.dataset.edit', sid=survey.id, disid=data_item.data_item_set_id))}</li>
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('dataset.edit', disid=data_item.data_item_set_id))}</li>
           <li>${h.form.submit('Update', class_='button')}</li>
         </ul>
       </form>

@@ -507,10 +507,18 @@ class DataItemSet(Base):
     __tablename__ = 'data_item_sets'
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
+    owned_by = Column(ForeignKey(User.id))
     qsheet_id = Column(Integer, ForeignKey(QSheet.id))
 
     items = relationship('DataItem', backref='item_set')
     qsheet = relationship('QSheet', backref=backref('dataset', uselist=False))
+    owner = relationship('User', backref='datasets')
+
+    def is_owned_by(self, user):
+        if user:
+            return self.owned_by == user.id
+        else:
+            return False
     
 class DataItem(Base):
     

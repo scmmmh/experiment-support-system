@@ -18,7 +18,8 @@ def upgrade():
     op.create_table('data_item_sets',
                     sa.Column('id', sa.Integer, primary_key=True),
                     sa.Column('name', sa.VARCHAR(255)),
-                    sa.Column('id', sa.Integer, sa.ForeignKey('qsheets.id')))
+                    sa.Column('owned_by', sa.Integer, sa.ForeignKey('user.id')),
+                    sa.Column('qsheet_id', sa.Integer, sa.ForeignKey('qsheets.id')))
 
     op.add_column('data_items',
                   sa.Column('data_item_set_id', sa.Integer, sa.ForeignKey('data_item_sets.id')))

@@ -2,18 +2,16 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>List of Data Item Sets</title>
+    <title>Data Item Sets</title>
   </head>
   <body>
     <nav class="toolbar">
       <ul>
-        <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
-	</py:if>
         <li><a href="" class="button">Add</a></li>
-        <li><a href="${r.route_url('survey.dataset.upload', sid=survey.id)}" class="button">Upload</a></li>
+        <li><a href="${r.route_url('dataset.upload')}" class="button">Upload</a></li>
       </ul>
     </nav>
-    <h1>List of Data Item Sets</h1>
+    <h1>Data Item Sets</h1>
     <div>
       <table>
 	<thead>
@@ -25,10 +23,10 @@
 	  <td>${set.id}</td>
 	  <td>${set.name}</td>
 	  <td>
-                <ul class="inline no-symbol no-margin">
-                  <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.dataset.edit', sid=survey.id, disid=set.id)}" class="button">Edit</a></li>
-                  <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.dataset.delete', sid=survey.id, disid=set.id)}" class="button">Delete</a></li>
-		  </ul>
+            <ul class="inline no-symbol no-margin">
+              <li><a href="${r.route_url('dataset.edit', disid=set.id)}" class="button">Edit</a></li>
+              <li><a href="${r.route_url('dataset.delete', disid=set.id)}" class="button">Delete</a></li>
+	    </ul>
 	  </td>
 	</tr>
       </table>
