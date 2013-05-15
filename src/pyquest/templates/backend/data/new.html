@@ -25,12 +25,13 @@
   </head>
   <body>
     <article>
+<!-- FIX ME - HERE and ELSEWHERE
       <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
-        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
+        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div> -->
       <hgroup>
         <h1>Add Data</h1>
       </hgroup>
-      <form action="${r.route_url('survey.data.new', sid=survey.id, disid=data_item.data_item_set_id)}" method="post">
+      <form action="${r.route_url('data.new', disid=data_item.data_item_set_id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt><label for="control_item">Control item</label></dt>
@@ -47,7 +48,7 @@
           </dd>
         </dl>
         <ul class="buttons span-12">
-          <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('survey.dataset.edit', sid=survey.id, disid=data_item.data_item_set_id))}</li>
+          <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('dataset.edit', disid=data_item.data_item_set_id))}</li>
           <li>${h.form.submit('Add', class_='button')}</li>
         </ul>
       </form>

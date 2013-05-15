@@ -16,8 +16,8 @@
     ${h.ui.dataset_breadcrumbs([(dis.name, {'href': ''}), ('Edit', {'href': r.route_url('dataset.edit', disid=dis.id)})], r)}
     <nav class="toolbar">
       <ul>
-        <py:if test="h.auth.is_authorised(':user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
-<!--          <li><a href="${r.route_url('survey.data.new', sid=survey.id, disid=dis.id)}" class="button">Add Item</a></li>-->
+        <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
+          <li><a href="${r.route_url('data.new', disid=dis.id)}" class="button">Add Item</a></li>
           <li><a href="${r.route_url('dataset.delete', disid=dis.id)}" class="button">Delete</a></li>
         </py:if>
       </ul>
