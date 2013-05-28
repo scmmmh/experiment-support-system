@@ -12,7 +12,7 @@ down_revision = 'c6ce6d3adb3'
 
 from alembic import op
 import sqlalchemy as sa
-
+from migrate.changeset.constraint import ForeignKeyConstraint
 
 def upgrade():
     op.create_table('data_item_sets',
@@ -25,8 +25,9 @@ def upgrade():
                   sa.Column('data_item_set_id', sa.Integer, sa.ForeignKey('data_item_sets.id')))
 
 def downgrade():
-    op.drop_constraint('data_item_sets_ibfk_1', 'data_item_sets', 'foreignkey')
+    constraint = ForeignKeyConstraint('data_item_sets.owned_by', 'users.id')
+    constraint.drop()
     op.drop_constraint('data_item_sets_ibfk_2', 'data_item_sets', 'foreignkey')
     op.drop_constraint('data_items_ibfk_1', 'data_items', 'foreignkey')
-    op.drop_table('data_item_sets')
     op.drop_column('data_items', 'data_item_set_id')
+    op.drop_table('data_item_sets')

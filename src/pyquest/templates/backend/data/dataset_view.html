@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>View Data Item Set</title>
+    <script type="text/javascript">
+      $(document).ready(function() {
+    	  $('#data-filter-form input[type=submit]').hide();
+    	  $('#data-filter-form select').change(function(ev, ui) {
+    		 $('#data-filter-form').submit(); 
+    	  });
+      });
+    </script>
+  </head>
+  <body>
+    ${h.ui.dataset_breadcrumbs([(dis.name, {'href': ''}), ('View', {'href': r.route_url('dataset.view', disid=dis.id)})], r)}
+    <nav class="toolbar">
+      <ul>
+        <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
+          <li><a href="${r.route_url('dataset.edit', disid=dis.id)}" class="button">Edit</a></li>
+        </py:if>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>View Data Item Set: ${dis.id},${dis.name}</h1>
+      </hgroup>
+	<div class="span-24" style="overflow:auto;">
+          <dt>Name</dt>
+          <dd>${dis.name}</dd>
+          <table>
+            <thead>
+              <tr py:if="dis.items">
+		<th>Control item</th>
+		<th>Internal id</th>
+		<th py:for="attribute in dis.items[0].attributes">${attribute.key}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr py:if="len(dis.items) == 0">
+		<td class="placeholder">This dataset contains no data item. Use the "Edit" button to
+                 add data.</td>
+              </tr>
+              <tr py:for="item in dis.items">
+		<td><py:if test="item.control">Yes</py:if></td>
+                <td>${item.id}</td>
+		<td py:for="attribute in item.attributes">${attribute.value}</td>
+              </tr>
+            </tbody>
+          </table>
+	</div>
+    </article>
+  </body>
+</html>

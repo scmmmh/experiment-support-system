@@ -8,8 +8,8 @@
     ${h.ui.dataset_breadcrumbs([], r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="" class="button">Add</a></li>
-        <li><a href="${r.route_url('dataset.upload')}" class="button">Upload</a></li>
+        <li><a href="${r.route_url('dataset.new')}" class="button">New DataSet</a></li>
+        <li><a href="${r.route_url('dataset.upload')}" class="button">Upload DataSet</a></li>
       </ul>
     </nav>
     <h1>Data Item Sets</h1>
@@ -21,7 +21,7 @@
 	  <th>Action</th>
 	</thead>
 	<tr py:for="set in dis">
-	  <td>${set.id}</td>
+	  <td><a href="${r.route_url('dataset.view', disid=set.id)}">${set.id}</a></td>
 	  <td>${set.name}</td>
 	  <td>
             <ul class="inline no-symbol no-margin">

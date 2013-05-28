@@ -33,6 +33,11 @@ class DataItemSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
 
+class NewDataItemSetSchema(Schema):
+    csrf_token = validators.UnicodeString(not_empty=True)
+    name = validators.String()
+    item_attributes = foreach.ForEach(validators.UnicodeString())
+
 @view_config(route_name='dataset.list')
 @render({'text/html': 'backend/data/list_datasets.html'})
 def list_datasets(request):
@@ -41,6 +46,43 @@ def list_datasets(request):
     create_data_item_sets(dbsession, user)
     dis = dbsession.query(DataItemSet).filter(DataItemSet.owned_by==user.id).all()
     return {'dis': dis}
+
+@view_config(route_name='dataset.view')
+@render({'text/html': 'backend/data/dataset_view.html'})
+def dataset_view(request):
+    dbsession = DBSession()
+    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
+    return {'dis': dis}
+
+@view_config(route_name='dataset.new')
+@render({'text/html': 'backend/data/dataset_new.html'})
+def dataset_new(request):
+    dbsession = DBSession()
+    user = current_user(request)
+    dis = DataItemSet()
+    if request.method == 'POST':
+        try:
+            check_csrf_token(request, request.POST)
+            validator = NewDataItemSetSchema()
+            params = validator.to_python(request.POST)
+            with transaction.manager:
+                dis.name = params['name']
+                dis.owned_by = user.id
+                data_item = DataItem(order=1)
+                for idx, key in enumerate(params['item_attributes']):
+                    data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'), order=idx+1))
+                dis.items.append(data_item)
+                dbsession.add(dis)
+                dbsession.flush()
+                disid = dis.id
+            request.session.flash('DataSet created', 'info')
+            raise HTTPFound(request.route_url('dataset.edit', disid=disid))
+        except api.Invalid as e:
+            e.params = request.POST
+            return {'dis': dis,
+                    'e': e}
+    else:
+        return {'dis': dis}
 
 @view_config(route_name='dataset.delete')
 @render({'text/html': 'backend/data/dataset_delete.html'})
@@ -70,11 +112,16 @@ def dataset_edit(request):
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
-                validator = DataItemSetSchema()
+                validator = NewDataItemSetSchema()
                 params = validator.to_python(request.POST)
                 with transaction.manager:
                     dbsession.add(dis)
                     dis.name = params['name']
+                    for item in dis.items:
+                        for idx, key in enumerate(params['item_attributes']):
+                            for attribute in item.attributes:
+                                if (attribute.order == idx +1):
+                                    attribute.key = key.decode('utf-8')
                     dbsession.flush()
                 raise HTTPFound(request.route_url('dataset.list'))
             else:
@@ -107,11 +154,11 @@ def dataset_upload(request):
                         data_item = DataItem(order=order)
                         if 'control_' in item:
                             data_item.control = validators.StringBool().to_python(item['control_'])
-                            for idx, (key, value) in enumerate(item.items()):
-                                if key != 'control_':
-                                    data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
-                                                                                  value=value.decode('utf-8') if value else u'',
-                                                                                  order=idx + 1))
+                        for idx, (key, value) in enumerate(item.items()):
+                            if key != 'control_':
+                                data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
+                                                                              value=value.decode('utf-8') if value else u'',
+                                                                              order=idx + 1))
                                 dis.items.append(data_item)
                 except csv.Error:
                     raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
@@ -218,6 +265,7 @@ def upload(request):
 @view_config(route_name='data.new')
 @render({'text/html': 'backend/data/new.html'})
 def new(request):
+    import pdb; pdb.set_trace()
     dbsession = DBSession()
     dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
     user = current_user(request)
