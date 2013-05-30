@@ -20,7 +20,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
                             DataItemAttribute, Question, DataItemControlAnswer,
-                            Participant, DataItemSet)
+                            Participant, DataSet)
 import re
 
 class DataItemSchema(Schema):
@@ -29,11 +29,11 @@ class DataItemSchema(Schema):
     control_answer_question = foreach.ForEach(validators.Int())
     control_answer_answer = foreach.ForEach(validators.UnicodeString())
 
-class DataItemSetSchema(Schema):
+class DataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
 
-class NewDataItemSetSchema(Schema):
+class NewDataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
     item_attributes = foreach.ForEach(validators.UnicodeString())
@@ -44,14 +44,14 @@ def list_datasets(request):
     dbsession = DBSession()
     user = current_user(request)
     create_data_item_sets(dbsession, user)
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.owned_by==user.id).all()
+    dis = dbsession.query(DataSet).filter(DataSet.owned_by==user.id).all()
     return {'dis': dis}
 
 @view_config(route_name='dataset.view')
 @render({'text/html': 'backend/data/set_view.html'})
 def dataset_view(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
     return {'dis': dis}
 
 @view_config(route_name='dataset.new')
@@ -59,11 +59,11 @@ def dataset_view(request):
 def dataset_new(request):
     dbsession = DBSession()
     user = current_user(request)
-    dis = DataItemSet()
+    dis = DataSet()
     if request.method == 'POST':
         try:
             check_csrf_token(request, request.POST)
-            validator = NewDataItemSetSchema()
+            validator = NewDataSetSchema()
             params = validator.to_python(request.POST)
             with transaction.manager:
                 dis.name = params['name']
@@ -88,7 +88,7 @@ def dataset_new(request):
 @render({'text/html': 'backend/data/set_delete.html'})
 def dataset_delete(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
     user = current_user(request)
     if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'dis': dis}):
         if request.method == 'POST':
@@ -106,13 +106,13 @@ def dataset_delete(request):
 @render({'text/html': 'backend/data/set_edit.html'})
 def dataset_edit(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
-                validator = NewDataItemSetSchema()
+                validator = NewDataSetSchema()
                 params = validator.to_python(request.POST)
                 with transaction.manager:
                     dbsession.add(dis)
@@ -146,7 +146,7 @@ def dataset_upload(request):
             reader = csv.DictReader(request.POST['source_file'].file)
             order = 1
             with transaction.manager:
-                dis = DataItemSet(name = request.POST['source_file'].filename, owned_by=user.id)
+                dis = DataSet(name = request.POST['source_file'].filename, owned_by=user.id)
                 dbsession.add(dis)
                 try:
                     for item in reader:
@@ -174,45 +174,22 @@ def dataset_upload(request):
 
 @view_config(route_name='survey.data')
 @render({'text/html': 'backend/data/index.html'})
-#FIXME this view should show datasets which have been attached to this survey
+#FIXME this view should show datasets which have been attached to this qsheet
 def index(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
-    if request.query_string:
-        disid = int(re.sub('^.*=', '', request.query_string))
-        dis = dbsession.query(DataItemSet).filter(DataItemSet.id==disid).first()
-    else:
-        dis = None
-    user = current_user(request)
-    if survey and qsheet:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
-            items = dbsession.query(DataItem).filter(DataItem.qsheet_id==request.matchdict['qsid']).order_by(DataItem.order)
-            pages = int(math.ceil(items.count() / 10.0))
-            page = 1
-            if 'page' in request.params:
-                try:
-                    page = int(request.params['page'])
-                except:
-                    page = 1
-            items = items.offset((page - 1) * 10).limit(10)
-            return {'survey': survey,
-                    'dis': dis,
-                    'qsheet': qsheet,
-                    'items': items,
-                    'page': page,
-                    'pages': pages}
-        else:
-            redirect_to_login(request)
-    else:
-        raise HTTPNotFound()
+    dis = dbsession.query(DataSet).filter(DataSet.id==qsheet.dataset_id).first()
+    return {'dis': dis,
+            'qs': qsheet,
+            's': survey}
 
 @view_config(route_name='dataitem.new')
 @render({'text/html': 'backend/data/item_new.html'})
 def new(request):
     import pdb; pdb.set_trace()
     dbsession = DBSession()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
@@ -228,10 +205,10 @@ def new(request):
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
-                        new_data_item = DataItem(data_item_set_id=dis.id,
+                        new_data_item = DataItem(dataset_id=dis.id,
                                                  control=params['control_'])
                         if len(dis.items) > 0:
-                            new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.data_item_set_id==dis.id).first()[0] + 1
+                            new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.dataset_id==dis.id).first()[0] + 1
                         else:
                             new_data_item.order = 1
                         for attribute in data_item.attributes:
@@ -291,7 +268,7 @@ def edit(request):
                             if question and params['control_answer_answer'][idx].strip() != '':
                                 data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(data_item)
-                        disid=data_item.data_item_set_id
+                        disid=data_item.dataset_id
                     request.session.flash('Data updated', 'info')
                     raise HTTPFound(request.route_url('dataset.edit',
                                                       disid=disid))
@@ -315,7 +292,7 @@ def delete(request):
 #    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
 #                                                      DataItem.id==request.matchdict['did'])).first()
     data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==data_item.data_item_set_id).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==data_item.dataset_id).first()
     user = current_user(request)
     if dis and data_item:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'dis': dis}):
@@ -324,7 +301,7 @@ def delete(request):
                 with transaction.manager:
                     dbsession.delete(data_item)
                 request.session.flash('Data deleted', 'info')
-                raise HTTPFound(request.route_url('dataset.edit', disid=data_item.data_item_set_id))
+                raise HTTPFound(request.route_url('dataset.edit', disid=data_item.dataset_id))
             else:
                 return {#'survey': survey,
 #                        'qsheet': qsheet,
@@ -338,7 +315,7 @@ def delete(request):
 @render({'text/csv': ''})
 def data_setdownload(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataItemSet).filter(DataItemSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'dis': dis}):

@@ -18,11 +18,20 @@
 	<thead>
 	  <th>Internal Id</th>
 	  <th>Name</th>
+	  <th>QSheets</th>
 	  <th>Action</th>
 	</thead>
 	<tr py:for="set in dis">
 	  <td><a href="${r.route_url('dataset.view', disid=set.id)}">${set.id}</a></td>
 	  <td>${set.name}</td>
+	  <py:choose test="set.qsheets">
+	   <py:when test="None">
+	     <td></td>
+	   </py:when>
+	   <py:otherwise>
+	     <td><py:for each="qs in set.qsheets">${qs.id} </py:for></td>
+	   </py:otherwise>
+	  </py:choose>
 	  <td>
             <ul class="inline no-symbol no-margin">
               <li><a href="${r.route_url('dataset.edit', disid=set.id)}" class="button">Edit</a></li>

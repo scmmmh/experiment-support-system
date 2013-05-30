@@ -55,7 +55,7 @@ def select_data_items(qsid, state, qsheet, dbsession):
         disid = qsheet.dataset.id
         source_items = map(data_item_transform,
                            dbsession.query(DataItem, DataItemCount).\
-                                outerjoin(DataItemCount).filter(and_(DataItem.data_item_set_id==disid,
+                                outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==disid,
                                                                      DataItem.control==False,
                                                                      not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
                                                                                                                                                                   QSheet.id==qsheet.id)))))
@@ -76,7 +76,7 @@ def select_data_items(qsid, state, qsheet, dbsession):
                     data_items.extend(map(lambda t: {'did': t[0].id}, threshold_items))
                 threshold = threshold + 1
             control_items = map(lambda d: {'did': d.id},
-                                dbsession.query(DataItem).filter(and_(DataItem.data_item_set_id==disid,
+                                dbsession.query(DataItem).filter(and_(DataItem.dataset_id==disid,
                                                                       DataItem.control==True)).all())
             if len(control_items) < int(qsheet.attr_value('control-items')):
                 data_items.extend(control_items)

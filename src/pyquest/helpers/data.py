@@ -6,7 +6,7 @@ Created on 16 Mar 2012
 '''
 
 from sqlalchemy import and_, null
-from pyquest.models import (QSheet, DataItem, DataItemSet)
+from pyquest.models import (QSheet, DataItem, DataSet)
 
 def question_select(qsheet):
     return [(question.id, question.name) for question in qsheet.questions if question.q_type.answer_schema()]
@@ -35,19 +35,20 @@ def generate_summary(qsheet):
     return (len(qsheet.data_items), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))
 
 def create_data_item_sets(dbsession, user):
-    """Creates DataItemSets for data items which are attached to qsheets in the old way. 
+    """Creates DataSets for data items which are attached to qsheets in the old way. Note that for this backwards compatibility
+       to work the member DataItem.qsheet_id and the relationshipt QSheet.data_items must continue to exist.
     """
     qsheets = dbsession.query(QSheet).all()
     for qsheet in qsheets:
-        ditems = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==qsheet.id, DataItem.data_item_set_id==null())).all()
+        ditems = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==qsheet.id, DataItem.dataset_id==null())).all()
         if (len(ditems) > 0):
-            dis = DataItemSet(name="data items on sheet...")
-            dbsession.add(dis)
-            dis.qsheet_id = qsheet.id
-            dis.owned_by = user.id
+            ds = DataSet(name=("QSheet " + str(qsheet.id) + " Dataset"))
+            dbsession.add(ds)
+            ds.owned_by = user.id
+            ds.qsheets.append(qsheet)
             dbsession.flush()
             for ditem in ditems:
-                ditem.data_item_set_id = dis.id
+                ditem.dataset_id = ds.id
                 ditem.qsheet_id = null()
             dbsession.flush()
 

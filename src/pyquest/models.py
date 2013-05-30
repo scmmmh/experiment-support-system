@@ -186,7 +186,8 @@ class QSheet(Base):
     title = Column(Unicode(255))
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
-    
+    dataset_id = Column(ForeignKey('data_sets.id'))
+
     questions = relationship('Question',
                              backref='qsheet',
                              order_by='Question.order',
@@ -406,7 +407,7 @@ class QuestionAttributeGroup(Base):
     key = Column(Unicode(255))
     label = Column(Unicode(255))
     order = Column(Integer)
-    
+     
     attributes = relationship('QuestionAttribute',
                               backref='attribute_group',
                               order_by='QuestionAttribute.order',
@@ -502,16 +503,16 @@ class TransitionCondition(Base):
 
         return eval('actual_answer =="' + self.expected_answer + '"')
 
-class DataItemSet(Base):
+class DataSet(Base):
 
-    __tablename__ = 'data_item_sets'
+    __tablename__ = 'data_sets'
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
     owned_by = Column(ForeignKey(User.id))
-    qsheet_id = Column(Integer, ForeignKey(QSheet.id))
+#    qsheet_id = Column(Integer, ForeignKey(QSheet.id))
 
     items = relationship('DataItem', backref='item_set')
-    qsheet = relationship('QSheet', backref=backref('dataset', uselist=False))
+    qsheets = relationship('QSheet', backref='dataset')
     owner = relationship('User', backref='datasets')
 
     def is_owned_by(self, user):
@@ -526,7 +527,7 @@ class DataItem(Base):
     
     id = Column(Integer, primary_key=True)
     qsheet_id = Column(ForeignKey(QSheet.id))
-    data_item_set_id = Column(ForeignKey(DataItemSet.id))
+    dataset_id = Column(ForeignKey(DataSet.id))
     order = Column(Integer)
     control = Column(Boolean, default=False)
 

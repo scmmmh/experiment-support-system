@@ -2,9 +2,36 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>${survey.title} - Data</title>
+    <title>DataSet for QSheet ${qs.id}</title>
+    <script type="text/javascript">
+      $(document).ready(function() {
+      });
+    </script>
   </head>
   <body>
-    <h1>This page should show DataSets which have been attached to page ${qsheet.id}</h1>
+    ${h.ui.survey_breadcrumbs([(s.title, {'href': r.route_url('survey.view', sid=s.id)}), (qs.name + ' data', {'href':''})], r)}
+    <py:choose test="dis">
+      <py:when test="None">
+	<nav class="toolbar">
+	  <ul>
+              <li><a href="" class="button">Attach Data</a></li>
+	  </ul>
+	</nav>
+	<h1>No data attached to QSheet ${qs.id}</h1>
+      </py:when>
+      <py:otherwise>
+	<nav class="toolbar">
+	  <ul>
+            <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
+              <li><a href="${r.route_url('dataset.edit', disid=dis.id)}" class="button">Edit Data</a></li>
+              <li><a href="" class="button">Detach Data</a></li>
+            </py:if>
+	  </ul>
+	</nav>
+	<article>
+	  <xi:include href="dataset.html" py:with="dis=dis"/>
+	</article>
+      </py:otherwise>
+    </py:choose>
   </body>
 </html>

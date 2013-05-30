@@ -31,7 +31,7 @@
       <hgroup>
         <h1>Add Data</h1>
       </hgroup>
-      <form action="${r.route_url('data.new', disid=data_item.data_item_set_id)}" method="post">
+      <form action="${r.route_url('data.new', disid=data_item.dataset_id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt><label for="control_item">Control item</label></dt>
@@ -48,7 +48,7 @@
           </dd>
         </dl>
         <ul class="buttons span-12">
-          <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('dataset.edit', disid=data_item.data_item_set_id))}</li>
+          <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('dataset.edit', disid=data_item.dataset_id))}</li>
           <li>${h.form.submit('Add', class_='button')}</li>
         </ul>
       </form>
