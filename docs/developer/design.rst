@@ -4,7 +4,7 @@ Basic Application Design
 Components
 ----------
 
-.. image:: _static/components.png
+.. image:: ../_static/developer/components.png
 
 The main parts of the  application are roughly structured into two parts. The
 *Backend* handles the setting up of the questionnaires and the *Frontend* handles
@@ -32,4 +32,4 @@ functionality is split into four parts:
 Database
 --------
 
-.. image:: _static/database.png
+.. image:: ../_static/developer/database.png
