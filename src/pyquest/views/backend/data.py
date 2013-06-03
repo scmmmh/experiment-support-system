@@ -54,6 +54,45 @@ def dataset_view(request):
     dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
     return {'dis': dis}
 
+@view_config(route_name='dataset.attach')
+@render({'text/html': 'backend/data/set_attach.html'})
+def dataset_attach(request):
+    dbsession = DBSession()
+    qs = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+    if request.method == 'POST':
+        check_csrf_token(request, request.POST)
+        with transaction.manager:
+            dbsession.add(qs)
+            qs.dataset_id = request.params['disid']
+#            qs.dataset_id = 1
+            sid = qs.survey_id
+            qsid = qs.id
+            dbsession.flush()
+        request.session.flash('DataSet attached', 'info')
+        raise HTTPFound(request.route_url('survey.data', sid=sid, qsid=qsid))
+    else:
+        return {'disid' : 0,
+                'qs' : qs}
+
+@view_config(route_name='dataset.detach')
+@render({'text/html': 'backend/data/set_detach.html'})
+def dataset_detach(request):
+    dbsession = DBSession()
+    ds = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
+    qs = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+    if request.method == 'POST':
+            check_csrf_token(request, request.POST)
+            with transaction.manager:
+                dbsession.add(qs)
+                qs.dataset_id = null()
+                dbsession.flush()
+                sid = qs.survey_id
+            request.session.flash('DataSet detached', 'info')
+            raise HTTPFound(request.route_url('survey.view', sid=sid))
+    else:
+        return {'ds' : ds,
+                'qs' : qs}
+
 @view_config(route_name='dataset.new')
 @render({'text/html': 'backend/data/set_new.html'})
 def dataset_new(request):
@@ -187,7 +226,6 @@ def index(request):
 @view_config(route_name='dataitem.new')
 @render({'text/html': 'backend/data/item_new.html'})
 def new(request):
-    import pdb; pdb.set_trace()
     dbsession = DBSession()
     dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
     user = current_user(request)

@@ -22,6 +22,8 @@ def init(config):
     config.add_route('dataset.edit', '/dataset/{disid}/edit')
     config.add_route('dataset.delete', '/dataset/{disid}/delete')
     config.add_route('dataset.download', '/dataset/{disid}/download')
+    config.add_route('dataset.detach', '/dataset/{disid}/detach/{qsid}')
+    config.add_route('dataset.attach', '/dataset/{disid}/attach/{qsid}')
     config.add_route('survey.qsheet', '/surveys/{sid}/pages')
     config.add_route('survey.qsheet.new', '/surveys/{sid}/pages/new')
     config.add_route('survey.qsheet.import', '/surveys/{sid}/pages/import')
