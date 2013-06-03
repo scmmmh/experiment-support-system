@@ -16,4 +16,6 @@ def init(config):
     config.add_route('group.view', '/admin/groups/{gid}')
     config.add_route('group.edit', '/admin/groups/{gid}/edit')
     config.add_route('group.delete', '/admin/groups/{gid}/delete')
-    
+    config.add_route('admin.question_types', '/admin/question_types')
+    config.add_route('admin.question_types.import', '/admin/question_types/import')
+    config.add_route('admin.question_types.delete', '/admin/question_types/{qtgid}/delete')

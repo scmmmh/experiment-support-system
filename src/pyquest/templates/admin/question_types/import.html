@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>QuestionTypes</title>
+    <script>
+    function set_enabled_state(item, enabled) {
+        item.children('ol').children('li').each(function() {
+            set_enabled_state($(this), item.children('input[type=checkbox]').data('pyquest-enabled'));
+        });
+        console.log(item.children('input[type=checkbox]').data('pyquest-enabled'));
+        if(item.children('input[type=checkbox]').data('pyquest-enabled')) {
+            item.children('label').css('color', '');
+            item.children('ol').sortable('enabled');
+        } else {
+            item.children('label').css('color', '#aaaaaa');
+            item.children('ol').sortable('disable');
+        }
+    }
+    $(document).ready(function() {
+        $('#qt_form ol').sortable({
+            distance: 10,
+            update: function(e, ui) {
+                var sortable = ui.item.parent();
+                console.log(sortable.sortable('toArray'));
+                sortable.parent().children('span').children('.role-order').val(sortable.sortable('toArray').join(','));
+            }
+        });
+        $('#qt_form input[type=checkbox]').change(function() {
+            var checkbox = $(this);
+            var parent = checkbox.parent();
+            if(this.checked) {
+                parent.find('input[type=checkbox]').data('pyquest-enabled', true);
+            } else {
+                parent.find('input[type=checkbox]').data('pyquest-enabled', false);
+                checkbox.data('pyquest-enabled', true);
+            }
+            set_enabled_state(parent, true);
+        });
+        $('#qt_form input[type=checkbox]').click(function() {
+            console.log($(this).data('pyquest-enabled'));
+            if($(this).data('pyquest-enabled')) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+        $('#qt_form').children('ol').children('li').each(function() {
+            set_enabled_state($(this), true);
+        });
+        $('.role-expand').click(function() {
+            var btn = $(this);
+            var parent = btn.parent();
+            btn.hide();
+            parent.children('.role-collapse').show();
+            parent.children('ol').slideDown();
+            return false;
+        });
+        $('.role-collapse').click(function() {
+            var btn = $(this);
+            var parent = btn.parent();
+            btn.hide();
+            parent.children('.role-expand').show();
+            parent.children('ol').slideUp();
+            return false;
+        });
+    });
+    </script>
+  </head>
+  <body>
+    ${h.ui.breadcrumbs([('Question Types', {'href': r.route_url('admin.question_types')}), ('Import', {'href': r.route_url('admin.question_types.import')})], r)}
+    <article>
+    <hgroup>
+      <h1>Import Question Types</h1>
+    </hgroup>
+    <form id="qt_form" action="${r.current_route_url()}" method="post" enctype="multipart/form-data">
+      ${h.form.csrf_token_field(r.session.get_csrf_token())}
+      <dl>
+        <dt>Question Types file</dt>
+        <dd>${h.form.file_input_field('source_file', e)}</dd>
+      </dl>
+      <ul class="buttons">
+        <li>${h.form.button("Don't import", class_='button', onclick="document.location='%s'" % r.route_url('admin.question_types'))}</li>
+        <li>${h.form.submit('Import', class_='button')}</li>
+      </ul>
+    </form>
+    </article>
+  </body>
+</html>

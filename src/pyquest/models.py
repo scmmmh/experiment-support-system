@@ -17,7 +17,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '33d37cab0f8a'
+DB_VERSION = '305eb54c5d1c'
 
 class DBUpgradeException(Exception):
     
@@ -244,6 +244,12 @@ class QuestionTypeGroup(Base):
     name = Column(Unicode(255))
     title = Column(Unicode(255))
     order = Column(Integer)
+    parent_id = Column(ForeignKey(id))
+    enabled = Column(Boolean, default=True)
+
+    parent = relationship('QuestionTypeGroup',
+                          backref=backref('children', order_by='QuestionTypeGroup.order', cascade='all, delete-orphan'),
+                          remote_side=[id])
     
 class QuestionType(Base):
     
@@ -257,17 +263,44 @@ class QuestionType(Base):
     backend = Column(UnicodeText)
     frontend = Column(UnicodeText)
     group_id = Column(ForeignKey(QuestionTypeGroup.id))
+    parent_id = Column(ForeignKey(id))
+    enabled = Column(Boolean, default=True)
+    order = Column(Integer)
     
-    q_type_group = relationship(QuestionTypeGroup, backref='q_types')
+    q_type_group = relationship(QuestionTypeGroup, backref=backref('q_types', order_by='QuestionType.order', cascade='all, delete-orphan'))
+    parent = relationship('QuestionType', backref='children', remote_side=[id])
     
     def backend_schema(self):
-        return json.loads(self.backend)
+        if self.backend:
+            return json.loads(self.backend)
+        elif self.parent:
+            return self.parent.backend_schema()
+        else:
+            return []
     
     def dbschema_schema(self):
-        return json.loads(self.dbschema)
+        if self.dbschema:
+            return json.loads(self.dbschema)
+        elif self.parent:
+            return self.parent.dbschema_schema()
+        else:
+            return []
     
     def answer_schema(self):
-        return json.loads(self.answer_validation)
+        if self.answer_validation:
+            return json.loads(self.answer_validation)
+        elif self.parent:
+            return self.parent.answer_schema()
+        else:
+            return []
+    
+    def frontend_doc(self):
+        if self.frontend:
+            return self.frontend
+        elif self.parent:
+            return self.parent.frontend_doc()
+        else:
+            return ''            
 
 class Question(Base):
     
@@ -343,18 +376,26 @@ class Question(Base):
             return default
     
     def set_attr_value(self, path, value, order=0, group_order=0):
-        attr = self.attr(path)
+        attr = self.attr(path, multi=isinstance(value, list))
         if attr:
-            attr.value = value
+            attr.value = value # TODO: Fix updating of list values
         else:
             (q_group, q_attr) = path.split('.')
             attr_group = self.attr_group(q_group)
             if attr_group:
-                attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
+                if isinstance(value, list):
+                    for idx, sub_value in enumerate(value):
+                        attr_group.attributes.append(QuestionAttribute(key=q_attr, value=sub_value, order=order + idx))
+                else:
+                    attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
             else:
                 attr_group = QuestionAttributeGroup(key=q_group, order=group_order)
                 self.attributes.append(attr_group)
-                attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
+                if isinstance(value, list):
+                    for idx, sub_value in enumerate(value):
+                        attr_group.attributes.append(QuestionAttribute(key=q_attr, value=sub_value, order=order + idx))
+                else:
+                    attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
 
 class QuestionAttributeGroup(Base):
     
