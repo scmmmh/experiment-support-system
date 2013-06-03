@@ -5,5 +5,10 @@
   <pq:scripts>${survey.scripts}</pq:scripts>
   <pq:first_page>${survey.start.name if survey.start else ''}</pq:first_page>
   <xi:include href="../qsheet/export.xml" py:for="qsheet in survey.qsheets"/>
-  <pq:transition from="${qsheet.name}" to="${qsheet.next[0].target.name}" py:for="qsheet in survey.qsheets" py:if="qsheet.next and qsheet.next[0] and qsheet.next[0].target"/>
+  <py:for each="qsheet in survey.qsheets">
+    <pq:transition from="${qsheet.name}" py:if="len(qsheet.next)==0"/>
+    <py:for each="transition in qsheet.next">
+      ${h.qsheet.transition_as_text(transition)}
+    </py:for>
+  </py:for>
 </pq:survey>
