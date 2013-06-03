@@ -9,7 +9,7 @@
 .error-explanation {color: #aa0000;margin-bottom:0;}
 
 /* QSheet styles */
-.qsheet h1 {font-size:18pt;color:#222222;}
+.qsheet h1, .finished h1 {font-size:18pt;color:#222222;}
 
 /* Question styles */
 .question {margin-bottom:1.5em;background-color:#efefef;border:1px solid #aaaaaa;padding:0.5em 0.8em;}
