@@ -15,7 +15,7 @@ from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 from sqlalchemy import and_, func, null
 
-from pyquest.helpers.data import create_data_item_sets
+from pyquest.helpers.data import create_data_item_sets, create_ds_options
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
@@ -58,13 +58,15 @@ def dataset_view(request):
 @render({'text/html': 'backend/data/set_attach.html'})
 def dataset_attach(request):
     dbsession = DBSession()
+    user = current_user(request)
     qs = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
+    survey = dbsession.query(Survey).filter(Survey.id==qs.survey_id).first()
+    dsoptions = create_ds_options(dbsession, user)
     if request.method == 'POST':
         check_csrf_token(request, request.POST)
         with transaction.manager:
             dbsession.add(qs)
             qs.dataset_id = request.params['disid']
-#            qs.dataset_id = 1
             sid = qs.survey_id
             qsid = qs.id
             dbsession.flush()
@@ -72,6 +74,8 @@ def dataset_attach(request):
         raise HTTPFound(request.route_url('survey.data', sid=sid, qsid=qsid))
     else:
         return {'disid' : 0,
+                'dsoptions' : dsoptions,
+                's' : survey,
                 'qs' : qs}
 
 @view_config(route_name='dataset.detach')
@@ -189,7 +193,6 @@ def dataset_upload(request):
                 dbsession.add(dis)
                 try:
                     for item in reader:
-                        # removed section that checked matching with previous data for qsheet
                         data_item = DataItem(order=order)
                         if 'control_' in item:
                             data_item.control = validators.StringBool().to_python(item['control_'])
@@ -211,9 +214,31 @@ def dataset_upload(request):
     else:
         return {}
 
+@view_config(route_name='dataset.download')
+@render({'text/csv': ''})
+def dataset_download(request):
+    dbsession = DBSession()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
+    user = current_user(request)
+    if dis:
+        if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'dis': dis}):
+            columns = []
+            rows = []
+            if len(dis.items) > 0:
+                columns = ['id_', 'control_'] + [a.key.encode('utf-8') for a in dis.items[0].attributes]
+                for item in dis.items:
+                    row = dict([(a.key.encode('utf-8'), a.value.encode('utf-8')) for a in item.attributes])
+                    row.update(dict([('id_', item.id), ('control_', item.control)]))
+                    rows.append(row)
+            return {'columns': columns,
+                    'rows': rows}
+        else:
+            redirect_to_login(request)
+    else:
+        raise HTTPNotFound()
+
 @view_config(route_name='survey.data')
 @render({'text/html': 'backend/data/index.html'})
-#FIXME this view should show datasets which have been attached to this qsheet
 def index(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -263,13 +288,9 @@ def new(request):
                                                       disid=request.matchdict['disid']))
                 except api.Invalid as e:
                     e.params = request.POST
-                    return {#'survey': survey,
-#                            'qsheet': qsheet,
-                            'data_item': data_item}
+                    return {'data_item': data_item}
             else:
-                return {#'survey': survey,
- #                       'qsheet': qsheet,
-                        'data_item': data_item}
+                return {'data_item': data_item}
         else:
             redirect_to_login(request)
     else:
@@ -279,12 +300,7 @@ def new(request):
 @render({'text/html': 'backend/data/item_edit.html'})
 def edit(request):
     dbsession = DBSession()
-#    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-#    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
-#    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
-#                                                      DataItem.id==request.matchdict['did'])).first()
     data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
-
     user = current_user(request)
     if data_item:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': data_item.item_set}):
@@ -325,10 +341,6 @@ def edit(request):
 @render({'text/html': 'backend/data/item_delete.html'})
 def delete(request):
     dbsession = DBSession()
-#    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-#    qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
-#    data_item = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==request.matchdict['qsid'],
-#                                                      DataItem.id==request.matchdict['did'])).first()
     data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
     dis = dbsession.query(DataSet).filter(DataSet.id==data_item.dataset_id).first()
     user = current_user(request)
@@ -341,33 +353,9 @@ def delete(request):
                 request.session.flash('Data deleted', 'info')
                 raise HTTPFound(request.route_url('dataset.edit', disid=data_item.dataset_id))
             else:
-                return {#'survey': survey,
-#                        'qsheet': qsheet,
-                        'data_item': data_item}
+                return {'data_item': data_item}
         else:
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
 
-@view_config(route_name='dataset.download')
-@render({'text/csv': ''})
-def data_setdownload(request):
-    dbsession = DBSession()
-    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
-    user = current_user(request)
-    if dis:
-        if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'dis': dis}):
-            columns = []
-            rows = []
-            if len(dis.items) > 0:
-                columns = ['id_', 'control_'] + [a.key.encode('utf-8') for a in dis.items[0].attributes]
-                for item in dis.items:
-                    row = dict([(a.key.encode('utf-8'), a.value.encode('utf-8')) for a in item.attributes])
-                    row.update(dict([('id_', item.id), ('control_', item.control)]))
-                    rows.append(row)
-            return {'columns': columns,
-                    'rows': rows}
-        else:
-            redirect_to_login(request)
-    else:
-        raise HTTPNotFound()

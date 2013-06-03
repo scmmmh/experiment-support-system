@@ -52,3 +52,16 @@ def create_data_item_sets(dbsession, user):
                 ditem.qsheet_id = null()
             dbsession.flush()
 
+def create_ds_options(dbsession, user):
+    """Creates a list of tuples representing all the available DataSets. The list is suitable for use in a select item.
+    
+    :param dbsession: the DataBase session
+    :param user: the current user
+    :return a list of tuples for use in select items representing the available DataSets
+    """
+    ds_options = []
+    for d in dbsession.query(DataSet).filter(DataSet.owned_by==user.id).all():
+        ds_options.append((d.id, d.name))
+
+    return ds_options;
+    
