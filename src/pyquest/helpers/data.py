@@ -14,7 +14,7 @@ def sample_for_qsheet(qsheet):
         data_item['did'] = qsheet.data_items[0].id
         for attr in qsheet.data_items[0].attributes:
             data_item[attr.key] = attr.value
-    return data_item
+    return [data_item]
 
 def generate_summary(qsheet):
     data_questions = 0

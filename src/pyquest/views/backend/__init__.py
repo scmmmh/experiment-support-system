@@ -28,6 +28,7 @@ def init(config):
     config.add_route('survey.qsheet.edit.source', '/surveys/{sid}/pages/{qsid}/edit/source')
     config.add_route('survey.qsheet.delete', '/surveys/{sid}/pages/{qsid}/delete')
     config.add_route('survey.qsheet.view', '/surveys/{sid}/pages/{qsid}/view')
+    config.add_route('survey.qsheet.preview', '/surveys/{sid}/pages/{qsid}/preview')
     config.add_route('survey.qsheet.export', '/surveys/{sid}/pages/{qsid}/export')
     config.add_route('survey.qsheet.export.ext', '/surveys/{sid}/pages/{qsid}/export.{ext}')
     config.add_route('survey.preview', '/surveys/{sid}/preview')

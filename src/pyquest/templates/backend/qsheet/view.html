@@ -3,15 +3,13 @@
   <xi:include href="../../layout/backend.html"/>
   <head>
     <title>${survey.title} - ${qsheet.title}</title>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/frontend.css')}"/>
-    <link rel="stylesheet" type="text/css" href="${r.static_url('pyquest:static/css/themes/basic.css')}"/>
-    <style type="text/css">${survey.styles}</style>
-    <style type="text/css">${qsheet.styles}</style>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-1.7.1.min.js')}"></script>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/jquery-ui-1.8.17.min.js')}"></script>
-    <script type="text/javascript" src="${r.static_url('pyquest:static/js/frontend.js')}"></script>
-    <script type="text/javascript">${survey.scripts}</script>
-    <script type="text/javascript">${qsheet.scripts}</script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+    	$('iframe').css('height', $(window).innerHeight() - 100);
+    });
+    </script>
   </head>
   <body>
     <div class="container">
@@ -28,26 +26,8 @@
       </nav>
       <article>
         <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id)}">${r.route_url('survey.run', sid=survey.id)}</a>.</div>
-        <hgroup>
-          <h1>${survey.title}</h1>
-        </hgroup>
+        <iframe src="${r.route_url('survey.qsheet.preview', sid=survey.id, qsid=qsheet.id)}" style="width:100%;height:600px;border:1px solid #dddddd;"></iframe>
       </article>
     </div>
-    <article class="survey">
-      <section id="${qsheet.name}" class="qsheet">
-        <hgroup>
-          <h1>${qsheet.title}</h1>
-        </hgroup>
-        <p class="success" py:if="r.method == 'POST' and not e">Your submission passed the validation</p>
-        <p class="error" py:if="r.method == 'POST' and e">Unfortunately your submission did not pass the validation</p>
-        <form action="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" method="post">
-          ${h.form.hidden_field('items.%i.csrf_token_' % (example['did']), r.session.get_csrf_token())}
-          ${h.qsheet.render_questions(qsheet, example, participant)}
-          <ul class="buttons">
-            <li>${h.form.submit('Test validation', class_='button', name='action_')}</li>
-          </ul>
-        </form>
-      </section>
-    </article>
   </body>
 </html>

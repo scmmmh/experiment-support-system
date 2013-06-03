@@ -1,42 +1,19 @@
-<!DOCTYPE html>
-<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:i18n="http://genshi.edgewall.org/i18n">
-  <xi:include href="../layout/frontend.html"/>
-  <head>
-    <title>${survey.title} - ${qsheet.title}</title>
-    <style type="text/css">${survey.styles}</style>
-    <style type="text/css">${qsheet.styles}</style>
-    <style type="text/css">.progress .done{clip:rect(0px ${int(200.0 * progress[0] / (progress[0] + progress[1]))}px 20px 0px);}</style>
-    <script type="text/javascript">${survey.scripts}</script>
-    <script type="text/javascript">${qsheet.scripts}</script>
-  </head>
-  <body>
-    <py:if test="survey.status == 'testing'"> 
-      ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Test', {'href': r.route_url('survey.run', sid=survey.id)})], r)}
-      <div class="error"><div style="padding:0 1em 0.5em 0;" class="left"><img src="${r.static_url('pyquest:static/img/testing.png')}" alt="testing"/></div>This survey is currently being tested and is not live yet.
-        Answers will be validated and recored as if the survey were live, but will be wiped automatically at the end of
-        the test. Testers will also be able to complete the survey multiple times.</div>
-    </py:if>
-    <hgroup class="hidden">
-      <h1>${survey.title}</h1>
-    </hgroup>
-    <aside py:if="control" i18n:msg="perc">Your success rate is: ${int(100.0 * control[0] / control[1])}%</aside>
-    <section id="${qsheet.name}" class="qsheet">
-      <hgroup>
-        <h1>${qsheet.title}</h1>
-      </hgroup>
-      <p class="error" py:if="r.method == 'POST' and e">Please answer all required questions.</p>
-      <form action="${r.route_url('survey.run', sid=survey.id, qsid=qsheet.id)}" method="post" class="role-survey-form">
-        <section py:for="data_item in data_items" class="data-item">
-          ${h.form.hidden_field('items.%s.csrf_token_' % (data_item['did']), r.session.get_csrf_token())}
-          ${h.qsheet.render_questions(qsheet, data_item, participant, e)}
-        </section>
-        <ul class="buttons">
-          <li py:if="'clear' in submit_options">${h.form.reset(_('Clear Answers on this Page'), class_='button role-clear')}</li>
-          <li py:if="'more' in submit_options">${h.form.submit(_('More Questions'), name='action_', class_='button role-submit')}</li>
-          <li py:if="'next' in submit_options">${h.form.submit(_('Next Page'), name='action_', class_='button role-submit')}</li>
-          <li py:if="'finish' in submit_options">${h.form.submit(_('Finish Survey'), name='action_', class_='button role-submit')}</li>
-        </ul>
-      </form>
+<section id="${qsheet.name}" class="qsheet grid-12" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:i18n="http://genshi.edgewall.org/i18n">
+  <hgroup>
+    <h1>${qsheet.title}</h1>
+  </hgroup>
+  <p class="error-background error-border error-text error-qsheet-marker" py:if="r.method == 'POST' and e">Please answer all required questions.</p>
+  <form action="${submit_url}" method="post" class="role-survey-form">
+    <section py:for="data_item in data_items" class="data-item">
+      ${h.form.hidden_field('items.%s.csrf_token_' % (data_item['did']), r.session.get_csrf_token())}
+      ${h.qsheet.render_questions(qsheet, data_item, participant, e)}
     </section>
-  </body>
-</html>
+    <ul class="buttons inline no-padding no-symbol text-right">
+      <li py:if="'clear' in submit_options">${h.form.reset(_('Clear Answers on this Page'), class_='button role-clear')}</li>
+      <li py:if="'more' in submit_options">${h.form.submit(_('More Questions'), name='action_', class_='button role-submit')}</li>
+      <li py:if="'next' in submit_options">${h.form.submit(_('Next Page'), name='action_', class_='button role-submit')}</li>
+      <li py:if="'finish' in submit_options">${h.form.submit(_('Finish Survey'), name='action_', class_='button role-submit')}</li>
+      <li py:if="'test-validate' in submit_options">${h.form.submit(_('Test validation'), name='action_', class_='button role-submit')}</li>
+    </ul>
+  </form>
+</section>
