@@ -1,14 +1,14 @@
 """create_data_item_list
 
 Revision ID: 40af42e8f394
-Revises: c6ce6d3adb3
+Revises: 1cd78b756fb3
 Create Date: 2013-05-08 14:35:13.918437
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '40af42e8f394'
-down_revision = 'c6ce6d3adb3'
+down_revision = '1cd78b756fb3'
 
 from alembic import op
 import sqlalchemy as sa
