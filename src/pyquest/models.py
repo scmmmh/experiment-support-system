@@ -186,7 +186,7 @@ class QSheet(Base):
     title = Column(Unicode(255))
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
-    dataset_id = Column(ForeignKey('data_sets.id'))
+    dataset_id = Column(ForeignKey('data_sets.id', name='qsheets_dataset_id_fk'))
 
     questions = relationship('Question',
                              backref='qsheet',

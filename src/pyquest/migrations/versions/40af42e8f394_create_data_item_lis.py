@@ -33,11 +33,14 @@ metadata = MetaData()
 def upgrade():
     op.create_table('data_sets',
                     Column('id', Integer, primary_key=True),
-                    Column('name', VARCHAR(255)),
+                    Column('name', Unicode(255)),
                     Column('owned_by', Integer, ForeignKey('users.id', name='data_sets_owned_by_fk')))
 
     op.add_column('data_items',
                   Column('dataset_id', Integer, ForeignKey('data_sets.id', name='data_items_dataset_id_fk')))
+
+    op.add_column('qsheets',
+                  Column('dataset_id', Integer, ForeignKey('data_sets.id', name='qsheets_dataset_id_fk')))
 
     # metadata.bind = op.get_bind()
     # # for each qsheet.id
@@ -70,5 +73,7 @@ def downgrade():
 
     op.drop_constraint('data_sets_owned_by_fk', 'data_sets', type='foreignkey')
     op.drop_constraint('data_items_dataset_id_fk', 'data_items', type='foreignkey')
+    op.drop_constraint('qsheets_dataset_id_fk', 'qsheets', type='foreignkey')
     op.drop_column('data_items', 'dataset_id')
+    op.drop_column('qsheets', 'dataset_id')
     op.drop_table('data_sets')
