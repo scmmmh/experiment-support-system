@@ -17,7 +17,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '1a09c56aa065'
+DB_VERSION = '40af42e8f394'
 
 class DBUpgradeException(Exception):
     
@@ -508,7 +508,7 @@ class DataSet(Base):
     __tablename__ = 'data_sets'
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
-    owned_by = Column(ForeignKey(User.id))
+    owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
 #    qsheet_id = Column(Integer, ForeignKey(QSheet.id))
 
     items = relationship('DataItem', backref='item_set')
@@ -527,7 +527,7 @@ class DataItem(Base):
     
     id = Column(Integer, primary_key=True)
     qsheet_id = Column(ForeignKey(QSheet.id))
-    dataset_id = Column(ForeignKey(DataSet.id))
+    dataset_id = Column(ForeignKey(DataSet.id, name="data_items_dataset_id_fk"))
     order = Column(Integer)
     control = Column(Boolean, default=False)
 
