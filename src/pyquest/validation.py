@@ -364,15 +364,6 @@ class ValidationState(object):
         for (key, value) in kwargs.items():
             self.__setattr__(key, value)
 
-class LNUValidator(validators.UnicodeString):
-
-    def _to_python(self, value, state):
-        match = re.match(r'.*([^a-zA-Z0-9_]+).*', value)
-        if match:
-            raise Invalid('This field must contain only letters, numbers and underscores. "%s" is not allowed ' %(match.groups()[0]), value, state) 
-        else:
-            return validators.UnicodeString._to_python(self, value, state)
-
 class QuestionTypeSchema(Schema):
     
     accept_iterator = True
@@ -381,7 +372,8 @@ class QuestionTypeSchema(Schema):
         Schema.__init__(self, **kwargs)
         for field in schema:
             if field['type'] == 'question-name':
-                self.add_field('name', LNUValidator(not_empty=True))
+                self.add_field('name', compound.Pipe(validators=[validators.UnicodeString(not_empty=True),
+                                                                 validators.Regex(r'^[a-zA-Z0-9_]+$', messages={'invalid':'Name must contain only letters, numbers and underscores.'})]))
             elif field['type'] == 'question-title':
                 self.add_field('title', validators.UnicodeString(not_empty=True))
             elif field['type'] == 'question-help':
