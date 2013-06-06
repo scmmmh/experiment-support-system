@@ -27,41 +27,9 @@ def generate_summary(qsheet):
             data_questions = data_questions + 1
     data_questions = float(data_questions)
     counts = []
-    for data_item in qsheet.data_items:
+    for data_item in qsheet.data_items():
         if data_questions > 0:
             counts.append(len(data_item.answers) / data_questions)
         else:
             counts.append(len(data_item.answers))
-    return (len(qsheet.data_items), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))
-
-def create_data_item_sets(dbsession, user):
-    """Creates DataSets for data items which are attached to qsheets in the old way. Note that for this backwards compatibility
-       to work the member DataItem.qsheet_id and the relationshipt QSheet.data_items must continue to exist.
-    """
-    qsheets = dbsession.query(QSheet).all()
-    for qsheet in qsheets:
-        ditems = dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==qsheet.id, DataItem.dataset_id==null())).all()
-        if (len(ditems) > 0):
-            ds = DataSet(name=("QSheet " + str(qsheet.id) + " Dataset"))
-            dbsession.add(ds)
-            ds.owned_by = user.id
-            ds.qsheets.append(qsheet)
-            dbsession.flush()
-            for ditem in ditems:
-                ditem.dataset_id = ds.id
-                ditem.qsheet_id = null()
-            dbsession.flush()
-
-def create_ds_options(dbsession, user):
-    """Creates a list of tuples representing all the available DataSets. The list is suitable for use in a select item.
-    
-    :param dbsession: the DataBase session
-    :param user: the current user
-    :return a list of tuples for use in select items representing the available DataSets
-    """
-    ds_options = []
-    for d in dbsession.query(DataSet).filter(DataSet.owned_by==user.id).all():
-        ds_options.append((d.id, d.name))
-
-    return ds_options;
-    
+    return (len(qsheet.data_items()), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))

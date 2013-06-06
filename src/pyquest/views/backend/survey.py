@@ -14,7 +14,6 @@ from pywebtools.renderer import render
 
 from pyquest import helpers
 from pyquest.views.backend.qsheet import load_qsheet_from_xml, load_transition_from_xml
-from pyquest.helpers.data import create_data_item_sets
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
@@ -126,7 +125,6 @@ def load_survey_from_xml(owner, dbsession, doc):
                 survey.start = qsheets[item.text]
         elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}transition':
             load_transition_from_xml(qsheets, item, dbsession)
-    create_data_item_sets(dbsession, owner)
     return survey
 
 @view_config(route_name='survey.import')
@@ -243,7 +241,7 @@ def duplicate(request):
                                                           label=attr.label,
                                                           value=attr.value,
                                                           order=attr.order)
-                            for data_item in qsheet.data_items:
+                            for data_item in qsheet.data_items():
                                 dupl_data_item = DataItem(qsheet=dupl_qsheet,
                                                           order=data_item.order,
                                                           control=data_item.control)
@@ -348,7 +346,7 @@ def status(request):
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
                             for qsheet in survey.qsheets:
-                                for data_item in qsheet.data_items:
+                                for data_item in qsheet.data_items():
                                     data_item.counts = []
                                     dbsession.add(data_item)
                         survey.status = params['status']

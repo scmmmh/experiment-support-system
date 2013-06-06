@@ -13,7 +13,7 @@ from pywebtools import form
 from re import search
 from StringIO import StringIO
 
-from pyquest.models import DBSession, QuestionType
+from pyquest.models import DBSession, QuestionType, DataSet
 
 def substitute(text, item, participant=None):
     if text:
@@ -240,3 +240,4 @@ def question_list(qsheet):
                 qlist.append((question.id, question.name))
 
     return qlist
+

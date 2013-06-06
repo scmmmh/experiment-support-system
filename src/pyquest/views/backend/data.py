@@ -15,7 +15,6 @@ from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 from sqlalchemy import and_, func, null
 
-from pyquest.helpers.data import create_data_item_sets, create_ds_options
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
@@ -43,7 +42,6 @@ class NewDataSetSchema(Schema):
 def list_datasets(request):
     dbsession = DBSession()
     user = current_user(request)
-    create_data_item_sets(dbsession, user)
     dis = dbsession.query(DataSet).filter(DataSet.owned_by==user.id).all()
     return {'dis': dis}
 
@@ -359,3 +357,15 @@ def delete(request):
     else:
         raise HTTPNotFound()
 
+def create_ds_options(dbsession, user):
+    """Creates a list of tuples representing all the available DataSets. The list is suitable for use in a select item.
+    
+    :param dbsession: the DataBase session
+    :param user: the current user
+    :return a list of tuples for use in select items representing the available DataSets
+    """
+    ds_options = []
+    for d in dbsession.query(DataSet).filter(DataSet.owned_by==user.id).all():
+        ds_options.append((d.id, d.name))
+
+    return ds_options;

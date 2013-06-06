@@ -203,10 +203,6 @@ class QSheet(Base):
                         backref='target',
                         primaryjoin='QSheet.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
-    data_items = relationship('DataItem',
-                             backref='qsheet',
-                             order_by='DataItem.order',
-                             cascade='all, delete, delete-orphan')
     
     def attr(self, key):
         for attr in self.attributes:
@@ -227,6 +223,17 @@ class QSheet(Base):
             attr.value = value
         else:
             self.attributes.append(QSheetAttribute(key=key, value=value))
+
+    def data_items(self):
+        if self.dataset_id:
+            dbsession = DBSession()
+            dataset = dbsession.query(DataSet).filter(DataSet.id==self.dataset_id).first()
+            data_items = dataset.items
+        else:
+            data_items = []
+
+        return data_items
+
 
 class QSheetAttribute(Base):
     
@@ -509,7 +516,6 @@ class DataSet(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
     owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
-#    qsheet_id = Column(Integer, ForeignKey(QSheet.id))
 
     items = relationship('DataItem', backref='item_set')
     qsheets = relationship('QSheet', backref='dataset')
@@ -526,7 +532,6 @@ class DataItem(Base):
     __tablename__ = 'data_items'
     
     id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(QSheet.id))
     dataset_id = Column(ForeignKey(DataSet.id, name="data_items_dataset_id_fk"))
     order = Column(Integer)
     control = Column(Boolean, default=False)
