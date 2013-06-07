@@ -10,11 +10,11 @@
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([(s.title, {'href': r.route_url('survey.view', sid=s.id)}), (qs.name + ' data', {'href':''})], r)}
-    <form action="${r.route_url('dataset.attach', disid=disid, qsid=qs.id, dis=0)}" method="post">
+    <form action="${r.route_url('data.attach', sid=s.id, dsid=dsid, qsid=qs.id)}" method="post">
       ${h.form.csrf_token_field(r.session.get_csrf_token())}
       <h1>Attach Dataset to QSheet ${qs.id}</h1>
       <b> Dataset to attach: </b>
-      ${h.form.select('disid', 'dsoptions[0][0]', dsoptions, e)}
+      ${h.form.select('dsid', 'dsoptions[0][0]', dsoptions, e)}
       <ul class="buttons span-22">
 	<li>${h.form.button("Don't Attach", class_='button', onclick="document.location='%s'" % r.route_url('survey.data', sid=qs.survey_id, qsid=qs.id))}</li>
 	<li>${h.form.submit('Atttach', class_='button')}</li>

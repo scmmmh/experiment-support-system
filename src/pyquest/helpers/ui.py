@@ -17,7 +17,7 @@ def survey_breadcrumbs(items, request):
     return breadcrumbs(items, request)
 
 def dataset_breadcrumbs(items, request):
-    items.insert(0, ('All my data', {'href': request.route_url('dataset.list')}))
+    items.insert(0, ('All my data', {'href': request.route_url('data.list')}))
     return breadcrumbs(items, request)
 
 def main_menu(current, survey, request):

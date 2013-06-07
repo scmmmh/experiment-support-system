@@ -28,7 +28,7 @@
       <hgroup>
         <h1>Edit Data</h1>
       </hgroup>
-      <form action="${r.route_url('dataitem.edit', did=data_item.id)}" method="post">
+      <form action="${r.route_url('data.item.edit', did=data_item.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt><label for="control_item">Control item</label></dt>
@@ -46,7 +46,7 @@
           </dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('dataset.edit', disid=data_item.dataset_id))}</li>
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.edit', sid=data_item.data_set.survey_id, dsid=data_item.dataset_id))}</li>
           <li>${h.form.submit('Update', class_='button')}</li>
         </ul>
       </form>

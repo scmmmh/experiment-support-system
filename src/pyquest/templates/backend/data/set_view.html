@@ -13,11 +13,11 @@
     </script>
   </head>
   <body>
-    ${h.ui.dataset_breadcrumbs([(dis.name, {'href': ''}), ('View', {'href': r.route_url('dataset.view', disid=dis.id)})], r)}
+<!--    ${h.ui.dataset_breadcrumbs([(dis.name, {'href': ''}), ('View', {'href': r.route_url('data.view', sid=dis.survey_id, dsid=dis.id)})], r)} -->
     <nav class="toolbar">
       <ul>
         <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
-          <li><a href="${r.route_url('dataset.edit', disid=dis.id)}" class="button">Edit</a></li>
+          <li><a href="${r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id)}" class="button">Edit</a></li>
         </py:if>
       </ul>
     </nav>

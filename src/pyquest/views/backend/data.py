@@ -37,7 +37,7 @@ class NewDataSetSchema(Schema):
     name = validators.String()
     item_attributes = foreach.ForEach(validators.UnicodeString())
 
-@view_config(route_name='dataset.list')
+@view_config(route_name='data.list')
 @render({'text/html': 'backend/data/set_list.html'})
 def list_datasets(request):
     dbsession = DBSession()
@@ -45,14 +45,14 @@ def list_datasets(request):
     dis = dbsession.query(DataSet).filter(DataSet.owned_by==user.id).all()
     return {'dis': dis}
 
-@view_config(route_name='dataset.view')
+@view_config(route_name='data.view')
 @render({'text/html': 'backend/data/set_view.html'})
 def dataset_view(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
     return {'dis': dis}
 
-@view_config(route_name='dataset.attach')
+@view_config(route_name='data.attach')
 @render({'text/html': 'backend/data/set_attach.html'})
 def dataset_attach(request):
     dbsession = DBSession()
@@ -64,29 +64,29 @@ def dataset_attach(request):
         check_csrf_token(request, request.POST)
         with transaction.manager:
             dbsession.add(qs)
-            qs.dataset_id = request.params['disid']
+            qs.dataset_id = request.params['dsid']
             sid = qs.survey_id
             qsid = qs.id
             dbsession.flush()
         request.session.flash('DataSet attached', 'info')
         raise HTTPFound(request.route_url('survey.data', sid=sid, qsid=qsid))
     else:
-        return {'disid' : 0,
+        return {'dsid' : 0,
                 'dsoptions' : dsoptions,
                 's' : survey,
                 'qs' : qs}
 
-@view_config(route_name='dataset.detach')
+@view_config(route_name='data.detach')
 @render({'text/html': 'backend/data/set_detach.html'})
 def dataset_detach(request):
     dbsession = DBSession()
-    ds = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
+    ds = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
     qs = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
     if request.method == 'POST':
             check_csrf_token(request, request.POST)
             with transaction.manager:
                 dbsession.add(qs)
-                qs.dataset_id = null()
+                qs.data_set = None
                 dbsession.flush()
                 sid = qs.survey_id
             request.session.flash('DataSet detached', 'info')
@@ -95,7 +95,7 @@ def dataset_detach(request):
         return {'ds' : ds,
                 'qs' : qs}
 
-@view_config(route_name='dataset.new')
+@view_config(route_name='data.new')
 @render({'text/html': 'backend/data/set_new.html'})
 def dataset_new(request):
     dbsession = DBSession()
@@ -115,39 +115,42 @@ def dataset_new(request):
                 dis.items.append(data_item)
                 dbsession.add(dis)
                 dbsession.flush()
-                disid = dis.id
+                dsid = dis.id
             request.session.flash('DataSet created', 'info')
-            raise HTTPFound(request.route_url('dataset.edit', disid=disid))
+            raise HTTPFound(request.route_url('data.edit', sid=request.mathcdict['sid'], dsid=dsid))
         except api.Invalid as e:
             e.params = request.POST
-            return {'dis': dis,
+            return {'sid': request.matchdict['sid'],
+                    'dis': dis,
                     'e': e}
     else:
-        return {'dis': dis}
+        return {'sid': request.matchdict['sid'],
+                'dis': dis}
 
-@view_config(route_name='dataset.delete')
+@view_config(route_name='data.delete')
 @render({'text/html': 'backend/data/set_delete.html'})
 def dataset_delete(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
     user = current_user(request)
     if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'dis': dis}):
         if request.method == 'POST':
             check_csrf_token(request, request.POST)
             with transaction.manager:
+                sid = dis.survey_id
                 dbsession.delete(dis)
             request.session.flash('Data Item Set deleted', 'info')
-            raise HTTPFound(request.route_url('dataset.list'))
+            raise HTTPFound(request.route_url('data.list', sid=sid))
         else:
             return {'dis': dis}
     else:
         redirect_to_login(request)
 
-@view_config(route_name='dataset.edit')
+@view_config(route_name='data.edit')
 @render({'text/html': 'backend/data/set_edit.html'})
 def dataset_edit(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
@@ -158,13 +161,14 @@ def dataset_edit(request):
                 with transaction.manager:
                     dbsession.add(dis)
                     dis.name = params['name']
+                    sid = dis.survey_id
                     for item in dis.items:
                         for idx, key in enumerate(params['item_attributes']):
                             for attribute in item.attributes:
                                 if (attribute.order == idx +1):
                                     attribute.key = key.decode('utf-8')
                     dbsession.flush()
-                raise HTTPFound(request.route_url('dataset.list'))
+                raise HTTPFound(request.route_url('data.list', sid=sid))
             else:
                 return {'dis': dis}
         else:
@@ -174,7 +178,7 @@ def dataset_edit(request):
 
 
 
-@view_config(route_name='dataset.upload')
+@view_config(route_name='data.upload')
 @render({'text/html': 'backend/data/set_upload.html'})
 def dataset_upload(request):
     dbsession = DBSession()
@@ -205,18 +209,18 @@ def dataset_upload(request):
                 dbsession.flush()
                 did = dis.id
             request.session.flash('Data uploaded', 'info')
-            raise HTTPFound(request.route_url('dataset.list'))
+            raise HTTPFound(request.route_url('data.list', sid=request.matchdict['sid']))
         except api.Invalid as e:
             e.params = {}
             return {'e': e}
     else:
-        return {}
+        return {'sid': request.matchdict['sid']}
 
-@view_config(route_name='dataset.download')
+@view_config(route_name='data.download')
 @render({'text/csv': ''})
 def dataset_download(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'dis': dis}):
@@ -246,11 +250,11 @@ def index(request):
             'qs': qsheet,
             's': survey}
 
-@view_config(route_name='dataitem.new')
+@view_config(route_name='data.item.new')
 @render({'text/html': 'backend/data/item_new.html'})
 def new(request):
     dbsession = DBSession()
-    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['disid']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
@@ -282,19 +286,20 @@ def new(request):
                                 new_data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(new_data_item)
                     request.session.flash('Data added', 'info')
-                    raise HTTPFound(request.route_url('dataset.edit',
-                                                      disid=request.matchdict['disid']))
+                    raise HTTPFound(request.route_url('data.edit', sid=dis.survey_id, dsid=request.matchdict['dsid']))
                 except api.Invalid as e:
                     e.params = request.POST
-                    return {'data_item': data_item}
+                    return {'dis': dis,
+                            'data_item': data_item}
             else:
-                return {'data_item': data_item}
+                return {'dis': dis,
+                        'data_item': data_item}
         else:
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
 
-@view_config(route_name='dataitem.edit')
+@view_config(route_name='data.item.edit')
 @render({'text/html': 'backend/data/item_edit.html'})
 def edit(request):
     dbsession = DBSession()
@@ -320,10 +325,10 @@ def edit(request):
                             if question and params['control_answer_answer'][idx].strip() != '':
                                 data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(data_item)
-                        disid=data_item.dataset_id
+                        dsid = data_item.dataset_id
+                        sid = data_item.data_set.survey_id
                     request.session.flash('Data updated', 'info')
-                    raise HTTPFound(request.route_url('dataset.edit',
-                                                      disid=disid))
+                    raise HTTPFound(request.route_url('data.edit', sid=sid, dsid=dsid))
 
                 except api.Invalid as e:
                     e.params = request.POST
@@ -335,7 +340,7 @@ def edit(request):
     else:
         raise HTTPNotFound()
 
-@view_config(route_name='dataitem.delete')
+@view_config(route_name='data.item.delete')
 @render({'text/html': 'backend/data/item_delete.html'})
 def delete(request):
     dbsession = DBSession()
@@ -349,7 +354,7 @@ def delete(request):
                 with transaction.manager:
                     dbsession.delete(data_item)
                 request.session.flash('Data deleted', 'info')
-                raise HTTPFound(request.route_url('dataset.edit', disid=data_item.dataset_id))
+                raise HTTPFound(request.route_url('data.edit', sid=data_item.data_set.survey_id, dsid=data_item.dataset_id))
             else:
                 return {'data_item': data_item}
         else:

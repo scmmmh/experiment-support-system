@@ -17,12 +17,12 @@
     </script>
   </head>
   <body>
-    ${h.ui.dataset_breadcrumbs([(dis.name, {'href': ''}), ('Edit', {'href': r.route_url('dataset.edit', disid=dis.id)})], r)}
+<!--    ${h.ui.dataset_breadcrumbs([(dis.name, {'href': ''}), ('Edit', {'href': r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id)})], r)}-->
     <nav class="toolbar">
       <ul>
         <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
-          <li><a href="${r.route_url('dataitem.new', disid=dis.id)}" class="button">Add Item</a></li>
-          <li><a href="${r.route_url('dataset.delete', disid=dis.id)}" class="button">Delete</a></li>
+          <li><a href="${r.route_url('data.item.new', sid=dis.survey_id, dsid=dis.id)}" class="button">Add Item</a></li>
+          <li><a href="${r.route_url('data.delete', sid=dis.survey_id, dsid=dis.id)}" class="button">Delete</a></li>
         </py:if>
       </ul>
     </nav>
@@ -30,7 +30,7 @@
       <hgroup>
         <h1>Edit Data Item Set</h1>
       </hgroup>
-      <form action="${r.route_url('dataset.edit', disid=dis.id)}" method="post">
+      <form action="${r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
 	<div class="span-24" style="overflow:auto;">
           <dt>Name</dt>
@@ -62,15 +62,15 @@
 		<td py:for="attribute in item.attributes">${attribute.value}</td>
 		<td>
                   <ul class="inline no-symbol no-margin">
-                    <li><a href="${r.route_url('dataitem.edit', did=item.id)}" class="button">Edit</a></li>
-                    <li><a href="${r.route_url('dataitem.delete', did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
+                    <li><a href="${r.route_url('data.item.edit', did=item.id)}" class="button">Edit</a></li>
+                    <li><a href="${r.route_url('data.item.delete', did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
                   </ul>
 		</td>
               </tr>
             </tbody>
           </table>
           <ul class="buttons span-22">
-            <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('dataset.list'))}</li>
+            <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=dis.survey_id))}</li>
             <li>${h.form.submit('Update', class_='button')}</li>
           </ul>
 	</div>

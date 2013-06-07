@@ -49,10 +49,10 @@ def select_data_items(qsid, state, qsheet, dbsession):
             return (t[0], t[1].count)
         else:
             return (t[0], 0)
-    if not qsheet.dataset:
+    if not qsheet.data_set:
         return [{'did': 'none'}]
     else:
-        disid = qsheet.dataset.id
+        disid = qsheet.data_set.id
         source_items = map(data_item_transform,
                            dbsession.query(DataItem, DataItemCount).\
                                 outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==disid,

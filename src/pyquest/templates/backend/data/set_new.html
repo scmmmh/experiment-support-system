@@ -16,14 +16,14 @@
     ${h.ui.dataset_breadcrumbs([('New DataSet', {'href':''})], r)}
     <nav class="level-1">
       <ul>
-        <li><a href="${r.route_url('dataset.list')}" class="no-tab" style="font-weight:normal;">&larr; All my data</a></li>
+        <li><a href="${r.route_url('data.list', sid=sid)}" class="no-tab" style="font-weight:normal;">&larr; All my data</a></li>
       </ul>
     </nav>
     <article>
       <hgroup>
         <h1>New DataSet</h1>
       </hgroup>
-      <form action="${r.route_url('dataset.new')}" method="post">
+      <form action="${r.route_url('data.new', sid=sid)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt>Name</dt>
@@ -37,7 +37,7 @@
           </dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('dataset.list'))}</li>
+          <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=sid))}</li>
           <li>${h.form.submit('Create', class_='button')}</li>
         </ul>
       </form>

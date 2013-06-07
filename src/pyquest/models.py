@@ -224,17 +224,6 @@ class QSheet(Base):
         else:
             self.attributes.append(QSheetAttribute(key=key, value=value))
 
-    def data_items(self):
-        if self.dataset_id:
-            dbsession = DBSession()
-            dataset = dbsession.query(DataSet).filter(DataSet.id==self.dataset_id).first()
-            data_items = dataset.items
-        else:
-            data_items = []
-
-        return data_items
-
-
 class QSheetAttribute(Base):
     
     __tablename__ = 'qsheet_attributes'
@@ -516,10 +505,12 @@ class DataSet(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
     owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
+    survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
 
     items = relationship('DataItem', backref='item_set')
-    qsheets = relationship('QSheet', backref='dataset')
-    owner = relationship('User', backref='datasets')
+    qsheets = relationship('QSheet', backref='data_set')
+    owner = relationship('User', backref='data_sets')
+    survey = relationship('Survey', backref='data_sets')
 
     def is_owned_by(self, user):
         if user:

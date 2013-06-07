@@ -81,7 +81,7 @@
               </py:for>
             </tbody>
           </table>
-          <table py:if="qsheet.dataset_id" py:with="summary = h.data.generate_summary(qsheet)">
+          <table py:if="qsheet.data_set" py:with="summary = h.data.generate_summary(qsheet)">
             <thead>
               <tr>
                 <th># of Data Items</th>

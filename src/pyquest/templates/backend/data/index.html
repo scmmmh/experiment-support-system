@@ -14,7 +14,7 @@
       <py:when test="None">
 	<nav class="toolbar">
 	  <ul>
-              <li><a href="${r.route_url('dataset.attach', disid=None, qsid=qs.id)}" class="button">Attach Data</a></li>
+              <li><a href="${r.route_url('data.attach', sid=s.id, dsid=None, qsid=qs.id)}" class="button">Attach Data</a></li>
 	  </ul>
 	</nav>
 	<h1>No data attached to QSheet ${qs.id}</h1>
@@ -23,8 +23,8 @@
 	<nav class="toolbar">
 	  <ul>
             <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
-              <li><a href="${r.route_url('dataset.edit', disid=dis.id)}" class="button">Edit Data</a></li>
-              <li><a href="${r.route_url('dataset.detach', disid=dis.id, qsid=qs.id)}" class="button">Detach Data</a></li>
+              <li><a href="${r.route_url('data.edit', sid=s.id, dsid=dis.id)}" class="button">Edit Data</a></li>
+              <li><a href="${r.route_url('data.detach', sid=s.id, dsid=dis.id, qsid=qs.id)}" class="button">Detach Data</a></li>
             </py:if>
 	  </ul>
 	</nav>

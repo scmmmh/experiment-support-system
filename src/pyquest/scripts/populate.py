@@ -1116,6 +1116,8 @@ def init_test_data(DBSession):
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/10.html'))
         dataset.items.append(data_item)
         dataset.qsheets.append(qsheet2)
+        survey.data_sets.append(dataset)
+        user.data_sets.append(dataset)
         user.surveys.append(survey)
         DBSession.add(survey)
         
