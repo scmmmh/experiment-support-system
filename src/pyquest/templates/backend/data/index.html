@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>DataSet for QSheet ${qs.id}</title>
+    <title>DataSet for QSheet "${qs.title}"</title>
     <script type="text/javascript">
       $(document).ready(function() {
       });
@@ -17,7 +17,7 @@
               <li><a href="${r.route_url('data.attach', sid=s.id, dsid=None, qsid=qs.id)}" class="button">Attach Data</a></li>
 	  </ul>
 	</nav>
-	<h1>No data attached to QSheet ${qs.id}</h1>
+	<h1>No data attached to QSheet "${qs.title}"</h1>
       </py:when>
       <py:otherwise>
 	<nav class="toolbar">

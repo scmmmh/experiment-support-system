@@ -265,6 +265,7 @@ def index(request):
 def new(request):
     dbsession = DBSession()
     dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
@@ -299,10 +300,12 @@ def new(request):
                     raise HTTPFound(request.route_url('data.edit', sid=dis.survey_id, dsid=request.matchdict['dsid']))
                 except api.Invalid as e:
                     e.params = request.POST
-                    return {'dis': dis,
+                    return {'survey': survey,
+                            'dis': dis,
                             'data_item': data_item}
             else:
-                return {'dis': dis,
+                return {'survey': survey,
+                        'dis': dis,
                         'data_item': data_item}
         else:
             redirect_to_login(request)
