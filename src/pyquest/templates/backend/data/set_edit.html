@@ -62,8 +62,8 @@
 		<td py:for="attribute in item.attributes">${attribute.value}</td>
 		<td>
                   <ul class="inline no-symbol no-margin">
-                    <li><a href="${r.route_url('data.item.edit', did=item.id)}" class="button">Edit</a></li>
-                    <li><a href="${r.route_url('data.item.delete', did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
+                    <li><a href="${r.route_url('data.item.edit', sid=dis.survey_id, dsid=dis.id, did=item.id)}" class="button">Edit</a></li>
+                    <li><a href="${r.route_url('data.item.delete', sid=dis.survey_id, dsid=dis.id, did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
                   </ul>
 		</td>
               </tr>

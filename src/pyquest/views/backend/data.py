@@ -304,6 +304,7 @@ def new(request):
 def edit(request):
     dbsession = DBSession()
     data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
+    dis = dbsession.query(DataSet).filter(DataSet.id==data_item.dataset_id).first()
     user = current_user(request)
     if data_item:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': data_item.item_set}):
@@ -332,9 +333,11 @@ def edit(request):
 
                 except api.Invalid as e:
                     e.params = request.POST
-                    return {'data_item': data_item}
+                    return {'dis': dis,
+                            'data_item': data_item}
             else:
-                return {'data_item': data_item}
+                return {'dis':dis,
+                        'data_item': data_item}
         else:
             redirect_to_login(request)
     else:
@@ -356,7 +359,8 @@ def delete(request):
                 request.session.flash('Data deleted', 'info')
                 raise HTTPFound(request.route_url('data.edit', sid=data_item.data_set.survey_id, dsid=data_item.dataset_id))
             else:
-                return {'data_item': data_item}
+                return {'dis': dis,
+                        'data_item': data_item}
         else:
             redirect_to_login(request)
     else:
