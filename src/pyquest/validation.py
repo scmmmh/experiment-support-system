@@ -372,7 +372,8 @@ class QuestionTypeSchema(Schema):
         Schema.__init__(self, **kwargs)
         for field in schema:
             if field['type'] == 'question-name':
-                self.add_field('name', validators.UnicodeString(not_empty=True))
+                self.add_field('name', compound.Pipe(validators=[validators.UnicodeString(not_empty=True),
+                                                                 validators.Regex(r'^[a-zA-Z0-9_]+$', messages={'invalid':'Name must contain only letters, numbers and underscores.'})]))
             elif field['type'] == 'question-title':
                 self.add_field('title', validators.UnicodeString(not_empty=True))
             elif field['type'] == 'question-help':
