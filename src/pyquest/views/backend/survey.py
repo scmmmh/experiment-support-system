@@ -241,7 +241,7 @@ def duplicate(request):
                                                           label=attr.label,
                                                           value=attr.value,
                                                           order=attr.order)
-                            for data_item in qsheet.data_items:
+                            for data_item in qsheet.data_set.items:
                                 dupl_data_item = DataItem(qsheet=dupl_qsheet,
                                                           order=data_item.order,
                                                           control=data_item.control)
@@ -346,7 +346,7 @@ def status(request):
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
                             for qsheet in survey.qsheets:
-                                for data_item in qsheet.data_items:
+                                for data_item in qsheet.data_set.items:
                                     data_item.counts = []
                                     dbsession.add(data_item)
                         survey.status = params['status']

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>New DataSet</title>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('#add-attribute-btn').click(function() {
+            $('#item-attributes').append('<li>${h.form.text_field('item_attributes', '', None)}</li>');
+            return false;
+        });
+    });
+    </script>
+  </head>
+  <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New DataSet', {'href':''})], r)}
+    <article>
+      <hgroup>
+        <h1>New DataSet</h1>
+      </hgroup>
+      <form action="${r.route_url('data.new', sid=survey.id)}" method="post">
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
+        <dl>
+          <dt>Name</dt>
+          <dd>${h.form.text_field('name', dis.name, e, class_='span-12')}</dd>
+          <dt>Item Attributes</dt>
+	  <dd>
+            <ul id="item-attributes" class="no-symbol no-margin">
+              <li>${h.form.text_field('item_attributes', '', e, class_='span-12')}</li>
+	    </ul>
+            <button id="add-attribute-btn" class="button">Add an attribute</button>
+          </dd>
+        </dl>
+        <ul class="buttons span-22">
+          <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>
+          <li>${h.form.submit('Create', class_='button')}</li>
+        </ul>
+      </form>
+    </article>
+  </body>
+</html>

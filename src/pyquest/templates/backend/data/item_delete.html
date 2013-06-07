@@ -14,7 +14,7 @@
       <hgroup>
         <h1>${qsheet.title} - Delete Data</h1>
       </hgroup>
-      <form action="${r.route_url('survey.data.delete', sid=survey.id, qsid=qsheet.id, did=data_item.id)}" method="post">
+      <form action="${r.route_url('data.item.delete', sid=dis.survey_id, dsid=dis.id, did=data_item.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <p>Please confirm that you wish to delete the following data:</p>
         <dl>
@@ -24,7 +24,7 @@
           </py:for>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't delete", class_='button', onclick="document.location='%s'" % r.route_url('survey.data', sid=survey.id, qsid=qsheet.id))}</li>
+          <li>${h.form.button("Don't delete", class_='button', onclick="document.location='%s'" % r.route_url('survey.data', sid=dis.survey_id))}</li>
           <li>${h.form.submit('Delete', class_='button')}</li>
         </ul>
       </form>

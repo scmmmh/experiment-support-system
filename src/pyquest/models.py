@@ -17,7 +17,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '315f2a8005ca'
+DB_VERSION = '40af42e8f394'
 
 class DBUpgradeException(Exception):
     
@@ -186,7 +186,8 @@ class QSheet(Base):
     title = Column(Unicode(255))
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
-    
+    dataset_id = Column(ForeignKey('data_sets.id', name='qsheets_dataset_id_fk'))
+
     questions = relationship('Question',
                              backref='qsheet',
                              order_by='Question.order',
@@ -202,10 +203,6 @@ class QSheet(Base):
                         backref='target',
                         primaryjoin='QSheet.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
-    data_items = relationship('DataItem',
-                             backref='qsheet',
-                             order_by='DataItem.order',
-                             cascade='all, delete, delete-orphan')
     
     def attr(self, key):
         for attr in self.attributes:
@@ -406,7 +403,7 @@ class QuestionAttributeGroup(Base):
     key = Column(Unicode(255))
     label = Column(Unicode(255))
     order = Column(Integer)
-    
+     
     attributes = relationship('QuestionAttribute',
                               backref='attribute_group',
                               order_by='QuestionAttribute.order',
@@ -502,15 +499,34 @@ class TransitionCondition(Base):
 
         return eval('actual_answer =="' + self.expected_answer + '"')
 
+class DataSet(Base):
+
+    __tablename__ = 'data_sets'
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(255))
+    owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
+    survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
+
+    items = relationship('DataItem', backref='data_set')
+    qsheets = relationship('QSheet', backref='data_set')
+    owner = relationship('User', backref='data_sets')
+    survey = relationship('Survey', backref='data_sets')
+
+    def is_owned_by(self, user):
+        if user:
+            return self.owned_by == user.id
+        else:
+            return False
+    
 class DataItem(Base):
     
     __tablename__ = 'data_items'
     
     id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(QSheet.id))
+    dataset_id = Column(ForeignKey(DataSet.id, name="data_items_dataset_id_fk"))
     order = Column(Integer)
     control = Column(Boolean, default=False)
-    
+
     attributes = relationship('DataItemAttribute',
                               backref='data_item', order_by='DataItemAttribute.order',
                               cascade='all, delete, delete-orphan')
@@ -551,7 +567,7 @@ class DataItemControlAnswer(Base):
     data_item_id = Column(ForeignKey(DataItem.id))
     question_id = Column(ForeignKey(Question.id))
     answer = Column(Unicode(4096))
-    
+
 class Participant(Base):
     
     __tablename__ = 'participants'

@@ -2,65 +2,36 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>${survey.title} - Data</title>
+    <title>DataSet for QSheet "${qs.title}"</title>
     <script type="text/javascript">
       $(document).ready(function() {
-    	  $('#data-filter-form input[type=submit]').hide();
-    	  $('#data-filter-form select').change(function(ev, ui) {
-    		 $('#data-filter-form').submit(); 
-    	  });
       });
     </script>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Data', {'href': r.route_url('survey.data', sid=survey.id, qsid=qsheet.id)})], r)}
-    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
-    ${h.ui.main_menu('data', survey, r)}
-    <nav class="toolbar">
-      <ul>
-        <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
-          <li><a href="${r.route_url('survey.data.upload', sid=survey.id, qsid=qsheet.id)}" class="button">Upload data</a></li>
-          <li py:if="len(qsheet.data_items) > 0"><a href="${r.route_url('survey.data.new', sid=survey.id, qsid=qsheet.id)}" class="button">Add data</a></li>
-        </py:if>
-        <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.clear', sid=survey.id, qsid=qsheet.id)}" class="button post-submit" data-confirm="Please confirm that you wish to clear all data.">Clear data</a></li>
-        <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.view-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.download', sid=survey.id, qsid=qsheet.id)}" class="button">Download</a></li>
-      </ul>
-    </nav>
-    <article>
-      <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id)}">${r.route_url('survey.run', sid=survey.id)}</a>.</div>
-      <hgroup>
-        <h1>${survey.title} - Data</h1>
-      </hgroup>
-      <div class="span-24" style="overflow:auto;">
-        <table>
-          <thead>
-            <tr py:if="qsheet.data_items">
-              <th>Control item</th>
-              <th>Internal id</th>
-              <th py:for="attribute in qsheet.data_items[0].attributes">${attribute.key}</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr py:if="len(qsheet.data_items) == 0">
-              <td class="placeholder">There is currently no data attached to this survey. Use the "Upload data" button to
-                upload a CSV (Comma-Separated-Value) file with data.</td>
-            </tr>
-            <tr py:for="item in items">
-              <td><py:if test="item.control">Yes</py:if></td>
-                <td><a href="${r.route_url('survey.data.view', sid=survey.id, qsid=qsheet.id, did=item.id)}">${item.id}</a></td>
-              <td py:for="attribute in item.attributes">${attribute.value}</td>
-              <td>
-                <ul class="span-3 inline no-symbol no-margin">
-                  <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.edit', sid=survey.id, qsid=qsheet.id, did=item.id)}" class="button">Edit</a></li>
-                  <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data.delete', sid=survey.id, qsid=qsheet.id, did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
-                </ul>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      ${h.ui.pager(page, pages, r)}
-    </article>
+    ${h.ui.survey_breadcrumbs([(s.title, {'href': r.route_url('survey.view', sid=s.id)}), (qs.name + ' data', {'href':''})], r)}
+    <py:choose test="dis">
+      <py:when test="None">
+	<nav class="toolbar">
+	  <ul>
+              <li><a href="${r.route_url('data.attach', sid=s.id, dsid=None, qsid=qs.id)}" class="button">Attach Data</a></li>
+	  </ul>
+	</nav>
+	<h1>No data attached to QSheet "${qs.title}"</h1>
+      </py:when>
+      <py:otherwise>
+	<nav class="toolbar">
+	  <ul>
+            <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
+              <li><a href="${r.route_url('data.edit', sid=s.id, dsid=dis.id)}" class="button">Edit Data</a></li>
+              <li><a href="${r.route_url('data.detach', sid=s.id, dsid=dis.id, qsid=qs.id)}" class="button">Detach Data</a></li>
+            </py:if>
+	  </ul>
+	</nav>
+	<article>
+	  <xi:include href="dataset.html" py:with="dis=dis"/>
+	</article>
+      </py:otherwise>
+    </py:choose>
   </body>
 </html>

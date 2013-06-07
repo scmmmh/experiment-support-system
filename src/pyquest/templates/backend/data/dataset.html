@@ -1,0 +1,27 @@
+<section xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:i18n="http://genshi.edgewall.org/i18n">
+<hgroup>
+  <h1>${dis.name}</h1>
+</hgroup>
+<div class="span-24" style="overflow:auto;">
+  <table>
+    <thead>
+      <tr py:if="dis.items">
+	<th>Control item</th>
+	<th>Internal id</th>
+	<th py:for="attribute in dis.items[0].attributes">${attribute.key}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr py:if="len(dis.items) == 0">
+	<td class="placeholder">This dataset contains no data item. Use the "Edit" button to
+          add data.</td>
+      </tr>
+      <tr py:for="item in dis.items">
+	<td><py:if test="item.control">Yes</py:if></td>
+        <td>${item.id}</td>
+	<td py:for="attribute in item.attributes">${attribute.value}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</section>
