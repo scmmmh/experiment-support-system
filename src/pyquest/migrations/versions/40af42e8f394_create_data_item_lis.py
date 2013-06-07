@@ -15,8 +15,6 @@ from alembic import op
 from sqlalchemy import (Column, ForeignKey, Integer, Unicode, Table, MetaData,
                         ForeignKey, and_)
 
-from migrate.changeset.constraint import ForeignKeyConstraint
-
 
 metadata = MetaData()
 
@@ -66,7 +64,7 @@ def upgrade():
                 op.get_bind().execute(di.update().where(di.c.id==data_item.id).values(dataset_id=ds_pk, qsheet_id=None))
             op.get_bind().execute(qs.update().where(qs.c.id==qsheet.id).values(dataset_id=ds_pk))
 
-    op.drop_constraint('data_items_qsheet_id_fk', 'data_items', type='foreignkey')
+    op.drop_constraint('data_items_qsheet_id_fk', 'data_items', type_='foreignkey')
     op.drop_column('data_items', 'qsheet_id')
 
 # The downgrade moves the DataItems back from the DataSet to the relevant QSheet

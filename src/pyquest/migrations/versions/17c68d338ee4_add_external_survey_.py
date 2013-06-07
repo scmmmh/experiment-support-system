@@ -8,7 +8,7 @@ Create Date: 2013-06-04 19:43:15.101296
 
 # revision identifiers, used by Alembic.
 revision = '17c68d338ee4'
-down_revision = '1cd78b756fb3'
+down_revision = '40af42e8f394'
 
 from alembic import op
 from uuid import uuid1
