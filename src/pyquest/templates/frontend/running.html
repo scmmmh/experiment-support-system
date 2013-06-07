@@ -20,6 +20,6 @@
       <div class="font-small float-left" py:if="control">You have so far answered ${control[0]} of ${control[1]} control questions correctly</div>
       <div class="font-small text-right" py:if="progress">Page ${progress[0]} of ${progress[1]}</div>
     </aside>
-    <xi:include href="qsheet.html" py:with="submit_url=r.route_url('survey.run', sid=survey.id, qsid=qsheet.id)"/>
+    <xi:include href="qsheet.html" py:with="submit_url=r.route_url('survey.run', seid=survey.external_id, qsid=qsheet.id)"/>
   </body>
 </html>
