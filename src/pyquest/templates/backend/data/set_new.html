@@ -13,17 +13,12 @@
     </script>
   </head>
   <body>
-    ${h.ui.dataset_breadcrumbs([('New DataSet', {'href':''})], r)}
-    <nav class="level-1">
-      <ul>
-        <li><a href="${r.route_url('data.list', sid=sid)}" class="no-tab" style="font-weight:normal;">&larr; All my data</a></li>
-      </ul>
-    </nav>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New DataSet', {'href':''})], r)}
     <article>
       <hgroup>
         <h1>New DataSet</h1>
       </hgroup>
-      <form action="${r.route_url('data.new', sid=sid)}" method="post">
+      <form action="${r.route_url('data.new', sid=survey.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt>Name</dt>
@@ -37,7 +32,7 @@
           </dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=sid))}</li>
+          <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>
           <li>${h.form.submit('Create', class_='button')}</li>
         </ul>
       </form>

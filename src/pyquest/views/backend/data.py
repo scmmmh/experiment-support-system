@@ -42,8 +42,10 @@ class NewDataSetSchema(Schema):
 def list_datasets(request):
     dbsession = DBSession()
     user = current_user(request)
-    dis = dbsession.query(DataSet).filter(DataSet.owned_by==user.id).all()
-    return {'dis': dis}
+    dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'])).all()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    return {'survey': survey,
+            'dis': dis}
 
 @view_config(route_name='data.view')
 @render({'text/html': 'backend/data/set_view.html'})
@@ -59,16 +61,17 @@ def dataset_attach(request):
     user = current_user(request)
     qs = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
     survey = dbsession.query(Survey).filter(Survey.id==qs.survey_id).first()
-    dsoptions = create_ds_options(dbsession, user)
+    dsoptions = create_ds_options(dbsession, user, survey)
     if request.method == 'POST':
-        check_csrf_token(request, request.POST)
-        with transaction.manager:
-            dbsession.add(qs)
-            qs.dataset_id = request.params['dsid']
-            sid = qs.survey_id
-            qsid = qs.id
-            dbsession.flush()
-        request.session.flash('DataSet attached', 'info')
+        sid = qs.survey_id
+        qsid = qs.id
+        if request.params['dsid'] != '0':
+            check_csrf_token(request, request.POST)
+            with transaction.manager:
+                dbsession.add(qs)
+                qs.dataset_id = request.params['dsid']
+                dbsession.flush()
+            request.session.flash('DataSet attached', 'info')
         raise HTTPFound(request.route_url('survey.data', sid=sid, qsid=qsid))
     else:
         return {'dsid' : 0,
@@ -100,6 +103,7 @@ def dataset_detach(request):
 def dataset_new(request):
     dbsession = DBSession()
     user = current_user(request)
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = DataSet()
     if request.method == 'POST':
         try:
@@ -109,6 +113,7 @@ def dataset_new(request):
             with transaction.manager:
                 dis.name = params['name']
                 dis.owned_by = user.id
+                dis.survey_id = survey.id
                 data_item = DataItem(order=1)
                 for idx, key in enumerate(params['item_attributes']):
                     data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'), order=idx+1))
@@ -117,14 +122,14 @@ def dataset_new(request):
                 dbsession.flush()
                 dsid = dis.id
             request.session.flash('DataSet created', 'info')
-            raise HTTPFound(request.route_url('data.edit', sid=request.mathcdict['sid'], dsid=dsid))
+            raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=dsid))
         except api.Invalid as e:
             e.params = request.POST
-            return {'sid': request.matchdict['sid'],
+            return {'survey': survey,
                     'dis': dis,
                     'e': e}
     else:
-        return {'sid': request.matchdict['sid'],
+        return {'survey': survey,
                 'dis': dis}
 
 @view_config(route_name='data.delete')
@@ -182,6 +187,7 @@ def dataset_edit(request):
 @render({'text/html': 'backend/data/set_upload.html'})
 def dataset_upload(request):
     dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if request.method == 'POST':
         check_csrf_token(request, request.POST)
@@ -191,7 +197,7 @@ def dataset_upload(request):
             reader = csv.DictReader(request.POST['source_file'].file)
             order = 1
             with transaction.manager:
-                dis = DataSet(name = request.POST['source_file'].filename, owned_by=user.id)
+                dis = DataSet(name = request.POST['source_file'].filename, owned_by=user.id, survey_id=survey.id)
                 dbsession.add(dis)
                 try:
                     for item in reader:
@@ -214,7 +220,7 @@ def dataset_upload(request):
             e.params = {}
             return {'e': e}
     else:
-        return {'sid': request.matchdict['sid']}
+        return {'survey': survey}
 
 @view_config(route_name='data.download')
 @render({'text/csv': ''})
@@ -307,7 +313,7 @@ def edit(request):
     dis = dbsession.query(DataSet).filter(DataSet.id==data_item.dataset_id).first()
     user = current_user(request)
     if data_item:
-        if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': data_item.item_set}):
+        if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': data_item.data_set}):
             if request.method == 'POST':
                 try:
                     validator = DataItemSchema()
@@ -354,10 +360,13 @@ def delete(request):
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'dis': dis}):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
+                dbsession.add(data_item)
+                sid = data_item.data_set.survey_id
+                dsid = data_item.dataset_id
                 with transaction.manager:
                     dbsession.delete(data_item)
                 request.session.flash('Data deleted', 'info')
-                raise HTTPFound(request.route_url('data.edit', sid=data_item.data_set.survey_id, dsid=data_item.dataset_id))
+                raise HTTPFound(request.route_url('data.edit', sid=sid, dsid=dsid))
             else:
                 return {'dis': dis,
                         'data_item': data_item}
@@ -366,7 +375,7 @@ def delete(request):
     else:
         raise HTTPNotFound()
 
-def create_ds_options(dbsession, user):
+def create_ds_options(dbsession, user, survey):
     """Creates a list of tuples representing all the available DataSets. The list is suitable for use in a select item.
     
     :param dbsession: the DataBase session
@@ -374,7 +383,7 @@ def create_ds_options(dbsession, user):
     :return a list of tuples for use in select items representing the available DataSets
     """
     ds_options = []
-    for d in dbsession.query(DataSet).filter(DataSet.owned_by==user.id).all():
+    for d in dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==survey.id)).all():
         ds_options.append((d.id, d.name))
 
     return ds_options;

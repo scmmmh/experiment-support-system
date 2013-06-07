@@ -37,13 +37,6 @@
             <dt>${h.text.title(attribute.key)}</dt>
             <dd>${h.form.text_field(attribute.key, attribute.value, e, class_='span-12')}</dd>
           </py:for>
-          <dt>Control Answers</dt>
-          <dd>
-            <ul id="control-answers" class="no-symbol no-margin">
-              <li py:for="control_answer in data_item.control_answers">${h.form.select('control_answer_question', control_answer.question_id, h.data.question_select(qsheet), e)}${h.form.text_field('control_answer_answer', control_answer.answer, e)}</li>
-            </ul>
-            <button id="add-control-answer-btn" class="button">Add an answer</button>
-          </dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id))}</li>

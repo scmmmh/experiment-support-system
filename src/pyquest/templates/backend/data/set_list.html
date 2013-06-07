@@ -5,11 +5,13 @@
     <title>Data Item Sets</title>
   </head>
   <body>
-<!--    ${h.ui.dataset_breadcrumbs([], r)}-->
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href':''})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('data.upload', sid=dis[0].survey_id)}" class="button">Upload DataSet</a></li>
-        <li><a href="${r.route_url('data.new', sid=dis[0].survey_id)}" class="button">New DataSet</a></li>
+        <li><a href="${r.route_url('data.upload', sid=survey.id)}" class="button">Upload DataSet</a></li>
+        <li><a href="${r.route_url('data.new', sid=survey.id)}" class="button">New DataSet</a></li>
       </ul>
     </nav>
     <h1>Data Item Sets</h1>

@@ -507,7 +507,7 @@ class DataSet(Base):
     owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
     survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
 
-    items = relationship('DataItem', backref='item_set')
+    items = relationship('DataItem', backref='data_set')
     qsheets = relationship('QSheet', backref='data_set')
     owner = relationship('User', backref='data_sets')
     survey = relationship('Survey', backref='data_sets')

@@ -5,16 +5,14 @@
     <title>Upload Data Item Set</title>
   </head>
   <body>
-    ${h.ui.dataset_breadcrumbs([('Upload DataSet', {'href':''})], r)}
-<!--    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
-    ${h.ui.main_menu('data', survey, r)}-->
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('Upload DataSet', {'href':''})], r)}
     <article>
-<!--      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
-        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>-->
+      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
+        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
       <hgroup>
         <h1>Upload Data Item Set</h1>
       </hgroup>
-      <form action="${r.route_url('data.upload', sid=sid)}" method="post" enctype="multipart/form-data">
+      <form action="${r.route_url('data.upload', sid=survey.id)}" method="post" enctype="multipart/form-data">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <p>Please select the CSV (comma-separated-value) file that contains the data you wish to upload:</p>
         <dl>
@@ -22,7 +20,7 @@
           <dd>${h.form.file_input_field('source_file', e)}</dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't upload", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=sid))}</li>
+          <li>${h.form.button("Don't upload", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>
           <li>${h.form.submit('Upload', class_='button')}</li>
         </ul>
       </form>
