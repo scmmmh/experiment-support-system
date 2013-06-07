@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>Data Item Sets</title>
+  </head>
+  <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href':''})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
+    <nav class="toolbar">
+      <ul>
+        <li><a href="${r.route_url('data.upload', sid=survey.id)}" class="button">Upload DataSet</a></li>
+        <li><a href="${r.route_url('data.new', sid=survey.id)}" class="button">New DataSet</a></li>
+      </ul>
+    </nav>
+    <h1>Data Item Sets</h1>
+    <div>
+      <table>
+	<thead>
+	  <th>Internal Id</th>
+	  <th>Name</th>
+	  <th>QSheets</th>
+	  <th>Action</th>
+	</thead>
+	<tr py:for="set in dis">
+	  <td><a href="${r.route_url('data.view', sid=set.survey_id, dsid=set.id)}">${set.id}</a></td>
+	  <td>${set.name}</td>
+	  <py:choose test="set.qsheets">
+	   <py:when test="None">
+	     <td></td>
+	   </py:when>
+	   <py:otherwise>
+	     <td><py:for each="qs in set.qsheets">${qs.id} </py:for></td>
+	   </py:otherwise>
+	  </py:choose>
+	  <td>
+            <ul class="inline no-symbol no-margin">
+              <li><a href="${r.route_url('data.edit', sid=set.survey_id, dsid=set.id)}" class="button">Edit</a></li>
+              <li><a href="${r.route_url('data.delete', sid=set.survey_id, dsid=set.id)}" class="button">Delete</a></li>
+              <li><a href="${r.route_url('data.download', sid=set.survey_id, dsid=set.id)}" class="button">Download</a></li>
+	    </ul>
+	  </td>
+	</tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>Edit Data Item Set</title>
+    <script type="text/javascript">
+      $(document).ready(function() {
+    	  $('#data-filter-form input[type=submit]').hide();
+    	  $('#data-filter-form select').change(function(ev, ui) {
+    		 $('#data-filter-form').submit(); 
+    	  });
+          $('#add-attribute-btn').click(function() {
+            $('#item-attributes').append('<li>${h.form.text_field('item_attributes', '', None)}</li>');
+            return false;
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <nav class="toolbar">
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('Edit DataSet', {'href':''})], r)}
+      <ul>
+        <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
+          <li><a href="${r.route_url('data.item.new', sid=dis.survey_id, dsid=dis.id)}" class="button">Add Item</a></li>
+          <li><a href="${r.route_url('data.delete', sid=dis.survey_id, dsid=dis.id)}" class="button">Delete</a></li>
+        </py:if>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>Edit Data Item Set</h1>
+      </hgroup>
+      <form action="${r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id)}" method="post">
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
+	<div class="span-24" style="overflow:auto;">
+          <dt>Name</dt>
+          <dd>${h.form.text_field('name', dis.name, e, class_='span-12')}</dd>
+          <dt>Item Attributes</dt>
+	  <dd>
+            <ul id="item-attributes" class="no-symbol no-margin">
+              <li py:for="attribute in dis.items[0].attributes">${h.form.text_field('item_attributes', attribute.key, e, class_='span-12')}</li>
+	    </ul>
+            <button id="add-attribute-btn" class="button">Add an attribute</button>
+          </dd>
+          <table>
+            <thead>
+              <tr py:if="dis.items">
+		<th>Control item</th>
+		<th>Internal id</th>
+		<th py:for="attribute in dis.items[0].attributes">${attribute.key}</th>
+		<th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr py:if="len(dis.items) == 0">
+		<td class="placeholder">This dataset contains no data item. Use the "Add Item" button to
+                 add data.</td>
+              </tr>
+              <tr py:for="item in dis.items">
+		<td><py:if test="item.control">Yes</py:if></td>
+                <td>${item.id}</td>
+		<td py:for="attribute in item.attributes">${attribute.value}</td>
+		<td>
+                  <ul class="inline no-symbol no-margin">
+                    <li><a href="${r.route_url('data.item.edit', sid=dis.survey_id, dsid=dis.id, did=item.id)}" class="button">Edit</a></li>
+                    <li><a href="${r.route_url('data.item.delete', sid=dis.survey_id, dsid=dis.id, did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
+                  </ul>
+		</td>
+              </tr>
+            </tbody>
+          </table>
+          <ul class="buttons span-22">
+            <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=dis.survey_id))}</li>
+            <li>${h.form.submit('Update', class_='button')}</li>
+          </ul>
+	</div>
+      </form>
+    </article>
+  </body>
+</html>

@@ -8,6 +8,7 @@ DEV
   it harder to just scan for surveys
 - UPDATE: Re-styled the frontend
 - UPDATE: Improved the frontend error messages
+- UPDATE: QSheet nd Question names are now restricuted to alpha-numeric and _.
 
 0.9.1
 -----
