@@ -67,7 +67,7 @@
                 <py:if test="qsheet.attr_value('repeat', default='single') == 'repeat'">
                   <tr>
                     <th>Data items</th>
-                    <td>${len(qsheet.data_set.items)}</td>
+                    <td>${len(qsheet.data_set.items) if qsheet.data_set else 0}</td>
                   </tr>
                   <tr>
                     <th>Data items per page</th>
