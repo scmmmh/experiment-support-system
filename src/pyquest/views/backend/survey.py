@@ -352,9 +352,10 @@ def status(request):
                         survey.status = params['status']
                         dbsession.add(survey)
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
+                    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                     if params['status'] == 'testing':
                         raise HTTPFound(request.route_url('survey.run',
-                                                          sid=request.matchdict['sid']))
+                                                          seid=survey.external_id))
                     elif params['status'] == 'finished':
                         raise HTTPFound(request.route_url('survey.results',
                                                           sid=request.matchdict['sid']))

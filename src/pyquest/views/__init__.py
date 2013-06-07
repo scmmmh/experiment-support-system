@@ -12,9 +12,9 @@ def init(config):
     config.add_route('root', '/')
     admin.init(config)
     backend.init(config)
-    config.add_route('survey.run', '/surveys/{sid}/run')
-    config.add_route('survey.run.inactive', '/surveys/{sid}/inactive')
-    config.add_route('survey.run.finished', '/surveys/{sid}/finished')
+    config.add_route('survey.run', '/surveys/{seid}/run')
+    config.add_route('survey.run.inactive', '/surveys/{seid}/inactive')
+    config.add_route('survey.run.finished', '/surveys/{seid}/finished')
 
 
 @view_config(route_name='root')

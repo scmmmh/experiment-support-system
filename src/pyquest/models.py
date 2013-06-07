@@ -10,6 +10,7 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref,
                             reconstructor)
 from zope.sqlalchemy import ZopeTransactionExtension
+from uuid import uuid1
 
 from pyquest.helpers import as_data_type
 from pyquest.util import convert_type
@@ -17,7 +18,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '1cd78b756fb3'
+DB_VERSION = '17c68d338ee4'
 
 class DBUpgradeException(Exception):
     
@@ -154,6 +155,7 @@ class Survey(Base):
     status = Column(Unicode(64))
     start_id = Column(Integer, ForeignKey('qsheets.id', use_alter=True, name='fk_start_id'))
     language = Column(Unicode(64))
+    external_id = Column(Unicode(64), index=True)
     owned_by = Column(ForeignKey(User.id))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime)
@@ -170,6 +172,17 @@ class Survey(Base):
                          primaryjoin='Survey.start_id==QSheet.id',
                          post_update=True)
     
+    def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
+        self.title = title
+        self.summary = summary
+        self.styles = styles
+        self.scripts = scripts
+        self.status = status
+        self.start_id = start_id
+        self.language = language
+        self.owend_by = owned_by
+        self.external_id = uuid1()
+        
     def is_owned_by(self, user):
         if user:
             return self.owned_by == user.id

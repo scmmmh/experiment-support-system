@@ -36,7 +36,7 @@
       </ul>
     </nav>
     <article class="survey">
-      <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id)}">${r.route_url('survey.run', sid=survey.id)}</a>.</div>
+      <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', seid=survey.external_id)}">${r.route_url('survey.run', seid=survey.external_id)}</a>.</div>
       <hgroup>
         <h1>${survey.title}</h1>
       </hgroup>
