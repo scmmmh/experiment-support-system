@@ -5,9 +5,6 @@ Created on 16 Mar 2012
 @author: mhall
 '''
 
-from sqlalchemy import and_, null
-from pyquest.models import (QSheet, DataItem, DataSet)
-
 def question_select(qsheet):
     return [(question.id, question.name) for question in qsheet.questions if question.q_type.answer_schema()]
 
@@ -18,7 +15,7 @@ def sample_for_qsheet(qsheet):
         for attr in qsheet.data_set.items[0].attributes:
             data_item[attr.key] = attr.value
 
-    return data_item
+    return [data_item]
 
 def generate_summary(qsheet):
     data_questions = 0

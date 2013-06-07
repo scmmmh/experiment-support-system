@@ -52,7 +52,9 @@ def list_datasets(request):
 def dataset_view(request):
     dbsession = DBSession()
     dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
-    return {'dis': dis}
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    return {'survey': survey, 
+            'dis': dis}
 
 @view_config(route_name='data.attach')
 @render({'text/html': 'backend/data/set_attach.html'})
@@ -156,6 +158,7 @@ def dataset_delete(request):
 def dataset_edit(request):
     dbsession = DBSession()
     dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
@@ -175,7 +178,8 @@ def dataset_edit(request):
                     dbsession.flush()
                 raise HTTPFound(request.route_url('data.list', sid=sid))
             else:
-                return {'dis': dis}
+                return {'survey': survey,
+                        'dis': dis}
         else:
             redirect_to_login(request)
     else:

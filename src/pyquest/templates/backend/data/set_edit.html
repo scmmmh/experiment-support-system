@@ -17,8 +17,8 @@
     </script>
   </head>
   <body>
-<!--    ${h.ui.dataset_breadcrumbs([(dis.name, {'href': ''}), ('Edit', {'href': r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id)})], r)}-->
     <nav class="toolbar">
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('Edit DataSet', {'href':''})], r)}
       <ul>
         <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
           <li><a href="${r.route_url('data.item.new', sid=dis.survey_id, dsid=dis.id)}" class="button">Add Item</a></li>
