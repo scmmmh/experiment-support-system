@@ -28,7 +28,7 @@ qtg = sa.Table('question_type_groups', metadata,
 
 def upgrade():
     metadata.bind = op.get_bind()
-    #op.get_bind().execute(perm.insert(values={u'name': u'admin.question_types', u'title': u'Administer the question types'}))
+    op.get_bind().execute(perm.insert(values={u'name': u'admin.question_types', u'title': u'Administer the question types'}))
     op.add_column('question_types', sa.Column('enabled', sa.Boolean))
     op.add_column('question_types', sa.Column('order', sa.Integer))
     op.get_bind().execute(qt.update(values={u'enabled': True}))
@@ -37,7 +37,7 @@ def upgrade():
 
 
 def downgrade():
-    #op.get_bind().execute(perm.delete(perm.c.name==u'admin.question_types'))
+    op.get_bind().execute(perm.delete(perm.c.name==u'admin.question_types'))
     op.drop_column('question_types', 'enabled')
     op.drop_column('question_types', 'order')
     op.drop_column('question_type_groups', 'enabled')

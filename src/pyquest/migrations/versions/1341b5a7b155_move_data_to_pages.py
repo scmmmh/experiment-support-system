@@ -36,7 +36,7 @@ di = Table('data_items', metadata,
 def upgrade():
     metadata.bind = op.get_bind()
     op.add_column('data_items',
-                  Column('qsheet_id', Integer, ForeignKey('qsheets.id')))
+                  Column('qsheet_id', Integer, ForeignKey('qsheets.id', name='data_items_qsheet_id_fk')))
     for data_item in op.get_bind().execute(di.select()):
         qsheet = op.get_bind().execute(qs.join(qsa).select().where(and_(qs.c.survey_id==data_item.survey_id,
                                                                         qsa.c.key=='repeat',
@@ -59,4 +59,5 @@ def downgrade():
     for data_item in op.get_bind().execute(di.select()):
         qsheet = op.get_bind().execute(qs.select().where(qs.c.id==data_item.qsheet_id)).first()
         op.get_bind().execute(di.update().where(di.c.id==data_item.id).values(survey_id=qsheet.survey_id))
+    op.drop_constraint('data_items_qsheet_id_fk', 'data_items', type='foreignkey')
     op.drop_column('data_items', 'qsheet_id')
