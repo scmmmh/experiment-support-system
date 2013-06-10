@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>Edit Data</title>
+    <title>Edit Data Item</title>
     <script type="text/javascript">
     $(document).ready(function() {
     	$('#add-control-answer-btn').click(function() {
@@ -24,9 +24,12 @@
     </script>
   </head>
   <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),(dis.name, {'href': r.route_url('data.edit', sid=survey.id, dsid=dis.id)}), ('Edit Data Item', {'href':''})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
     <article>
       <hgroup>
-        <h1>Edit Data</h1>
+        <h1>Edit Data Item</h1>
       </hgroup>
       <form action="${r.route_url('data.item.edit', sid=dis.survey_id, dsid=dis.id, did=data_item.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}

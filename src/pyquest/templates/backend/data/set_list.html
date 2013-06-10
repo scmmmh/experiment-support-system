@@ -18,14 +18,12 @@
     <div>
       <table>
 	<thead>
-	  <th>Internal Id</th>
 	  <th>Name</th>
 	  <th>QSheets</th>
 	  <th>Action</th>
 	</thead>
 	<tr py:for="set in dis">
-	  <td><a href="${r.route_url('data.view', sid=set.survey_id, dsid=set.id)}">${set.id}</a></td>
-	  <td>${set.name}</td>
+	  <td><a href="${r.route_url('data.view', sid=set.survey_id, dsid=set.id)}">${set.name}</a></td>
 	  <py:choose test="set.qsheets">
 	   <py:when test="None">
 	     <td></td>

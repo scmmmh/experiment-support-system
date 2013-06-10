@@ -138,6 +138,7 @@ def dataset_new(request):
 @render({'text/html': 'backend/data/set_delete.html'})
 def dataset_delete(request):
     dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
     user = current_user(request)
     if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'dis': dis}):
@@ -149,7 +150,8 @@ def dataset_delete(request):
             request.session.flash('Data Item Set deleted', 'info')
             raise HTTPFound(request.route_url('data.list', sid=sid))
         else:
-            return {'dis': dis}
+            return {'survey': survey,
+                    'dis': dis}
     else:
         redirect_to_login(request)
 
@@ -317,6 +319,7 @@ def new(request):
 def edit(request):
     dbsession = DBSession()
     data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataSet).filter(DataSet.id==data_item.dataset_id).first()
     user = current_user(request)
     if data_item:
@@ -346,10 +349,12 @@ def edit(request):
 
                 except api.Invalid as e:
                     e.params = request.POST
-                    return {'dis': dis,
+                    return {'survey': survey,
+                            'dis': dis,
                             'data_item': data_item}
             else:
-                return {'dis':dis,
+                return {'survey': survey,
+                        'dis':dis,
                         'data_item': data_item}
         else:
             redirect_to_login(request)

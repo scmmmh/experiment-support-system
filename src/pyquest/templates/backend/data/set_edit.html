@@ -18,7 +18,9 @@
   </head>
   <body>
     <nav class="toolbar">
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('Edit DataSet', {'href':''})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),(dis.name, {'href': r.route_url('data.view', sid=survey.id, dsid=dis.id)}), ('Edit', {'href':''})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
       <ul>
         <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
           <li><a href="${r.route_url('data.item.new', sid=dis.survey_id, dsid=dis.id)}" class="button">Add Item</a></li>
@@ -46,7 +48,6 @@
             <thead>
               <tr py:if="dis.items">
 		<th>Control item</th>
-		<th>Internal id</th>
 		<th py:for="attribute in dis.items[0].attributes">${attribute.key}</th>
 		<th>Action</th>
               </tr>
@@ -58,7 +59,6 @@
               </tr>
               <tr py:for="item in dis.items">
 		<td><py:if test="item.control">Yes</py:if></td>
-                <td>${item.id}</td>
 		<td py:for="attribute in item.attributes">${attribute.value}</td>
 		<td>
                   <ul class="inline no-symbol no-margin">
