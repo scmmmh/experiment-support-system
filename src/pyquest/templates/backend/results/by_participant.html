@@ -55,9 +55,9 @@
                 </ol>
               </td>
               <td class="text-top">
-                <py:if test="qsheet.data_items">
+                <py:if test="qsheet.data_set">
                   ${h.form.hidden_field('data_identifier-%i.qsheet' % (qsheet.id), qsheet.name)}
-                  ${h.form.select('data_identifier-%i.column' % (qsheet.id), data_identifiers[qsheet.name], [('id_', 'Internal Identifier')] + [(attr.key, attr.key) for attr in qsheet.data_items[0].attributes], e)}
+                  ${h.form.select('data_identifier-%i.column' % (qsheet.id), data_identifiers[qsheet.name], [('id_', 'Internal Identifier')] + [(attr.key, attr.key) for attr in qsheet.data_set.items[0].attributes], e)}
                 </py:if>
               </td>
             </tr>

@@ -19,7 +19,7 @@
       <p>Thank you very much for participating in this survey. Your answers have been stored.</p>
       <p py:if="control" i18n:msg="control_right,control_total">You got ${control[0]} of the ${control[1]} control questions right.</p> 
       <div py:if="survey.status == 'testing'" class="info" i18n:msg="">This survey is currently being tested and is not live yet.
-        Your answers have been recored and you can now <a href="${r.route_url('survey.run', sid=survey.id)}">test the survey again</a>,
+        Your answers have been recored and you can now <a href="${r.route_url('survey.run', seid=survey.external_id)}">test the survey again</a>,
         if you wish to do so.</div>
     </div>
   </body>

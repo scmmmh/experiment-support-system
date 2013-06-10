@@ -14,7 +14,7 @@
         <p>The following surveys are currently available for participation:</p>
         <dl>
           <py:for each="survey in surveys">
-            <dt><a href="${r.route_url('survey.run', sid=survey.id)}">${survey.title}</a></dt>
+            <dt><a href="${r.route_url('survey.run', seid=survey.external_id)}">${survey.title}</a></dt>
             <dd>${survey.summary}</dd>
           </py:for>
         </dl>

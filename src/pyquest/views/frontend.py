@@ -49,12 +49,13 @@ def select_data_items(qsid, state, qsheet, dbsession):
             return (t[0], t[1].count)
         else:
             return (t[0], 0)
-    if not qsheet.data_items:
+    if not qsheet.data_set:
         return [{'did': 'none'}]
     else:
+        disid = qsheet.data_set.id
         source_items = map(data_item_transform,
                            dbsession.query(DataItem, DataItemCount).\
-                                outerjoin(DataItemCount).filter(and_(DataItem.qsheet_id==qsid,
+                                outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==disid,
                                                                      DataItem.control==False,
                                                                      not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
                                                                                                                                                                   QSheet.id==qsheet.id)))))
@@ -75,7 +76,7 @@ def select_data_items(qsid, state, qsheet, dbsession):
                     data_items.extend(map(lambda t: {'did': t[0].id}, threshold_items))
                 threshold = threshold + 1
             control_items = map(lambda d: {'did': d.id},
-                                dbsession.query(DataItem).filter(and_(DataItem.qsheet_id==qsid,
+                                dbsession.query(DataItem).filter(and_(DataItem.dataset_id==disid,
                                                                       DataItem.control==True)).all())
             if len(control_items) < int(qsheet.attr_value('control-items')):
                 data_items.extend(control_items)
@@ -105,8 +106,8 @@ def load_data_items(state, dbsession):
         return [{'did': 'none'}]
 
 def init_state(request, dbsession, survey):
-    if 'survey.%s' % request.matchdict['sid'] in request.cookies:
-        state = pickle.loads(str(request.cookies['survey.%s' % request.matchdict['sid']]))
+    if 'survey.%s' % request.matchdict['seid'] in request.cookies:
+        state = pickle.loads(str(request.cookies['survey.%s' % request.matchdict['seid']]))
     else:
         state = {'qsid': survey.start_id}
         with transaction.manager:
@@ -203,25 +204,25 @@ def calculate_control_items(qsheet, participant):
 @render({'text/html': 'frontend/running.html'})
 def run_survey(request):
     dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         _ = get_translator(survey.language, 'frontend').ugettext
         if survey.status not in ['running', 'testing']:
-            raise HTTPFound(request.route_url('survey.run.inactive', sid=request.matchdict['sid']))
+            raise HTTPFound(request.route_url('survey.run.inactive', seid=request.matchdict['seid']))
         state = init_state(request, dbsession, survey)
         if not state['qsid']:
-            response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
-            response.delete_cookie('survey.%s' % request.matchdict['sid'])
+            response = HTTPFound(request.route_url('survey.run', seid=request.matchdict['seid']))
+            response.delete_cookie('survey.%s' % request.matchdict['seid'])
             raise response
         qsheet = dbsession.query(QSheet).filter(QSheet.id==safe_int(state['qsid'])).first()
         if not qsheet:
-            response = HTTPFound(request.route_url('survey.run.finished', sid=request.matchdict['sid']))
+            response = HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
             raise response
         if request.method == 'GET':
             if 'dids' not in state:
                 state['dids'] = select_data_items(qsheet.id, state, qsheet, dbsession)
                 if len(state['dids']) == 0:
-                    response = HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
+                    response = HTTPFound(request.route_url('survey.run', seid=request.matchdict['seid']))
                     participant = get_participant(dbsession, survey, state)
                     next_qsi = next_qsheet(dbsession, qsheet, participant)
                     if next_qsi:
@@ -229,11 +230,11 @@ def run_survey(request):
                     else:
                         state['qsid'] = 'finished'
                     del state['dids']
-                    response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
+                    response.set_cookie('survey.%s' % request.matchdict['seid'], pickle.dumps(state), max_age=7776000)
                     raise response
             data_items = load_data_items(state, dbsession)
             participant = get_participant(dbsession, survey, state)
-            request.response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
+            request.response.set_cookie('survey.%s' % request.matchdict['seid'], pickle.dumps(state), max_age=7776000)
             dbsession.add(qsheet)
             return {'survey': survey,
                     'qsheet': qsheet,
@@ -330,8 +331,8 @@ def run_survey(request):
                     else:
                         state['qsid'] = 'finished'
                 del state['dids']
-                response = HTTPFound(request.route_url('survey.run', sid=survey.id))
-                response.set_cookie('survey.%s' % request.matchdict['sid'], pickle.dumps(state), max_age=7776000)
+                response = HTTPFound(request.route_url('survey.run', seid=survey.external_id))
+                response.set_cookie('survey.%s' % request.matchdict['seid'], pickle.dumps(state), max_age=7776000)
                 raise response
             except api.Invalid as ie:
                 ie = flatten_invalid(ie)
@@ -355,10 +356,10 @@ def run_survey(request):
 @render({'text/html': 'frontend/finished.html'})
 def finished_survey(request):
     dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         if survey.status == 'testing':
-            request.response.delete_cookie('survey.%s' % request.matchdict['sid'])
+            request.response.delete_cookie('survey.%s' % request.matchdict['seid'])
         return {'survey': survey,
                 'control': calculate_control_items(None, get_participant(dbsession, survey, init_state(request, dbsession, survey)))}
     else:
@@ -368,10 +369,12 @@ def finished_survey(request):
 @render({'text/html': 'frontend/inactive.html'})
 def inactive(request):
     dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         if survey.status in ['running', 'testing']:
-            raise HTTPFound(request.route_url('survey.run', sid=request.matchdict['sid']))
+            raise HTTPFound(request.route_url('survey.run', seid=request.matchdict['seid']))
+        elif survey.status == 'develop':
+            raise HTTPNotFound()
         return {'survey': survey}
     else:
         raise HTTPNotFound()
