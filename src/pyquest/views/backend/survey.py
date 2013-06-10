@@ -168,7 +168,6 @@ def edit(request):
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
-                    import pdb; pdb.set_trace()
                     schema = SurveySchema()
                     params = schema.to_python(request.POST)
                     check_csrf_token(request, params)
