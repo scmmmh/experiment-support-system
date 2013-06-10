@@ -22,7 +22,7 @@ def upgrade():
            sa.Column('public', sa.Boolean))
     
     for survey in op.get_bind().execute(surveys.select()):
-        op.get_bind().execute(surveys.update().where(surveys.c.id==survey.id).values(public='1'))
+        op.get_bind().execute(surveys.update().where(surveys.c.id==survey.id).values(public=True))
 
 def downgrade():
     op.drop_column('surveys', 'public')
