@@ -48,6 +48,8 @@
           <dd>${h.form.textarea('scripts', survey.scripts, e, class_='span-22 role-js-edit', title='Specify any additional JavaScript code that you wish to have added to all survey pages')}</dd>
           <dt>First page</dt>
           <dd>${h.form.select('start', survey.start_id, [(qs.id, qs.title) for qs in survey.qsheets], e, title='Select the first survey page to show to the participants')}</dd>
+	  <dt>Public</dt>
+          <dd> ${h.form.checkbox('public', survey.public, e, checked=survey.public, label="Tick for a public survey")}</dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id), title='Go back to the survey overview and without updating the survey')}</li>

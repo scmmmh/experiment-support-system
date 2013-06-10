@@ -16,7 +16,7 @@
       ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), ('Preview', {'href': r.route_url('survey.preview', sid=survey.id)})], r)}
       ${h.survey.fancy_status(r, survey, class_='survey-status right')}
       ${h.ui.main_menu('preview', survey, r)}
-      <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id)}">${r.route_url('survey.run', sid=survey.id)}</a>.</div>
+      <div class="info text-center" py:if="survey.status == 'running'">This survey is live and can be accessed at <a href="${r.route_url('survey.run', sid=survey.id, seid=survey.external_id)}">${r.route_url('survey.run', sid=survey.id, seid=survey.external_id)}</a>.</div>
     </div>
     <article class="survey">
       <hgroup>

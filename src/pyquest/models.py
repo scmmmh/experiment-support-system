@@ -18,7 +18,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '17c68d338ee4'
+DB_VERSION = '1581edc0363f'
 
 class DBUpgradeException(Exception):
     
@@ -159,7 +159,8 @@ class Survey(Base):
     owned_by = Column(ForeignKey(User.id, name='surveys_users_owner_fk'))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime)
-    
+    public = Column(Boolean, default=True)
+
     owner = relationship('User', backref='surveys')
     qsheets = relationship('QSheet',
                            backref='survey',

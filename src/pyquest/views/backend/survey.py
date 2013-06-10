@@ -27,6 +27,7 @@ class NewSurveySchema(Schema):
     title = validators.UnicodeString(not_empty=True)
     summary = validators.UnicodeString()
     language = validators.OneOf(['en', 'de'])
+    public = validators.Bool()
 
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -36,6 +37,7 @@ class SurveySchema(Schema):
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
     language = validators.OneOf(['en', 'de'])
+    public = validators.Bool()
     
     pre_validators = [variabledecode.NestedVariables()]
 
@@ -89,6 +91,7 @@ def new(request):
                     survey.status = 'develop'
                     survey.owned_by = user.id
                     survey.language = params['language']
+                    survey.public = params['public']
                     dbsession.add(survey)
                     dbsession.flush()
                     sid = survey.id
@@ -165,6 +168,7 @@ def edit(request):
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
+                    import pdb; pdb.set_trace()
                     schema = SurveySchema()
                     params = schema.to_python(request.POST)
                     check_csrf_token(request, params)
@@ -176,6 +180,7 @@ def edit(request):
                         survey.scripts = params['scripts']
                         survey.start_id = params['start']
                         survey.language = params['language']
+                        survey.public = params['public']
                         dbsession.add(survey)
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.view',
