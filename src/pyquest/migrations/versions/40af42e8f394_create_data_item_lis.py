@@ -39,6 +39,18 @@ su = Table('surveys', metadata,
            Column('id', Integer, primary_key=True),
            Column('owned_by', Integer, ForeignKey('users.id')))
 
+dk = Table('data_set_attribute_keys', metadata,
+           Column('id', Integer, primary_key=True),
+           Column('order', Integer),
+           Column('key', Unicode),
+           Column('dataset_id', Integer, ForeignKey('data_sets.id')))
+
+da = Table('data_item_attributes', metadata,
+           Column('id', Integer, primary_key=True),
+           Column('data_item_id', Integer, ForeignKey('data_items.id')),
+           Column('order', Integer),
+           Column('key', Unicode))
+
 # For each QSheet with DataItems attached the upgrade creates a new DataSet and moves the
 # DataItems to that instead.
 def upgrade():
@@ -47,6 +59,12 @@ def upgrade():
                     Column('name', Unicode(255)),
                     Column('survey_id', Integer, ForeignKey('surveys.id', name='data_sets_survey_id_fk')),
                     Column('owned_by', Integer, ForeignKey('users.id', name='data_sets_owned_by_fk')))
+
+    op.create_table('data_set_attribute_keys',
+                    Column('id', Integer, primary_key=True),
+                    Column('order', Integer),
+                    Column('key', Unicode(255)),
+                    Column('dataset_id', Integer, ForeignKey('data_sets.id', name='data_set_attribute_keys_dataset_id_fk')))
 
     op.add_column('data_items',
                   Column('dataset_id', Integer, ForeignKey('data_sets.id', name='data_items_dataset_id_fk')))
@@ -60,8 +78,14 @@ def upgrade():
         if data_items.rowcount > 0:
             survey = op.get_bind().execute(su.select().where(su.c.id==qsheet.survey_id)).first()
             ds_pk = op.get_bind().execute(ds.insert().values(name='created by migrations for qsheet %d' % qsheet.id, owned_by=survey.owned_by, survey_id=qsheet.survey_id)).inserted_primary_key[0]
+            row = 1
             for data_item in data_items:
                 op.get_bind().execute(di.update().where(di.c.id==data_item.id).values(dataset_id=ds_pk, qsheet_id=None))
+                if row == 1:
+                    attributes = op.get_bind().execute(da.select().where(da.c.data_item_id==data_item.id))
+                    for attribute in attributes:
+                        op.get_bind().execute(dk.insert().values(key=attribute.key, order=attribute.order, dataset_id=ds_pk))
+                row = row + 1
             op.get_bind().execute(qs.update().where(qs.c.id==qsheet.id).values(dataset_id=ds_pk))
 
     op.drop_constraint('data_items_qsheet_id_fk', 'data_items', type_='foreignkey')
@@ -84,6 +108,8 @@ def downgrade():
     op.drop_constraint('data_sets_survey_id_fk', 'data_sets', type='foreignkey')
     op.drop_constraint('data_items_dataset_id_fk', 'data_items', type='foreignkey')
     op.drop_constraint('qsheets_dataset_id_fk', 'qsheets', type='foreignkey')
+    op.drop_constraint('data_set_attribute_keys_dataset_id_fk', 'data_set_attribute_keys', type='foreignkey')
     op.drop_column('data_items', 'dataset_id')
     op.drop_column('qsheets', 'dataset_id')
     op.drop_table('data_sets')
+    op.drop_table('data_set_attribute_keys')

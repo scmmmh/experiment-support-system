@@ -39,11 +39,29 @@
           <dd>${h.form.text_field('name', dis.name, e, class_='span-12')}</dd>
           <dt>Item Attributes</dt>
 	  <dd>
-            <ul id="item-attributes" class="no-symbol no-margin">
-              <li py:for="attribute in dis.items[0].attributes">${h.form.text_field('item_attributes', attribute.key, e, class_='span-12')}</li>
-	    </ul>
-            <button id="add-attribute-btn" class="button">Add an attribute</button>
-          </dd>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+		  <th></th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td><a href="#" title="Add a row" class="button action-add-row" ><span class="ui-icon ui-icon-plusthick"></span></a></td>
+                </tr>
+              </tfoot>
+              <tbody class="role-sortable">
+		<py:for each="idx, ak in enumerate(dis.attribute_keys)">
+                  <tr>
+		    <td>${h.form.text_field('item_attributes', ak.key , e)}</td>
+		    <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
+                  </tr>
+		</py:for>
+              </tbody>
+            </table>
+	  </dd>
           <table>
             <thead>
               <tr py:if="dis.items">

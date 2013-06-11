@@ -19,7 +19,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
                             DataItemAttribute, Question, DataItemControlAnswer,
-                            Participant, DataSet)
+                            Participant, DataSet, DataSetAttributeKey)
 import re
 
 class DataItemSchema(Schema):
@@ -116,10 +116,12 @@ def dataset_new(request):
                 dis.name = params['name']
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
-                data_item = DataItem(order=1)
+#                data_item = DataItem(order=1)
                 for idx, key in enumerate(params['item_attributes']):
-                    data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'), order=idx+1))
-                dis.items.append(data_item)
+#                    data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'), order=idx+1))
+                    diak = DataSetAttributeKey(key=key.decode('utf-8'), order=idx)
+                    dis.attribute_keys.append(diak)
+#                dis.items.append(data_item)
                 dbsession.add(dis)
                 dbsession.flush()
                 dsid = dis.id
@@ -271,25 +273,22 @@ def new(request):
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
-            if len(dis.items) > 0:
-                data_item = dis.items[0]
-            else:
-                data_item = DataItem()
             if request.method == 'POST':
                 try:
                     validator = DataItemSchema()
-                    for attribute in data_item.attributes:
+                    for attribute in dis.attribute_keys:
                         validator.add_field(attribute.key, validators.UnicodeString())
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
+                        dbsession.add(dis)
                         new_data_item = DataItem(dataset_id=dis.id,
                                                  control=params['control_'])
                         if len(dis.items) > 0:
                             new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.dataset_id==dis.id).first()[0] + 1
                         else:
                             new_data_item.order = 1
-                        for attribute in data_item.attributes:
+                        for attribute in dis.attribute_keys:
                             new_data_item.attributes.append(DataItemAttribute(key=attribute.key,
                                                                               value=params[attribute.key],
                                                                               order=attribute.order))
@@ -299,16 +298,14 @@ def new(request):
                                 new_data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(new_data_item)
                     request.session.flash('Data added', 'info')
-                    raise HTTPFound(request.route_url('data.edit', sid=dis.survey_id, dsid=request.matchdict['dsid']))
+                    raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
-                            'dis': dis,
-                            'data_item': data_item}
+                            'dis': dis}
             else:
                 return {'survey': survey,
-                        'dis': dis,
-                        'data_item': data_item}
+                        'dis': dis}
         else:
             redirect_to_login(request)
     else:

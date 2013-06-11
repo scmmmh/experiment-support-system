@@ -532,6 +532,17 @@ class DataSet(Base):
         else:
             return False
     
+class DataSetAttributeKey(Base):
+
+    __tablename__ = 'data_set_attribute_keys'
+    id = Column(Integer, primary_key=True)
+    key = Column(Unicode(255))
+    order = Column(Integer)
+    dataset_id = Column(ForeignKey(DataSet.id, name="data_set_attribute_keys_dataset_id_fk"))
+
+    dataset = relationship('DataSet', backref='attribute_keys')
+
+                        
 class DataItem(Base):
     
     __tablename__ = 'data_items'

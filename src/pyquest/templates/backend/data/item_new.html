@@ -37,8 +37,8 @@
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt><label for="control_item">Control item</label></dt>
-          <dd>${h.form.checkbox('control_', 'True', e, checked=data_item.control, label='Yes', id='control_item')}</dd>
-          <py:for each="attribute in data_item.attributes">
+          <dd>${h.form.checkbox('control_', 'True', e, checked=False, label='Yes', id='control_item')}</dd>
+          <py:for each="attribute in dis.attribute_keys">
             <dt>${h.text.title(attribute.key)}</dt>
             <dd>${h.form.text_field(attribute.key, '', e, class_='span-12')}</dd>
           </py:for>

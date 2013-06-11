@@ -68,7 +68,7 @@
                 </tr>
               </tfoot>
               <tbody class="role-sortable">
-		<py:choose test="len(dis.items)">
+		<py:choose test="len(dis.attribute_keys)">
 		  <py:when test="0">
                       <tr>
 			<td>${h.form.text_field('item_attributes', '' , e)}</td>
@@ -80,9 +80,9 @@
                       </tr>
 		  </py:when>
 		  <py:otherwise>
-		    <py:for each="idx,name in enumerate(dis.items[0].attributes)">
+		    <py:for each="idx,ak in enumerate(dis.attribute_keys)">
                       <tr>
-			<td>${h.form.text_field('item_attributes' % (idx), '' , e)}</td>
+			<td>${h.form.text_field('item_attributes', ak.key, e)}</td>
 			<td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                       </tr>
 		    </py:for>
