@@ -9,10 +9,33 @@
     	  $('#data-filter-form select').change(function(ev, ui) {
     		 $('#data-filter-form').submit(); 
     	  });
-          $('#add-attribute-btn').click(function() {
-            $('#item-attributes').append('<li>${h.form.text_field('item_attributes', '', None)}</li>');
+
+        function removeRow() {
+            var link = $(this);
+            var row = link.closest('tr')
+            row.fadeOut();
+            setTimeout(function() {row.remove();}, 400);
+            return false;
+        }
+
+        $('a.action-remove-row').click(removeRow);
+
+        $('a.action-add-row').click(function() {
+            var link = $(this);
+            var tbody = link.closest('table').find('tbody');
+            var row = $('<tr></tr>');
+            var input_field = '${h.form.text_field('item_attributes', '', None)}';
+            row.append('<td>' + input_field + '</td>');
+            var remove_link = $('<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a>');
+            remove_link.click(removeRow);
+            col = $('<td></td>');
+            col.append(remove_link);
+            row.append(col);
+            tbody.append(row);
+            tbody.sortable('reload');
             return false;
         });
+
       });
     </script>
   </head>
