@@ -35,7 +35,8 @@ class DataSetSchema(Schema):
 class NewDataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
-    item_attributes = foreach.ForEach(validators.UnicodeString())
+    attribute_key = foreach.ForEach(validators.UnicodeString())
+    attribute_order = foreach.ForEach(validators.Int())
 
 @view_config(route_name='data.list')
 @render({'text/html': 'backend/data/set_list.html'})
@@ -117,7 +118,7 @@ def dataset_new(request):
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
 #                data_item = DataItem(order=1)
-                for idx, key in enumerate(params['item_attributes']):
+                for idx, key in enumerate(params['attribute_key']):
 #                    data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'), order=idx+1))
                     diak = DataSetAttributeKey(key=key.decode('utf-8'), order=idx)
                     dis.attribute_keys.append(diak)
@@ -174,13 +175,41 @@ def dataset_edit(request):
                     dbsession.add(dis)
                     dis.name = params['name']
                     sid = dis.survey_id
-                    for item in dis.items:
-                        for idx, key in enumerate(params['item_attributes']):
+                    old_length = len(dis.attribute_keys)
+                    new_length = len(params['attribute_key'])
+                    # if there are more attributes than before create DataSetAttributeKeys for the DataSet and DataItemAttributes for the DataItems
+                    if (new_length > old_length):
+                        for count in range(old_length, new_length):
+                            dis.attribute_keys.append(DataSetAttributeKey(order=params['attribute_order'][count], key=params['attribute_key'][count]))
+                            for item in dis.items:
+                                item.attributes.append(DataItemAttribute(order=params['attribute_order'][count], key=params['attribute_key'][count]))
+
+                    # if there are fewer attributes than before then delete the relevant DataSetAttributeKeys and DataItemAttributes using the 'order'
+                    # as the thing to identify a particular attribute (because the 'key' can be changed by the user. After the deletions the attributes
+                    # are arbitrarily re-ordered. 
+                    if (new_length < old_length):
+                        for attribute_key in dis.attribute_keys:
+                            if (attribute_key.order in params['attribute_order']) == False:
+                                dis.attribute_keys.remove(attribute_key)
+                                dbsession.delete(attribute_key)
+                        for idx,attribute_key in enumerate(dis.attribute_keys):
+                            attribute_key.order = idx + 1
+                        for item in dis.items:
                             for attribute in item.attributes:
-                                if (attribute.order == idx +1):
-                                    attribute.key = key.decode('utf-8')
+                                if (attribute.order in params['attribute_order']) == False:
+                                    item.attributes.remove(attribute)
+                                    dbsession.delete(attribute)
+                            for idx,attribute in enumerate(item.attributes):
+                                attribute.order = idx + 1
+
+                    # Then the keys of the attributes can be set to the new values
+                    for idx, attribute_key in enumerate(dis.attribute_keys):
+                        attribute_key.key = params['attribute_key'][idx].decode('utf-8')
+                        for item in dis.items:
+                            item.attributes[idx].key = params['attribute_key'][idx].decode('utf-8')
+
                     dbsession.flush()
-                raise HTTPFound(request.route_url('data.list', sid=sid))
+                raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
             else:
                 return {'survey': survey,
                         'dis': dis}

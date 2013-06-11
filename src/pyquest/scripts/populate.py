@@ -19,7 +19,7 @@ from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             Question, QSheetTransition, QSheetAttribute,
                             DataItemControlAnswer, QuestionType,
-                            QuestionTypeGroup, DataSet)
+                            QuestionTypeGroup, DataSet, DataSetAttributeKey)
 from pyquest.views.backend.qsheet import load_questions_from_xml
 
 def usage(argv):
@@ -1073,6 +1073,8 @@ def init_test_data(DBSession):
         """
         # DATA ITEMS
         dataset = DataSet(name="TestDataSet")
+        dataset.attribute_keys.append(DataSetAttributeKey(order=1, key='title'))
+        dataset.attribute_keys.append(DataSetAttributeKey(order=2, key='url'))
         data_item = DataItem(order=1)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the first item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/1.html'))

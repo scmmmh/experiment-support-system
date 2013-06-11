@@ -12,9 +12,13 @@
 
         function removeRow() {
             var link = $(this);
-            var row = link.closest('tr')
-            row.fadeOut();
-            setTimeout(function() {row.remove();}, 400);
+            var tbody = link.closest('table').find('tbody');
+            if (tbody.find('tr').length != 1)
+               {
+                 var row = link.closest('tr')
+                 row.fadeOut();
+                 setTimeout(function() {row.remove();}, 400);
+               }
             return false;
         }
 
@@ -24,8 +28,10 @@
             var link = $(this);
             var tbody = link.closest('table').find('tbody');
             var row = $('<tr></tr>');
-            var input_field = '${h.form.text_field('item_attributes', '', None)}';
+            var input_field = '${h.form.text_field('attribute_key', '', None)}';
             row.append('<td>' + input_field + '</td>');
+            var order_field = '${h.form.hidden_field('attribute_order', '3')}';
+            row.append('<td>' + order_field + '</td>');
             var remove_link = $('<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a>');
             remove_link.click(removeRow);
             col = $('<td></td>');
@@ -66,11 +72,13 @@
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th></th>
 		  <th></th>
                 </tr>
               </thead>
               <tfoot>
                 <tr>
+                  <td></td>
                   <td></td>
                   <td><a href="#" title="Add a row" class="button action-add-row" ><span class="ui-icon ui-icon-plusthick"></span></a></td>
                 </tr>
@@ -78,7 +86,8 @@
               <tbody class="role-sortable">
 		<py:for each="idx, ak in enumerate(dis.attribute_keys)">
                   <tr>
-		    <td>${h.form.text_field('item_attributes', ak.key , e)}</td>
+		    <td>${h.form.text_field('attribute_key', ak.key , e)}</td>
+		    <td>${h.form.hidden_field('attribute_order', ak.order)}</td>
 		    <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                   </tr>
 		</py:for>
