@@ -572,7 +572,6 @@ class DataItemAttribute(Base):
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
     order = Column(Integer)
-#    key = Column(Unicode(255))
     value = Column(Unicode(255))
 
 class DataItemCount(Base):
