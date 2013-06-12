@@ -348,7 +348,6 @@ def edit(request):
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': data_item.data_set}):
             if request.method == 'POST':
                 try:
-                    import pdb; pdb.set_trace()
                     validator = DataItemSchema()
                     for attribute_key in dis.attribute_keys:
                         validator.add_field(str(attribute_key.order), validators.UnicodeString(not_empty=True))
