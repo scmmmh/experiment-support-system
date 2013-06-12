@@ -117,12 +117,9 @@ def dataset_new(request):
                 dis.name = params['name']
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
-#                data_item = DataItem(order=1)
                 for idx, key in enumerate(params['attribute_key']):
-#                    data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'), order=idx+1))
                     diak = DataSetAttributeKey(key=key.decode('utf-8'), order=idx)
                     dis.attribute_keys.append(diak)
-#                dis.items.append(data_item)
                 dbsession.add(dis)
                 dbsession.flush()
                 dsid = dis.id
@@ -182,21 +179,21 @@ def dataset_edit(request):
                         for count in range(old_length, new_length):
                             dis.attribute_keys.append(DataSetAttributeKey(order=params['attribute_order'][count], key=params['attribute_key'][count]))
                             for item in dis.items:
-                                item.attributes.append(DataItemAttribute(order=params['attribute_order'][count], key=params['attribute_key'][count]))
+                                item.attributes.append(DataItemAttribute(order=params['attribute_order'][count]))
 
                     # if there are fewer attributes than before then delete the relevant DataSetAttributeKeys and DataItemAttributes using the 'order'
                     # as the thing to identify a particular attribute (because the 'key' can be changed by the user. After the deletions the attributes
                     # are arbitrarily re-ordered. 
                     if (new_length < old_length):
                         for attribute_key in dis.attribute_keys:
-                            if (attribute_key.order in params['attribute_order']) == False:
+                            if attribute_key.order not in params['attribute_order']:
                                 dis.attribute_keys.remove(attribute_key)
                                 dbsession.delete(attribute_key)
                         for idx,attribute_key in enumerate(dis.attribute_keys):
                             attribute_key.order = idx + 1
                         for item in dis.items:
                             for attribute in item.attributes:
-                                if (attribute.order in params['attribute_order']) == False:
+                                if attribute.order not in params['attribute_order']:
                                     item.attributes.remove(attribute)
                                     dbsession.delete(attribute)
                             for idx,attribute in enumerate(item.attributes):
@@ -317,10 +314,9 @@ def new(request):
                             new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.dataset_id==dis.id).first()[0] + 1
                         else:
                             new_data_item.order = 1
-                        for attribute in dis.attribute_keys:
-                            new_data_item.attributes.append(DataItemAttribute(key=attribute.key,
-                                                                              value=params[attribute.key],
-                                                                              order=attribute.order))
+                        for attribute_key in dis.attribute_keys:
+                            new_data_item.attributes.append(DataItemAttribute(value=params[attribute_key.key],
+                                                                              order=attribute_key.order))
                         for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
                             question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
                             if question and params['control_answer_answer'][idx].strip() != '':
@@ -352,16 +348,17 @@ def edit(request):
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': data_item.data_set}):
             if request.method == 'POST':
                 try:
+                    import pdb; pdb.set_trace()
                     validator = DataItemSchema()
-                    for attribute in data_item.attributes:
-                        validator.add_field(attribute.key, validators.UnicodeString(not_empty=True))
+                    for attribute_key in dis.attribute_keys:
+                        validator.add_field(str(attribute_key.order), validators.UnicodeString(not_empty=True))
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
                         data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
                         data_item.control = params['control_']
                         for attribute in data_item.attributes:
-                            attribute.value = params[attribute.key]
+                            attribute.value = params[str(attribute.order)]
                         data_item.control_answers = []
                         for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
                             question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()

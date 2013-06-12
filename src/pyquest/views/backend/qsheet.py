@@ -290,8 +290,8 @@ def preview(request):
             example = [{'did': 0}]
             if qsheet.data_set:
                 example[0]['did'] = qsheet.data_set.items[0].id
-                for attr in qsheet.data_set.items[0].attributes:
-                    example[0][attr.key] = attr.value
+                for idx, attr in enumerate(qsheet.data_set.attribute_keys):
+                    example[0][attr.key] = qsheet.data_set.items[0].attributes[idx].value
             if request.method == 'POST':
                 validator = PageSchema(qsheet, example)
                 try:

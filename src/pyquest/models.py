@@ -525,7 +525,10 @@ class DataSet(Base):
     qsheets = relationship('QSheet', backref='data_set')
     owner = relationship('User', backref='data_sets')
     survey = relationship('Survey', backref='data_sets')
-
+    attribute_keys = relationship('DataSetAttributeKey', 
+                                  backref='dataset', order_by='DataSetAttributeKey.order',
+                                  cascade='all, delete, delete-orphan')
+                                 
     def is_owned_by(self, user):
         if user:
             return self.owned_by == user.id
@@ -539,9 +542,6 @@ class DataSetAttributeKey(Base):
     key = Column(Unicode(255))
     order = Column(Integer)
     dataset_id = Column(ForeignKey(DataSet.id, name="data_set_attribute_keys_dataset_id_fk"))
-
-    dataset = relationship('DataSet', backref='attribute_keys')
-
                         
 class DataItem(Base):
     
@@ -572,7 +572,7 @@ class DataItemAttribute(Base):
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
     order = Column(Integer)
-    key = Column(Unicode(255))
+#    key = Column(Unicode(255))
     value = Column(Unicode(255))
 
 class DataItemCount(Base):

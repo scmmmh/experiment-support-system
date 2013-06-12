@@ -26,7 +26,8 @@
             var row = $('<tr></tr>');
             var input_field = '${h.form.text_field('attribute_key', '', None)}';
             row.append('<td>' + input_field + '</td>');
-            var order_field = '${h.form.hidden_field('attribute_order', '3')}';
+            var order_field = '${h.form.hidden_field('attribute_order', 'new_order')}';
+            order_field = order_field.replace(/new_order/, '' + (tbody.find('tr').length + 1))
             row.append('<td>' + order_field + '</td>');
             var remove_link = $('<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a>');
             remove_link.click(removeRow);

@@ -49,10 +49,12 @@ da = Table('data_item_attributes', metadata,
            Column('id', Integer, primary_key=True),
            Column('data_item_id', Integer, ForeignKey('data_items.id')),
            Column('order', Integer),
+           Column('value', Unicode),
            Column('key', Unicode))
 
 # For each QSheet with DataItems attached the upgrade creates a new DataSet and moves the
-# DataItems to that instead.
+# DataItems to that instead. The key column in data_item_attributes is no longer needed since the attributes are now
+# identified by 'order' and the DataSet attribute keys.
 def upgrade():
     op.create_table('data_sets',
                     Column('id', Integer, primary_key=True),
@@ -90,26 +92,35 @@ def upgrade():
 
     op.drop_constraint('data_items_qsheet_id_fk', 'data_items', type_='foreignkey')
     op.drop_column('data_items', 'qsheet_id')
+    op.drop_column('data_item_attributes', 'key')
 
-# The downgrade moves the DataItems back from the DataSet to the relevant QSheet
+# The downgrade moves the DataItems back from the DataSet to the relevant QSheet and restores the 'key' column of the DataItemAttributes.
 def downgrade():
     op.add_column('data_items',
                   Column('qsheet_id', Integer, ForeignKey('qsheets.id', name='data_items_qsheet_id_fk')))
 
-    for qsheet in op.get_bind().execute(qs.select()):
-        if qsheet.dataset_id:
-            data_items = op.get_bind().execute(di.select().where(di.c.dataset_id==qsheet.dataset_id))
-            for data_item in data_items:
-                op.get_bind().execute(di.update().where(di.c.id==data_item.id).values(dataset_id=None, qsheet_id=qsheet.id))
-            op.get_bind().execute(qs.update().where(qs.c.id==qsheet.id).values(dataset_id=None))
-            op.get_bind().execute(ds.delete().where(ds.c.id==qsheet.dataset_id))
+    op.add_column('data_item_attributes',
+                  Column('key', Unicode(255)))
 
     op.drop_constraint('data_sets_owned_by_fk', 'data_sets', type='foreignkey')
     op.drop_constraint('data_sets_survey_id_fk', 'data_sets', type='foreignkey')
     op.drop_constraint('data_items_dataset_id_fk', 'data_items', type='foreignkey')
     op.drop_constraint('qsheets_dataset_id_fk', 'qsheets', type='foreignkey')
     op.drop_constraint('data_set_attribute_keys_dataset_id_fk', 'data_set_attribute_keys', type='foreignkey')
+
+    for qsheet in op.get_bind().execute(qs.select()):
+        if qsheet.dataset_id:
+            data_set = op.get_bind().execute(ds.select().where(ds.c.id==qsheet.dataset_id)).first()
+            data_items = op.get_bind().execute(di.select().where(di.c.dataset_id==qsheet.dataset_id))
+            for data_item in data_items:
+                op.get_bind().execute(di.update().where(di.c.id==data_item.id).values(dataset_id=None, qsheet_id=qsheet.id))
+                for dia in op.get_bind().execute(da.select().where(da.c.data_item_id==data_item.id)):
+                    new_key = op.get_bind().execute(dk.select().where(and_(dk.c.dataset_id==data_set.id, dk.c.order==dia.order))).first()['key']
+                    op.get_bind().execute(da.update().where(da.c.id==dia.id).values(key=new_key))
+            op.get_bind().execute(qs.update().where(qs.c.id==qsheet.id).values(dataset_id=None))
+            op.get_bind().execute(ds.delete().where(ds.c.id==qsheet.dataset_id))
+
+    op.drop_table('data_set_attribute_keys')
     op.drop_column('data_items', 'dataset_id')
     op.drop_column('qsheets', 'dataset_id')
     op.drop_table('data_sets')
-    op.drop_table('data_set_attribute_keys')
