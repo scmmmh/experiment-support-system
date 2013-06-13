@@ -118,7 +118,7 @@ def dataset_new(request):
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
                 for idx, key in enumerate(params['attribute_key']):
-                    diak = DataSetAttributeKey(key=key.decode('utf-8'), order=idx)
+                    diak = DataSetAttributeKey(key=key.decode('utf-8'), order=idx+1)
                     dis.attribute_keys.append(diak)
                 dbsession.add(dis)
                 dbsession.flush()
@@ -177,9 +177,11 @@ def dataset_edit(request):
                     # if there are more attributes than before create DataSetAttributeKeys for the DataSet and DataItemAttributes for the DataItems
                     if (new_length > old_length):
                         for count in range(old_length, new_length):
-                            dis.attribute_keys.append(DataSetAttributeKey(order=params['attribute_order'][count], key=params['attribute_key'][count]))
+                            dsak = DataSetAttributeKey(order=params['attribute_order'][count], key=params['attribute_key'][count])
+                            dbsession.add(dsak)
+                            dis.attribute_keys.append(dsak)
                             for item in dis.items:
-                                item.attributes.append(DataItemAttribute(order=params['attribute_order'][count]))
+                                item.attributes.append(DataItemAttribute(order=params['attribute_order'][count], key_id=dsak.id))
 
                     # if there are fewer attributes than before then delete the relevant DataSetAttributeKeys and DataItemAttributes using the 'order'
                     # as the thing to identify a particular attribute (because the 'key' can be changed by the user. After the deletions the attributes
@@ -189,21 +191,10 @@ def dataset_edit(request):
                             if attribute_key.order not in params['attribute_order']:
                                 dis.attribute_keys.remove(attribute_key)
                                 dbsession.delete(attribute_key)
-                        for idx,attribute_key in enumerate(dis.attribute_keys):
-                            attribute_key.order = idx + 1
-                        for item in dis.items:
-                            for attribute in item.attributes:
-                                if attribute.order not in params['attribute_order']:
-                                    item.attributes.remove(attribute)
-                                    dbsession.delete(attribute)
-                            for idx,attribute in enumerate(item.attributes):
-                                attribute.order = idx + 1
 
                     # Then the keys of the attributes can be set to the new values
                     for idx, attribute_key in enumerate(dis.attribute_keys):
                         attribute_key.key = params['attribute_key'][idx].decode('utf-8')
-                        for item in dis.items:
-                            item.attributes[idx].key = params['attribute_key'][idx].decode('utf-8')
 
                     dbsession.flush()
                 raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
@@ -230,6 +221,7 @@ def dataset_upload(request):
                 raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
             reader = csv.DictReader(request.POST['source_file'].file)
             order = 1
+            offset = 0
             with transaction.manager:
                 dis = DataSet(name = request.POST['source_file'].filename, owned_by=user.id, survey_id=survey.id)
                 dbsession.add(dis)
@@ -238,12 +230,18 @@ def dataset_upload(request):
                         data_item = DataItem(order=order)
                         if 'control_' in item:
                             data_item.control = validators.StringBool().to_python(item['control_'])
+                            offset = 1
                         for idx, (key, value) in enumerate(item.items()):
                             if key != 'control_':
-                                data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
-                                                                              value=value.decode('utf-8') if value else u'',
-                                                                              order=idx + 1))
+                                if order == 1:
+                                    dsak = DataSetAttributeKey(key=key.decode('utf-8'), order=order)
+                                    dis.attribute_keys.append(dsak)
+                                    dbsession.flush()
+                                else:
+                                    dsak = dis.attribute_keys[idx - offset]
+                                data_item.attributes.append(DataItemAttribute(value=value.decode('utf-8') if value else u'', key_id=dsak.id))
                                 dis.items.append(data_item)
+                        order = order + 1
                 except csv.Error:
                     raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
                 dbsession.flush()
@@ -310,13 +308,14 @@ def new(request):
                         dbsession.add(dis)
                         new_data_item = DataItem(dataset_id=dis.id,
                                                  control=params['control_'])
+                        import pdb; pdb.set_trace()
                         if len(dis.items) > 0:
                             new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.dataset_id==dis.id).first()[0] + 1
                         else:
                             new_data_item.order = 1
                         for attribute_key in dis.attribute_keys:
                             new_data_item.attributes.append(DataItemAttribute(value=params[attribute_key.key],
-                                                                              order=attribute_key.order))
+                                                                              order=attribute_key.order, key_id=attribute_key.id))
                         for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
                             question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
                             if question and params['control_answer_answer'][idx].strip() != '':

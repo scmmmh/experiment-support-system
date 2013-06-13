@@ -7,7 +7,7 @@
     <thead>
       <tr py:if="dis.items">
 	<th>Control item</th>
-	<th py:for="attribute in dis.items[0].attributes">${attribute.key}</th>
+	<th py:for="attribute in dis.attribute_keys">${attribute.key}</th>
       </tr>
     </thead>
     <tbody>
