@@ -40,7 +40,7 @@ def get_instr(qsid, schema):
 def data_item_to_dict(data_item):
     result = {'did': data_item.id}
     for idx,attr in enumerate(data_item.data_set.attribute_keys):
-        result[attr.key] = data_item.attributes[idx].value
+        result[attr.key] = data_item.sorted_attributes()[idx].value
     return result
 
 def select_data_items(qsid, state, qsheet, dbsession):
