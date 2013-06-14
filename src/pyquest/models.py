@@ -534,7 +534,7 @@ class DataSet(Base):
             return self.owned_by == user.id
         else:
             return False
-    
+
 class DataSetAttributeKey(Base):
 
     __tablename__ = 'data_set_attribute_keys'
@@ -553,7 +553,7 @@ class DataItem(Base):
     control = Column(Boolean, default=False)
 
     attributes = relationship('DataItemAttribute',
-                              backref='data_item', order_by='DataItemAttribute.order',
+                              backref='data_item', 
                               cascade='all, delete, delete-orphan')
     counts = relationship('DataItemCount',
                           backref='counts',
@@ -565,13 +565,15 @@ class DataItem(Base):
                                    backref='data_item',
                                    cascade='all, delete, delete-orphan')
 
+    def sorted_attributes(self):
+        return sorted(self.attributes, key = lambda attribute: attribute.key.order)
+
 class DataItemAttribute(Base):
     
     __tablename__ = 'data_item_attributes'
     
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
-    order = Column(Integer)
     value = Column(Unicode(255))
     key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
 

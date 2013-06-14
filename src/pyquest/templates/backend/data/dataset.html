@@ -17,7 +17,7 @@
       </tr>
       <tr py:for="item in dis.items">
 	<td><py:if test="item.control">Yes</py:if></td>
-	<td py:for="attribute in item.attributes">${attribute.value}</td>
+	<td py:for="attribute in item.sorted_attributes()">${attribute.value}</td>
       </tr>
     </tbody>
   </table>

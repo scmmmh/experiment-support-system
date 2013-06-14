@@ -174,25 +174,20 @@ def dataset_edit(request):
                     sid = dis.survey_id
                     old_length = len(dis.attribute_keys)
                     new_length = len(params['attribute_key'])
-                    # if there are more attributes than before create DataSetAttributeKeys for the DataSet and DataItemAttributes for the DataItems
                     if (new_length > old_length):
                         for count in range(old_length, new_length):
                             dsak = DataSetAttributeKey(order=params['attribute_order'][count], key=params['attribute_key'][count])
                             dbsession.add(dsak)
                             dis.attribute_keys.append(dsak)
                             for item in dis.items:
-                                item.attributes.append(DataItemAttribute(order=params['attribute_order'][count], key_id=dsak.id))
+                                item.attributes.append(DataItemAttribute(key_id=dsak.id))
 
-                    # if there are fewer attributes than before then delete the relevant DataSetAttributeKeys and DataItemAttributes using the 'order'
-                    # as the thing to identify a particular attribute (because the 'key' can be changed by the user. After the deletions the attributes
-                    # are arbitrarily re-ordered. 
                     if (new_length < old_length):
                         for attribute_key in dis.attribute_keys:
                             if attribute_key.order not in params['attribute_order']:
                                 dis.attribute_keys.remove(attribute_key)
                                 dbsession.delete(attribute_key)
 
-                    # Then the keys of the attributes can be set to the new values
                     for idx, attribute_key in enumerate(dis.attribute_keys):
                         attribute_key.key = params['attribute_key'][idx].decode('utf-8')
 
@@ -315,7 +310,7 @@ def new(request):
                             new_data_item.order = 1
                         for attribute_key in dis.attribute_keys:
                             new_data_item.attributes.append(DataItemAttribute(value=params[attribute_key.key],
-                                                                              order=attribute_key.order, key_id=attribute_key.id))
+                                                                              key_id=attribute_key.id))
                         for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
                             question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
                             if question and params['control_answer_answer'][idx].strip() != '':
