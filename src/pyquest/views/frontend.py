@@ -197,15 +197,15 @@ class ParticipantManager(object):
         else:
             return (correct, total)
 
-def safe_int(value):
-    try:
-        return int(value)
-    except ValueError:
-        return None
-
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/running.html'})
 def run_survey(request):
+    def safe_int(value):
+        try:
+            return int(value)
+        except ValueError:
+            return None
+
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
