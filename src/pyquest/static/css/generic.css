@@ -1,0 +1,24 @@
+/* Layout styles */
+.no-padding {padding:0;}
+.no-margin {margin:0;}
+.float-left {float:left;}
+.float-right {float:right;}
+
+/* List styles */
+ul.no-symbol li, ol.no-symbol li {list-style-type:none;}
+ul.inline li, ol.inline li {display:inline-block;}
+
+/* Font styles */
+.font-small {font-size:9pt;}
+.font-bold {font-weight:bold;}
+
+/* Text styles */
+.text-left {text-align:left;}
+.text-center {text-align:center;}
+.text-right {text-align:right;}
+.ellipsis {white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+
+/* Shadows */
+.shadow {box-shadow: 1px 1px 2px #aaaaaa;-webkit-box-shadow:  1px 1px 2px #aaaaaa;}
+.shadow-hover:hover {box-shadow: 1px 1px 2px #aaaaaa;-webkit-box-shadow:  1px 1px 2px #aaaaaa;}
+.shadow-inset {box-shadow: 1px 1px 2px #aaaaaa inset;-webkit-box-shadow:  1px 1px 2px #aaaaaa inset;}

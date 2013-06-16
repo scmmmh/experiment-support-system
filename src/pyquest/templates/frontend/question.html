@@ -1,4 +1,4 @@
-<section xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" class="question ${q.q_type.name} q-${q.name}">
+<section xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" class="question ${q.q_type.name} q-${q.name} ${'error-border' if error_text else ''}">
   <hgroup py:if="q.title">
       <h1 py:if="q.qsheet.attr_value('show-question-numbers', default='yes') != 'yes'">${sub(q.title, i, p)}</h1>
       <h1 py:if="q.qsheet.attr_value('show-question-numbers', default='yes') == 'yes'">${number}. ${sub(q.title, i, p)}</h1>

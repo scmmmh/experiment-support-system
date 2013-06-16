@@ -2,7 +2,11 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:i18n="http://genshi.edgewall.org/i18n">
   <xi:include href="../layout/frontend.html"/>
   <head>
-    <title i18n:msg="survey_title">${survey.title} - Completed</title>
+    <title>${survey.title} - ${qsheet.title}</title>
+    <style type="text/css">${survey.styles}</style>
+    <style type="text/css">${qsheet.styles}</style>
+    <script type="text/javascript">${survey.scripts}</script>
+    <script type="text/javascript">${qsheet.scripts}</script>
   </head>
   <body>
     <div py:if="survey.status == 'testing'" class="role-testing shadow"> 
@@ -12,15 +16,10 @@
         the survey were live, but will be wiped automatically at the end of the test. Testers will also be able
         to complete the survey multiple times.</p>
     </div>
-    <div class="finished">
-      <hgroup>
-        <h1 i18n:msg="survey_title">${survey.title} - Completed</h1>
-      </hgroup>
-      <p>Thank you very much for participating in this survey. Your answers have been stored.</p>
-      <p py:if="control" i18n:msg="control_right,control_total">You got ${control[0]} of the ${control[1]} control questions right.</p> 
-      <div py:if="survey.status == 'testing'" class="info" i18n:msg="">This survey is currently being tested and is not live yet.
-        Your answers have been recored and you can now <a href="${r.route_url('survey.run', seid=survey.external_id)}">test the survey again</a>,
-        if you wish to do so.</div>
-    </div>
+    <aside class="clearfix role-status">
+      <div class="font-small float-left" py:if="control">You have so far answered ${control[0]} of ${control[1]} control questions correctly</div>
+      <div class="font-small text-right" py:if="progress">Page ${progress[0]} of ${progress[1]}</div>
+    </aside>
+    <xi:include href="qsheet.html" py:with="submit_url=r.route_url('survey.run', seid=survey.external_id, qsid=qsheet.id)"/>
   </body>
 </html>

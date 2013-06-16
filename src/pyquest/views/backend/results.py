@@ -85,8 +85,8 @@ def by_question(request):
             columns = ['page_', 'participant_id_']
             data_item_columns = []
             for qsheet in survey.qsheets:
-                if qsheet.data_items:
-                    for attr in qsheet.data_items[0].attributes:
+                if qsheet.data_set:
+                    for attr in qsheet.data_set.items[0].attributes:
                         data_item_columns.append('%s.%s' % (qsheet.name, attr.key))
             if data_item_columns:
                 columns.append('data_id_')
@@ -179,7 +179,8 @@ def generate_question_columns(base_name, question, q_schema, data_items, data_id
                         if value:
                             columns.append('%s.%s.%s' % (base_name, value, get_data_identifier(data_item, data_identifier)))
             else:
-                columns.append('%s.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
+                for data_item in data_items:
+                    columns.append('%s.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
         else:
             if 'allow_multiple' in v_params and v_params['allow_multiple']:
                 for (value,) in dbsession.query(AnswerValue.value.distinct()).join(Answer).filter(Answer.question_id==question.id):
@@ -197,7 +198,7 @@ def generate_columns(survey, selected_columns, data_identifiers, dbsession):
                 columns.extend(generate_question_columns('%s.%s' % (qsheet.name, question.name),
                                                          question,
                                                          question.q_type.answer_schema(),
-                                                         qsheet.data_items,
+                                                         qsheet.data_set.items,
                                                          data_identifiers[qsheet.name] if qsheet.name in data_identifiers else '',
                                                          dbsession))
     columns.sort()
@@ -227,7 +228,7 @@ def participant(request):
                 for question in qsheet.questions:
                     if question.q_type.answer_schema():
                         selected_columns.append('%s.%s' % (qsheet.name, question.name))
-                if qsheet.data_items:
+                if qsheet.data_set:
                     data_identifiers[qsheet.name] = 'id_'
             selected_columns.sort()
             if request.method == 'POST':

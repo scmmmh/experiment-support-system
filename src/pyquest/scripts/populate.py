@@ -19,7 +19,7 @@ from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             Question, QSheetTransition, QSheetAttribute,
                             DataItemControlAnswer, QuestionType,
-                            QuestionTypeGroup)
+                            QuestionTypeGroup, DataSet)
 from pyquest.views.backend.qsheet import load_questions_from_xml
 
 def usage(argv):
@@ -163,18 +163,18 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     </thead>
     <tbody>
       <tr>
-        <th py:if="q.attr_value('further.before_label')">${q.attr_value('further.before_label')}</th>
-        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)">${f.radio('%s.answer' % (name), value, None)}</td>
+        <th py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</th>
+        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)" class="answer">${f.radio('%s.answer' % (name), value, None)}</td>
         <td py:if="q.attr_value('further.allow_other', 'no') == 'single'">${f.radio('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</td>
-        <th py:if="q.attr_value('further.after_label')">${q.attr_value('further.after_label')}</th>
+        <th py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</th>
       </tr>
     </tbody>
   </table>
   <ul py:if="q.attr_value('further.subtype', 'table') == 'list'">
-    <li py:if="q.attr_value('further.before_label')">${q.attr_value('further.before_label')}</li>
-    <li py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))">${f.radio('%s.answer' % (name), value, None, label=label)}</li>
-    <li py:if="q.attr_value('further.allow_other', 'no') == 'single'">${f.radio('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</li>
-    <li py:if="q.attr_value('further.after_label')">${q.attr_value('further.after_label')}</li>
+    <li py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</li>
+    <li py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))" class="answer">${f.radio('%s.answer' % (name), value, None, label=label)}</li>
+    <li py:if="q.attr_value('further.allow_other', 'no') == 'single'" class="other">${f.radio('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</li>
+    <li py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</li>
   </ul>
   <div py:if="q.attr_value('further.subtype', 'table') == 'select'">
     <select name="${name}.answer" py:attrs="{'class': 'role-with-other' if q.attr_value('further.allow_other', 'no') == 'single' else None}">
@@ -184,7 +184,7 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     </select>
     <py:if test="q.attr_value('further.allow_other', 'no') == 'single'">${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</py:if>
   </div>
-  <p py:if="error_text">${error_text}</p>
+  <p py:if="error_text" class="error-explanation">${error_text}</p>
 </div>"""},
                      {'name': 'multi_choice',
                       'title': 'Multiple choice',
@@ -215,18 +215,18 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     </thead>
     <tbody>
       <tr>
-        <th py:if="q.attr_value('further.before_label')">${q.attr_value('further.before_label')}</th>
-        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)">${f.checkbox('%s.answer' % (name), value, None)}</td>
-        <td py:if="q.attr_value('further.allow_other', 'no') == 'single'">${f.checkbox('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</td>
-        <th py:if="q.attr_value('further.after_label')">${q.attr_value('further.after_label')}</th>
+        <th py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</th>
+        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)" class="answer">${f.checkbox('%s.answer' % (name), value, None)}</td>
+        <td py:if="q.attr_value('further.allow_other', 'no') == 'single'" class="other">${f.checkbox('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</td>
+        <th py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</th>
       </tr>
     </tbody>
   </table>
   <ul py:if="q.attr_value('further.subtype', 'table') == 'list'">
-    <li py:if="q.attr_value('further.before_label')">${q.attr_value('further.before_label')}</li>
-    <li py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))">${f.checkbox('%s.answer' % (name), value, None, label=label)}</li>
-    <li py:if="q.attr_value('further.allow_other', 'no') == 'single'">${f.checkbox('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</li>
-    <li py:if="q.attr_value('further.after_label')">${q.attr_value('further.after_label')}</li>
+    <li py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</li>
+    <li py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))" class="answer">${f.checkbox('%s.answer' % (name), value, None, label=label)}</li>
+    <li py:if="q.attr_value('further.allow_other', 'no') == 'single'" class="other">${f.checkbox('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</li>
+    <li py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</li>
   </ul>
   <div py:if="q.attr_value('further.subtype', 'table') == 'select'">
     <select name="${name}.answer" multiple="multiple">
@@ -234,7 +234,7 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     </select>
     <p py:if="q.attr_value('further.allow_other', 'no') == 'single'">Other: ${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</p>
   </div>
-  <p py:if="error_text">${error_text}</p>
+  <p py:if="error_text" class="error-explanation">${error_text}</p>
 </div>"""},
                      {'name': 'single_choice_grid',
                       'title': 'Single choice grid',
@@ -263,16 +263,15 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     </thead>
     <tbody>
       <tr py:for="(sub_q_name, sub_q_label) in zip(q.attr_value('subquestion.name', default=[], multi=True), q.attr_value('subquestion.label', default=[], multi=True))">
-        <th>${sub_q_label}</th>
-        <th py:if="q.attr_value('further.before_label')">${q.attr_value('further.before_label')}</th>
-        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)">${f.radio('%s.%s' % (name, sub_q_name), value, None)}</td>
-        <th py:if="q.attr_value('further.after_label')">${q.attr_value('further.after_label')}</th>
+        <th class="sub-question">${sub_q_label}</th>
+        <th py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</th>
+        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)" class="answer">${f.radio('%s.%s' % (name, sub_q_name), value, None)}</td>
+        <th py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</th>
       </tr>
     </tbody>
   </table>
-  <p py:if="error_text">${error_text}</p>
-</div>
-"""},
+  <p py:if="error_text" class="error-explanation">${error_text}</p>
+</div>"""},
                      {'name': 'multi_choice_grid',
                       'title': 'Multiple choice grid',
                       'dbschema': dumps([]),
@@ -300,16 +299,15 @@ DEFAULT_QUESTIONS = [{'name': 'text',
     </thead>
     <tbody>
       <tr py:for="(sub_q_name, sub_q_label) in zip(q.attr_value('subquestion.name', default=[], multi=True), q.attr_value('subquestion.label', default=[], multi=True))">
-        <th>${sub_q_label}</th>
-        <th py:if="q.attr_value('further.before_label')">${q.attr_value('further.before_label')}</th>
-        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)">${f.checkbox('%s.%s' % (name, sub_q_name), value, None)}</td>
-        <th py:if="q.attr_value('further.after_label')">${q.attr_value('further.after_label')}</th>
+        <th class="sub-question">${sub_q_label}</th>
+        <th py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</th>
+        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)" class="answer">${f.checkbox('%s.%s' % (name, sub_q_name), value, None)}</td>
+        <th py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</th>
       </tr>
     </tbody>
   </table>
-  <p py:if="error_text">${error_text}</p>
-</div>
-"""},
+  <p py:if="error_text" class="error-explanation">${error_text}</p>
+</div>"""},
                      {'name': 'confirm',
                       'title': 'Confirmation checkbox',
                       'dbschema': dumps([{'type': 'attr', 'attr': 'further.value', 'default': ''},
@@ -1074,48 +1072,52 @@ def init_test_data(DBSession):
         qsheet2.questions.append(question)
         """
         # DATA ITEMS
+        dataset = DataSet(name="TestDataSet")
         data_item = DataItem(order=1)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the first item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/1.html'))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=2)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the second item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/2.html'))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=3, control=True)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the third item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/3.html'))
         data_item.control_answers.append(DataItemControlAnswer(answer='0', question=question))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=4)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the fourth item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/4.html'))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=5)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the fifth item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/5.html'))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=6)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the sixth item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/6.html'))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=7, control=True)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the seventh item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/7.html'))
         data_item.control_answers.append(DataItemControlAnswer(answer='4', question=question))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=8)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the eighth item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/8.html'))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=9)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the ninth item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/9.html'))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
         data_item = DataItem(order=10)
         data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the tenth item'))
         data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/10.html'))
-        qsheet2.data_items.append(data_item)
+        dataset.items.append(data_item)
+        dataset.qsheets.append(qsheet2)
+        survey.data_sets.append(dataset)
+        user.data_sets.append(dataset)
         user.surveys.append(survey)
         DBSession.add(survey)
         

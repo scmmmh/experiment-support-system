@@ -13,7 +13,7 @@ from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 
 from pyquest import helpers
-from pyquest.views.backend.qsheet import load_qsheet_from_xml
+from pyquest.views.backend.qsheet import load_qsheet_from_xml, load_transition_from_xml
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
@@ -124,8 +124,7 @@ def load_survey_from_xml(owner, dbsession, doc):
             if item.text in qsheets:
                 survey.start = qsheets[item.text]
         elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}transition':
-            if item.attrib['from'] in qsheets and item.attrib['to'] in qsheets:
-                dbsession.add(QSheetTransition(source=qsheets[item.attrib['from']], target=qsheets[item.attrib['to']]))
+            load_transition_from_xml(qsheets, item, dbsession)
     return survey
 
 @view_config(route_name='survey.import')
@@ -242,7 +241,7 @@ def duplicate(request):
                                                           label=attr.label,
                                                           value=attr.value,
                                                           order=attr.order)
-                            for data_item in qsheet.data_items:
+                            for data_item in qsheet.data_set.items:
                                 dupl_data_item = DataItem(qsheet=dupl_qsheet,
                                                           order=data_item.order,
                                                           control=data_item.control)
@@ -317,7 +316,7 @@ def preview(request):
             qsheets = [dbsession.query(QSheet).filter(QSheet.id==survey.start_id).first()]
             qids = [qsheets[0].id]
             while qsheets[-1]:
-                if qsheets[-1].next and qsheets[-1].next[0].target.id not in qids:
+                if qsheets[-1].next and qsheets[-1].next[0].target and qsheets[-1].next[0].target.id not in qids:
                     qids.append(qsheets[-1].next[0].target.id)
                     qsheets.append(qsheets[-1].next[0].target)
                 else:
@@ -347,15 +346,16 @@ def status(request):
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
                             for qsheet in survey.qsheets:
-                                for data_item in qsheet.data_items:
+                                for data_item in qsheet.data_set.items:
                                     data_item.counts = []
                                     dbsession.add(data_item)
                         survey.status = params['status']
                         dbsession.add(survey)
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
+                    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                     if params['status'] == 'testing':
                         raise HTTPFound(request.route_url('survey.run',
-                                                          sid=request.matchdict['sid']))
+                                                          seid=survey.external_id))
                     elif params['status'] == 'finished':
                         raise HTTPFound(request.route_url('survey.results',
                                                           sid=request.matchdict['sid']))

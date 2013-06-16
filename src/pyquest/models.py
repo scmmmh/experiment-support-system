@@ -12,12 +12,13 @@ import random
 import hashlib
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
-                        Table, DateTime, Boolean, func, Text)
+                        Table, DateTime, Boolean, func)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref,
                             reconstructor)
 from zope.sqlalchemy import ZopeTransactionExtension
+from uuid import uuid1
 
 from pyquest.helpers import as_data_type
 from pyquest.util import convert_type
@@ -25,7 +26,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '305eb54c5d1c'
+DB_VERSION = '444a8338869c'
 """The currently required database version."""
 
 class DBUpgradeException(Exception):
@@ -121,8 +122,8 @@ class User(Base):
             return default
     
 users_permissions = Table('users_permissions', Base.metadata,
-                          Column('user_id', ForeignKey('users.id'), primary_key=True),
-                          Column('permission_id', ForeignKey('permissions.id'), primary_key=True))
+                          Column('user_id', ForeignKey('users.id', name='users_permissions_users_fk'), primary_key=True),
+                          Column('permission_id', ForeignKey('permissions.id', name='users_permissions_permissions_fk'), primary_key=True))
 
 class Permission(Base):
     
@@ -142,19 +143,19 @@ class Group(Base):
     permissions = relationship('Permission', backref='groups', secondary='groups_permissions')
     
 groups_permissions = Table('groups_permissions', Base.metadata,
-                           Column('group_id', ForeignKey(Group.id), primary_key=True),
-                           Column('permission_id', ForeignKey(Permission.id), primary_key=True))
+                           Column('group_id', ForeignKey(Group.id, name='groups_permissions_groups_fk'), primary_key=True),
+                           Column('permission_id', ForeignKey(Permission.id, 'groups_permissions_permissions_fk'), primary_key=True))
 
 users_groups = Table('users_groups', Base.metadata,
-                     Column('user_id', ForeignKey(User.id), primary_key=True),
-                     Column('group_id', ForeignKey(Group.id), primary_key=True))
+                     Column('user_id', ForeignKey(User.id, name='users_groups_users_fk'), primary_key=True),
+                     Column('group_id', ForeignKey(Group.id, name='users_groups_groups_fk'), primary_key=True))
 
 class Preference(Base):
     
     __tablename__ = 'user_preferences'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(ForeignKey(User.id), index=True)
+    user_id = Column(ForeignKey(User.id, name='user_preferences_users_fk'), index=True)
     key = Column(Unicode(255))
     value = Column(Unicode(255))
     
@@ -172,7 +173,8 @@ class Survey(Base):
     status = Column(Unicode(64))
     start_id = Column(Integer, ForeignKey('qsheets.id', use_alter=True, name='fk_start_id'))
     language = Column(Unicode(64))
-    owned_by = Column(ForeignKey(User.id))
+    external_id = Column(Unicode(64), index=True)
+    owned_by = Column(ForeignKey(User.id, name='surveys_users_owner_fk'))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime)
     
@@ -188,6 +190,17 @@ class Survey(Base):
                          primaryjoin='Survey.start_id==QSheet.id',
                          post_update=True)
     
+    def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
+        self.title = title
+        self.summary = summary
+        self.styles = styles
+        self.scripts = scripts
+        self.status = status
+        self.start_id = start_id
+        self.language = language
+        self.owend_by = owned_by
+        self.external_id = uuid1()
+        
     def is_owned_by(self, user):
         if user:
             return self.owned_by == user.id
@@ -199,12 +212,13 @@ class QSheet(Base):
     __tablename__ = 'qsheets'
     
     id = Column(Integer, primary_key=True)
-    survey_id = Column(ForeignKey(Survey.id))
+    survey_id = Column(ForeignKey(Survey.id, name='qsheets_surveys_fk'))
     name = Column(Unicode(255))
     title = Column(Unicode(255))
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
-    
+    dataset_id = Column(ForeignKey('data_sets.id', name='qsheets_dataset_id_fk'))
+
     questions = relationship('Question',
                              backref='qsheet',
                              order_by='Question.order',
@@ -220,10 +234,6 @@ class QSheet(Base):
                         backref='target',
                         primaryjoin='QSheet.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
-    data_items = relationship('DataItem',
-                             backref='qsheet',
-                             order_by='DataItem.order',
-                             cascade='all, delete, delete-orphan')
     
     def attr(self, key):
         for attr in self.attributes:
@@ -244,13 +254,41 @@ class QSheet(Base):
             attr.value = value
         else:
             self.attributes.append(QSheetAttribute(key=key, value=value))
+    
+    def valid_buttons(self):
+        """Returns a list of valid UI buttons for this :class':`~pyquest.models.QSheet`.
+        
+        The following values are possible:
+        * *finish* - if the :py:class:`~pyquest.models.QSheet` is the last in the
+          :py:class:`~pyquest.models.Survey`;
+        * *next* - if there is another :py:class:`~pyquest.models.QSheet` after this one;
+        * *more* - if this :py:class:`~pyquest.models.QSheet` has its ``repeat`` attribute
+          set to 'repeat';
+        * *clear* - if this :py:class:`~pyquest.models.QSheet` has questions that can be
+          answered by the user.
+    
+        :return: A `list` with the valid buttons
+        """
+        buttons = []
+        if self.next:
+            for transition in self.next:
+                if transition.target:
+                    buttons.append('next')
+                    break
+        if not buttons:
+            buttons.append('finish')
+        if self.attr_value('repeat') == 'repeat':
+            buttons.append('more')
+        if (len([q for q in self.questions if q.q_type.answer_schema()])):
+            buttons.append('clear');
+        return buttons
 
 class QSheetAttribute(Base):
     
     __tablename__ = 'qsheet_attributes'
     
     id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(QSheet.id))
+    qsheet_id = Column(ForeignKey(QSheet.id, name='qsheet_attributes_qsheets_fk'))
     key = Column(Unicode(255))
     value = Column(UnicodeText)
 
@@ -262,7 +300,7 @@ class QuestionTypeGroup(Base):
     name = Column(Unicode(255))
     title = Column(Unicode(255))
     order = Column(Integer)
-    parent_id = Column(ForeignKey(id))
+    parent_id = Column(ForeignKey(id, name='question_type_groups_parent_fk'))
     enabled = Column(Boolean, default=True)
 
     parent = relationship('QuestionTypeGroup',
@@ -280,8 +318,8 @@ class QuestionType(Base):
     answer_validation = Column(UnicodeText)
     backend = Column(UnicodeText)
     frontend = Column(UnicodeText)
-    group_id = Column(ForeignKey(QuestionTypeGroup.id))
-    parent_id = Column(ForeignKey(id))
+    group_id = Column(ForeignKey(QuestionTypeGroup.id, name='question_type_groups_fk'))
+    parent_id = Column(ForeignKey(id, name='question_types_parent_fk'))
     enabled = Column(Boolean, default=True)
     order = Column(Integer)
     
@@ -325,8 +363,8 @@ class Question(Base):
     __tablename__ = 'questions'
     
     id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(QSheet.id))
-    type_id = Column(ForeignKey(QuestionType.id))
+    qsheet_id = Column(ForeignKey(QSheet.id, name='questions_qsheets_fk'))
+    type_id = Column(ForeignKey(QuestionType.id, name='question_types_fk'))
     name = Column(Unicode(255))
     title = Column(Unicode(255))
     required = Column(Boolean)
@@ -420,11 +458,11 @@ class QuestionAttributeGroup(Base):
     __tablename__ = 'question_complex_attributes'
     
     id = Column(Integer, primary_key=True)
-    question_id = Column(ForeignKey(Question.id))
+    question_id = Column(ForeignKey(Question.id, name='question_complex_attributes_questions_fk'))
     key = Column(Unicode(255))
     label = Column(Unicode(255))
     order = Column(Integer)
-    
+     
     attributes = relationship('QuestionAttribute',
                               backref='attribute_group',
                               order_by='QuestionAttribute.order',
@@ -465,7 +503,7 @@ class QuestionAttribute(Base):
     __tablename__ = 'question_attributes'
     
     id = Column(Integer, primary_key=True)
-    question_group_id = Column(ForeignKey(QuestionAttributeGroup.id))
+    question_group_id = Column(ForeignKey(QuestionAttributeGroup.id, name='question_attributes_question_complex_attributes_fk'))
     key = Column(Unicode(255))
     label = Column(Unicode(255))
     value = Column(UnicodeText)
@@ -476,18 +514,78 @@ class QSheetTransition(Base):
     __tablename__ = 'qsheet_transitions'
     
     id = Column(Integer, primary_key=True)
-    source_id = Column(ForeignKey(QSheet.id))
-    target_id = Column(ForeignKey(QSheet.id))
+    source_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_source_fk'))
+    target_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_target_fk'))
 
+class TransitionCondition(Base):
+
+    __tablename__ = 'transition_conditions'
+
+    id = Column(Integer, primary_key=True)
+    transition_id = Column(ForeignKey(QSheetTransition.id, name='transition_conditions_qsheet_transitions_fk'))
+    question_id = Column(ForeignKey(Question.id, name='transition_conditions_questions_fk'))
+    expected_answer = Column(Unicode(255))
+    subquestion_name = Column(Unicode(255))
+
+    transition = relationship("QSheetTransition", backref=backref('condition', uselist=False, cascade='all,delete-orphan'))
+
+    def evaluate(self, dbsession, participant):
+        """ Checks whether this TransitionCondition has been fulfilled. If the question is a sub-question then it looks only for the 
+        relevant answer value. If the question has several answers but these are not specified as sub-questions (for example a multi-
+        choice question) these are joined together in a single string for testing. 
+        
+        :param self: the TranstionCondition
+        :param dbsession: a sqlalchemy data base session
+        :param participant: a participant 
+        :return True if the condition is fulfilled, False if not
+        """
+        question_id = self.question_id
+        answer = dbsession.query(Answer).filter(Answer.question_id==question_id).filter(Answer.participant_id==participant.id).first()
+        actual_answer = ''
+        if (answer):
+            query = dbsession.query(AnswerValue).filter(AnswerValue.answer_id==answer.id)
+            if self.subquestion_name:
+                answer_value = query.filter(AnswerValue.name==self.subquestion_name).first()
+                actual_answer = answer_value.value
+            else:
+                answer_values = query.all()
+                if len(answer_values) == 1:
+                    actual_answer = answer_values[0].value
+                else:
+                    for av in answer_values:
+                        actual_answer = actual_answer + av.value + ',' 
+                    actual_answer = actual_answer[:-1]
+
+        return eval('actual_answer =="' + self.expected_answer + '"')
+
+class DataSet(Base):
+
+    __tablename__ = 'data_sets'
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(255))
+    owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
+    survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
+
+    items = relationship('DataItem', backref='data_set')
+    qsheets = relationship('QSheet', backref='data_set')
+    owner = relationship('User', backref='data_sets')
+    survey = relationship('Survey', backref='data_sets')
+
+    def is_owned_by(self, user):
+        if user:
+            return self.owned_by == user.id
+        else:
+            return False
+    
 class DataItem(Base):
     
     __tablename__ = 'data_items'
     
     id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(QSheet.id))
+    dataset_id = Column(ForeignKey(DataSet.id, name="data_items_dataset_id_fk"))
     order = Column(Integer)
     control = Column(Boolean, default=False)
-    
+
     attributes = relationship('DataItemAttribute',
                               backref='data_item', order_by='DataItemAttribute.order',
                               cascade='all, delete, delete-orphan')
@@ -506,7 +604,7 @@ class DataItemAttribute(Base):
     __tablename__ = 'data_item_attributes'
     
     id = Column(Integer, primary_key=True)
-    data_item_id = Column(ForeignKey(DataItem.id))
+    data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
     order = Column(Integer)
     key = Column(Unicode(255))
     value = Column(Unicode(255))
@@ -516,8 +614,8 @@ class DataItemCount(Base):
     __tablename__ = 'data_item_counts'
     
     id = Column(Integer, primary_key=True)
-    data_item_id = Column(ForeignKey(DataItem.id))
-    qsheet_id = Column(ForeignKey(QSheet.id))
+    data_item_id = Column(ForeignKey(DataItem.id, name='data_item_counts_data_items_fk'))
+    qsheet_id = Column(ForeignKey(QSheet.id, name='data_item_counts_qsheets_fk'))
     count = Column(Integer)
 
 class DataItemControlAnswer(Base):
@@ -525,29 +623,39 @@ class DataItemControlAnswer(Base):
     __tablename__ = 'data_item_control_answers'
     
     id = Column(Integer, primary_key=True)
-    data_item_id = Column(ForeignKey(DataItem.id))
-    question_id = Column(ForeignKey(Question.id))
+    data_item_id = Column(ForeignKey(DataItem.id, name='data_item_control_answers_data_items_fk'))
+    question_id = Column(ForeignKey(Question.id, name='data_item_control_answers_questions_fk'))
     answer = Column(Unicode(4096))
-    
+
 class Participant(Base):
     
     __tablename__ = 'participants'
     
     id = Column(Integer, primary_key=True)
-    survey_id = Column(ForeignKey(Survey.id))
+    survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
+    state = Column(UnicodeText)
     
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
+    
+    def get_state(self):
+        if self.state:
+            return json.loads(self.state)
+        else:
+            return None
+    
+    def set_state(self, new_state):
+        self.state = json.dumps(new_state)
 
 class Answer(Base):
     
     __tablename__ = 'answers'
     
     id = Column(Integer, primary_key=True)
-    participant_id = Column(ForeignKey(Participant.id))
-    question_id = Column(ForeignKey(Question.id))
-    data_item_id = Column(ForeignKey(DataItem.id))
+    participant_id = Column(ForeignKey(Participant.id, name='answers_participants_fk'))
+    question_id = Column(ForeignKey(Question.id, name='answers_questions_fk'))
+    data_item_id = Column(ForeignKey(DataItem.id, name='answers_data_items_fk'))
     
     values = relationship('AnswerValue',
                           backref='answer',
@@ -558,6 +666,6 @@ class AnswerValue(Base):
     __tablename__ = 'answer_values'
     
     id = Column(Integer, primary_key=True)
-    answer_id = Column(ForeignKey(Answer.id))
+    answer_id = Column(ForeignKey(Answer.id, name='answer_values_answers_fk'))
     name = Column(Unicode(255))
     value = Column(Unicode(4096))

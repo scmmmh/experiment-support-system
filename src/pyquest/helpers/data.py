@@ -10,11 +10,12 @@ def question_select(qsheet):
 
 def sample_for_qsheet(qsheet):
     data_item = {'did': 0}
-    if qsheet.data_items:
-        data_item['did'] = qsheet.data_items[0].id
-        for attr in qsheet.data_items[0].attributes:
+    if qsheet.data_set:
+        data_item['did'] = qsheet.data_set.items[0].id
+        for attr in qsheet.data_set.items[0].attributes:
             data_item[attr.key] = attr.value
-    return data_item
+
+    return [data_item]
 
 def generate_summary(qsheet):
     data_questions = 0
@@ -23,9 +24,9 @@ def generate_summary(qsheet):
             data_questions = data_questions + 1
     data_questions = float(data_questions)
     counts = []
-    for data_item in qsheet.data_items:
+    for data_item in qsheet.data_set.items:
         if data_questions > 0:
             counts.append(len(data_item.answers) / data_questions)
         else:
             counts.append(len(data_item.answers))
-    return (len(qsheet.data_items), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))
+    return (len(qsheet.data_set.items), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))
