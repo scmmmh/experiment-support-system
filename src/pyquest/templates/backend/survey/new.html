@@ -24,6 +24,8 @@
           <dd>${h.form.textarea('summary', survey.summary, e, class_='span-22', style='height:5em;')}</dd>
           <dt>Display Language</dt>
           <dd>${h.form.select('language', survey.language, [('en', 'English')], e)}</dd>
+	  <dt>Public</dt>
+          <dd>${h.form.checkbox('public', survey.public, e, checked=True, label="Tick for a public survey")}</dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('survey'))}</li>
