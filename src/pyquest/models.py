@@ -236,6 +236,34 @@ class QSheet(Base):
             attr.value = value
         else:
             self.attributes.append(QSheetAttribute(key=key, value=value))
+    
+    def valid_buttons(self):
+        """Returns a list of valid UI buttons for this :class':`~pyquest.models.QSheet`.
+        
+        The following values are possible:
+        * *finish* - if the :py:class:`~pyquest.models.QSheet` is the last in the
+          :py:class:`~pyquest.models.Survey`;
+        * *next* - if there is another :py:class:`~pyquest.models.QSheet` after this one;
+        * *more* - if this :py:class:`~pyquest.models.QSheet` has its ``repeat`` attribute
+          set to 'repeat';
+        * *clear* - if this :py:class:`~pyquest.models.QSheet` has questions that can be
+          answered by the user.
+    
+        :return: A `list` with the valid buttons
+        """
+        buttons = []
+        if self.next:
+            for transition in self.next:
+                if transition.target:
+                    buttons.append('next')
+                    break
+        if not buttons:
+            buttons.append('finish')
+        if self.attr_value('repeat') == 'repeat':
+            buttons.append('more')
+        if (len([q for q in self.questions if q.q_type.answer_schema()])):
+            buttons.append('clear');
+        return buttons
 
 class QSheetAttribute(Base):
     
