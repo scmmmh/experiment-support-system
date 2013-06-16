@@ -18,7 +18,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '17c68d338ee4'
+DB_VERSION = '444a8338869c'
 
 class DBUpgradeException(Exception):
     
@@ -587,10 +587,20 @@ class Participant(Base):
     
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
+    state = Column(UnicodeText)
     
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
+    
+    def get_state(self):
+        if self.state:
+            return json.loads(self.state)
+        else:
+            return None
+    
+    def set_state(self, new_state):
+        self.state = json.dumps(new_state)
 
 class Answer(Base):
     

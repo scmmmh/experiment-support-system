@@ -179,7 +179,8 @@ def generate_question_columns(base_name, question, q_schema, data_items, data_id
                         if value:
                             columns.append('%s.%s.%s' % (base_name, value, get_data_identifier(data_item, data_identifier)))
             else:
-                columns.append('%s.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
+                for data_item in data_items:
+                    columns.append('%s.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
         else:
             if 'allow_multiple' in v_params and v_params['allow_multiple']:
                 for (value,) in dbsession.query(AnswerValue.value.distinct()).join(Answer).filter(Answer.question_id==question.id):
