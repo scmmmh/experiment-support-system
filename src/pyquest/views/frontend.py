@@ -91,7 +91,7 @@ class ParticipantManager(object):
                                    outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==qsheet.data_set.id,
                                                                         DataItem.control==False,
                                                                         not_(DataItem.id.in_(self._dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==self._participant.id,
-                                                                                                                                                                     QSheet.id==qsheet.id)))))
+                                                                                                                                                                           QSheet.id==qsheet.id)))))
                                                                    ).all())
                 source_items.sort(key=lambda i: i[1])
                 data_items = []
