@@ -14,6 +14,13 @@
   <body py:match="body">
     <div class="wrap">
       <article class="survey grids">
+        <header class="span-20 flash" py:if="r.session.peek_flash('info') or r.session.peek_flash('warn') or r.session.peek_flash('auth')">
+          <ul class="no-symbol">
+            <li py:for="flash in r.session.pop_flash('info')" class="info">${flash}</li>
+            <li py:for="flash in r.session.pop_flash('warn')" class="error">${flash}</li>
+            <li py:for="flash in r.session.pop_flash('auth')" class="error">${flash}</li>
+          </ul>
+        </header>
         ${select('*')}
       </article>
     </div>

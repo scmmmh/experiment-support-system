@@ -5,18 +5,16 @@ u"""
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import transaction
 
+from beaker.session import SessionObject
+from beaker.util import coerce_session_params
 from formencode import api
-from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPNotAcceptable
+from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.renderer import render
 from random import sample, shuffle
-from sqlalchemy import and_, asc
+from sqlalchemy import and_
 from sqlalchemy.sql.expression import not_
 
 from pyquest.l10n import get_translator
@@ -25,231 +23,222 @@ from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 from pyquest.helpers.qsheet import transition_sorter
 
-def safe_int(value):
-    try:
-        return int(value)
-    except ValueError:
-        return None
-
-def get_instr(qsid, schema):
-    for instr in schema:
-        if instr['qsid'] == qsid:
-            return instr
-    return None
-
-def data_item_to_dict(data_item):
-    result = {'did': data_item.id}
-    for attr in data_item.attributes:
-        result[attr.key] = attr.value
-    return result
-
-def select_data_items(qsid, state, qsheet, dbsession):
-    def data_item_transform(t):
-        if t[1]:
-            return (t[0], t[1].count)
-        else:
-            return (t[0], 0)
-    if not qsheet.data_set:
-        return [{'did': 'none'}]
-    else:
-        disid = qsheet.data_set.id
-        source_items = map(data_item_transform,
-                           dbsession.query(DataItem, DataItemCount).\
-                                outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==disid,
-                                                                     DataItem.control==False,
-                                                                     not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
-                                                                                                                                                                  QSheet.id==qsheet.id)))))
-                                                                ).all())
-        source_items.sort(key=lambda i: i[1])
-        if len(source_items) > 0:
-            data_items = []
-            threshold = source_items[0][1]
-            max_threshold = source_items[len(source_items) - 1][1]
-            while len(data_items) < int(qsheet.attr_value('data-items')):
-                if threshold > max_threshold:
-                    return []
-                threshold_items = filter(lambda t: t[1] == threshold, source_items)
-                required_count = int(qsheet.attr_value('data-items')) - len(data_items)
-                if required_count < len(threshold_items):
-                    data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
-                else:
-                    data_items.extend(map(lambda t: {'did': t[0].id}, threshold_items))
-                threshold = threshold + 1
-            control_items = map(lambda d: {'did': d.id},
-                                dbsession.query(DataItem).filter(and_(DataItem.dataset_id==disid,
-                                                                      DataItem.control==True)).all())
-            if len(control_items) < int(qsheet.attr_value('control-items')):
-                data_items.extend(control_items)
-            else:
-                data_items.extend(sample(control_items, int(qsheet.attr_value('control-items'))))
-            shuffle(data_items)
-            return data_items
-        else:
-            return []
-
-def update_data_item_counts(state, dids, dbsession):
-    for did in dids:
-        if did != 'none':
+class ParticipantManager(object):
+    
+    def __init__(self, request, dbsession, survey):
+        session = SessionObject(request.environ, **coerce_session_params({'type':'cookie',
+                                                                        'cookie_expires': 7776000,
+                                                                        'key': 'survey.%s' % (survey.external_id),
+                                                                        'encrypt_key': 'thisisatest',
+                                                                        'validate_key': 'testing123',
+                                                                        'auto': True}))
+        self._request = request
+        self._dbsession = dbsession
+        self._survey = survey
+        self._participant = None
+        if 'participant_id' in session:
+            self._participant = dbsession.query(Participant).filter(Participant.id==session['participant_id']).first()
+        if not self._participant:
             with transaction.manager:
-                count = dbsession.query(DataItemCount).filter(and_(DataItemCount.data_item_id==did,
-                                                                   DataItemCount.qsheet_id==state['qsid'])).first()
-                if count:
-                    count.count = count.count + 1
+                self._participant = Participant(survey_id=survey.id)
+                dbsession.add(self._participant)
+                dbsession.flush()
+            dbsession.add(self._participant)
+            session['participant_id'] = self._participant.id
+            session.persist()
+            request.response.headerlist.append(('Set-Cookie', session.__dict__['_headers']['cookie_out']))
+    
+    def state(self):
+        self._dbsession.add(self._participant)
+        self._dbsession.add(self._survey)
+        state = self._participant.get_state()
+        if not state:
+            state = {}
+        if 'current-qsheet' not in state:
+            state['current-qsheet'] = self._survey.start.id
+        if 'history' not in state:
+            state['history'] = []
+        if 'data-items' not in state:
+            state['data-items'] = {}
+        self._participant.set_state(state)
+        return state
+    
+    def current_qsheet(self):
+        state = self.state()
+        return self._dbsession.query(QSheet).filter(QSheet.id==state['current-qsheet']).first()
+    
+    def participant(self):
+        self._dbsession.add(self._participant)
+        return self._participant
+    
+    def current_data_items(self):
+        def data_item_transform(t):
+            if t[1]:
+                return (t[0], t[1].count)
+            else:
+                return (t[0], 0)
+        state = self.state()
+        qsheet = self.current_qsheet()
+        if qsheet.data_set:
+            dsid = unicode(qsheet.data_set.id)
+            if dsid not in state['data-items']:
+                state['data-items'][dsid] = {'seen': []}
+            if 'current' not in state['data-items'][dsid]:
+                item_count = int(qsheet.attr_value('data-items', default='0'))
+                control_count = int(qsheet.attr_value('control-items', default='0'))
+                source_items = map(data_item_transform,
+                                   self._dbsession.query(DataItem, DataItemCount).\
+                                   outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==qsheet.data_set.id,
+                                                                        DataItem.control==False,
+                                                                        not_(DataItem.id.in_(self._dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==self._participant.id,
+                                                                                                                                                                           QSheet.id==qsheet.id)))))
+                                                                   ).all())
+                source_items.sort(key=lambda i: i[1])
+                data_items = []
+                if len(source_items) > 0:
+                    threshold = source_items[0][1]
+                    max_threshold = source_items[len(source_items) - 1][1]
+                    while len(data_items) < item_count:
+                        if threshold > max_threshold:
+                            return None
+                        threshold_items = filter(lambda t: t[1] == threshold, source_items)
+                        required_count = item_count - len(data_items)
+                        if required_count < len(threshold_items):
+                            data_items.extend(map(lambda t: t[0].id, sample(threshold_items, required_count)))
+                        else:
+                            data_items.extend(map(lambda t: t[0].id, threshold_items))
+                        threshold = threshold + 1
+                if len(source_items) < item_count:
+                    return None
+                control_items = map(lambda d: d.id,
+                                    self._dbsession.query(DataItem).filter(and_(DataItem.dataset_id==qsheet.data_set.id,
+                                                                          DataItem.control==True)).all())
+                if len(control_items) < control_count:
+                    data_items.extend(control_items)
                 else:
-                    dbsession.add(DataItemCount(data_item_id=did, qsheet_id=state['qsid'], count=1))
-                
-def load_data_items(state, dbsession):
-    data_items = dbsession.query(DataItem).filter(DataItem.id.in_([safe_int(d['did']) for d in state['dids'] if safe_int(d['did'])])).all()
-    if data_items:
-        return map(data_item_to_dict, data_items)
-    else:
-        return [{'did': 'none'}]
-
-def init_state(request, dbsession, survey):
-    if 'survey.%s' % request.matchdict['seid'] in request.cookies:
-        state = pickle.loads(str(request.cookies['survey.%s' % request.matchdict['seid']]))
-    else:
-        state = {'qsid': survey.start_id}
-        with transaction.manager:
-            participant = Participant(survey_id=survey.id)
-            dbsession.add(participant)
-            dbsession.flush()
-            state['ptid'] = participant.id
-    return state
-
-def determine_qsheet_buttons(qsheet):
-    """Determines which buttons should be shown for the qsheet.
-    
-    If the :py:class:`~pyquest.models.QSheet` is the last in the :py:class:`~pyquest.models.Survey`
-    the return value will include 'finish' otherwise 'next'. if the :py:class:`~pyquest.models.QSheet`
-    can be answered repeatedly then the return value will include 'more'. If the
-    :py:class:`~pyquest.models.QSheet` has questions that require answering, then
-    'clear' will be included in the return value.
-    
-    :param qsheet: The :py:class:`~pyquest.models.QSheet` to determine the buttons for
-    :return: A `list` with the submit options
-    """
-    if qsheet.next and qsheet.next[0].target_id != None:
-        options = ['next']
-    else:
-        options = ['finish']
-
-    if qsheet.attr_value('repeat') == 'repeat':
-        options.append('more')
-        
-    if (len([q for q in qsheet.questions if q.q_type.answer_schema()])):
-        options.append('clear');
-
-    return options
-
-def get_participant(dbsession, survey, state):
-    participant = dbsession.query(Participant).filter(Participant.id==state['ptid']).first()
-    if not participant:
-        with transaction.manager:
-            participant = Participant(survey_id=survey.id)
-            dbsession.add(participant)
-            dbsession.flush()
-            state['ptid'] = participant.id
-        return get_participant(dbsession, survey, state)
-    else:
-        return participant
-
-def next_qsheet(dbsession, qsheet, participant):
-    """ Returns the next qsheet. Goes through all the transitions specified for this qsheet and looks for the first one
-    which either has no condition or has a condition which is fulfilled.
-
-    :param dbsession: a sqlalchemy data base session
-    :param qsheet: The :py:class:`~pyquest.models.QSheet` we are leaving
-    :param participant: The :py:class:`~pyquest.models.Participant`
-    :return The next :py:class:`~pyquest.models.QSheet` or None (which means finish).
-    """
-    for transition in sorted(qsheet.next, key=transition_sorter, reverse=True):
-        condition = dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
-        if (condition == None or condition.evaluate(dbsession, participant) == True):
-            return transition.target
-    return None
-
-def calculate_progress(qsheet, participant):
-    def count_to_end(qsheet): # TODO: Cycle detection
-        if qsheet and qsheet.next:
-            return max([count_to_end(t.target) for t in qsheet.next]) + 1
+                    data_items.extend(sample(control_items, control_count))
+                shuffle(data_items)
+                state['data-items'][dsid]['current'] = data_items
+                self.participant().set_state(state)
+            else:
+                data_items = state['data-items'][dsid]['current']
+            current_items = []
+            for did in data_items:
+                data_item = self._dbsession.query(DataItem).filter(DataItem.id==did).first()
+                data_item_data = {'did': data_item.id}
+                for attr in data_item.attributes:
+                    data_item_data[attr.key] = attr.value
+                current_items.append(data_item_data)
+            return current_items
         else:
-            return 0
-    def count_to_start(qsheet):
-        if qsheet.prev:
-            return max([count_to_start(p.source) for p in qsheet.prev]) + 1
+            return [{'did': 'none'}]
+    
+    def next_qsheet(self, params):
+        next_qs = None
+        transition = None
+        for transition in sorted(self.current_qsheet().next, key=transition_sorter, reverse=True):
+            condition = self._dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
+            if (condition == None or condition.evaluate(self._dbsession, self.participant()) == True):
+                transition = transition
+                if transition.target:
+                    next_qs = transition.target
+        action = 'next'
+        if params['action_'] == 'More Questions':
+            action = 'more'
+        elif params['action_'] == 'Next Page':
+            action = 'next'
+        elif params['action_'] == 'Finish Survey':
+            action = 'finish'
+        state = self.state()
+        state['history'].append(self.current_qsheet().id)
+        if action == 'finish':
+            state['current-qsheet'] = '_finished'
+        elif action == 'next':
+            if next_qs:
+                if next_qs.id in state['history'] and next_qs.data_set:
+                    dsid = unicode(next_qs.data_set.id)
+                    if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
+                        del state['data-items'][dsid]['current']
+                state['current-qsheet'] = next_qs.id
+            elif transition:
+                state['current-qsheet'] = '_finished'
+        elif action == 'more':
+            if self.current_qsheet().data_set:
+                dsid = unicode(self.current_qsheet().data_set.id)
+                if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
+                    del state['data-items'][dsid]['current']
+        self._participant.set_state(state)
+        return next
+    
+    def progress(self):
+        def count_to_end(qsheet, seen = []): # TODO: Cycle detection
+            if qsheet and qsheet.next:
+                followers = [count_to_end(t.target, seen + [qsheet.id]) for t in qsheet.next if t.id not in seen]
+                if followers:
+                    return max(followers) + 1
+                else:
+                    return 0
+            else:
+                return 0
+        state = self.state()
+        return (len(state['history']) + 1, len(state['history']) + count_to_end(self.current_qsheet()))
+    
+    def control_score(self):
+        correct = 0
+        total = 0
+        qsheet = self.current_qsheet()
+        for answer in self.participant().answers:
+            if (not qsheet or answer.question.qsheet_id == qsheet.id) and answer.data_item and answer.data_item.control:
+                total = total + 1
+                if answer.values[0].value == answer.data_item.control_answers[0].answer:
+                    correct = correct + 1
+        if total == 0:
+            return None
         else:
-            return 1
-    done = count_to_start(qsheet)
-    remaining = count_to_end(qsheet)
-    if done + remaining == 0:
-        return None
-    else:
-        return (done, done + remaining)
-
-def calculate_control_items(qsheet, participant):
-    correct = 0
-    total = 0
-    for answer in participant.answers:
-        if (not qsheet or answer.question.qsheet_id == qsheet.id) and answer.data_item and answer.data_item.control:
-            total = total + 1
-            if answer.values[0].value == answer.data_item.control_answers[0].answer:
-                correct = correct + 1
-    if total == 0:
-        return None
-    else:
-        return (correct, total)
+            return (correct, total)
 
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/running.html'})
 def run_survey(request):
+    def safe_int(value):
+        try:
+            return int(value)
+        except ValueError:
+            return None
+
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         _ = get_translator(survey.language, 'frontend').ugettext
         if survey.status not in ['running', 'testing']:
             raise HTTPFound(request.route_url('survey.run.inactive', seid=request.matchdict['seid']))
-        state = init_state(request, dbsession, survey)
-        if not state['qsid']:
-            response = HTTPFound(request.route_url('survey.run', seid=request.matchdict['seid']))
-            response.delete_cookie('survey.%s' % request.matchdict['seid'])
-            raise response
-        qsheet = dbsession.query(QSheet).filter(QSheet.id==safe_int(state['qsid'])).first()
-        if not qsheet:
-            response = HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
-            raise response
+        part_manager = ParticipantManager(request, dbsession, survey)
+        if part_manager.state()['current-qsheet'] == '_finished':
+            raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
+        with transaction.manager:
+            qsheet = part_manager.current_qsheet()
+            data_items = part_manager.current_data_items()
+        qsheet = part_manager.current_qsheet()
+        data_items = part_manager.current_data_items()
+        if not data_items:
+            with transaction.manager:
+                request.session.flash('There are no more questions to answer in this section', queue='info')
+                part_manager.next_qsheet({'action_': 'Next Page'})
+            raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
         if request.method == 'GET':
-            if 'dids' not in state:
-                state['dids'] = select_data_items(qsheet.id, state, qsheet, dbsession)
-                if len(state['dids']) == 0:
-                    response = HTTPFound(request.route_url('survey.run', seid=request.matchdict['seid']))
-                    participant = get_participant(dbsession, survey, state)
-                    next_qsi = next_qsheet(dbsession, qsheet, participant)
-                    if next_qsi:
-                        state['qsid'] = next_qsi.id
-                    else:
-                        state['qsid'] = 'finished'
-                    del state['dids']
-                    response.set_cookie('survey.%s' % request.matchdict['seid'], pickle.dumps(state), max_age=7776000)
-                    raise response
-            data_items = load_data_items(state, dbsession)
-            participant = get_participant(dbsession, survey, state)
-            request.response.set_cookie('survey.%s' % request.matchdict['seid'], pickle.dumps(state), max_age=7776000)
-            dbsession.add(qsheet)
             return {'survey': survey,
                     'qsheet': qsheet,
                     'data_items': data_items,
-                    'submit_options': determine_qsheet_buttons(qsheet),
-                    'progress': calculate_progress(qsheet, participant),
-                    'control': calculate_control_items(qsheet, participant),
-                    'participant': participant}
+                    'submit_options': qsheet.valid_buttons(),
+                    'progress': part_manager.progress(),
+                    'control': part_manager.control_score(),
+                    'participant': part_manager.participant()}
         elif request.method == 'POST':
-            data_items = load_data_items(state, dbsession)
-            validator = PageSchema(qsheet, data_items)
             try:
-                qsheet_answers = validator.to_python(request.POST, ValidationState(request=request))
+                validator = PageSchema(qsheet, data_items)
+                qsheet_answers = validator.to_python(request.POST, ValidationState(request=request)) # TODO: Should check that the _action parameter is valid
+                participant = part_manager.participant()
                 with transaction.manager:
-                    participant = get_participant(dbsession, survey, state)
                     for question in qsheet.questions:
                         for data_item_src in data_items:
                             data_item = dbsession.query(DataItem).filter(DataItem.id==safe_int(data_item_src['did'])).first()
@@ -262,8 +251,8 @@ def run_survey(request):
                                 for answer in dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
                                                                                   Answer.question_id==question.id)):
                                     dbsession.delete(answer)
+                participant = part_manager.participant()
                 with transaction.manager:
-                    participant = get_participant(dbsession, survey, state)
                     for question in qsheet.questions:
                         for data_item_src in data_items:
                             data_item = dbsession.query(DataItem).filter(DataItem.id==safe_int(data_item_src['did'])).first()
@@ -321,34 +310,28 @@ def run_survey(request):
                                         else:
                                             answer.values.append(AnswerValue(name=attr, value=None))
                                 dbsession.add(answer)
-                update_data_item_counts(state, [d['did'] for d in data_items], dbsession)
-                qsheet = dbsession.query(QSheet).filter(QSheet.id==state['qsid']).first()
-                if qsheet_answers['action_'] in [_('Next Page'), _('Finish Survey')]:
-                    participant = get_participant(dbsession, survey, state)
-                    next_qsi = next_qsheet(dbsession, qsheet, participant)
-                    if next_qsi:
-                        state['qsid'] = next_qsi.id
-                    else:
-                        state['qsid'] = 'finished'
-                del state['dids']
-                response = HTTPFound(request.route_url('survey.run', seid=survey.external_id))
-                response.set_cookie('survey.%s' % request.matchdict['seid'], pickle.dumps(state), max_age=7776000)
-                raise response
-            except api.Invalid as ie:
-                ie = flatten_invalid(ie)
-                ie.params = request.POST
-                participant = get_participant(dbsession, survey, state)
-                dbsession.add(qsheet)
+                    for did in [d['did'] for d in data_items]:
+                        if did != 'none':
+                            count = dbsession.query(DataItemCount).filter(and_(DataItemCount.data_item_id==did,
+                                                                               DataItemCount.qsheet_id==qsheet.id)).first()
+                            if count:
+                                count.count = count.count + 1
+                            else:
+                                dbsession.add(DataItemCount(data_item_id=did, qsheet_id=qsheet.id, count=1))
+                    part_manager.next_qsheet(qsheet_answers)
+            except api.Invalid as e:
+                e = flatten_invalid(e)
+                e.params = request.POST
                 return {'survey': survey,
                         'qsheet': qsheet,
                         'data_items': data_items,
-                        'submit_options': determine_qsheet_buttons(qsheet),
-                        'progress': calculate_progress(qsheet, participant),
-                        'control': calculate_control_items(qsheet, participant),
-                        'participant': participant,
-                        'e': ie}
-        else:
-            raise HTTPNotAcceptable()
+                        'submit_options': qsheet.valid_buttons(),
+                        'progress': part_manager.progress(),
+                        'control': part_manager.control_score(),
+                        'participant': part_manager.participant(),
+                        'e': e}
+            dbsession.add(survey)
+            raise HTTPFound(request.route_url('survey.run', seid=survey.external_id))
     else:
         raise HTTPNotFound()
 
@@ -358,10 +341,11 @@ def finished_survey(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
+        part_manager = ParticipantManager(request, dbsession, survey)
         if survey.status == 'testing':
             request.response.delete_cookie('survey.%s' % request.matchdict['seid'])
         return {'survey': survey,
-                'control': calculate_control_items(None, get_participant(dbsession, survey, init_state(request, dbsession, survey)))}
+                'control': part_manager.control_score()}
     else:
         raise HTTPNotFound()
 

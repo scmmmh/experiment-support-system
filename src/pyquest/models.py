@@ -18,7 +18,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '17c68d338ee4'
+DB_VERSION = '444a8338869c'
 
 class DBUpgradeException(Exception):
     
@@ -236,6 +236,34 @@ class QSheet(Base):
             attr.value = value
         else:
             self.attributes.append(QSheetAttribute(key=key, value=value))
+    
+    def valid_buttons(self):
+        """Returns a list of valid UI buttons for this :class':`~pyquest.models.QSheet`.
+        
+        The following values are possible:
+        * *finish* - if the :py:class:`~pyquest.models.QSheet` is the last in the
+          :py:class:`~pyquest.models.Survey`;
+        * *next* - if there is another :py:class:`~pyquest.models.QSheet` after this one;
+        * *more* - if this :py:class:`~pyquest.models.QSheet` has its ``repeat`` attribute
+          set to 'repeat';
+        * *clear* - if this :py:class:`~pyquest.models.QSheet` has questions that can be
+          answered by the user.
+    
+        :return: A `list` with the valid buttons
+        """
+        buttons = []
+        if self.next:
+            for transition in self.next:
+                if transition.target:
+                    buttons.append('next')
+                    break
+        if not buttons:
+            buttons.append('finish')
+        if self.attr_value('repeat') == 'repeat':
+            buttons.append('more')
+        if (len([q for q in self.questions if q.q_type.answer_schema()])):
+            buttons.append('clear');
+        return buttons
 
 class QSheetAttribute(Base):
     
@@ -587,10 +615,20 @@ class Participant(Base):
     
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
+    state = Column(UnicodeText)
     
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
+    
+    def get_state(self):
+        if self.state:
+            return json.loads(self.state)
+        else:
+            return None
+    
+    def set_state(self, new_state):
+        self.state = json.dumps(new_state)
 
 class Answer(Base):
     

@@ -22,7 +22,6 @@ from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribu
                             Participant, QuestionType, QuestionTypeGroup, TransitionCondition)
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
                                 XmlValidator, QuestionTypeSchema)
-from pyquest.views.frontend import calculate_progress
 
 class QSheetNewSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -304,7 +303,7 @@ def preview(request):
                             'data_items': example,
                             'participant': Participant(id=-1),
                             'control': None,
-                            'progress': calculate_progress(qsheet, Participant(id=-1)),
+                            'progress': None,
                             'submit_options': ['test-validate'],
                             'e': ie}
             return {'survey': survey,
@@ -312,7 +311,7 @@ def preview(request):
                     'data_items': example,
                     'participant': Participant(id=-1),
                     'control': None,
-                    'progress': calculate_progress(qsheet, Participant(id=-1)),
+                    'progress': None,
                     'submit_options': ['test-validate']}
         else:
             redirect_to_login(request)
