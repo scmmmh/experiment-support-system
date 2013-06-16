@@ -1,6 +1,14 @@
 /* General styles */
 .role-status {border-bottom:1px solid #aaaaaa; padding:0.3em 0.5em;margin-bottom:1em;}
 
+/* Flash styles */
+header.flash {margin:0 70px 0 70px;}
+header.flash ul {margin:0;padding:0;}
+header.flash li {margin:0;}
+header.flash .error, header.flash .info {padding:0.8em;border:2px solid #ddd;}
+header.flash .error {background:#fbe3e4;color:#aa0000;border-color:#fbc2c4;}
+header.flash .info {background:#efefef;color:#222222;border-color:#aaaaaa;}
+
 /* Error styles */
 .error-qsheet-marker {padding:0.8em;margin-bottom:1em;}
 .error-border, .question.error-border {border:2px solid #aa0000;}

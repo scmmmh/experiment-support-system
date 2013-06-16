@@ -203,16 +203,6 @@ def safe_int(value):
     except ValueError:
         return None
 
-def update_data_item_counts(dids, qsheet, dbsession):
-    for did in dids:
-        if did != 'none':
-            count = dbsession.query(DataItemCount).filter(and_(DataItemCount.data_item_id==did,
-                                                               DataItemCount.qsheet_id==qsheet.id)).first()
-            if count:
-                count.count = count.count + 1
-            else:
-                dbsession.add(DataItemCount(data_item_id=did, qsheet_id=qsheet.id, count=1))
-                
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/running.html'})
 def run_survey(request):
@@ -232,6 +222,7 @@ def run_survey(request):
         data_items = part_manager.current_data_items()
         if not data_items:
             with transaction.manager:
+                request.session.flash('There are no more questions to answer in this section', queue='info')
                 part_manager.next_qsheet({'action_': 'Next Page'})
             raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
         if request.method == 'GET':
@@ -319,7 +310,14 @@ def run_survey(request):
                                         else:
                                             answer.values.append(AnswerValue(name=attr, value=None))
                                 dbsession.add(answer)
-                    update_data_item_counts([d['did'] for d in data_items], part_manager.current_qsheet(), dbsession)
+                    for did in [d['did'] for d in data_items]:
+                        if did != 'none':
+                            count = dbsession.query(DataItemCount).filter(and_(DataItemCount.data_item_id==did,
+                                                                               DataItemCount.qsheet_id==qsheet.id)).first()
+                            if count:
+                                count.count = count.count + 1
+                            else:
+                                dbsession.add(DataItemCount(data_item_id=did, qsheet_id=qsheet.id, count=1))
                     part_manager.next_qsheet(qsheet_answers)
             except api.Invalid as e:
                 e = flatten_invalid(e)
