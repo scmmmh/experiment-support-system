@@ -87,8 +87,8 @@
               <tbody class="role-sortable">
 		<py:for each="idx, ak in enumerate(dis.attribute_keys)">
                   <tr>
-		    <td>${h.form.text_field('attribute_key', ak.key , e)}</td>
-		    <td>${h.form.hidden_field('attribute_order', ak.order)}</td>
+		    <td>${h.form.text_field('attribute_keys-%d.key' % idx, ak.key , e)}</td>
+		    <td>${h.form.hidden_field('attribute_keys-%d.order' % idx, ak.order)}</td>
 		    <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                   </tr>
 		</py:for>

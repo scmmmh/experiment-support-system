@@ -24,10 +24,14 @@
             var link = $(this);
             var tbody = link.closest('table').find('tbody');
             var row = $('<tr></tr>');
-            var input_field = '${h.form.text_field('attribute_key', '', None)}';
+            var input_field = '${h.form.text_field('attribute_keys-A.key', '', None)}';
+            var order_field = '${h.form.hidden_field('attribute_keys-A.order', 'B')}';
+            var A = '' + tbody.find('tr').length
+            var B = '' + (tbody.find('tr').length + 1)
+            input_field = input_field.replace(/A/, A)
+            order_field = order_field.replace(/A/, A)
+            order_field = order_field.replace(/B/, B)
             row.append('<td>' + input_field + '</td>');
-            var order_field = '${h.form.hidden_field('attribute_order', 'new_order')}';
-            order_field = order_field.replace(/new_order/, '' + (tbody.find('tr').length + 1))
             row.append('<td>' + order_field + '</td>');
             var remove_link = $('<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a>');
             remove_link.click(removeRow);
@@ -76,21 +80,21 @@
 		<py:choose test="len(dis.attribute_keys)">
 		  <py:when test="0">
                       <tr>
-			<td>${h.form.text_field('attribute_key', '' , e)}</td>
-			<td>${h.form.hidden_field('attribute_order', '1')}</td>
+			<td>${h.form.text_field('attribute_keys-0.key', '' , e)}</td>
+			<td>${h.form.hidden_field('attribute_keys-0.order', '1')}</td>
 			<td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                       </tr>
                       <tr>
-			<td>${h.form.text_field('attribute_key', '' , e)}</td>
-			<td>${h.form.hidden_field('attribute_order', '2')}</td>
+			<td>${h.form.text_field('attribute_keys-1.key', '' , e)}</td>
+			<td>${h.form.hidden_field('attribute_keys-1.order', '2')}</td>
 			<td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                       </tr>
 		  </py:when>
 		  <py:otherwise>
 		    <py:for each="idx,ak in enumerate(dis.attribute_keys)">
                       <tr>
-			<td>${h.form.text_field('attribute_key', ak.key, e)}</td>
-			<td>${h.form.hidden_field('attribute_order', '')}</td>
+			<td>${h.form.text_field('attribute_keys-%d.key' % idx, ak.key, e)}</td>
+			<td>${h.form.hidden_field('attribute_keys-%d.order' % idx, '')}</td>
 			<td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                       </tr>
 		    </py:for>

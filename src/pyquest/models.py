@@ -542,7 +542,11 @@ class DataSetAttributeKey(Base):
     key = Column(Unicode(255))
     order = Column(Integer)
     dataset_id = Column(ForeignKey(DataSet.id, name="data_set_attribute_keys_dataset_id_fk"))
-                        
+ 
+    values = relationship('DataItemAttribute',
+                          backref='key',
+                          cascade='all, delete, delete-orphan')
+
 class DataItem(Base):
     
     __tablename__ = 'data_items'
@@ -577,9 +581,9 @@ class DataItemAttribute(Base):
     value = Column(Unicode(255))
     key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
 
-    key = relationship('DataSetAttributeKey',
-                       backref='data_item_attributes',
-                       cascade='all, delete')
+#    key = relationship('DataSetAttributeKey',
+#                       backref='values',
+#                       cascade='all, delete')
 
 class DataItemCount(Base):
     

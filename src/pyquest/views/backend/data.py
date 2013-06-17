@@ -8,7 +8,7 @@ import csv
 import math
 import transaction
 
-from formencode import Schema, validators, api, foreach
+from formencode import Schema, validators, api, variabledecode, foreach
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
@@ -32,11 +32,16 @@ class DataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
 
+class DataSetAttributeKeySchema(Schema):
+    key = validators.UnicodeString()
+    order = validators.Int()
+
 class NewDataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
-    attribute_key = foreach.ForEach(validators.UnicodeString())
-    attribute_order = foreach.ForEach(validators.Int())
+    attribute_keys = foreach.ForEach(DataSetAttributeKeySchema())
+
+    pre_validators = [variabledecode.NestedVariables()]
 
 @view_config(route_name='data.list')
 @render({'text/html': 'backend/data/set_list.html'})
@@ -110,6 +115,7 @@ def dataset_new(request):
     dis = DataSet()
     if request.method == 'POST':
         try:
+            import pdb; pdb.set_trace()
             check_csrf_token(request, request.POST)
             validator = NewDataSetSchema()
             params = validator.to_python(request.POST)
@@ -117,8 +123,8 @@ def dataset_new(request):
                 dis.name = params['name']
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
-                for idx, key in enumerate(params['attribute_key']):
-                    diak = DataSetAttributeKey(key=key.decode('utf-8'), order=idx+1)
+                for ak in params['attribute_keys']:
+                    diak = DataSetAttributeKey(key=ak['key'].decode('utf-8'), order=ak['order'])
                     dis.attribute_keys.append(diak)
                 dbsession.add(dis)
                 dbsession.flush()
@@ -167,29 +173,33 @@ def dataset_edit(request):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
                 validator = NewDataSetSchema()
+                import pdb; pdb.set_trace()
                 params = validator.to_python(request.POST)
                 with transaction.manager:
                     dbsession.add(dis)
                     dis.name = params['name']
                     sid = dis.survey_id
                     old_length = len(dis.attribute_keys)
-                    new_length = len(params['attribute_key'])
+                    new_length = len(params['attribute_keys'])
                     if (new_length > old_length):
                         for count in range(old_length, new_length):
-                            dsak = DataSetAttributeKey(order=params['attribute_order'][count], key=params['attribute_key'][count])
+                            dsak = DataSetAttributeKey(order=params['attribute_keys'][count]['order'], key=params['attribute_keys'][count]['key'])
                             dbsession.add(dsak)
                             dis.attribute_keys.append(dsak)
                             for item in dis.items:
                                 item.attributes.append(DataItemAttribute(key_id=dsak.id))
 
                     if (new_length < old_length):
+                        orders = []
+                        for ak in params['attribute_keys']:
+                            orders.append(ak['order'])
                         for attribute_key in dis.attribute_keys:
-                            if attribute_key.order not in params['attribute_order']:
+                            if attribute_key.order not in orders:
                                 dis.attribute_keys.remove(attribute_key)
                                 dbsession.delete(attribute_key)
 
                     for idx, attribute_key in enumerate(dis.attribute_keys):
-                        attribute_key.key = params['attribute_key'][idx].decode('utf-8')
+                        attribute_key.key = params['attribute_keys'][idx]['key'].decode('utf-8')
 
                     dbsession.flush()
                 raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
