@@ -115,7 +115,6 @@ def dataset_new(request):
     dis = DataSet()
     if request.method == 'POST':
         try:
-            import pdb; pdb.set_trace()
             check_csrf_token(request, request.POST)
             validator = NewDataSetSchema()
             params = validator.to_python(request.POST)
@@ -173,7 +172,6 @@ def dataset_edit(request):
             if request.method == 'POST':
                 check_csrf_token(request, request.POST)
                 validator = NewDataSetSchema()
-                import pdb; pdb.set_trace()
                 params = validator.to_python(request.POST)
                 with transaction.manager:
                     dbsession.add(dis)
@@ -308,7 +306,6 @@ def new(request):
                         dbsession.add(dis)
                         new_data_item = DataItem(dataset_id=dis.id,
                                                  control=params['control_'])
-                        import pdb; pdb.set_trace()
                         if len(dis.items) > 0:
                             new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.dataset_id==dis.id).first()[0] + 1
                         else:
