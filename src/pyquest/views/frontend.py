@@ -23,55 +23,6 @@ from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 from pyquest.helpers.qsheet import transition_sorter
 
-<<<<<<< variant A
-def safe_int(value):
-    try:
-        return int(value)
-    except ValueError:
-        return None
-
-def get_instr(qsid, schema):
-    for instr in schema:
-        if instr['qsid'] == qsid:
-            return instr
-    return None
-
-def data_item_to_dict(data_item):
-    result = {'did': data_item.id}
-    for idx,attr in enumerate(data_item.data_set.attribute_keys):
-        result[attr.key] = data_item.sorted_attributes()[idx].value
-    return result
-
-def select_data_items(qsid, state, qsheet, dbsession):
-    def data_item_transform(t):
-        if t[1]:
-            return (t[0], t[1].count)
-        else:
-            return (t[0], 0)
-    if not qsheet.data_set:
-        return [{'did': 'none'}]
-    else:
-        disid = qsheet.data_set.id
-        source_items = map(data_item_transform,
-                           dbsession.query(DataItem, DataItemCount).\
-                                outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==disid,
-                                                                     DataItem.control==False,
-                                                                     not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
-                                                                                                                                                                  QSheet.id==qsheet.id)))))
-                                                                ).all())
-        source_items.sort(key=lambda i: i[1])
-        if len(source_items) > 0:
-            data_items = []
-            threshold = source_items[0][1]
-            max_threshold = source_items[len(source_items) - 1][1]
-            while len(data_items) < int(qsheet.attr_value('data-items')):
-                if threshold > max_threshold:
-                    return []
-                threshold_items = filter(lambda t: t[1] == threshold, source_items)
-                required_count = int(qsheet.attr_value('data-items')) - len(data_items)
-                if required_count < len(threshold_items):
-                    data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
->>>>>>> variant B
 class ParticipantManager(object):
     
     def __init__(self, request, dbsession, survey):
@@ -164,55 +115,6 @@ class ParticipantManager(object):
                                                                           DataItem.control==True)).all())
                 if len(control_items) < control_count:
                     data_items.extend(control_items)
-####### Ancestor
-def safe_int(value):
-    try:
-        return int(value)
-    except ValueError:
-        return None
-
-def get_instr(qsid, schema):
-    for instr in schema:
-        if instr['qsid'] == qsid:
-            return instr
-    return None
-
-def data_item_to_dict(data_item):
-    result = {'did': data_item.id}
-    for attr in data_item.attributes:
-        result[attr.key] = attr.value
-    return result
-
-def select_data_items(qsid, state, qsheet, dbsession):
-    def data_item_transform(t):
-        if t[1]:
-            return (t[0], t[1].count)
-        else:
-            return (t[0], 0)
-    if not qsheet.data_set:
-        return [{'did': 'none'}]
-    else:
-        disid = qsheet.data_set.id
-        source_items = map(data_item_transform,
-                           dbsession.query(DataItem, DataItemCount).\
-                                outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==disid,
-                                                                     DataItem.control==False,
-                                                                     not_(DataItem.id.in_(dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==state['ptid'],
-                                                                                                                                                                  QSheet.id==qsheet.id)))))
-                                                                ).all())
-        source_items.sort(key=lambda i: i[1])
-        if len(source_items) > 0:
-            data_items = []
-            threshold = source_items[0][1]
-            max_threshold = source_items[len(source_items) - 1][1]
-            while len(data_items) < int(qsheet.attr_value('data-items')):
-                if threshold > max_threshold:
-                    return []
-                threshold_items = filter(lambda t: t[1] == threshold, source_items)
-                required_count = int(qsheet.attr_value('data-items')) - len(data_items)
-                if required_count < len(threshold_items):
-                    data_items.extend(map(lambda t: {'did': t[0].id}, sample(threshold_items, required_count)))
-======= end
                 else:
                     data_items.extend(sample(control_items, control_count))
                 shuffle(data_items)

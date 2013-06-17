@@ -34,7 +34,7 @@ class DataSetSchema(Schema):
 
 class DataSetAttributeKeySchema(Schema):
     key = validators.UnicodeString()
-    order = validators.Int()
+    id = validators.Int(if_missing=0)
 
 class NewDataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -124,7 +124,7 @@ def dataset_new(request):
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
                 for ak in params['attribute_keys']:
-                    diak = DataSetAttributeKey(key=ak['key'].decode('utf-8'), order=ak['order'])
+                    diak = DataSetAttributeKey(key=ak['key'].decode('utf-8'))
                     dis.attribute_keys.append(diak)
                 dbsession.add(dis)
                 dbsession.flush()
@@ -179,28 +179,23 @@ def dataset_edit(request):
                     dbsession.add(dis)
                     dis.name = params['name']
                     sid = dis.survey_id
-                    old_length = len(dis.attribute_keys)
-                    new_length = len(params['attribute_keys'])
-                    if (new_length > old_length):
-                        for count in range(old_length, new_length):
-                            dsak = DataSetAttributeKey(order=params['attribute_keys'][count]['order'], key=params['attribute_keys'][count]['key'])
+                    new_ids = []
+                    for nak in params['attribute_keys']:
+                        new_ids.append(nak['id'])
+                    for oak in dis.attribute_keys:
+                        if oak.id not in new_ids:
+                            dis.attribute_keys.remove(oak)
+                            dbsession.delete(oak)
+                    for nak in params['attribute_keys']:
+                        if nak['id'] == None:
+                            dsak = DataSetAttributeKey(key=nak['key'])
                             dbsession.add(dsak)
                             dis.attribute_keys.append(dsak)
                             for item in dis.items:
-                                item.attributes.append(DataItemAttribute(key_id=dsak.id))
-
-                    if (new_length < old_length):
-                        orders = []
-                        for ak in params['attribute_keys']:
-                            orders.append(ak['order'])
-                        for attribute_key in dis.attribute_keys:
-                            if attribute_key.order not in orders:
-                                dis.attribute_keys.remove(attribute_key)
-                                dbsession.delete(attribute_key)
-
-                    for idx, attribute_key in enumerate(dis.attribute_keys):
-                        attribute_key.key = params['attribute_keys'][idx]['key'].decode('utf-8')
-
+                                 item.attributes.append(DataItemAttribute(key_id=dsak.id))
+                        else:
+                            dsak = dbsession.query(DataSetAttributeKey).filter(DataSetAttributeKey.id==nak['id']).first()
+                            dsak.key = nak['key']
                     dbsession.flush()
                 raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
             else:
@@ -239,7 +234,7 @@ def dataset_upload(request):
                         for idx, (key, value) in enumerate(item.items()):
                             if key != 'control_':
                                 if order == 1:
-                                    dsak = DataSetAttributeKey(key=key.decode('utf-8'), order=order)
+                                    dsak = DataSetAttributeKey(key=key.decode('utf-8'))
                                     dis.attribute_keys.append(dsak)
                                     dbsession.flush()
                                 else:

@@ -27,12 +27,15 @@
         $('a.action-add-row').click(function() {
             var link = $(this);
             var tbody = link.closest('table').find('tbody');
+            var nrows = tbody.find('tr').length
             var row = $('<tr></tr>');
-            var input_field = '${h.form.text_field('attribute_key', '', None)}';
+            var input_field = '${h.form.text_field('attribute_keys-nrows.key', '', None)}';
+            input_field = input_field.replace(/nrows/, '' + nrows)
             row.append('<td>' + input_field + '</td>');
-            var order_field = '${h.form.hidden_field('attribute_order', 'new_order')}';
-            order_field = order_field.replace(/new_order/, '' + (tbody.find('tr').length + 1))
-            row.append('<td>' + order_field + '</td>');
+            var id_field = '${h.form.text_field('attribute_keys-nrows.id', '', e)}';
+            id_field = id_field.replace(/nrows/, '' + nrows)
+            id_field = id_field.replace(/new_order/, '' + (nrows + 1))
+            row.append('<td>' + id_field + '</td>');
             var remove_link = $('<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a>');
             remove_link.click(removeRow);
             col = $('<td></td>');
@@ -88,7 +91,7 @@
 		<py:for each="idx, ak in enumerate(dis.attribute_keys)">
                   <tr>
 		    <td>${h.form.text_field('attribute_keys-%d.key' % idx, ak.key , e)}</td>
-		    <td>${h.form.hidden_field('attribute_keys-%d.order' % idx, ak.order)}</td>
+		    <td>${h.form.hidden_field('attribute_keys-%d.id' % idx, ak.id)}</td>
 		    <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
                   </tr>
 		</py:for>

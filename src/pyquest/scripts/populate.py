@@ -1073,9 +1073,9 @@ def init_test_data(DBSession):
         """
         # DATA ITEMS
         dataset = DataSet(name="TestDataSet")
-        key_one = DataSetAttributeKey(order=1, key='title')
+        key_one = DataSetAttributeKey(key='title')
         dataset.attribute_keys.append(key_one)
-        key_two = DataSetAttributeKey(order=2, key='url')
+        key_two = DataSetAttributeKey(key='url')
         dataset.attribute_keys.append(key_two)
 
         data_item = DataItem(order=1)

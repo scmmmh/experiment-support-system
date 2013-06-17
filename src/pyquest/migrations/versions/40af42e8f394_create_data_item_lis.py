@@ -41,7 +41,6 @@ su = Table('surveys', metadata,
 
 dk = Table('data_set_attribute_keys', metadata,
            Column('id', Integer, primary_key=True),
-           Column('order', Integer),
            Column('key', Unicode),
            Column('dataset_id', Integer, ForeignKey('data_sets.id')))
 
@@ -64,7 +63,6 @@ def upgrade():
 
     op.create_table('data_set_attribute_keys',
                     Column('id', Integer, primary_key=True),
-                    Column('order', Integer),
                     Column('key', Unicode(255)),
                     Column('dataset_id', Integer, ForeignKey('data_sets.id', name='data_set_attribute_keys_dataset_id_fk')))
 
@@ -85,12 +83,12 @@ def upgrade():
             ds_pk = op.get_bind().execute(ds.insert().values(name='created by migrations for qsheet %d' % qsheet.id, owned_by=survey.owned_by, survey_id=qsheet.survey_id)).inserted_primary_key[0]
 
             for attribute in op.get_bind().execute(da.select().where(da.c.data_item_id==data_items[0].id)):
-                op.get_bind().execute(dk.insert().values(key=attribute.key, order=attribute.order, dataset_id=ds_pk))
+                op.get_bind().execute(dk.insert().values(key=attribute.key, dataset_id=ds_pk))
             for data_item in data_items:
                 op.get_bind().execute(di.update().where(di.c.id==data_item.id).values(dataset_id=ds_pk, qsheet_id=None))
                 dias = op.get_bind().execute(da.select().where(da.c.data_item_id==data_item.id)).fetchall()
                 for dia in dias:
-                    dsak = op.get_bind().execute(dk.select().where(and_(dk.c.dataset_id==ds_pk, dk.c.order==dia.order))).first()
+                    dsak = op.get_bind().execute(dk.select().where(and_(dk.c.dataset_id==ds_pk, dk.c.key==dia.key))).first()
                     op.get_bind().execute(da.update().where(da.c.id==dia.id).values(key_id=dsak.id))
             op.get_bind().execute(qs.update().where(qs.c.id==qsheet.id).values(dataset_id=ds_pk))
 
@@ -120,9 +118,11 @@ def downgrade():
             data_items = op.get_bind().execute(di.select().where(di.c.dataset_id==qsheet.dataset_id))
             for data_item in data_items:
                 op.get_bind().execute(di.update().where(di.c.id==data_item.id).values(dataset_id=None, qsheet_id=qsheet.id))
+                order = 1
                 for dia in op.get_bind().execute(da.select().where(da.c.data_item_id==data_item.id)):
                     dsak = op.get_bind().execute(dk.select().where(dk.c.id==dia.key_id)).first()
-                    op.get_bind().execute(da.update().where(da.c.id==dia.id).values(key=dsak.key, order=dsak.order))
+                    op.get_bind().execute(da.update().where(da.c.id==dia.id).values(key=dsak.key, order=order))
+                    order = order + 1
             op.get_bind().execute(qs.update().where(qs.c.id==qsheet.id).values(dataset_id=None))
             op.get_bind().execute(ds.delete().where(ds.c.id==qsheet.dataset_id))
 

@@ -554,7 +554,7 @@ class DataSet(Base):
     owner = relationship('User', backref='data_sets')
     survey = relationship('Survey', backref='data_sets')
     attribute_keys = relationship('DataSetAttributeKey', 
-                                  backref='dataset', order_by='DataSetAttributeKey.order',
+                                  backref='dataset', order_by='DataSetAttributeKey.id',
                                   cascade='all, delete, delete-orphan')
                                  
     def is_owned_by(self, user):
@@ -568,7 +568,6 @@ class DataSetAttributeKey(Base):
     __tablename__ = 'data_set_attribute_keys'
     id = Column(Integer, primary_key=True)
     key = Column(Unicode(255))
-    order = Column(Integer)
     dataset_id = Column(ForeignKey(DataSet.id, name="data_set_attribute_keys_dataset_id_fk"))
  
     values = relationship('DataItemAttribute',
@@ -598,7 +597,7 @@ class DataItem(Base):
                                    cascade='all, delete, delete-orphan')
 
     def sorted_attributes(self):
-        return sorted(self.attributes, key = lambda attribute: attribute.key.order)
+        return sorted(self.attributes, key = lambda attribute: attribute.key.id)
 
 class DataItemAttribute(Base):
     
@@ -608,10 +607,6 @@ class DataItemAttribute(Base):
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
     value = Column(Unicode(255))
     key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
-
-#    key = relationship('DataSetAttributeKey',
-#                       backref='values',
-#                       cascade='all, delete')
 
 class DataItemCount(Base):
     
