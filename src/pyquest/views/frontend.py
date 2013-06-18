@@ -23,6 +23,7 @@ from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 from pyquest.helpers.qsheet import transition_sorter
 from pyquest.helpers.user import sendmail
+from pyquest.helpers.notifier import Notifier
 
 class ParticipantManager(object):
     
@@ -198,9 +199,12 @@ class ParticipantManager(object):
         else:
             return (correct, total)
 
+notifier = None
+
 @view_config(route_name='survey.run')
 @render({'text/html': 'frontend/running.html'})
 def run_survey(request):
+    global notifier
     def safe_int(value):
         try:
             return int(value)
@@ -208,6 +212,8 @@ def run_survey(request):
             return None
 
     dbsession = DBSession()
+    if not notifier:
+        notifier = Notifier(dbsession)
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         _ = get_translator(survey.language, 'frontend').ugettext
@@ -215,6 +221,7 @@ def run_survey(request):
             raise HTTPFound(request.route_url('survey.run.inactive', seid=request.matchdict['seid']))
         part_manager = ParticipantManager(request, dbsession, survey)
         if part_manager.state()['current-qsheet'] == '_finished':
+            notifier.stop()
             sendmail(request, survey.owner, "Finished", "Someone has finished your survey '%s'" % survey.title)
             raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
         with transaction.manager:
@@ -228,6 +235,7 @@ def run_survey(request):
                 part_manager.next_qsheet({'action_': 'Next Page'})
             raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
         if request.method == 'GET':
+            notifier.start()
             sendmail(request, survey.owner, "Started", "Someone has started your survey '%s'" % survey.title)
             return {'survey': survey,
                     'qsheet': qsheet,
