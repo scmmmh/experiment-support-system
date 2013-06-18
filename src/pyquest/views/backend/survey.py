@@ -211,7 +211,7 @@ def duplicate(request):
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         dupl_survey = Survey(title=params['title'],
                                              status='develop',
-                                             owner=user,
+                                             owned_by=user.id,
                                              summary=survey.summary,
                                              styles=survey.styles,
                                              scripts=survey.scripts)
@@ -245,20 +245,21 @@ def duplicate(request):
                                                           label=attr.label,
                                                           value=attr.value,
                                                           order=attr.order)
-                            for data_item in qsheet.data_set.items:
-                                dupl_data_item = DataItem(qsheet=dupl_qsheet,
-                                                          order=data_item.order,
-                                                          control=data_item.control)
-                                for attr in data_item.attributes:
-                                    DataItemAttribute(data_item=dupl_data_item,
-                                                      order=attr.order,
-                                                      key=attr.key,
-                                                      value=attr.value)
-                                for control_answer in data_item.control_answers:
-                                    if control_answer.question and control_answer.question.name in questions:
-                                        DataItemControlAnswer(data_item=dupl_data_item,
-                                                              question=questions[control_answer.question.name],
-                                                              answer=control_answer.answer)
+                            if qsheet.data_set:
+                                for data_item in qsheet.data_set.items:
+                                    dupl_data_item = DataItem(qsheet=dupl_qsheet,
+                                                              order=data_item.order,
+                                                              control=data_item.control)
+                                    for attr in data_item.attributes:
+                                        DataItemAttribute(data_item=dupl_data_item,
+                                                          order=attr.order,
+                                                          key=attr.key,
+                                                          value=attr.value)
+                                    for control_answer in data_item.control_answers:
+                                        if control_answer.question and control_answer.question.name in questions:
+                                            DataItemControlAnswer(data_item=dupl_data_item,
+                                                                  question=questions[control_answer.question.name],
+                                                                  answer=control_answer.answer)
                             qsheets[dupl_qsheet.name] = dupl_qsheet
                             dupl_survey.qsheets.append(dupl_qsheet)
                         for qsheet in survey.qsheets:

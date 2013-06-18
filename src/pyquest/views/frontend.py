@@ -22,6 +22,7 @@ from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
     DataItemCount, Answer, AnswerValue, Question, TransitionCondition)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 from pyquest.helpers.qsheet import transition_sorter
+from pyquest.helpers.user import sendmail
 
 class ParticipantManager(object):
     
@@ -214,6 +215,7 @@ def run_survey(request):
             raise HTTPFound(request.route_url('survey.run.inactive', seid=request.matchdict['seid']))
         part_manager = ParticipantManager(request, dbsession, survey)
         if part_manager.state()['current-qsheet'] == '_finished':
+            sendmail(request, survey.owner, "Finished", "Someone has finished your survey '%s'" % survey.title)
             raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
         with transaction.manager:
             qsheet = part_manager.current_qsheet()
@@ -226,6 +228,7 @@ def run_survey(request):
                 part_manager.next_qsheet({'action_': 'Next Page'})
             raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
         if request.method == 'GET':
+            sendmail(request, survey.owner, "Started", "Someone has started your survey '%s'" % survey.title)
             return {'survey': survey,
                     'qsheet': qsheet,
                     'data_items': data_items,
