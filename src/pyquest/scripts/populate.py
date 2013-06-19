@@ -19,7 +19,7 @@ from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             Question, QSheetTransition, QSheetAttribute,
                             DataItemControlAnswer, QuestionType,
-                            QuestionTypeGroup, DataSet)
+                            QuestionTypeGroup, DataSet, Notification)
 from pyquest.views.backend.qsheet import load_questions_from_xml
 
 def usage(argv):
@@ -1121,3 +1121,57 @@ def init_test_data(DBSession):
         user.surveys.append(survey)
         DBSession.add(survey)
         
+
+        # SURVEY 3
+        survey = Survey(title='A very simple survey', status='develop', styles='', scripts='')
+        # PAGE 1
+        source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
+  <pq:styles></pq:styles>
+  <pq:scripts></pq:scripts>
+  <pq:questions>
+    <pq:question>
+  <pq:type>confirm</pq:type>
+  <pq:name>consent</pq:name>
+  <pq:title>Informed consent</pq:title>
+  <pq:help></pq:help>
+  <pq:required>true</pq:required>
+  <pq:attribute name="further.value">yes</pq:attribute>
+  <pq:attribute name="further.label">I know what I am letting myself in for</pq:attribute>
+</pq:question>
+<pq:question>
+  <pq:type>text</pq:type>
+  <pq:attribute name="text.text"><p>
+    Welcome to this survey.</p>
+<p>
+    You will be shown a number of items with questions.</p>
+</pq:attribute>
+</pq:question>
+  </pq:questions>
+</pq:qsheet>"""
+        qsheet1 = QSheet(name='welcome', title='Welcome', styles='', scripts='')
+        qsheet1.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet1.attributes.append(QSheetAttribute(key='data-items', value='0'))
+        qsheet1.attributes.append(QSheetAttribute(key='control-items', value='0'))
+        qsheet1.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
+        load_questions(qsheet1, etree.fromstring(source), DBSession)
+        survey.qsheets.append(qsheet1)
+        """
+        question = Question(name='', title='', required=False, help='', order=0)
+        qa_group = QuestionAttributeGroup(key='text', label='Free text')
+        qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>Welcome to this survey.</p><p>You will be shown a number of items with questions.</p>', order=0))
+        question.attributes.append(qa_group)
+        qsheet1.questions.append(question)
+        question = Question(type='confirm', name='consent', title='Informed consent', required=True, help='', order=1)
+        qa_group = QuestionAttributeGroup(key='further', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='true', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='I know what I am letting myself in for', order=1))
+        question.attributes.append(qa_group)
+        qsheet1.questions.append(question)
+        """
+        survey.start = qsheet1
+        notification = Notification(interval=60)
+        survey.notifications.append(notification)
+        notification = Notification(participant_count=1)
+        survey.notifications.append(notification)
+        user.surveys.append(survey)
+        DBSession.add(survey)

@@ -172,6 +172,10 @@ class Survey(Base):
     start = relationship('QSheet',
                          primaryjoin='Survey.start_id==QSheet.id',
                          post_update=True)
+
+    notifications = relationship('Notification',
+                          backref='survey',
+                          cascade='all, delete, delete-orphan')
     
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
@@ -652,3 +656,25 @@ class AnswerValue(Base):
     answer_id = Column(ForeignKey(Answer.id, name='answer_values_answers_fk'))
     name = Column(Unicode(255))
     value = Column(Unicode(4096))
+
+class Notification(Base):
+
+    __tablename__ = 'notifications'
+    id = Column(Integer, primary_key=True)
+    survey_id = Column(ForeignKey(Survey.id, name='notifications_surveys_fk'))
+    interval = Column(Integer)
+    participant_count = Column(Integer)
+
+    def respond(self, dbsession):
+        response = {'message': None, 'addresses': ['root@paulserver.paulsnetwork']}
+
+        participants = dbsession.query(Participant).filter(Participant.survey_id==self.survey.id).all()
+        if self.interval:
+            response['message'] = 'Survey "%s" has had %d participants.\n' % (self.survey.title, len(participants))
+
+        elif self.participant_count:
+            if len(participants) >= self.participant_count:
+                response['message'] = 'Survey "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.participant_count)
+                
+        return response
+

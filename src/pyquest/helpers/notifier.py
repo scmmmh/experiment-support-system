@@ -1,12 +1,13 @@
 import time
 import sys
 from threading import Thread
-from pyquest.models import DBSession, Survey
-
+from pyquest.models import DBSession, Survey, Participant
+from email.mime.text import MIMEText
+import smtplib
 
 class Notifier(Thread):
 
-    _surveys = None
+    really = False
 
     def __init__(self, settings):
         sys.stderr.write('Notifier.__init__\n')
@@ -17,18 +18,19 @@ class Notifier(Thread):
         while self.carryon == True:
             sys.stderr.write('run start\n')
             dbsession = DBSession()
-            surveys = dbsession.query(Survey).all()
-            if self._surveys:
-                for survey in surveys:
-                    if survey.status == 'running':
-                        for _survey in self._surveys:
-                            old_survey = None
-                            if _survey.id == survey.id:
-                                old_survey = _survey
-                                break
-                        if old_survey and old_survey.status != 'running':
-                            sys.stderr.write('Survey "%s" has started running\n' % survey.title)
-            self._surveys = surveys
+            surveys = dbsession.query(Survey).filter(Survey.status=='running').all()
+            sys.stderr.write('There are %d running surveys.\n' % len(surveys))
+            for survey in surveys:
+                if len(survey.notifications) > 0:
+                    for notification in survey.notifications:
+                        response = notification.respond(dbsession)
+                        if response['message']:
+                            sys.stderr.write(response['message'])
+                            self.sendmail(response)
+                        else:
+                            sys.stderr.write('Notification gave no response.\n')
+                else:
+                    sys.stderr.write('Survey "%s" has no notifications\n' % survey.title)
             sys.stderr.write('run end\n')
             dbsession.close()
             time.sleep(15)
@@ -42,13 +44,16 @@ class Notifier(Thread):
         sys.stderr.write('Notifier.stop\n')
         self.carryon = False
 
-    def sendmail(user, subject, message):
-        email = MIMEText(message)
-        email['Subject'] = subject
-        email['From'] = 'noreply@paths.sheffield.ac.uk'
-        email['To'] = user.email
-        smtp = smtplib.SMTP(self.smtp_host)
-        smtp.sendmail('noreply@paths.sheffield.ac.uk', user.email, email.as_string())
-        smtp.quit()
+    def sendmail(self, response):
+        message = response['message']
+        if self.really:
+            for address in response['addresses']:
+                email = MIMEText(message)
+                email['Subject'] = 'Notification of survey status'
+                email['From'] = 'noreply@paths.sheffield.ac.uk'
+                email['To'] = address
+                smtp = smtplib.SMTP(self.smtp_host)
+                smtp.sendmail('noreply@paths.sheffield.ac.uk', address, email.as_string())
+                smtp.quit()
 
         

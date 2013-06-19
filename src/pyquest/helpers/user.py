@@ -5,8 +5,6 @@ Created on 23 Jan 2012
 @author: mhall
 '''
 import transaction
-import smtplib
-from email.mime.text import MIMEText
 
 from genshi.builder import tag
 from pyramid.httpexceptions import HTTPFound
