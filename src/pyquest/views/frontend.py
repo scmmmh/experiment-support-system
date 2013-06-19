@@ -213,7 +213,7 @@ def run_survey(request):
 
     dbsession = DBSession()
     if not notifier:
-        notifier = Notifier(dbsession)
+        notifier = Notifier()
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         _ = get_translator(survey.language, 'frontend').ugettext
