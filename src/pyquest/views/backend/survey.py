@@ -6,7 +6,7 @@ Created on 23 Jan 2012
 '''
 import transaction
 
-from formencode import Schema, validators, api, variabledecode
+from formencode import Schema, validators, api, variabledecode, foreach
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
@@ -29,6 +29,12 @@ class NewSurveySchema(Schema):
     language = validators.OneOf(['en', 'de'])
     public = validators.Bool()
 
+class NotificationSchema(Schema):
+    id = validators.Int(if_missing=0)
+    interval = validators.Int(if_missing=0)
+    participant_count = validators.Int(if_missing=0)
+    recipient = validators.Email(not_empty=True)
+
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
@@ -38,7 +44,8 @@ class SurveySchema(Schema):
     scripts = validators.UnicodeString()
     language = validators.OneOf(['en', 'de'])
     public = validators.Bool()
-    
+    notifications = foreach.ForEach(NotificationSchema())
+
     pre_validators = [variabledecode.NestedVariables()]
 
 class SurveyStatusSchema(Schema):
@@ -48,7 +55,7 @@ class SurveyStatusSchema(Schema):
 class SurveyDuplicateSchema(Schema):
     csrf_token = validators.UnicodeString(note_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    
+
 @view_config(route_name='survey')
 @render({'text/html': 'backend/survey/index.html'})
 def index(request):
@@ -180,6 +187,13 @@ def edit(request):
                         survey.start_id = params['start']
                         survey.language = params['language']
                         survey.public = params['public']
+
+                        for notification in survey.notifications:
+                            n_param = next(n_param for n_param in params['notifications'] if n_param['id'] == notification.id)
+                            notification.interval = n_param['interval']
+                            notification.participant_count = n_param['participant_count']
+                            notification.recipient = n_param['recipient']
+
                         dbsession.add(survey)
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.view',

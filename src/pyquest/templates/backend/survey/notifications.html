@@ -1,0 +1,10 @@
+<span xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <py:for each="idx,n in enumerate(survey.notifications)">
+    <section class="notification">
+      ID ${h.form.text_field('notifications-%i.id' % n.id, n.id, None)} 
+      Interval ${h.form.text_field('notifications-%i.interval' % n.id, n.interval, None)} 
+      Participant Count ${h.form.text_field('notifications-%i.participant_count' % n.id, n.participant_count, None)}
+      Recipient ${h.form.text_field('notifications-%i.recipient' % n.id, n.recipient, None)}
+    </section>
+  </py:for>
+</span>

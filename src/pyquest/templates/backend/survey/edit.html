@@ -48,6 +48,8 @@
           <dd>${h.form.textarea('scripts', survey.scripts, e, class_='span-22 role-js-edit', title='Specify any additional JavaScript code that you wish to have added to all survey pages')}</dd>
           <dt>First page</dt>
           <dd>${h.form.select('start', survey.start_id, [(qs.id, qs.title) for qs in survey.qsheets], e, title='Select the first survey page to show to the participants')}</dd>
+	  <dt>Notifications</dt>
+	  <dd class="notification"><xi:include href="notifications.html"/></dd>
 	  <dt>Public</dt>
           <dd> ${h.form.checkbox('public', survey.public, e, checked=survey.public, label="Tick for a public survey")}</dd>
         </dl>

@@ -664,9 +664,10 @@ class Notification(Base):
     survey_id = Column(ForeignKey(Survey.id, name='notifications_surveys_fk'))
     interval = Column(Integer)
     participant_count = Column(Integer)
+    recipient = Column(Unicode(255))
 
     def respond(self, dbsession):
-        response = {'message': None, 'addresses': ['root@paulserver.paulsnetwork']}
+        response = {'message': None, 'addresses': [self.recipient]}
 
         participants = dbsession.query(Participant).filter(Participant.survey_id==self.survey.id).all()
         if self.interval:

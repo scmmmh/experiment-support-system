@@ -7,7 +7,7 @@ import smtplib
 
 class Notifier(Thread):
 
-    really = False
+    testing = True
 
     def __init__(self, settings):
         sys.stderr.write('Notifier.__init__\n')
@@ -25,7 +25,6 @@ class Notifier(Thread):
                     for notification in survey.notifications:
                         response = notification.respond(dbsession)
                         if response['message']:
-                            sys.stderr.write(response['message'])
                             self.sendmail(response)
                         else:
                             sys.stderr.write('Notification gave no response.\n')
@@ -46,7 +45,12 @@ class Notifier(Thread):
 
     def sendmail(self, response):
         message = response['message']
-        if self.really:
+        if self.testing:
+            sys.stderr.write("\n")
+            sys.stderr.write("Would send message '%s'\n" % message)
+            sys.stderr.write("To recipient '%s'\n" % response['addresses'][0])
+            sys.stderr.write("\n")
+        else:
             for address in response['addresses']:
                 email = MIMEText(message)
                 email['Subject'] = 'Notification of survey status'
