@@ -55,13 +55,5 @@ def tooltips(request, tooltip=None, tooltip_new=None):
                 dbsession.add(Preference(user_id=user.id, key='tooltip_new.%s.seen' % tooltip_new[0], value='True'))
     return tooltips
 
-def sendmail(request, user, subject, message):
-    email = MIMEText(message)
-    email['Subject'] = subject
-    email['From'] = 'noreply@paths.sheffield.ac.uk'
-    email['To'] = user.email
-    smtp = smtplib.SMTP(request.registry.settings['email.smtp_host'])
-    smtp.sendmail('noreply@paths.sheffield.ac.uk', user.email, email.as_string())
-    smtp.quit()
 
 

@@ -7,6 +7,7 @@ from sqlalchemy import engine_from_config
 
 from pyquest.models import DBSession, check_database_version
 from pyquest import l10n, views, helpers
+from pyquest.helpers.notifier import Notifier
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -22,5 +23,6 @@ def main(global_config, **settings):
     renderer.init(settings, {'text/html': template_defaults, 'application/xml': template_defaults})
     views.init(config)
     config.scan()
+    Notifier(settings).start()
     return config.make_wsgi_app()
 
