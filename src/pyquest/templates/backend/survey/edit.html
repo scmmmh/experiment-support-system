@@ -4,9 +4,47 @@
   <head>
     <title>${survey.title} - Edit</title>
     <script type="text/javascript">
+    function set_notification_buttons(){
+        $('.add-notification').click(function() {
+            $.ajax('${r.route_url('survey.edit.add_notification', sid=survey.id)}', {
+        			success: function(response) {
+            $('dd.notification').html(response);
+            set_notification_buttons();
+            set_day_spans()
+}
+});
+        return false;
+        });
+        $('.delete-notification').click(function() {
+            $.ajax('${r.route_url('survey.edit.delete_notification', sid=survey.id)}', {
+        			success: function(response) {
+            $('dd.notification').html(response);
+            set_notification_buttons();
+            set_day_spans()
+}
+});
+        return false;
+        });
+    }
+
+    function set_day_spans(){
+     $('[name$=ntype]').each(function(index,value){
+           var cf = function() {
+           var class_to_switch = ".days-" + $(this).attr('name').match('([0-9]+)')[1]
+           if ($(this).val() == 'interval'){
+                 $(class_to_switch).show();
+           } else {
+                 $(class_to_switch).hide();
+           }
+      } 
+    cf.apply(this);
+    $(this).change(cf);})
+    }
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
         make_toggle_link('role-js-edit');
+        set_notification_buttons();
+        set_day_spans();
         $('#survey-pages li').each(function() {
         	var item = $(this);
         	if(item.find('.role-qsheet-repeat').val() == 'single') {

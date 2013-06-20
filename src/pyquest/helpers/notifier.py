@@ -48,7 +48,8 @@ class Notifier(Thread):
         if self.testing:
             sys.stderr.write("\n")
             sys.stderr.write("Would send message '%s'\n" % message)
-            sys.stderr.write("To recipient '%s'\n" % response['addresses'][0])
+            for address in response['addresses']:
+                sys.stderr.write("To recipient '%s'\n" % address)
             sys.stderr.write("\n")
         else:
             for address in response['addresses']:

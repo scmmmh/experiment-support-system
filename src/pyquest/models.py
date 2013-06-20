@@ -2,6 +2,7 @@
 import json
 import random
 import hashlib
+import time
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         Table, DateTime, Boolean, func)
@@ -662,20 +663,27 @@ class Notification(Base):
     __tablename__ = 'notifications'
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='notifications_surveys_fk'))
-    interval = Column(Integer)
-    participant_count = Column(Integer)
+    ntype = Column(Unicode(32))
+    value = Column(Integer)
     recipient = Column(Unicode(255))
+    timestamp = Column(Integer, default=0)
 
     def respond(self, dbsession):
-        response = {'message': None, 'addresses': [self.recipient]}
-
+        response = {'message': None, 'addresses': self.recipient.split(',')}
+        
+        # For testing interval value is taken to be seconds, for real it should be days
+        time_factor = 1000
+#        time_factor = 1000 * 3600 * 24
         participants = dbsession.query(Participant).filter(Participant.survey_id==self.survey.id).all()
-        if self.interval:
-            response['message'] = 'Survey "%s" has had %d participants.\n' % (self.survey.title, len(participants))
+        if self.ntype == 'interval':
+            time_now = int(time.time())
+            if (self.timestamp == 0) or (time_now - self.timestamp) > (self.value * time_factor):
+                response['message'] = 'Survey "%s" has had %d participants. %d %d \n' % (self.survey.title, len(participants), time_now, self.timestamp)
+                dbsession.execute()
 
-        elif self.participant_count:
-            if len(participants) >= self.participant_count:
-                response['message'] = 'Survey "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.participant_count)
+        if self.ntype == 'pcount':
+            if len(participants) >= self.value:
+                response['message'] = 'Survey "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.value)
                 
         return response
 

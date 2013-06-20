@@ -11,6 +11,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
+from sqlalchemy import desc
 
 from pyquest import helpers
 from pyquest.views.backend.qsheet import load_qsheet_from_xml, load_transition_from_xml
@@ -19,7 +20,7 @@ from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
                             Participant, QSheetAttribute, Question,
     QuestionAttributeGroup, QuestionAttribute, DataItem, DataItemAttribute,
-    DataItemControlAnswer)
+    DataItemControlAnswer, Notification)
 from pyquest.validation import XmlValidator
 
 class NewSurveySchema(Schema):
@@ -31,9 +32,9 @@ class NewSurveySchema(Schema):
 
 class NotificationSchema(Schema):
     id = validators.Int(if_missing=0)
-    interval = validators.Int(if_missing=0)
-    participant_count = validators.Int(if_missing=0)
-    recipient = validators.Email(not_empty=True)
+    ntype = validators.UnicodeString()
+    value = validators.Int(if_missing=0)
+    recipient = validators.UnicodeString()
 
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -175,6 +176,7 @@ def edit(request):
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
+                    import pdb; pdb.set_trace()
                     schema = SurveySchema()
                     params = schema.to_python(request.POST)
                     check_csrf_token(request, params)
@@ -190,8 +192,8 @@ def edit(request):
 
                         for notification in survey.notifications:
                             n_param = next(n_param for n_param in params['notifications'] if n_param['id'] == notification.id)
-                            notification.interval = n_param['interval']
-                            notification.participant_count = n_param['participant_count']
+                            notification.ntype = n_param['ntype']
+                            notification.value = n_param['value']
                             notification.recipient = n_param['recipient']
 
                         dbsession.add(survey)
@@ -208,6 +210,29 @@ def edit(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+@view_config(route_name='survey.edit.delete_notification')
+@render({'text/html': 'backend/survey/notifications.html'})
+def edit_delete_notification(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    to_delete = dbsession.query(Notification).filter(Notification.survey_id==survey.id).order_by(desc(Notification.id)).first()
+    if to_delete:
+        survey.notifications.remove(to_delete)
+
+    return {'survey': survey}
+
+@view_config(route_name='survey.edit.add_notification')
+@render({'text/html': 'backend/survey/notifications.html'})
+def edit_add_notification(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    new_notification = Notification(survey_id = survey.id, ntype='interval', value=60, recipient=survey.owner.email)
+    survey.notifications.append(new_notification)
+    dbsession.add(new_notification)
+    dbsession.flush()
+
+    return {'survey':survey}
 
 @view_config(route_name='survey.duplicate')
 @render({'text/html': 'backend/survey/duplicate.html'})
