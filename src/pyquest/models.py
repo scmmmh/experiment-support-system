@@ -19,7 +19,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '444a8338869c'
+DB_VERSION = '26adf3f9d0f5'
 
 class DBUpgradeException(Exception):
     
@@ -672,17 +672,16 @@ class Notification(Base):
         response = {'message': None, 'addresses': self.recipient.split(',')}
         
         # For testing interval value is taken to be seconds, for real it should be days
-        time_factor = 1000
-#        time_factor = 1000 * 3600 * 24
+        time_factor = 1
+#        time_factor = 3600 * 24
         participants = dbsession.query(Participant).filter(Participant.survey_id==self.survey.id).all()
         if self.ntype == 'interval':
             time_now = int(time.time())
             if (self.timestamp == 0) or (time_now - self.timestamp) > (self.value * time_factor):
-                response['message'] = 'Survey "%s" has had %d participants. %d %d \n' % (self.survey.title, len(participants), time_now, self.timestamp)
-                dbsession.execute()
+                response['message'] = 'Survey "%s" has had %d participants.\n' % (self.survey.title, len(participants))
 
         if self.ntype == 'pcount':
-            if len(participants) >= self.value:
+            if (len(participants) >= self.value) and (self.timestamp == 0):
                 response['message'] = 'Survey "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.value)
                 
         return response

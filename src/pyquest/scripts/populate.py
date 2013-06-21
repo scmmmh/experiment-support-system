@@ -1169,9 +1169,9 @@ def init_test_data(DBSession):
         qsheet1.questions.append(question)
         """
         survey.start = qsheet1
-        notification = Notification(ntype='interval', value=60)
+        notification = Notification(ntype='interval', value=60, recipient='paul@paulserver.paulsnetwork')
         survey.notifications.append(notification)
-        notification = Notification(ntype='pcount', value=1)
+        notification = Notification(ntype='pcount', value=1, recipient='paul@paulserver.paulsnetwork')
         survey.notifications.append(notification)
         user.surveys.append(survey)
         DBSession.add(survey)

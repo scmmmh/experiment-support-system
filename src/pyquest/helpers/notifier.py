@@ -1,5 +1,7 @@
 import time
 import sys
+import transaction
+
 from threading import Thread
 from pyquest.models import DBSession, Survey, Participant
 from email.mime.text import MIMEText
@@ -16,31 +18,27 @@ class Notifier(Thread):
 
     def run(self):
         while self.carryon == True:
-            sys.stderr.write('run start\n')
+            time.sleep(60)
             dbsession = DBSession()
             surveys = dbsession.query(Survey).filter(Survey.status=='running').all()
-            sys.stderr.write('There are %d running surveys.\n' % len(surveys))
             for survey in surveys:
                 if len(survey.notifications) > 0:
-                    for notification in survey.notifications:
-                        response = notification.respond(dbsession)
-                        if response['message']:
-                            self.sendmail(response)
-                        else:
-                            sys.stderr.write('Notification gave no response.\n')
-                else:
-                    sys.stderr.write('Survey "%s" has no notifications\n' % survey.title)
-            sys.stderr.write('run end\n')
+                    with transaction.manager:
+                        dbsession.add(survey)
+                        for notification in survey.notifications:
+                            dbsession.add(notification)
+                            response = notification.respond(dbsession)
+                            if response['message']:
+                                self.sendmail(response)
+                                notification.timestamp = int(time.time())
+                                dbsession.flush()
             dbsession.close()
-            time.sleep(15)
 
     def start(self):
-        sys.stderr.write('Notifier.start\n')
         self.carryon = True
         Thread.start(self)
 
     def stop(self):
-        sys.stderr.write('Notifier.stop\n')
         self.carryon = False
 
     def sendmail(self, response):

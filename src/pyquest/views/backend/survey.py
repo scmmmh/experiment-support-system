@@ -176,7 +176,6 @@ def edit(request):
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
-                    import pdb; pdb.set_trace()
                     schema = SurveySchema()
                     params = schema.to_python(request.POST)
                     check_csrf_token(request, params)
@@ -387,16 +386,21 @@ def status(request):
                     check_csrf_token(request, params)
                     with transaction.manager:
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+                        dbsession.add(survey)
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
                             for qsheet in survey.qsheets:
                                 for data_item in qsheet.data_set.items:
                                     data_item.counts = []
                                     dbsession.add(data_item)
+                        if params['status'] == 'running':
+                            for notification in survey.notifications:
+                                dbsession.add(notification)
+                                notification.timestamp = 0
                         survey.status = params['status']
-                        dbsession.add(survey)
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
                     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+                                  
                     if params['status'] == 'testing':
                         raise HTTPFound(request.route_url('survey.run',
                                                           seid=survey.external_id))
