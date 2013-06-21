@@ -10,15 +10,17 @@ import smtplib
 class Notifier(Thread):
 
     testing = True
+    #for testing the thread sleeps for one minute, for real one hour is probably more appropriate
+    interval = 60
+    #interval = 3600
 
     def __init__(self, settings):
-        sys.stderr.write('Notifier.__init__\n')
         self.smtp_host = settings['email.smtp_host']
         Thread.__init__(self)
 
     def run(self):
         while self.carryon == True:
-            time.sleep(60)
+            time.sleep(self.interval)
             dbsession = DBSession()
             surveys = dbsession.query(Survey).filter(Survey.status=='running').all()
             for survey in surveys:
