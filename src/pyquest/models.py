@@ -539,7 +539,7 @@ class TransitionCondition(Base):
                         actual_answer = actual_answer + av.value + ',' 
                     actual_answer = actual_answer[:-1]
 
-        return eval('actual_answer =="' + self.expected_answer + '"')
+        return actual_answer == self.expected_answer
 
 class DataSet(Base):
 
