@@ -350,9 +350,10 @@ def status(request):
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
                             for qsheet in survey.qsheets:
-                                for data_item in qsheet.data_set.items:
-                                    data_item.counts = []
-                                    dbsession.add(data_item)
+                                if qsheet.data_set:
+                                    for data_item in qsheet.data_set.items:
+                                        data_item.counts = []
+                                        dbsession.add(data_item)
                         survey.status = params['status']
                         dbsession.add(survey)
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
