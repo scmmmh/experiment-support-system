@@ -52,6 +52,3 @@ def tooltips(request, tooltip=None, tooltip_new=None):
             with transaction.manager:
                 dbsession.add(Preference(user_id=user.id, key='tooltip_new.%s.seen' % tooltip_new[0], value='True'))
     return tooltips
-
-
-
