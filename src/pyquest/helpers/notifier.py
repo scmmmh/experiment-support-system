@@ -9,7 +9,6 @@ import smtplib
 
 class Notifier(Thread):
 
-    testing = True
     #for testing the thread sleeps for one minute, for real one hour is probably more appropriate
     interval = 60
     #interval = 3600
@@ -45,20 +44,13 @@ class Notifier(Thread):
 
     def sendmail(self, response):
         message = response['message']
-        if self.testing:
-            sys.stderr.write("\n")
-            sys.stderr.write("Would send message '%s'\n" % message)
-            for address in response['addresses']:
-                sys.stderr.write("To recipient '%s'\n" % address)
-            sys.stderr.write("\n")
-        else:
-            for address in response['addresses']:
-                email = MIMEText(message)
-                email['Subject'] = 'Notification of survey status'
-                email['From'] = 'noreply@paths.sheffield.ac.uk'
-                email['To'] = address
-                smtp = smtplib.SMTP(self.smtp_host)
-                smtp.sendmail('noreply@paths.sheffield.ac.uk', address, email.as_string())
-                smtp.quit()
+        for address in response['addresses']:
+            email = MIMEText(message)
+            email['Subject'] = 'Notification of survey status'
+            email['From'] = 'noreply@paths.sheffield.ac.uk'
+            email['To'] = address
+            smtp = smtplib.SMTP(self.smtp_host)
+            smtp.sendmail('noreply@paths.sheffield.ac.uk', address, email.as_string())
+            smtp.quit()
 
         
