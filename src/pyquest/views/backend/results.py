@@ -198,7 +198,7 @@ def generate_columns(survey, selected_columns, data_identifiers, dbsession):
                 columns.extend(generate_question_columns('%s.%s' % (qsheet.name, question.name),
                                                          question,
                                                          question.q_type.answer_schema(),
-                                                         qsheet.data_set.items,
+                                                         qsheet.data_set.items if qsheet.data_set else None,
                                                          data_identifiers[qsheet.name] if qsheet.name in data_identifiers else '',
                                                          dbsession))
     columns.sort()
