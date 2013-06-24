@@ -178,7 +178,7 @@ class ParticipantManager(object):
         def count_to_end(qsheet, seen = []): # TODO: Cycle detection
             seen.append(qsheet.id)
             if qsheet and qsheet.next:
-                followers = [count_to_end(t.target, seen) for t in qsheet.next if t.target.id not in seen]
+                followers = [count_to_end(t.target, seen) for t in qsheet.next if t.target and t.target.id not in seen]
                 if followers:
                     return max(followers) + 1
                 else:
