@@ -145,6 +145,7 @@ class ParticipantManager(object):
                 transition = transition
                 if transition.target:
                     next_qs = transition.target
+                    break
         action = 'next'
         if params['action_'] == 'More Questions':
             action = 'more'
