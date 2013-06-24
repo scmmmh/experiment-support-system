@@ -65,7 +65,10 @@ class ParticipantManager(object):
     
     def current_qsheet(self):
         state = self.state()
-        return self._dbsession.query(QSheet).filter(QSheet.id==state['current-qsheet']).first()
+        if state['current-qsheet'] != '_finished':
+            return self._dbsession.query(QSheet).filter(QSheet.id==state['current-qsheet']).first()
+        else:
+            return None
     
     def participant(self):
         self._dbsession.add(self._participant)
