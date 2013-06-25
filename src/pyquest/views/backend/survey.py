@@ -390,6 +390,7 @@ def status(request):
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
                             for qsheet in survey.qsheets:
+<<<<<<< variant A
                                 for data_item in qsheet.data_set.items:
                                     data_item.counts = []
                                     dbsession.add(data_item)
@@ -397,6 +398,16 @@ def status(request):
                             for notification in survey.notifications:
                                 dbsession.add(notification)
                                 notification.timestamp = 0
+>>>>>>> variant B
+                                if qsheet.data_set:
+                                    for data_item in qsheet.data_set.items:
+                                        data_item.counts = []
+                                        dbsession.add(data_item)
+####### Ancestor
+                                for data_item in qsheet.data_set.items:
+                                    data_item.counts = []
+                                    dbsession.add(data_item)
+======= end
                         survey.status = params['status']
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
                     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
