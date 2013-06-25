@@ -32,7 +32,7 @@
             var input_field = '${h.form.text_field('attribute_keys-nrows.key', '', None)}';
             input_field = input_field.replace(/nrows/, '' + nrows)
             row.append('<td>' + input_field + '</td>');
-            var id_field = '${h.form.text_field('attribute_keys-nrows.id', '', e)}';
+            var id_field = '${h.form.hidden_field('attribute_keys-nrows.id', '')}';
             id_field = id_field.replace(/nrows/, '' + nrows)
             id_field = id_field.replace(/new_order/, '' + (nrows + 1))
             row.append('<td>' + id_field + '</td>');
