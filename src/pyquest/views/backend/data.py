@@ -185,8 +185,10 @@ def dataset_edit(request):
                             dis.attribute_keys.remove(old_attribute_key)
                             dbsession.delete(old_attribute_key)
                     for attribute_key_param in params['attribute_keys']:
+                        order = dis.attribute_keys[-1].order + 1
                         if attribute_key_param['id'] == None:
-                            attribute_key = DataSetAttributeKey(key=attribute_key_param['key'])
+                            attribute_key = DataSetAttributeKey(key=attribute_key_param['key'], order=order)
+                            order = order + 1
                             dbsession.add(attribute_key)
                             dis.attribute_keys.append(attribute_key)
                             for item in dis.items:
