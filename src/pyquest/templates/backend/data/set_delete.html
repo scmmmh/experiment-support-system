@@ -5,11 +5,12 @@
     <title>Delete Data Item Set</title>
   </head>
   <body>
-<!--    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
-    ${h.ui.main_menu('data', survey, r)}-->
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),(dis.name, {'href': r.route_url('data.view', sid=survey.id, dsid=dis.id)}), ('Delete', {'href':''})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
     <article>
-<!--      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
-        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>-->
+      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
+        and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
       <hgroup>
 	<h1>Delete Data Item Set</h1>
       </hgroup>

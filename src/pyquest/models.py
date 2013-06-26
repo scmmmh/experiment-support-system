@@ -18,7 +18,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '444a8338869c'
+DB_VERSION = '6e3dd1c4643'
 
 class DBUpgradeException(Exception):
     
@@ -549,17 +549,32 @@ class DataSet(Base):
     owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
     survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
 
-    items = relationship('DataItem', backref='data_set')
+    items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
     qsheets = relationship('QSheet', backref='data_set')
     owner = relationship('User', backref='data_sets')
     survey = relationship('Survey', backref='data_sets')
-
+    attribute_keys = relationship('DataSetAttributeKey', 
+                                  backref='dataset', order_by='DataSetAttributeKey.order',
+                                  cascade='all, delete, delete-orphan')
+                                 
     def is_owned_by(self, user):
         if user:
             return self.owned_by == user.id
         else:
             return False
-    
+
+class DataSetAttributeKey(Base):
+
+    __tablename__ = 'data_set_attribute_keys'
+    id = Column(Integer, primary_key=True)
+    key = Column(Unicode(255))
+    order = Column(Integer)
+    dataset_id = Column(ForeignKey(DataSet.id, name="data_set_attribute_keys_dataset_id_fk"))
+ 
+    values = relationship('DataItemAttribute',
+                          backref='key',
+                          cascade='all, delete, delete-orphan')
+
 class DataItem(Base):
     
     __tablename__ = 'data_items'
@@ -570,7 +585,7 @@ class DataItem(Base):
     control = Column(Boolean, default=False)
 
     attributes = relationship('DataItemAttribute',
-                              backref='data_item', order_by='DataItemAttribute.order',
+                              backref='data_item', 
                               cascade='all, delete, delete-orphan')
     counts = relationship('DataItemCount',
                           backref='counts',
@@ -582,15 +597,17 @@ class DataItem(Base):
                                    backref='data_item',
                                    cascade='all, delete, delete-orphan')
 
+    def sorted_attributes(self):
+        return sorted(self.attributes, key = lambda attribute: attribute.key.order)
+
 class DataItemAttribute(Base):
     
     __tablename__ = 'data_item_attributes'
     
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
-    order = Column(Integer)
-    key = Column(Unicode(255))
     value = Column(Unicode(255))
+    key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
 
 class DataItemCount(Base):
     

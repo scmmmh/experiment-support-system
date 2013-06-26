@@ -8,7 +8,7 @@ import csv
 import math
 import transaction
 
-from formencode import Schema, validators, api, foreach
+from formencode import Schema, validators, api, variabledecode, foreach
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
@@ -19,7 +19,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
                             DataItemAttribute, Question, DataItemControlAnswer,
-                            Participant, DataSet)
+                            Participant, DataSet, DataSetAttributeKey)
 import re
 
 class DataItemSchema(Schema):
@@ -32,10 +32,16 @@ class DataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
 
+class DataSetAttributeKeySchema(Schema):
+    key = validators.UnicodeString()
+    id = validators.Int(if_missing=0)
+
 class NewDataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.String()
-    item_attributes = foreach.ForEach(validators.UnicodeString())
+    attribute_keys = foreach.ForEach(DataSetAttributeKeySchema())
+
+    pre_validators = [variabledecode.NestedVariables()]
 
 @view_config(route_name='data.list')
 @render({'text/html': 'backend/data/set_list.html'})
@@ -116,10 +122,9 @@ def dataset_new(request):
                 dis.name = params['name']
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
-                data_item = DataItem(order=1)
-                for idx, key in enumerate(params['item_attributes']):
-                    data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'), order=idx+1))
-                dis.items.append(data_item)
+                for idx, param in enumerate(params['attribute_keys']):
+                    attribute_key = DataSetAttributeKey(key=param['key'].decode('utf-8'), order=idx+1)
+                    dis.attribute_keys.append(attribute_key)
                 dbsession.add(dis)
                 dbsession.flush()
                 dsid = dis.id
@@ -138,6 +143,7 @@ def dataset_new(request):
 @render({'text/html': 'backend/data/set_delete.html'})
 def dataset_delete(request):
     dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
     user = current_user(request)
     if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'dis': dis}):
@@ -149,7 +155,8 @@ def dataset_delete(request):
             request.session.flash('Data Item Set deleted', 'info')
             raise HTTPFound(request.route_url('data.list', sid=sid))
         else:
-            return {'dis': dis}
+            return {'survey': survey,
+                    'dis': dis}
     else:
         redirect_to_login(request)
 
@@ -170,13 +177,27 @@ def dataset_edit(request):
                     dbsession.add(dis)
                     dis.name = params['name']
                     sid = dis.survey_id
-                    for item in dis.items:
-                        for idx, key in enumerate(params['item_attributes']):
-                            for attribute in item.attributes:
-                                if (attribute.order == idx +1):
-                                    attribute.key = key.decode('utf-8')
+                    new_ids = []
+                    for attribute_key_param in params['attribute_keys']:
+                        new_ids.append(attribute_key_param['id'])
+                    for old_attribute_key in dis.attribute_keys:
+                        if old_attribute_key.id not in new_ids:
+                            dis.attribute_keys.remove(old_attribute_key)
+                            dbsession.delete(old_attribute_key)
+                    for attribute_key_param in params['attribute_keys']:
+                        order = dis.attribute_keys[-1].order + 1
+                        if attribute_key_param['id'] == None:
+                            attribute_key = DataSetAttributeKey(key=attribute_key_param['key'], order=order)
+                            order = order + 1
+                            dbsession.add(attribute_key)
+                            dis.attribute_keys.append(attribute_key)
+                            for item in dis.items:
+                                 item.attributes.append(DataItemAttribute(key_id=attribute_key.id))
+                        else:
+                            attribute_key = dbsession.query(DataSetAttributeKey).filter(DataSetAttributeKey.id==attribute_key_param['id']).first()
+                            attribute_key.key = attribute_key_param['key']
                     dbsession.flush()
-                raise HTTPFound(request.route_url('data.list', sid=sid))
+                raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
             else:
                 return {'survey': survey,
                         'dis': dis}
@@ -199,21 +220,30 @@ def dataset_upload(request):
             if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                 raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
             reader = csv.DictReader(request.POST['source_file'].file)
-            order = 1
+            count = 1
+            offset = 0
             with transaction.manager:
                 dis = DataSet(name = request.POST['source_file'].filename, owned_by=user.id, survey_id=survey.id)
                 dbsession.add(dis)
                 try:
                     for item in reader:
-                        data_item = DataItem(order=order)
+                        data_item = DataItem(order=count)
                         if 'control_' in item:
                             data_item.control = validators.StringBool().to_python(item['control_'])
+                            offset = 1
+                        order = 1
                         for idx, (key, value) in enumerate(item.items()):
                             if key != 'control_':
-                                data_item.attributes.append(DataItemAttribute(key=key.decode('utf-8'),
-                                                                              value=value.decode('utf-8') if value else u'',
-                                                                              order=idx + 1))
+                                if count == 1:
+                                    attribute_key = DataSetAttributeKey(key=key.decode('utf-8'), order=order)
+                                    order = order + 1
+                                    dis.attribute_keys.append(attribute_key)
+                                    dbsession.flush()
+                                else:
+                                    attribute_key = dis.attribute_keys[idx - offset]
+                                data_item.attributes.append(DataItemAttribute(value=value.decode('utf-8') if value else u'', key_id=attribute_key.id))
                                 dis.items.append(data_item)
+                        count = count + 1
                 except csv.Error:
                     raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
                 dbsession.flush()
@@ -269,44 +299,38 @@ def new(request):
     user = current_user(request)
     if dis:
         if is_authorised(':dis.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'dis': dis}):
-            if len(dis.items) > 0:
-                data_item = dis.items[0]
-            else:
-                data_item = DataItem()
             if request.method == 'POST':
                 try:
                     validator = DataItemSchema()
-                    for attribute in data_item.attributes:
+                    for attribute in dis.attribute_keys:
                         validator.add_field(attribute.key, validators.UnicodeString())
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
+                        dbsession.add(dis)
                         new_data_item = DataItem(dataset_id=dis.id,
                                                  control=params['control_'])
                         if len(dis.items) > 0:
                             new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.dataset_id==dis.id).first()[0] + 1
                         else:
                             new_data_item.order = 1
-                        for attribute in data_item.attributes:
-                            new_data_item.attributes.append(DataItemAttribute(key=attribute.key,
-                                                                              value=params[attribute.key],
-                                                                              order=attribute.order))
+                        for attribute_key in dis.attribute_keys:
+                            new_data_item.attributes.append(DataItemAttribute(value=params[attribute_key.key],
+                                                                              key_id=attribute_key.id))
                         for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
                             question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
                             if question and params['control_answer_answer'][idx].strip() != '':
                                 new_data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(new_data_item)
                     request.session.flash('Data added', 'info')
-                    raise HTTPFound(request.route_url('data.edit', sid=dis.survey_id, dsid=request.matchdict['dsid']))
+                    raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
-                            'dis': dis,
-                            'data_item': data_item}
+                            'dis': dis}
             else:
                 return {'survey': survey,
-                        'dis': dis,
-                        'data_item': data_item}
+                        'dis': dis}
         else:
             redirect_to_login(request)
     else:
@@ -317,6 +341,7 @@ def new(request):
 def edit(request):
     dbsession = DBSession()
     data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataSet).filter(DataSet.id==data_item.dataset_id).first()
     user = current_user(request)
     if data_item:
@@ -324,15 +349,15 @@ def edit(request):
             if request.method == 'POST':
                 try:
                     validator = DataItemSchema()
-                    for attribute in data_item.attributes:
-                        validator.add_field(attribute.key, validators.UnicodeString(not_empty=True))
+                    for attribute_key in dis.attribute_keys:
+                        validator.add_field(str(attribute_key.order), validators.UnicodeString(not_empty=True))
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
                         data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
                         data_item.control = params['control_']
                         for attribute in data_item.attributes:
-                            attribute.value = params[attribute.key]
+                            attribute.value = params[str(attribute.order)]
                         data_item.control_answers = []
                         for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
                             question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
@@ -346,10 +371,12 @@ def edit(request):
 
                 except api.Invalid as e:
                     e.params = request.POST
-                    return {'dis': dis,
+                    return {'survey': survey,
+                            'dis': dis,
                             'data_item': data_item}
             else:
-                return {'dis':dis,
+                return {'survey': survey,
+                        'dis':dis,
                         'data_item': data_item}
         else:
             redirect_to_login(request)
