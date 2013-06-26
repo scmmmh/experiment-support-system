@@ -12,7 +12,7 @@
     ${h.ui.survey_breadcrumbs([(s.title, {'href': r.route_url('survey.view', sid=s.id)}), (qs.name + ' data', {'href':''})], r)}
     <form action="${r.route_url('data.attach', sid=s.id, dsid=dsid, qsid=qs.id)}" method="post">
       ${h.form.csrf_token_field(r.session.get_csrf_token())}
-      <h1>Attach Data Set to QSheet ${qs.id}</h1>
+      <h1>Attach Data Set to Page ${qs.id}</h1>
       <py:choose test="len(dsoptions)">
         <py:when test="0">
 	  <b> No Data Sets available </b>
