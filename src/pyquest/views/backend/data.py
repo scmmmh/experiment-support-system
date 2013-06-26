@@ -178,22 +178,22 @@ def dataset_edit(request):
                     dis.name = params['name']
                     sid = dis.survey_id
                     new_ids = []
-                    for nak in params['attribute_keys']:
-                        new_ids.append(nak['id'])
-                    for oak in dis.attribute_keys:
-                        if oak.id not in new_ids:
-                            dis.attribute_keys.remove(oak)
-                            dbsession.delete(oak)
-                    for nak in params['attribute_keys']:
-                        if nak['id'] == None:
-                            dsak = DataSetAttributeKey(key=nak['key'])
-                            dbsession.add(dsak)
-                            dis.attribute_keys.append(dsak)
+                    for attribute_key_param in params['attribute_keys']:
+                        new_ids.append(attribute_key_param['id'])
+                    for old_attribute_key in dis.attribute_keys:
+                        if old_attribute_key.id not in new_ids:
+                            dis.attribute_keys.remove(old_attribute_key)
+                            dbsession.delete(old_attribute_key)
+                    for attribute_key_param in params['attribute_keys']:
+                        if attribute_key_param['id'] == None:
+                            attribute_key = DataSetAttributeKey(key=attribute_key_param['key'])
+                            dbsession.add(attribute_key)
+                            dis.attribute_keys.append(attribute_key)
                             for item in dis.items:
-                                 item.attributes.append(DataItemAttribute(key_id=dsak.id))
+                                 item.attributes.append(DataItemAttribute(key_id=attribute_key.id))
                         else:
-                            dsak = dbsession.query(DataSetAttributeKey).filter(DataSetAttributeKey.id==nak['id']).first()
-                            dsak.key = nak['key']
+                            attribute_key = dbsession.query(DataSetAttributeKey).filter(DataSetAttributeKey.id==attribute_key_param['id']).first()
+                            attribute_key.key = attribute_key_param['key']
                     dbsession.flush()
                 raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
             else:
@@ -232,12 +232,12 @@ def dataset_upload(request):
                         for idx, (key, value) in enumerate(item.items()):
                             if key != 'control_':
                                 if order == 1:
-                                    dsak = DataSetAttributeKey(key=key.decode('utf-8'))
-                                    dis.attribute_keys.append(dsak)
+                                    attribute_key = DataSetAttributeKey(key=key.decode('utf-8'))
+                                    dis.attribute_keys.append(attribute_key)
                                     dbsession.flush()
                                 else:
-                                    dsak = dis.attribute_keys[idx - offset]
-                                data_item.attributes.append(DataItemAttribute(value=value.decode('utf-8') if value else u'', key_id=dsak.id))
+                                    attribute_key = dis.attribute_keys[idx - offset]
+                                data_item.attributes.append(DataItemAttribute(value=value.decode('utf-8') if value else u'', key_id=attribute_key.id))
                                 dis.items.append(data_item)
                         order = order + 1
                 except csv.Error:
