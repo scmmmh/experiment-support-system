@@ -122,8 +122,8 @@ def dataset_new(request):
                 dis.name = params['name']
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
-                for ak in params['attribute_keys']:
-                    diak = DataSetAttributeKey(key=ak['key'].decode('utf-8'))
+                for idx, ak in enumerate(params['attribute_keys']):
+                    diak = DataSetAttributeKey(key=ak['key'].decode('utf-8'), order=idx+1)
                     dis.attribute_keys.append(diak)
                 dbsession.add(dis)
                 dbsession.flush()
@@ -218,28 +218,36 @@ def dataset_upload(request):
             if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                 raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
             reader = csv.DictReader(request.POST['source_file'].file)
-            order = 1
+            count = 1
             offset = 0
             with transaction.manager:
                 dis = DataSet(name = request.POST['source_file'].filename, owned_by=user.id, survey_id=survey.id)
                 dbsession.add(dis)
                 try:
                     for item in reader:
-                        data_item = DataItem(order=order)
+                        data_item = DataItem(order=count)
                         if 'control_' in item:
                             data_item.control = validators.StringBool().to_python(item['control_'])
                             offset = 1
+                        order = 1
                         for idx, (key, value) in enumerate(item.items()):
                             if key != 'control_':
+<<<<<<< local
                                 if order == 1:
                                     attribute_key = DataSetAttributeKey(key=key.decode('utf-8'))
                                     dis.attribute_keys.append(attribute_key)
+=======
+                                if count == 1:
+                                    dsak = DataSetAttributeKey(key=key.decode('utf-8'), order=order)
+                                    order = order + 1
+                                    dis.attribute_keys.append(dsak)
+>>>>>>> other
                                     dbsession.flush()
                                 else:
                                     attribute_key = dis.attribute_keys[idx - offset]
                                 data_item.attributes.append(DataItemAttribute(value=value.decode('utf-8') if value else u'', key_id=attribute_key.id))
                                 dis.items.append(data_item)
-                        order = order + 1
+                        count = count + 1
                 except csv.Error:
                     raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
                 dbsession.flush()
