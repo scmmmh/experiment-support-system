@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>Detach Data Item Set</title>
+    <title>Detach Data Set</title>
     <script type="text/javascript">
       $(document).ready(function() {
       });
@@ -11,7 +11,7 @@
   <body>
     <form action="${r.route_url('data.detach', sid=qs.survey_id, dsid=ds.id, qsid=qs.id)}" method="post">
       ${h.form.csrf_token_field(r.session.get_csrf_token())}
-      <h1>Detach Dataset "${ds.name}" from QSheet ${qs.id}</h1>
+      <h1>Detach Data Set "${ds.name}" from Page ${qs.id}</h1>
       <ul class="buttons span-22">
 	<li>${h.form.button("Don't Detach", class_='button', onclick="document.location='%s'" % r.route_url('survey.data', sid=qs.survey_id, qsid=qs.id))}</li>
 	<li>${h.form.submit('Detach', class_='button')}</li>

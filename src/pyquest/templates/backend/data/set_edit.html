@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>Edit Data Item Set</title>
+    <title>Edit Data Set</title>
     <script type="text/javascript">
       $(document).ready(function() {
     	  $('#data-filter-form input[type=submit]').hide();
@@ -50,10 +50,10 @@
     </script>
   </head>
   <body>
-    <nav class="toolbar">
     ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),(dis.name, {'href': r.route_url('data.view', sid=survey.id, dsid=dis.id)}), ('Edit', {'href':''})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
+    <nav class="toolbar">
       <ul>
         <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
           <li><a href="${r.route_url('data.item.new', sid=dis.survey_id, dsid=dis.id)}" class="button">Add Item</a></li>
@@ -63,7 +63,7 @@
     </nav>
     <article>
       <hgroup>
-        <h1>Edit Data Item Set</h1>
+        <h1>Edit Data Set</h1>
       </hgroup>
       <form action="${r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
@@ -98,6 +98,10 @@
               </tbody>
             </table>
 	  </dd>
+          <ul class="buttons span-22">
+            <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=dis.survey_id))}</li>
+            <li>${h.form.submit('Update', class_='button')}</li>
+          </ul>
           <table>
             <thead>
               <tr py:if="dis.items">
@@ -123,10 +127,6 @@
               </tr>
             </tbody>
           </table>
-          <ul class="buttons span-22">
-            <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=dis.survey_id))}</li>
-            <li>${h.form.submit('Update', class_='button')}</li>
-          </ul>
 	</div>
       </form>
     </article>
