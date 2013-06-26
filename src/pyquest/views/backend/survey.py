@@ -6,11 +6,12 @@ Created on 23 Jan 2012
 '''
 import transaction
 
-from formencode import Schema, validators, api, variabledecode
+from formencode import Schema, validators, api, variabledecode, foreach
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
+from sqlalchemy import desc
 
 from pyquest import helpers
 from pyquest.views.backend.qsheet import load_qsheet_from_xml, load_transition_from_xml
@@ -19,7 +20,7 @@ from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
                             Participant, QSheetAttribute, Question,
     QuestionAttributeGroup, QuestionAttribute, DataItem, DataItemAttribute,
-    DataItemControlAnswer)
+    DataItemControlAnswer, Notification)
 from pyquest.validation import XmlValidator
 
 class NewSurveySchema(Schema):
@@ -28,6 +29,12 @@ class NewSurveySchema(Schema):
     summary = validators.UnicodeString()
     language = validators.OneOf(['en', 'de'])
     public = validators.Bool()
+
+class NotificationSchema(Schema):
+    id = validators.Int(if_missing=0)
+    ntype = validators.UnicodeString()
+    value = validators.Int(if_missing=0)
+    recipient = validators.UnicodeString()
 
 class SurveySchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -38,7 +45,8 @@ class SurveySchema(Schema):
     scripts = validators.UnicodeString()
     language = validators.OneOf(['en', 'de'])
     public = validators.Bool()
-    
+    notifications = foreach.ForEach(NotificationSchema())
+
     pre_validators = [variabledecode.NestedVariables()]
 
 class SurveyStatusSchema(Schema):
@@ -48,7 +56,7 @@ class SurveyStatusSchema(Schema):
 class SurveyDuplicateSchema(Schema):
     csrf_token = validators.UnicodeString(note_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    
+
 @view_config(route_name='survey')
 @render({'text/html': 'backend/survey/index.html'})
 def index(request):
@@ -180,6 +188,13 @@ def edit(request):
                         survey.start_id = params['start']
                         survey.language = params['language']
                         survey.public = params['public']
+
+                        for notification in survey.notifications:
+                            n_param = next(n_param for n_param in params['notifications'] if n_param['id'] == notification.id)
+                            notification.ntype = n_param['ntype']
+                            notification.value = n_param['value']
+                            notification.recipient = n_param['recipient']
+
                         dbsession.add(survey)
                     request.session.flash('Survey updated', 'info')
                     raise HTTPFound(request.route_url('survey.view',
@@ -194,6 +209,29 @@ def edit(request):
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
+
+@view_config(route_name='survey.edit.delete_notification')
+@render({'text/html': 'backend/survey/notifications.html'})
+def edit_delete_notification(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    to_delete = dbsession.query(Notification).filter(Notification.survey_id==survey.id).order_by(desc(Notification.id)).first()
+    if to_delete:
+        survey.notifications.remove(to_delete)
+
+    return {'survey': survey}
+
+@view_config(route_name='survey.edit.add_notification')
+@render({'text/html': 'backend/survey/notifications.html'})
+def edit_add_notification(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    new_notification = Notification(survey_id = survey.id, ntype='interval', value=60, recipient=survey.owner.email)
+    survey.notifications.append(new_notification)
+    dbsession.add(new_notification)
+    dbsession.flush()
+
+    return {'survey':survey}
 
 @view_config(route_name='survey.duplicate')
 @render({'text/html': 'backend/survey/duplicate.html'})
@@ -211,7 +249,7 @@ def duplicate(request):
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         dupl_survey = Survey(title=params['title'],
                                              status='develop',
-                                             owner=user,
+                                             owned_by=user.id,
                                              summary=survey.summary,
                                              styles=survey.styles,
                                              scripts=survey.scripts)
@@ -245,20 +283,21 @@ def duplicate(request):
                                                           label=attr.label,
                                                           value=attr.value,
                                                           order=attr.order)
-                            for data_item in qsheet.data_set.items:
-                                dupl_data_item = DataItem(qsheet=dupl_qsheet,
-                                                          order=data_item.order,
-                                                          control=data_item.control)
-                                for attr in data_item.attributes:
-                                    DataItemAttribute(data_item=dupl_data_item,
-                                                      order=attr.order,
-                                                      key=attr.key,
-                                                      value=attr.value)
-                                for control_answer in data_item.control_answers:
-                                    if control_answer.question and control_answer.question.name in questions:
-                                        DataItemControlAnswer(data_item=dupl_data_item,
-                                                              question=questions[control_answer.question.name],
-                                                              answer=control_answer.answer)
+                            if qsheet.data_set:
+                                for data_item in qsheet.data_set.items:
+                                    dupl_data_item = DataItem(qsheet=dupl_qsheet,
+                                                              order=data_item.order,
+                                                              control=data_item.control)
+                                    for attr in data_item.attributes:
+                                        DataItemAttribute(data_item=dupl_data_item,
+                                                          order=attr.order,
+                                                          key=attr.key,
+                                                          value=attr.value)
+                                    for control_answer in data_item.control_answers:
+                                        if control_answer.question and control_answer.question.name in questions:
+                                            DataItemControlAnswer(data_item=dupl_data_item,
+                                                                  question=questions[control_answer.question.name],
+                                                                  answer=control_answer.answer)
                             qsheets[dupl_qsheet.name] = dupl_qsheet
                             dupl_survey.qsheets.append(dupl_qsheet)
                         for qsheet in survey.qsheets:
@@ -347,6 +386,7 @@ def status(request):
                     check_csrf_token(request, params)
                     with transaction.manager:
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+                        dbsession.add(survey)
                         if survey.status == 'testing' and params['status'] == 'develop':
                             survey.participants = []
                             for qsheet in survey.qsheets:
@@ -354,10 +394,14 @@ def status(request):
                                     for data_item in qsheet.data_set.items:
                                         data_item.counts = []
                                         dbsession.add(data_item)
+                        if params['status'] == 'running':
+                            for notification in survey.notifications:
+                                dbsession.add(notification)
+                                notification.timestamp = 0
                         survey.status = params['status']
-                        dbsession.add(survey)
                     request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
                     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+                                  
                     if params['status'] == 'testing':
                         raise HTTPFound(request.route_url('survey.run',
                                                           seid=survey.external_id))

@@ -2,6 +2,7 @@
 import json
 import random
 import hashlib
+import time
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         Table, DateTime, Boolean, func)
@@ -18,7 +19,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '6e3dd1c4643'
+DB_VERSION = '26adf3f9d0f5'
 
 class DBUpgradeException(Exception):
     
@@ -172,6 +173,10 @@ class Survey(Base):
     start = relationship('QSheet',
                          primaryjoin='Survey.start_id==QSheet.id',
                          post_update=True)
+
+    notifications = relationship('Notification',
+                          backref='survey',
+                          cascade='all, delete, delete-orphan')
     
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
@@ -669,3 +674,28 @@ class AnswerValue(Base):
     answer_id = Column(ForeignKey(Answer.id, name='answer_values_answers_fk'))
     name = Column(Unicode(255))
     value = Column(Unicode(4096))
+
+class Notification(Base):
+
+    __tablename__ = 'notifications'
+    id = Column(Integer, primary_key=True)
+    survey_id = Column(ForeignKey(Survey.id, name='notifications_surveys_fk'))
+    ntype = Column(Unicode(32))
+    value = Column(Integer)
+    recipient = Column(Unicode(255))
+    timestamp = Column(Integer, default=0)
+
+    def respond(self, dbsession, time_factor):
+        response = {'message': None, 'addresses': self.recipient.split(',')}
+        participants = dbsession.query(Participant).filter(Participant.survey_id==self.survey.id).all()
+        if self.ntype == 'interval':
+            time_now = int(time.time())
+            if (self.timestamp == 0) or (time_now - self.timestamp) > (self.value * time_factor):
+                response['message'] = 'Survey "%s" has had %d participants.\n' % (self.survey.title, len(participants))
+
+        if self.ntype == 'pcount':
+            if (len(participants) >= self.value) and (self.timestamp == 0):
+                response['message'] = 'Survey "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.value)
+                
+        return response
+

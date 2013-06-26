@@ -6,6 +6,8 @@ def init(config):
     config.add_route('survey.import', '/surveys/import')
     config.add_route('survey.view', '/surveys/{sid}')
     config.add_route('survey.edit', '/surveys/{sid}/edit')
+    config.add_route('survey.edit.add_notification', '/surveys/{sid}/add_notification')
+    config.add_route('survey.edit.delete_notification', '/surveys/{sid}/delete_notification')
     config.add_route('survey.delete', '/surveys/{sid}/delete')
     config.add_route('survey.status', '/surveys/{sid}/status')
     config.add_route('survey.export', '/surveys/{sid}/export')
