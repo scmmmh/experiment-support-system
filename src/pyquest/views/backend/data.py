@@ -122,9 +122,9 @@ def dataset_new(request):
                 dis.name = params['name']
                 dis.owned_by = user.id
                 dis.survey_id = survey.id
-                for idx, ak in enumerate(params['attribute_keys']):
-                    diak = DataSetAttributeKey(key=ak['key'].decode('utf-8'), order=idx+1)
-                    dis.attribute_keys.append(diak)
+                for idx, param in enumerate(params['attribute_keys']):
+                    attribute_key = DataSetAttributeKey(key=param['key'].decode('utf-8'), order=idx+1)
+                    dis.attribute_keys.append(attribute_key)
                 dbsession.add(dis)
                 dbsession.flush()
                 dsid = dis.id
@@ -232,16 +232,10 @@ def dataset_upload(request):
                         order = 1
                         for idx, (key, value) in enumerate(item.items()):
                             if key != 'control_':
-<<<<<<< local
-                                if order == 1:
-                                    attribute_key = DataSetAttributeKey(key=key.decode('utf-8'))
-                                    dis.attribute_keys.append(attribute_key)
-=======
                                 if count == 1:
-                                    dsak = DataSetAttributeKey(key=key.decode('utf-8'), order=order)
+                                    attribute_key = DataSetAttributeKey(key=key.decode('utf-8'), order=order)
                                     order = order + 1
-                                    dis.attribute_keys.append(dsak)
->>>>>>> other
+                                    dis.attribute_keys.append(attribute_key)
                                     dbsession.flush()
                                 else:
                                     attribute_key = dis.attribute_keys[idx - offset]
