@@ -2,14 +2,16 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>DataSet for QSheet "${qs.title}"</title>
+    <title>Data Set for QSheet "${qs.title}"</title>
     <script type="text/javascript">
       $(document).ready(function() {
       });
     </script>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(s.title, {'href': r.route_url('survey.view', sid=s.id)}), (qs.name + ' data', {'href':''})], r)}
+    ${h.ui.survey_breadcrumbs([(s.title, {'href': r.route_url('survey.view', sid=s.id)}), ('Data', {'href':''})], r)}
+    ${h.survey.fancy_status(r, s, class_='survey-status right')}
+    ${h.ui.main_menu('data', s, r)}
     <py:choose test="dis">
       <py:when test="None">
 	<nav class="toolbar">

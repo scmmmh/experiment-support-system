@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>New DataSet</title>
+    <title>New Data Set</title>
     <script type="text/javascript">
     $(document).ready(function() {
 
@@ -45,12 +45,12 @@
     </script>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New DataSet', {'href':''})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New Data Set', {'href':''})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
     <article>
       <hgroup>
-        <h1>New DataSet</h1>
+        <h1>New Data Set</h1>
       </hgroup>
       <form action="${r.route_url('data.new', sid=survey.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}

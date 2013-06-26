@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>Delete Data Item Set</title>
+    <title>Delete Data Set</title>
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),(dis.name, {'href': r.route_url('data.view', sid=survey.id, dsid=dis.id)}), ('Delete', {'href':''})], r)}
@@ -12,11 +12,11 @@
       <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
       <hgroup>
-	<h1>Delete Data Item Set</h1>
+	<h1>Delete Data Set</h1>
       </hgroup>
       <form action="${r.route_url('data.delete', sid=dis.survey_id, dsid=dis.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
-        <p>Please confirm that you wish to delete the following data item set:</p>
+        <p>Please confirm that you wish to delete the following Data Set:</p>
         <dl>
 	  ${dis.id} ${dis.name}
         </dl>
