@@ -7,8 +7,7 @@
     <thead>
       <tr py:if="dis.items">
 	<th>Control item</th>
-	<th>Internal id</th>
-	<th py:for="attribute in dis.items[0].attributes">${attribute.key}</th>
+	<th py:for="attribute in dis.attribute_keys">${attribute.key}</th>
       </tr>
     </thead>
     <tbody>
@@ -18,8 +17,7 @@
       </tr>
       <tr py:for="item in dis.items">
 	<td><py:if test="item.control">Yes</py:if></td>
-        <td>${item.id}</td>
-	<td py:for="attribute in item.attributes">${attribute.value}</td>
+	<td py:for="attribute in item.sorted_attributes()">${attribute.value}</td>
       </tr>
     </tbody>
   </table>

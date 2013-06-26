@@ -5,15 +5,49 @@
     <title>New DataSet</title>
     <script type="text/javascript">
     $(document).ready(function() {
-        $('#add-attribute-btn').click(function() {
-            $('#item-attributes').append('<li>${h.form.text_field('item_attributes', '', None)}</li>');
+
+        function removeRow() {
+            var link = $(this);
+            var tbody = link.closest('table').find('tbody');
+            if (tbody.find('tr').length != 1)
+               {
+                 var row = link.closest('tr')
+                 row.fadeOut();
+                 setTimeout(function() {row.remove();}, 400);
+               }
+            return false;
+        }
+
+        $('a.action-remove-row').click(removeRow);
+
+        $('a.action-add-row').click(function() {
+            var link = $(this);
+            var tbody = link.closest('table').find('tbody');
+            var nrows = tbody.find('tr').length
+            var row = $('<tr></tr>');
+            var input_field = '${h.form.text_field('attribute_keys-nrows.key', '', None)}';
+            input_field = input_field.replace(/nrows/, '' + nrows)
+            row.append('<td>' + input_field + '</td>');
+            var id_field = '${h.form.text_field('attribute_keys-nrows.id', '', e)}';
+            id_field = id_field.replace(/nrows/, '' + nrows)
+            row.append('<td>' + id_field + '</td>');
+            var remove_link = $('<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a>');
+            remove_link.click(removeRow);
+            col = $('<td></td>');
+            col.append(remove_link);
+            row.append(col);
+            tbody.append(row);
+            tbody.sortable('reload');
             return false;
         });
+
     });
     </script>
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New DataSet', {'href':''})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
     <article>
       <hgroup>
         <h1>New DataSet</h1>
@@ -23,13 +57,38 @@
         <dl>
           <dt>Name</dt>
           <dd>${h.form.text_field('name', dis.name, e, class_='span-12')}</dd>
-          <dt>Item Attributes</dt>
+	  <dt>Item Attributes</dt>
 	  <dd>
-            <ul id="item-attributes" class="no-symbol no-margin">
-              <li>${h.form.text_field('item_attributes', '', e, class_='span-12')}</li>
-	    </ul>
-            <button id="add-attribute-btn" class="button">Add an attribute</button>
-          </dd>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+		  <th></th>
+		  <th></th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td><a href="#" title="Add a row" class="button action-add-row" ><span class="ui-icon ui-icon-plusthick"></span></a></td>
+                </tr>
+              </tfoot>
+              <tbody class="role-sortable">
+                <tr>
+		  <td>${h.form.text_field('attribute_keys-0.key', '' , e)}</td>
+		  <td>${h.form.hidden_field('attribute_keys-0.id', '')}</td>
+		  <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
+                </tr>
+                <tr>
+		  <td>${h.form.text_field('attribute_keys-1.key', '' , e)}</td>
+		  <td>${h.form.hidden_field('attribute_keys-1.id', '')}</td>
+		  <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
+                </tr>
+              </tbody>
+            </table>
+
+	  </dd>
         </dl>
         <ul class="buttons span-22">
           <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>

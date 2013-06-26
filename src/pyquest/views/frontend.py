@@ -130,7 +130,7 @@ class ParticipantManager(object):
                 data_item = self._dbsession.query(DataItem).filter(DataItem.id==did).first()
                 data_item_data = {'did': data_item.id}
                 for attr in data_item.attributes:
-                    data_item_data[attr.key] = attr.value
+                    data_item_data[attr.key.key] = attr.value
                 current_items.append(data_item_data)
             return current_items
         else:
