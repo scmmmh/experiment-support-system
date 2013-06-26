@@ -19,7 +19,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '6e3dd1c4643'
+DB_VERSION = '26adf3f9d0f5'
 
 class DBUpgradeException(Exception):
     
@@ -685,12 +685,8 @@ class Notification(Base):
     recipient = Column(Unicode(255))
     timestamp = Column(Integer, default=0)
 
-    def respond(self, dbsession):
+    def respond(self, dbsession, time_factor):
         response = {'message': None, 'addresses': self.recipient.split(',')}
-        
-        # For testing interval value is taken to be seconds, for real it should be days
-        time_factor = 1
-#        time_factor = 3600 * 24
         participants = dbsession.query(Participant).filter(Participant.survey_id==self.survey.id).all()
         if self.ntype == 'interval':
             time_now = int(time.time())
