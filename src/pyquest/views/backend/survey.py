@@ -249,11 +249,11 @@ def duplicate(request):
                         survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                         dupl_survey = Survey(title=params['title'],
                                              status='develop',
-                                             owned_by=user.id,
                                              summary=survey.summary,
                                              styles=survey.styles,
                                              scripts=survey.scripts)
                         dbsession.add(dupl_survey)
+                        dupl_survey.owner = user
                         qsheets = {}
                         for qsheet in survey.qsheets:
                             dupl_qsheet = QSheet(name=qsheet.name,

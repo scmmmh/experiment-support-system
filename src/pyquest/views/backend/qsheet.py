@@ -61,6 +61,8 @@ class QSheetVisualSchema(Schema):
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
     transitions = foreach.ForEach(TransitionSchema())
+    task_count = validators.Int(if_missing=0, if_empty=0)
+    interface_count = validators.Int(if_missing=0, if_empty=0)
 
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -350,6 +352,8 @@ def edit(request):
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
+                        qsheet.set_attr_value('task-count', params['task_count'])
+                        qsheet.set_attr_value('interface-count', params['interface_count'])
 
                         for transition in qsheet.next:
                             t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
@@ -546,6 +550,8 @@ def edit_source(request):
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
+                        qsheet.set_attr_value('task-count', params['task_count'])
+                        qsheet.set_attr_value('interface-count', params['interface_count'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
 
