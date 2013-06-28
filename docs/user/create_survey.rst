@@ -19,5 +19,7 @@ This section explains how to create a new survey.
  
 .. image:: ../_static/user/origHomePgSurveyScreen.png
    :align: center  
- 
-In the next section of the manual, we will present and explain the different elements of the Survey home page, as this will allow you to better understand the sets of instructions that follow and will assist you in familiarising yourself with the architecture of the home page.
+   
+.. admonition: Next section
+
+	In the next section of the manual, we will present and explain the different elements of the Survey home page, as this will allow you to better understand the sets of instructions that follow and will assist you in familiarising yourself with the architecture of the home page.

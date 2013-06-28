@@ -1,4 +1,4 @@
-Working with PyQuestionnaire 
+Working with PyQuestionnaire
 ==================================
 .. toctree::
    :maxdepth: 4 
