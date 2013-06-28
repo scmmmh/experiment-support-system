@@ -178,6 +178,10 @@ class Survey(Base):
                           backref='survey',
                           cascade='all, delete, delete-orphan')
     
+    permutations = relationship('Permutation',
+                                backref = 'survey',
+                                cascade = 'all, delete, delete-orphan')
+    
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
         self.summary = summary
@@ -222,7 +226,7 @@ class QSheet(Base):
                         backref='target',
                         primaryjoin='QSheet.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
-    
+
     def attr(self, key):
         for attr in self.attributes:
             if attr.key == key:
@@ -639,11 +643,11 @@ class Participant(Base):
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
-    
+
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
-    
+
     def get_state(self):
         if self.state:
             return json.loads(self.state)
@@ -699,3 +703,15 @@ class Notification(Base):
                 
         return response
 
+class Permutation(Base):
+
+    __tablename__ = 'permutations'
+    
+    id = Column(Integer, primary_key=True)
+    survey_id = Column(ForeignKey(Survey.id, name='permutations_survey_fk'))
+    to_do_list = Column(UnicodeText)
+    assigned_to = Column(ForeignKey(Participant.id, name='permutations_participant_fk'))
+
+    participant = relationship('Participant',
+                               backref='permutation',
+                               uselist=False)

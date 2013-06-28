@@ -13,13 +13,13 @@ from formencode import api
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.renderer import render
-from random import sample, shuffle
+from random import sample, shuffle, random
 from sqlalchemy import and_
 from sqlalchemy.sql.expression import not_
 
 from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
-    DataItemCount, Answer, AnswerValue, Question, TransitionCondition)
+    DataItemCount, Answer, AnswerValue, Question, TransitionCondition, Permutation)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 from pyquest.helpers.qsheet import transition_sorter
 
@@ -39,11 +39,17 @@ class ParticipantManager(object):
         if 'participant_id' in session:
             self._participant = dbsession.query(Participant).filter(Participant.id==session['participant_id']).first()
         if not self._participant:
+            self._participant = Participant(survey_id=survey.id)
             with transaction.manager:
-                self._participant = Participant(survey_id=survey.id)
+                dbsession.add(survey)
+                if len(survey.permutations) > 0:
+                    perm = survey.permutations[int(random() * len(survey.permutations))]
+                    dbsession.add(perm)
+                    self._participant.permutation.append(perm)
                 dbsession.add(self._participant)
                 dbsession.flush()
             dbsession.add(self._participant)
+            dbsession.flush()
             session['participant_id'] = self._participant.id
             session.persist()
             request.response.headerlist.append(('Set-Cookie', session.__dict__['_headers']['cookie_out']))

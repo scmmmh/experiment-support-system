@@ -19,8 +19,9 @@ from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             Question, QSheetTransition, QSheetAttribute,
                             DataItemControlAnswer, QuestionType,
-                            QuestionTypeGroup, DataSet, DataSetAttributeKey, Notification)
+                            QuestionTypeGroup, DataSet, DataSetAttributeKey, Notification, Permutation)
 from pyquest.views.backend.qsheet import load_questions_from_xml
+from pyquest.todolist import ToDoListGenerator
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -1298,6 +1299,14 @@ def init_test_data(DBSession):
         qsheet2.attributes.append(QSheetAttribute(key='task-count', value='2'))
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
+        tasks = []
+        for i in range(2):
+            tasks.append(chr(i+65))
+        interfaces = range(1, 3)
+        permutations = ToDoListGenerator().ww(tasks, interfaces)
+        for perm in permutations:
+            p = Permutation(to_do_list = str(perm))
+            survey.permutations.append(p)
         survey.qsheets.append(qsheet2)
         """
         """
