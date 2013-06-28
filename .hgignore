@@ -18,6 +18,7 @@ syntax: regexp
 syntax: glob
 *.pyc
 
+docs/user/imp_exp_del_pg
 syntax: regexp
 ^development\.ini$
 syntax: regexp
