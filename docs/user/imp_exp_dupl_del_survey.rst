@@ -32,7 +32,8 @@ The system allows you to write a survey in XML and upload it on your PyQuestionn
 - The survey you have just imported will now appear in the list of surveys of your main profile screen. 
 
 - You can then manipulate the imported survey in the same way that you do with surveys setup with the use of the PyQuestionnaire.
- 
+
+.. _expSurvey:
 Exporting a survey
 ******************
 You can export a survey by downloading its XML code in your files. To do this, you need to carry out the following steps:
@@ -47,7 +48,7 @@ You can export a survey by downloading its XML code in your files. To do this, y
    :align: center
 
 - In that screen, click on the |downXML| button, for the relevant XML code to appear in your browser.
- 
+
 Duplicating a survey
 ********************
 If you have a survey that is a good basis for further surveys to be developed on or if you want to test ideas you might have regarding the possible development paths you could follow without messing up the original survey, PyQuestionnaire allows you to duplicate it.

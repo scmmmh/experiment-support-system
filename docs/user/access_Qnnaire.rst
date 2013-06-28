@@ -21,7 +21,9 @@ Access PyQuestionnaire
 .. image:: ../_static/user/mainProfScreen.png
    :align: center 
    
-- As mentioned above, the main profile screen automatically appears each time you login in PyQuestionnaire. However, if you already are in a survey that you are developing, there are two ways to reach the profile screen:
+- As mentioned above, the main profile screen automatically appears each time you login in PyQuestionnaire. 
+  
+  However, if you already are in a survey that you are developing, there are two ways to reach the profile screen:
   
   1. Use the *Breadcrumbs* (:doc:`ref<survey_home_page_elements>`), located on the top left corner of your screen, by clicking on the link *All my surveys*.
   
