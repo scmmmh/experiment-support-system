@@ -15,7 +15,7 @@ from pywebtools.renderer import render
 from sqlalchemy import and_, desc
 
 from pyquest import helpers
-from pyquest.todolist import ToDoListGenerator
+from pyquest import todolist
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
@@ -356,11 +356,7 @@ def edit(request):
                         qsheet.set_attr_value('task-count', params['task_count'])
                         qsheet.set_attr_value('interface-count', params['interface_count'])
 
-                        tasks = []
-                        for i in range(int(params['task_count'])):
-                            tasks.append(chr(i+65))
-                        interfaces = range(1, int(params['interface_count'] + 1))
-                        permutations = ToDoListGenerator().ww(tasks, interfaces)
+                        permutations = todolist.generate('ww', 2, False)
                         dbsession.add(survey)
                         for perm in permutations:
                             p = Permutation(to_do_list = str(perm))
