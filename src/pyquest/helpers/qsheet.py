@@ -22,6 +22,8 @@ def substitute(text, item, participant=None):
             tag = m.group(0)[2:-1]
             if participant and tag == 'pid_':
                 text = text.replace(m.group(0), unicode(participant.id))
+            elif participant and tag == 'tdl_' and len(participant.permutation) > 0:
+                text = text.replace(m.group(0), unicode(participant.permutation[0].to_do_list))
             elif tag in item:
                 text = text.replace(m.group(0), unicode(item[tag]))
             else:

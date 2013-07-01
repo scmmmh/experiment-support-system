@@ -1299,11 +1299,12 @@ def init_test_data(DBSession):
         qsheet2.attributes.append(QSheetAttribute(key='task-count', value='2'))
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
-        permutations = todolist.generate('ww', 2, 2, False)
-        for perm in permutations:
-            p = Permutation(to_do_list = str(perm))
-            survey.permutations.append(p)
         survey.qsheets.append(qsheet2)
+        permutations = todolist.generate('ww', 2, 2, False)
+        counter = 0
+        for perm in permutations:
+            survey.permutations.append(Permutation(to_do_list=str(perm), applicant=qsheet2))
+            counter = counter + 1
         """
         """
         survey.start = qsheet1

@@ -356,10 +356,10 @@ def edit(request):
                         qsheet.set_attr_value('task-count', params['task_count'])
                         qsheet.set_attr_value('interface-count', params['interface_count'])
 
-                        permutations = todolist.generate('ww', 2, False)
+                        permutations = todolist.generate('ww', params['task_count'], params['interface_count'], False)
                         dbsession.add(survey)
                         for perm in permutations:
-                            p = Permutation(to_do_list = str(perm))
+                            p = Permutation(to_do_list = str(perm), applicant=qsheet)
                             dbsession.add(p)
                             survey.permutations.append(p)
                         for transition in qsheet.next:

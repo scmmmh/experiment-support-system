@@ -709,9 +709,14 @@ class Permutation(Base):
     
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='permutations_survey_fk'))
+    applies_to = Column(ForeignKey(QSheet.id, name='permutations_applies_to_fk'))
+
     to_do_list = Column(UnicodeText)
     assigned_to = Column(ForeignKey(Participant.id, name='permutations_participant_fk'))
 
     participant = relationship('Participant',
                                backref='permutation',
                                uselist=False)
+    applicant = relationship('QSheet',
+                             backref='permutation',
+                             uselist=False)

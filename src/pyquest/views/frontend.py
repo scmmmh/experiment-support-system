@@ -19,9 +19,10 @@ from sqlalchemy.sql.expression import not_
 
 from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
-    DataItemCount, Answer, AnswerValue, Question, TransitionCondition, Permutation)
+    DataItemCount, Answer, AnswerValue, Question, TransitionCondition, DataSet, DataSetAttributeKey, DataItemAttribute, Permutation)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 from pyquest.helpers.qsheet import transition_sorter
+import json
 
 class ParticipantManager(object):
     
@@ -39,6 +40,7 @@ class ParticipantManager(object):
         if 'participant_id' in session:
             self._participant = dbsession.query(Participant).filter(Participant.id==session['participant_id']).first()
         if not self._participant:
+            import pdb; pdb.set_trace()
             self._participant = Participant(survey_id=survey.id)
             with transaction.manager:
                 dbsession.add(survey)
@@ -46,6 +48,25 @@ class ParticipantManager(object):
                     perm = survey.permutations[int(random() * len(survey.permutations))]
                     dbsession.add(perm)
                     self._participant.permutation.append(perm)
+                    # convert the bits of perm into a DataSet
+                    ds = DataSet(owner=survey.owner, name="this will never work")
+                    dsak = DataSetAttributeKey(key='perm', order=1)
+                    dbsession.add(ds)
+                    ds.attribute_keys.append(dsak)
+                    li = eval(perm.to_do_list)
+                    o = 1
+                    for item in li:
+                        di = DataItem(order=o)
+                        dbsession.add(di)
+                        dia = DataItemAttribute(value=str(item))
+                        di.attributes.append(dia)
+                        ds.items.append(di)
+                        dsak.values.append(dia)
+                        o = o + 1
+                    # attach it to the relevant QSheet
+                    survey.data_sets.append(ds)
+                    qsheet = dbsession.query(QSheet).filter(QSheet.id==perm.applies_to).first()
+                    ds.qsheets.append(qsheet)
                 dbsession.add(self._participant)
                 dbsession.flush()
             dbsession.add(self._participant)
