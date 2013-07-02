@@ -711,7 +711,7 @@ class Permutation(Base):
     survey_id = Column(ForeignKey(Survey.id, name='permutations_survey_fk'))
     applies_to = Column(ForeignKey(QSheet.id, name='permutations_applies_to_fk'))
 
-    to_do_list = Column(UnicodeText)
+    dataset_id = Column(ForeignKey(DataSet.id, name='permutations_dataset_id_fk'))
     assigned_to = Column(ForeignKey(Participant.id, name='permutations_participant_fk'))
 
     participant = relationship('Participant',
@@ -720,3 +720,4 @@ class Permutation(Base):
     applicant = relationship('QSheet',
                              backref='permutation',
                              uselist=False)
+    dataset = relationship('DataSet')

@@ -20,7 +20,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
                             QuestionAttributeGroup, QSheetAttribute, QSheetTransition,
-                            Participant, QuestionType, QuestionTypeGroup, TransitionCondition, Permutation)
+                            Participant, QuestionType, QuestionTypeGroup, TransitionCondition, DataSet, DataSetAttributeKey, Permutation, DataItem, DataItemAttribute)
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
                                 XmlValidator, QuestionTypeSchema)
 
@@ -321,6 +321,24 @@ def preview(request):
     else:
         raise HTTPNotFound()
 
+def perm_string_to_dataset(dbsession, perm, survey):
+    # convert the bits of perm into a DataSet
+    ds = DataSet(name="perm")
+    dsak = DataSetAttributeKey(key='perm', order=1)
+    dbsession.add(ds)
+    ds.attribute_keys.append(dsak)
+    li = perm
+    o = 1
+    for item in li:
+        di = DataItem(order=o)
+        dbsession.add(di)
+        dia = DataItemAttribute(value=str(item))
+        di.attributes.append(dia)
+        ds.items.append(di)
+        dsak.values.append(dia)
+        o = o + 1
+    return ds
+
 @view_config(route_name='survey.qsheet.edit')
 @render({'text/html': 'backend/qsheet/edit.html',
          'application/json': True})
@@ -359,7 +377,9 @@ def edit(request):
                         permutations = todolist.generate('ww', params['task_count'], params['interface_count'], False)
                         dbsession.add(survey)
                         for perm in permutations:
-                            p = Permutation(to_do_list = str(perm), applicant=qsheet)
+                            pds = perm_sring_to_dataset(perm)
+                            dbsession.add(pds)
+                            p = Permutation(dataset = pds, applicant=qsheet)
                             dbsession.add(p)
                             survey.permutations.append(p)
                         for transition in qsheet.next:

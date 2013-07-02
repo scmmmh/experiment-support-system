@@ -20,7 +20,7 @@ from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             Question, QSheetTransition, QSheetAttribute,
                             DataItemControlAnswer, QuestionType,
                             QuestionTypeGroup, DataSet, DataSetAttributeKey, Notification, Permutation)
-from pyquest.views.backend.qsheet import load_questions_from_xml
+from pyquest.views.backend.qsheet import load_questions_from_xml, perm_string_to_dataset
 from pyquest import todolist
 
 def usage(argv):
@@ -1306,7 +1306,10 @@ def init_test_data(DBSession):
         permutations = todolist.generate('ww', 2, 2, False)
         counter = 0
         for perm in permutations:
-            survey.permutations.append(Permutation(to_do_list=str(perm), applicant=qsheet2))
+            ds = perm_string_to_dataset(DBSession, perm, survey)
+            user.data_sets.append(ds)
+            survey.data_sets.append(ds)
+            survey.permutations.append(Permutation(dataset=ds, applicant=qsheet2))
             counter = counter + 1
         """
         """

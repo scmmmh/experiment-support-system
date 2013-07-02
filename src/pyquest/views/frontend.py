@@ -47,25 +47,6 @@ class ParticipantManager(object):
                     perm = survey.permutations[int(random() * len(survey.permutations))]
                     dbsession.add(perm)
                     self._participant.permutation.append(perm)
-                    # convert the bits of perm into a DataSet
-                    ds = DataSet(owner=survey.owner, name="participant %d applies to %d" % (self._participant.id, perm.applies_to))
-                    dsak = DataSetAttributeKey(key='perm', order=1)
-                    dbsession.add(ds)
-                    ds.attribute_keys.append(dsak)
-                    li = eval(perm.to_do_list)
-                    o = 1
-                    for item in li:
-                        di = DataItem(order=o)
-                        dbsession.add(di)
-                        dia = DataItemAttribute(value=str(item))
-                        di.attributes.append(dia)
-                        ds.items.append(di)
-                        dsak.values.append(dia)
-                        o = o + 1
-                    # attach it to the survey
-                    survey.data_sets.append(ds)
-#                    qsheet = dbsession.query(QSheet).filter(QSheet.id==perm.applies_to).first()
-#                    ds.qsheets.append(qsheet)
                 dbsession.add(self._participant)
                 dbsession.flush()
             dbsession.add(self._participant)
@@ -110,9 +91,8 @@ class ParticipantManager(object):
         qsheet = self.current_qsheet()
         # if there is a permutation DataSet for this participant and this qsheet then use that
         self.data_set_in_use = None
-        pds = self._dbsession.query(DataSet).filter(DataSet.name=="participant %d applies to %d" % (self._participant.id, qsheet.id)).first()
-        if pds:
-            self.data_set_in_use = pds
+        if len(self._participant.permutation) > 0:
+            self.data_set_in_use = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation[0].dataset_id).first()
             # we want the data items to be presented in the order specified by the to_do_list generation
             do_sample = False
         else:
@@ -386,6 +366,7 @@ def finished_survey(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
+        import pdb; pdb.set_trace()
         part_manager = ParticipantManager(request, dbsession, survey)
         if survey.status == 'testing':
             request.response.delete_cookie('survey.%s' % request.matchdict['seid'])
