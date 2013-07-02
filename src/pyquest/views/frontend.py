@@ -40,7 +40,6 @@ class ParticipantManager(object):
         if 'participant_id' in session:
             self._participant = dbsession.query(Participant).filter(Participant.id==session['participant_id']).first()
         if not self._participant:
-            import pdb; pdb.set_trace()
             self._participant = Participant(survey_id=survey.id)
             with transaction.manager:
                 dbsession.add(survey)
@@ -49,7 +48,7 @@ class ParticipantManager(object):
                     dbsession.add(perm)
                     self._participant.permutation.append(perm)
                     # convert the bits of perm into a DataSet
-                    ds = DataSet(owner=survey.owner, name="this will never work")
+                    ds = DataSet(owner=survey.owner, name="participant %d applies to %d" % (self._participant.id, perm.applies_to))
                     dsak = DataSetAttributeKey(key='perm', order=1)
                     dbsession.add(ds)
                     ds.attribute_keys.append(dsak)
@@ -63,10 +62,10 @@ class ParticipantManager(object):
                         ds.items.append(di)
                         dsak.values.append(dia)
                         o = o + 1
-                    # attach it to the relevant QSheet
+                    # attach it to the survey
                     survey.data_sets.append(ds)
-                    qsheet = dbsession.query(QSheet).filter(QSheet.id==perm.applies_to).first()
-                    ds.qsheets.append(qsheet)
+#                    qsheet = dbsession.query(QSheet).filter(QSheet.id==perm.applies_to).first()
+#                    ds.qsheets.append(qsheet)
                 dbsession.add(self._participant)
                 dbsession.flush()
             dbsession.add(self._participant)
@@ -109,8 +108,18 @@ class ParticipantManager(object):
                 return (t[0], 0)
         state = self.state()
         qsheet = self.current_qsheet()
-        if qsheet.data_set:
-            dsid = unicode(qsheet.data_set.id)
+        # if there is a permutation DataSet for this participant and this qsheet then use that
+        self.data_set_in_use = None
+        pds = self._dbsession.query(DataSet).filter(DataSet.name=="participant %d applies to %d" % (self._participant.id, qsheet.id)).first()
+        if pds:
+            self.data_set_in_use = pds
+            # we want the data items to be presented in the order specified by the to_do_list generation
+            do_sample = False
+        else:
+            self.data_set_in_use = qsheet.data_set
+            do_sample = True
+        if self.data_set_in_use:
+            dsid = unicode(self.data_set_in_use.id)
             if dsid not in state['data-items']:
                 state['data-items'][dsid] = {'seen': []}
             if 'current' not in state['data-items'][dsid]:
@@ -118,11 +127,11 @@ class ParticipantManager(object):
                 control_count = int(qsheet.attr_value('control-items', default='0'))
                 source_items = map(data_item_transform,
                                    self._dbsession.query(DataItem, DataItemCount).\
-                                   outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==qsheet.data_set.id,
-                                                                        DataItem.control==False,
-                                                                        not_(DataItem.id.in_(self._dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==self._participant.id,
-                                                                                                                                                                           QSheet.id==qsheet.id)))))
-                                                                   ).all())
+                                       outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==self.data_set_in_use.id,
+                                                                            DataItem.control==False,
+                                                                            not_(DataItem.id.in_(self._dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==self._participant.id,
+                                                                                                                                                                               QSheet.id==qsheet.id)))))
+                                                                       ).all())
                 source_items.sort(key=lambda i: i[1])
                 data_items = []
                 if len(source_items) > 0:
@@ -134,14 +143,17 @@ class ParticipantManager(object):
                         threshold_items = filter(lambda t: t[1] == threshold, source_items)
                         required_count = item_count - len(data_items)
                         if required_count < len(threshold_items):
-                            data_items.extend(map(lambda t: t[0].id, sample(threshold_items, required_count)))
+                            if do_sample:
+                                data_items.extend(map(lambda t: t[0].id, sample(threshold_items, required_count)))
+                            else:
+                                data_items.extend(map(lambda t: t[0].id, threshold_items[:required_count]))
                         else:
                             data_items.extend(map(lambda t: t[0].id, threshold_items))
                         threshold = threshold + 1
                 if len(source_items) < item_count:
                     return None
                 control_items = map(lambda d: d.id,
-                                    self._dbsession.query(DataItem).filter(and_(DataItem.dataset_id==qsheet.data_set.id,
+                                    self._dbsession.query(DataItem).filter(and_(DataItem.dataset_id==self.data_set_in_use.id,
                                                                           DataItem.control==True)).all())
                 if len(control_items) < control_count:
                     data_items.extend(control_items)
@@ -194,8 +206,9 @@ class ParticipantManager(object):
             elif transition:
                 state['current-qsheet'] = '_finished'
         elif action == 'more':
-            if self.current_qsheet().data_set:
-                dsid = unicode(self.current_qsheet().data_set.id)
+#            if self.current_qsheet().data_set:
+            if self.data_set_in_use:
+                dsid = unicode(self.data_set_in_use.id)
                 if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
                     del state['data-items'][dsid]['current']
         self._participant.set_state(state)

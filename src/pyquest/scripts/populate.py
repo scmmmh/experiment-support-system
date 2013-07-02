@@ -1282,18 +1282,21 @@ def init_test_data(DBSession):
         source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
   <pq:styles></pq:styles>
   <pq:scripts></pq:scripts>
-<pq:questions>
-<pq:question>
-  <pq:type>text</pq:type>
-  <pq:attribute name="text.text"><p>
-    IFrame goes here...</p>
-</pq:attribute>
-</pq:question>
+  <pq:questions>
+     <pq:question>
+     <pq:type>confirm</pq:type>
+     <pq:name>PermDone</pq:name>
+     <pq:title>Participant ${pid_} imagine an iframe containing permutation ${perm} then tick the box</pq:title>
+     <pq:help></pq:help>
+     <pq:required>true</pq:required>
+     <pq:attribute name="further.value">done</pq:attribute>
+     <pq:attribute name="further.label">Imagined</pq:attribute>
+     </pq:question>
   </pq:questions>
 </pq:qsheet>"""
         qsheet2 = QSheet(name='task_interface_page', title='Where the tasks are...', styles='', scripts='')
-        qsheet2.attributes.append(QSheetAttribute(key='repeat', value='single'))
-        qsheet2.attributes.append(QSheetAttribute(key='data-items', value='0'))
+        qsheet2.attributes.append(QSheetAttribute(key='repeat', value='repeat'))
+        qsheet2.attributes.append(QSheetAttribute(key='data-items', value='1'))
         qsheet2.attributes.append(QSheetAttribute(key='control-items', value='0'))
         qsheet2.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
         qsheet2.attributes.append(QSheetAttribute(key='task-count', value='2'))
