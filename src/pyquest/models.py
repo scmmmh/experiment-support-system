@@ -716,7 +716,7 @@ class Permutation(Base):
 
     participant = relationship('Participant',
                                backref=backref('permutation', uselist=False))
-    applicant = relationship('QSheet',
-                             backref=backref('permutation', uselist=False))
+
+    applicant = relationship('QSheet')
 
     dataset = relationship('DataSet')

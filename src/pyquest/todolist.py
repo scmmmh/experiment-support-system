@@ -28,7 +28,7 @@ def wb(tasks, interfaces):
             perm = []
             for i in range(len(taskperm)):
                 perm.append((taskperm[i], interface))
-                permutations.append(perm)
+            permutations.append(perm)
     return permutations
 
 # between-within
@@ -53,9 +53,9 @@ def bb(tasks, interfaces):
 
 def constructLists(task_count, interface_count):
     tasks = []
-    for i in range(2):
+    for i in range(task_count):
         tasks.append(chr(i+65))
-    interfaces = range(1, 3)
+    interfaces = range(1, interface_count + 1)
     return (tasks, interfaces)
 
 def generate(toCall, task_count, interface_count, shuffle):

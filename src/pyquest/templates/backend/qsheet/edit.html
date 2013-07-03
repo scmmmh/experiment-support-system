@@ -333,7 +333,10 @@
 	    <dt>Task Specification</dt>
 	    <dd class="task-spec">
 	      Number of Tasks: ${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-task-count')}
+	      ${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-task-worb')}
+	      <br/>
 	      Number of Interfaces: ${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-interface-count')}
+	      ${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-interface-worb')}
 	    </dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>
             <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>

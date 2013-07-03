@@ -24,6 +24,7 @@ from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribu
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
                                 XmlValidator, QuestionTypeSchema)
 
+
 class QSheetNewSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
@@ -64,6 +65,8 @@ class QSheetVisualSchema(Schema):
     transitions = foreach.ForEach(TransitionSchema())
     task_count = validators.Int(if_missing=0, if_empty=0)
     interface_count = validators.Int(if_missing=0, if_empty=0)
+    task_worb = validators.UnicodeString()
+    interface_worb = validators.UnicodeString()
 
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -373,15 +376,24 @@ def edit(request):
                         qsheet.set_attr_value('control-items', params['control_items'])
                         qsheet.set_attr_value('task-count', params['task_count'])
                         qsheet.set_attr_value('interface-count', params['interface_count'])
-
-                        permutations = todolist.generate('ww', params['task_count'], params['interface_count'], False)
+                        qsheet.set_attr_value('task-worb', params['task_worb'])
+                        qsheet.set_attr_value('interface-worb', params['interface_worb'])
                         dbsession.add(survey)
+                        dbsession.add(user)
+                        for perm in survey.permutations:
+                            dbsession.delete(perm.dataset)
+                            dbsession.delete(perm)
+                        
+                        permutations = todolist.generate(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False)
                         for perm in permutations:
-                            pds = perm_sring_to_dataset(perm)
+                            pds = perm_string_to_dataset(dbsession, perm, survey)
                             dbsession.add(pds)
+                            user.data_sets.append(pds)
+                            survey.data_sets.append(pds)
                             p = Permutation(dataset = pds, applicant=qsheet)
                             dbsession.add(p)
                             survey.permutations.append(p)
+                            
                         for transition in qsheet.next:
                             t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
                             transition.target_id = t_param['target_id']
@@ -579,6 +591,8 @@ def edit_source(request):
                         qsheet.set_attr_value('control-items', params['control_items'])
                         qsheet.set_attr_value('task-count', params['task_count'])
                         qsheet.set_attr_value('interface-count', params['interface_count'])
+                        qsheet.set_attr_value('task-worb', params['task_worb'])
+                        qsheet.set_attr_value('interface-worb', params['interface_worb'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
 
