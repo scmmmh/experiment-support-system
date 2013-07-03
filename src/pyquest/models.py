@@ -715,9 +715,8 @@ class Permutation(Base):
     assigned_to = Column(ForeignKey(Participant.id, name='permutations_participant_fk'))
 
     participant = relationship('Participant',
-                               backref='permutation',
-                               uselist=False)
+                               backref=backref('permutation', uselist=False))
     applicant = relationship('QSheet',
-                             backref='permutation',
-                             uselist=False)
+                             backref=backref('permutation', uselist=False))
+
     dataset = relationship('DataSet')

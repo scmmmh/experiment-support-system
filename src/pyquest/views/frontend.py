@@ -46,11 +46,10 @@ class ParticipantManager(object):
                 if len(survey.permutations) > 0:
                     perm = survey.permutations[int(random() * len(survey.permutations))]
                     dbsession.add(perm)
-                    self._participant.permutation.append(perm)
+                    self._participant.permutation = perm
                 dbsession.add(self._participant)
                 dbsession.flush()
             dbsession.add(self._participant)
-            dbsession.flush()
             session['participant_id'] = self._participant.id
             session.persist()
             request.response.headerlist.append(('Set-Cookie', session.__dict__['_headers']['cookie_out']))
@@ -91,9 +90,12 @@ class ParticipantManager(object):
         qsheet = self.current_qsheet()
         # if there is a permutation DataSet for this participant and this qsheet then use that
         self.data_set_in_use = None
-        if len(self._participant.permutation) > 0:
-            self.data_set_in_use = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation[0].dataset_id).first()
+        pds = None
+        if self._participant.permutation and self._participant.permutation.applies_to == qsheet.id:
+            pds = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation.dataset_id).first()
+        if pds:
             # we want the data items to be presented in the order specified by the to_do_list generation
+            self.data_set_in_use = pds
             do_sample = False
         else:
             self.data_set_in_use = qsheet.data_set
@@ -186,7 +188,6 @@ class ParticipantManager(object):
             elif transition:
                 state['current-qsheet'] = '_finished'
         elif action == 'more':
-#            if self.current_qsheet().data_set:
             if self.data_set_in_use:
                 dsid = unicode(self.data_set_in_use.id)
                 if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
@@ -230,7 +231,6 @@ def run_survey(request):
             return int(value)
         except ValueError:
             return None
-
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
@@ -366,8 +366,8 @@ def finished_survey(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
-        import pdb; pdb.set_trace()
         part_manager = ParticipantManager(request, dbsession, survey)
+        dbsession.add(survey)
         if survey.status == 'testing':
             request.response.delete_cookie('survey.%s' % request.matchdict['seid'])
         return {'survey': survey,
