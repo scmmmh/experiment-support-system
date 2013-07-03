@@ -43,10 +43,13 @@ class ParticipantManager(object):
             self._participant = Participant(survey_id=survey.id)
             with transaction.manager:
                 dbsession.add(survey)
-                if len(survey.permutations) > 0:
-                    perm = survey.permutations[int(random() * len(survey.permutations))]
+                available_perms = dbsession.query(Permutation).filter(and_(Permutation.survey_id==survey.id,
+                                                                           Permutation.assigned_to==None)).all()
+                if len(available_perms) > 0:
+                    perm = available_perms[int(random() * len(available_perms))]
                     dbsession.add(perm)
                     self._participant.permutation = perm
+                #else: ???
                 dbsession.add(self._participant)
                 dbsession.flush()
             dbsession.add(self._participant)
