@@ -9,6 +9,11 @@ Importing, exporting and deleting a survey page
 .. |downXML| image:: ../_static/user/downXML.png
 .. |delete| image:: ../_static/user/delButton.png
 
+.. note::
+	
+   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section :doc:`nav_Qnnaire`.
+   
+ 
 This section explains how to import a new page on a survey under development, by uploading an external XML file that you or your colleagues might have created. This allows the customisation of the survey pages according to your needs, without necessarily using the default options provided by our survey system. 
 
 We assume that you are in the correct survey and will not show you how to navigate to that, as this process has been covered extensively in previous sections. If you need to refer to that process again, then please see the last paragraph of the *Access PyQuestionnaire* section(:doc:`ref<access_Qnnaire>`).

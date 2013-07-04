@@ -5,6 +5,7 @@ Working with PyQuestionnaire
    
    create_survey
    survey_home_page_elements
+   nav_Qnnaire
    man_survey
    run_survey 
    get_data

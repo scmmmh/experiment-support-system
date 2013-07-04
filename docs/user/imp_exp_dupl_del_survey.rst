@@ -10,6 +10,12 @@ Importing, exporting, duplicating and deleting an existing survey
 .. |dontImportButton| image:: ../_static/user/dontImpButton.png
 .. |downXML| image:: ../_static/user/downXML.png
 
+
+.. note::
+	
+   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section :doc:`nav_Qnnaire`.
+   
+   
 This section explains how to import, export, duplicate or delete a survey.
 
 Importing a survey
@@ -46,7 +52,7 @@ You can export a survey by downloading its XML code in your files. To do this, y
 
 .. image:: ../_static/user/expScreen.png
    :align: center
-
+ 
 - In that screen, click on the |downXML| button, for the relevant XML code to appear in your browser.
 
 Duplicating a survey

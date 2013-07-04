@@ -6,7 +6,7 @@ You can edit the survey page in two ways:
   
 2. **Edit source**, which is the screen shown further below in two parts. To access this option, you will need to click on |editSrc| button of default edit screen mentioned further above.
   
-Edit graphically
+Edit graphically 
 ================
 
 Edit source
