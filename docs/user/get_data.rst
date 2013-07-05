@@ -21,7 +21,7 @@
 
 .. note::
 
-   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section :doc:`nav_Qnnaire`.
+   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within PyQuestionnaire*, located at the bottom-half of the section :doc:`Access PyQuestionnaire<access_Questionnaire>`.
   
 Downloading, uploading and clearing data
 ========================================
@@ -35,22 +35,21 @@ In this section you will learn how to work with data gathered from your experime
 
 4. Clear data attached to a survey question - go to the :ref:`relevant section <clearData>`
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 .. _downloadData:
 
-**Downloading data**
+Downloading data
+-------------------
 
 - **From a survey**
 
   a) First, navigate to the required survey, if you are not already there.
   
-  b) Click on the |results| button, included in the *Navigation tabs* (:doc:`ref<survey_home_page_elements>`) of the survey's **home page** screen. An example screenshot of this is shown below, where the above button is highlighted:
+  b) Click on the |results| button, included in the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`) of the survey's **home page** (:doc:`ref<glossary>`) screen. An example screenshot of this is shown below, where the above button is highlighted:
   
   .. image:: ../_static/user/resultsHighlighted.png
    :align: center
 	 
-  c) Clicking on the above mentioned button will take you to the results screen, an example of which is demonstrated below: 
+  c) Clicking on the above mentioned button will take you to the **results** screen, an example of which is demonstrated below: 
   
   .. image:: ../_static/user/resultsScreen.png
    :align: center
@@ -77,13 +76,13 @@ In this section you will learn how to work with data gathered from your experime
 	   
 	   - You can also define the value that will appear in your data set when a field has not been answered.
 	   
-	   - Do this by scrolling down and finding the field **Non-answered value**. This is located at the end of the list of questions appearing on your screen. 
+	   - Do this by scrolling down and finding the field *Non-answered value*. This is located at the end of the list of questions appearing on your screen. 
 	   
 	   - Type an appropriate message in the above mentioned field.
 	   
-	   - When you decide which questions you want to include in your data file and what the **Non-answered** message will be, click on |updateSettings| button, located on the right of your screen, just below the field **Non-answered value**.
+	   - When you decide which questions you want to include in your data file and what the **Non-answered** message will be, click on |updateSettings| button, located on the right of your screen, just below the field *Non-answered value*.
 	   
-	   - By clicking that button, the webpage will refresh and a sample of how your extracted will look like, will be provided under the title **Sample Data** at the bottom of the screen.
+	   - By clicking that button, the webpage will refresh and a sample of how your extracted will look like, will be provided under the title *Sample Data* at the bottom of the screen.
 	   
 	   - When you are happy with the sample data shown, scroll up and find the |downCSV| button.
 	   
@@ -98,11 +97,11 @@ In this section you will learn how to work with data gathered from your experime
 
 	   - The only setting you can change on this screen is the value that will appear in your data set when a field has not been answered. 
 	   
-	   - As with the option to *Export by Participant*, discussed above, you can do this by typing an appropriate message in the field **Non-answered value**, located below the title **Export Settings** at the top of the screen.
+	   - As with the option to **Export by Participant**, discussed above, you can do this by typing an appropriate message in the field *Non-answered value*, located below the title **Export Settings** at the top of the screen.
 	   
-	   - When you are done with the above, click on |updateSettings| button, located on the right of your screen, just below the field **Non-answered value**.
+	   - When you are done with the above, click on |updateSettings| button, located on the right of your screen, just below the field *Non-answered value*.
 	   
-	   - By clicking that button, the webpage will refresh and a sample of how your extracted will look like, will be provided under the title **Sample Data** at the bottom of the screen.
+	   - By clicking that button, the webpage will refresh and a sample of how your extracted will look like, will be provided under the title *Sample Data* at the bottom of the screen.
 	   
 	    .. Important:: 
 	   
@@ -116,7 +115,7 @@ In this section you will learn how to work with data gathered from your experime
   
 - **From a survey question**
 
-  a) Navigate to the **home page** of the appropriate survey and find the required questions from the list provided. 
+  a) Navigate to the **home page** (:doc:`ref<glossary>`) of the appropriate survey and find the required questions from the list provided. 
   
   b) Click on the |dataButton| button, located within the box of the relevant question, as illustrated in the screenshot below:
 	   
@@ -135,12 +134,11 @@ In this section you will learn how to work with data gathered from your experime
   f) To navigate back to your **Results** screen, click on the |results| button at the top of the screen.
   
 .. Important:: *Downloading data from a survey question, works only after uploading data to it. The relevant process is explained in the sub-section below.*
-  
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+      
 .. _uploadData:
 
-**Uploading data**
+Uploading data
+--------------------
 
 Data can only be uploaded to a specific survey question.
 
@@ -163,11 +161,11 @@ Data can only be uploaded to a specific survey question.
 	    :align: center
 
   g) You will then be able to edit the uploaded data as shown in the relevant sub-section below.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. _editData:
 
-**Editing the uploaded data**
+Editing the uploaded data
+-----------------------------
 
   a) If you want to *edit* or *delete* any of the records uploaded, then scroll to the right of the above screen by using the scroll bar as indicated in the screenshot below:
   
@@ -179,7 +177,7 @@ Data can only be uploaded to a specific survey question.
 	 .. image:: ../_static/user/editDelScreen.png
 	    :align: center
   
-  c) Clicking on the |editButton| button will allow you to edit the answers of a given record, through the *Edit Data* screen, an example of which is given below:
+  c) Clicking on the |editButton| button will allow you to edit the answers of a given record, through the **Edit Data** screen, an example of which is given below:
   
   d) When you are done editing, scroll to the bottom of the screen and either click on the |updateButton| button or the |dontUpdateButton| button. Whichever you click on, you will be directed back to the **Data** screen.
   
@@ -195,11 +193,11 @@ Data can only be uploaded to a specific survey question.
   i) After you type the required answers in each of the fields corresponding to the questions included in the survey, scroll down the screen and either click on the |add| button or the |dontAdd| button. 
   
   k) Whichever you click on, you will be directed back to the **Data** screen. The only difference will be that if you added a record manually, this will appear at the end of the list of records in the **Data** screen.
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. _clearData:
 
-**Clearing data**
+Clearing data
+---------------
 
 Last, but not least, is the option to clear any data you have uploaded before. 
 
