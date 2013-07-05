@@ -165,6 +165,49 @@
         return false;
         });
     }
+    function factorial(num)
+    {
+        if (num == 0)
+    {
+         return 1;
+}
+        else
+    {
+         return num * factorial(num - 1);
+}
+    }
+    function display_participant_count(){
+    var worb = $('[name="task_worb"]').val() + $('[name="interface_worb"]').val();
+    var tcount = parseInt($('[name="task_count"]').val());
+    var icount = parseInt($('[name="interface_count"]').val());
+    var pcount, i;
+    switch (worb)
+{
+    case 'ww': pcount = factorial(tcount * icount);
+              break;
+
+    case 'wb' : pcount = factorial(tcount) * icount;
+    break;
+
+    case 'bw' :pcount = tcount * factorial(icount);
+    break;
+    case 'bb' :
+               pcount = tcount * icount;
+    break;
+    default:  pcount = Math.random() * 1000;
+              break;
+}
+    $('#pcount').text('' + pcount);
+
+    tlist = '';
+    for (i = 0; i != tcount; i++)
+		    tlist += (String.fromCharCode(i+65) + ',');
+    $('#task_list').text(tlist.replace(/,$/, ''));
+    ilist = '';
+    for (i = 0; i != icount; i++)
+		    ilist += ('' + (i+1) + ',');
+    $('#interface_list').text(ilist.replace(/,$/, ''));
+    }
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
         make_toggle_link('role-js-edit');
@@ -272,6 +315,7 @@
             fix_control_positions();
             return false;
         });
+        $('.role-qsheet-permute').change(function(){display_participant_count();})
         $('.role-edit-layout').show();
         $('.role-edit-settings').hide();
         $(window).scroll(function(ev) {
@@ -281,6 +325,7 @@
         });
         fix_control_positions();
         set_transition_buttons();
+        display_participant_count();
     });
     </script>
   </head>
@@ -332,11 +377,24 @@
 	    </py:with>
 	    <dt>Task Specification</dt>
 	    <dd class="task-spec">
-	      Number of Tasks: ${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-task-count')}
-	      ${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-task-worb')}
-	      <br/>
-	      Number of Interfaces: ${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-interface-count')}
-	      ${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-interface-worb')}
+	      <table>
+	      <tr>
+	      <td>Tasks: </td>
+	      <td>${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td>${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
+	      <td><label id="task_list">tasks</label></td>
+	      </tr>
+              <tr>
+	      <td>Interfaces: </td>
+	      <td>${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td>${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
+	      <td><label id="interface_list">tasks</label></td>
+	      </tr>
+	      <tr>
+	      <td colspan="2">Number of participants needed for this arrangement:</td> 
+	      <td><label id="pcount">many</label></td>
+	      </tr>
+	      </table>
 	    </dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>
             <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>

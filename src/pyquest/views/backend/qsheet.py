@@ -326,7 +326,7 @@ def preview(request):
 
 def perm_string_to_dataset(dbsession, perm, survey):
     # convert the bits of perm into a DataSet
-    ds = DataSet(name="perm")
+    ds = DataSet(name="perm", show_in_list=False)
     dsak = DataSetAttributeKey(key='perm', order=1)
     dbsession.add(ds)
     ds.attribute_keys.append(dsak)

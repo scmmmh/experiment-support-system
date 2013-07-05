@@ -557,6 +557,7 @@ class DataSet(Base):
     name = Column(Unicode(255))
     owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
     survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
+    show_in_list = Column(Boolean, default=True)
 
     items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
     qsheets = relationship('QSheet', backref='data_set')

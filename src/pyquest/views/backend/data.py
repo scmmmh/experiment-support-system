@@ -48,10 +48,19 @@ class NewDataSetSchema(Schema):
 def list_datasets(request):
     dbsession = DBSession()
     user = current_user(request)
-    dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'])).all()
+    dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.show_in_list==True)).all()
+    perm_dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.show_in_list==False)).all()
+    perms = []
+    for perm in perm_dis:
+        dias = dbsession.query(DataItemAttribute).join(DataItem).filter(DataItem.dataset_id==perm.id).all()
+        perm = ''
+        for dia in dias:
+            perm = perm + ' ' + dia.value
+        perms.append(perm)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     return {'survey': survey,
-            'dis': dis}
+            'dis': dis,
+            'perms': perms}
 
 @view_config(route_name='data.view')
 @render({'text/html': 'backend/data/set_view.html'})
