@@ -226,7 +226,7 @@ class QSheet(Base):
                         backref='target',
                         primaryjoin='QSheet.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
-
+    
     def attr(self, key):
         for attr in self.attributes:
             if attr.key == key:
@@ -643,11 +643,11 @@ class Participant(Base):
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
-
+    
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
-
+    
     def get_state(self):
         if self.state:
             return json.loads(self.state)
