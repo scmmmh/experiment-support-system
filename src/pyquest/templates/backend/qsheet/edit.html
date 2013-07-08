@@ -180,21 +180,29 @@
     var worb = $('[name="task_worb"]').val() + $('[name="interface_worb"]').val();
     var tcount = parseInt($('[name="task_count"]').val());
     var icount = parseInt($('[name="interface_count"]').val());
+    var tcon = $('[name="task_disallow"]').text();
+    var nCons = 1;
+    var conSize = 2;
     var pcount, i;
     switch (worb)
 {
-    case 'ww': pcount = factorial(tcount * icount);
-              break;
+    case 'ww': reduced_tcount = tcount;
+               reduced_icount = icount;
+               pcount = factorial(reduced_tcount * reduced_icount);
+               break;
 
-    case 'wb' : pcount = factorial(tcount) * icount;
-    break;
+    case 'wb' : 
+               pcount = icount * Math.pow(conSize, nCons) * factorial(tcount - (conSize - 1))
+               break;
 
-    case 'bw' :pcount = tcount * factorial(icount);
-    break;
+    case 'bw' :reduced_icount = icount;
+               pcount = tcount * factorial(reduced_icount);
+               break;
     case 'bb' :
                pcount = tcount * icount;
-    break;
-    default:  pcount = Math.random() * 1000;
+               break;
+    default:  
+              pcount = Math.random() * 1000;
               break;
 }
     $('#pcount').text('' + pcount);
@@ -379,19 +387,19 @@
 	    <dd class="task-spec">
 	      <table>
 	      <tr>
-	      <td>Tasks: </td>
+	      <td>Tasks:  <label id="task_list">tasks</label></td>
 	      <td>${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-permute', style='width:50px')}</td>
 	      <td>${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
-	      <td><label id="task_list">tasks</label></td>
+	      <td>${h.form.text_field('task_disallow', qsheet.attr_value('task-disallow', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
 	      </tr>
               <tr>
-	      <td>Interfaces: </td>
+	      <td>Interfaces:  <label id="interface_list">tasks</label></td>
 	      <td>${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-permute', style='width:50px')}</td>
 	      <td>${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
-	      <td><label id="interface_list">tasks</label></td>
+	      <td>${h.form.text_field('interface_disallow', qsheet.attr_value('interface-disallow', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
 	      </tr>
 	      <tr>
-	      <td colspan="2">Number of participants needed for this arrangement:</td> 
+	      <td>Number of participants needed for this arrangement:</td> 
 	      <td><label id="pcount">many</label></td>
 	      </tr>
 	      </table>

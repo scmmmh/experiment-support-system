@@ -58,10 +58,32 @@ def constructLists(task_count, interface_count):
     interfaces = range(1, interface_count + 1)
     return (tasks, interfaces)
 
-def generate(toCall, task_count, interface_count, shuffle):
+def generate(toCall, task_count, interface_count, shuffle, task_disallow):
     tandi = constructLists(task_count, interface_count)
     toDoList = globals()[toCall](tandi[0], tandi[1])
+    rejectedList = []
+#     if len(combo_disallowed) > 0:
+#         toDoListClone = [i for i in toDoList]
+#         rcount = 0
+#         lcount = 0
+#         for perm in toDoListClone:
+#             lcount = lcount + 1
+#             reject = True;
+#             for t in combo_disallowed:
+#                 reject = reject and (t in perm)
+# #                if not reject:
+# #                    break
+#             if reject:
+#                 print "REMOVED\n"
+#                 rcount = rcount + 1
+#                 toDoList.remove(perm)
+#                 rejectedList.append(perm)
+
+#         print "RCOUNT %d \n" % rcount
+#         print "LCOUNT %d \n" % lcount
+
     if shuffle:
         random.shuffle(toDoList)
-    return toDoList
+
+    return [toDoList, rejectedList]
 

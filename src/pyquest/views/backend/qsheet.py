@@ -6,6 +6,8 @@ Created on 24 Jan 2012
 '''
 import transaction
 
+import json
+
 from formencode import Schema, validators, api, variabledecode, foreach
 from lxml import etree
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
@@ -67,6 +69,8 @@ class QSheetVisualSchema(Schema):
     interface_count = validators.Int(if_missing=0, if_empty=0)
     task_worb = validators.UnicodeString()
     interface_worb = validators.UnicodeString()
+    task_disallow = validators.UnicodeString()
+    interface_disallow = validators.UnicodeString()
 
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -362,6 +366,7 @@ def edit(request):
                         sub_schema.add_field('id', validators.Int(not_empty=True))
                         sub_schema.add_field('order', validators.Int(not_empty=True))
                         schema.add_field(unicode(question.id), sub_schema)
+                    import pdb; pdb.set_trace()
                     params = schema.to_python(request.POST)
                     with transaction.manager:
                         qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -378,13 +383,15 @@ def edit(request):
                         qsheet.set_attr_value('interface-count', params['interface_count'])
                         qsheet.set_attr_value('task-worb', params['task_worb'])
                         qsheet.set_attr_value('interface-worb', params['interface_worb'])
+                        qsheet.set_attr_value('task-disallow', params['task_disallow'])
+                        qsheet.set_attr_value('interface-disallow', params['interface_disallow'])
                         dbsession.add(survey)
                         dbsession.add(user)
                         for perm in survey.permutations:
                             dbsession.delete(perm.dataset)
                             dbsession.delete(perm)
                         
-                        permutations = todolist.generate(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False)
+                        permutations = todolist.generate(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'])[0]
                         for perm in permutations:
                             pds = perm_string_to_dataset(dbsession, perm, survey)
                             dbsession.add(pds)
@@ -593,6 +600,8 @@ def edit_source(request):
                         qsheet.set_attr_value('interface-count', params['interface_count'])
                         qsheet.set_attr_value('task-worb', params['task_worb'])
                         qsheet.set_attr_value('interface-worb', params['interface_worb'])
+                        qsheet.set_attr_value('task-disallow', params['task_disallow'])
+                        qsheet.set_attr_value('interface-disallow', params['interface_disallow'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
 
