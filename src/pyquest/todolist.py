@@ -6,18 +6,15 @@ import random
 
 # within-within
 def ww(tasks, interfaces):
-    permutations = []
+    combinations = []
     for task in tasks:
         for interface in interfaces:
-            permutations.append((task, interface))
-            firstPermute = itertools.permutations(permutations)
+            combinations.append((task, interface))
+    print "Combinations %s" % str(combinations)
+    permutations = [list(i) for i in itertools.permutations(combinations)]
     
-# itertools.permutations will return a tuple of tuples of tuples
-# but we want a list of lists of tuples so reconstruct
-    permutations = []
-    for perm in firstPermute:
-           permutations.append(list(perm))
     return permutations
+
 
 # within-between
 def wb(tasks, interfaces):
@@ -51,39 +48,41 @@ def bb(tasks, interfaces):
             permutations.append([(task, interface)])
     return permutations
 
-def constructLists(task_count, interface_count):
-    tasks = []
+def constructTaskLists(task_count, task_disallow):
+    tasks = [] 
     for i in range(task_count):
         tasks.append(chr(i+65))
+
+    taskLists = []
+    if task_disallow and len(task_disallow) > 0:
+        for group in task_disallow:
+            print "\nDISALLOWING %s\n" % str(group)
+            for d in group:
+                tasksClone = list(tasks)
+                for e in group:
+                    if e != d:
+                        tasksClone.remove(e)
+                print "APPENDING %s\n" % str(tasksClone)
+                taskLists.append(tasksClone)
+    else:
+        taskLists.append(tasks)
+    return taskLists
+
+def constructInterfaceLists(interface_count, interface_disallow):
     interfaces = range(1, interface_count + 1)
-    return (tasks, interfaces)
+    return [interfaces]
 
 def generate(toCall, task_count, interface_count, shuffle, task_disallow):
-    tandi = constructLists(task_count, interface_count)
-    toDoList = globals()[toCall](tandi[0], tandi[1])
-    rejectedList = []
-#     if len(combo_disallowed) > 0:
-#         toDoListClone = [i for i in toDoList]
-#         rcount = 0
-#         lcount = 0
-#         for perm in toDoListClone:
-#             lcount = lcount + 1
-#             reject = True;
-#             for t in combo_disallowed:
-#                 reject = reject and (t in perm)
-# #                if not reject:
-# #                    break
-#             if reject:
-#                 print "REMOVED\n"
-#                 rcount = rcount + 1
-#                 toDoList.remove(perm)
-#                 rejectedList.append(perm)
+    taskLists = constructTaskLists(task_count, task_disallow)
+    interfaceLists = constructInterfaceLists(interface_count, None)
 
-#         print "RCOUNT %d \n" % rcount
-#         print "LCOUNT %d \n" % lcount
+    toDoList = []
+    for i in range(len(taskLists)):
+        for j in range(len(interfaceLists)):
+            toDoList = toDoList + globals()[toCall](taskLists[i], interfaceLists[j])
 
     if shuffle:
         random.shuffle(toDoList)
 
-    return [toDoList, rejectedList]
+    return toDoList
 

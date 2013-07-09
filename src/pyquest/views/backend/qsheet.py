@@ -391,7 +391,7 @@ def edit(request):
                             dbsession.delete(perm.dataset)
                             dbsession.delete(perm)
                         
-                        permutations = todolist.generate(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'])[0]
+                        permutations = todolist.generate(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'])
                         for perm in permutations:
                             pds = perm_string_to_dataset(dbsession, perm, survey)
                             dbsession.add(pds)

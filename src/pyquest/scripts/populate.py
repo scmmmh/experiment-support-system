@@ -1303,7 +1303,7 @@ def init_test_data(DBSession):
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
-        permutations = todolist.generate('ww', 2, 2, False)
+        permutations = todolist.generate('ww', 2, 2, False, None)
         counter = 0
         for perm in permutations:
             ds = perm_string_to_dataset(DBSession, perm, survey)
