@@ -1,4 +1,5 @@
 import itertools
+import math
 import random
 
 # within means each user must do all
@@ -12,33 +13,29 @@ def ww(tasks, interfaces):
             combinations.append((task, interface))
     print "Combinations %s" % str(combinations)
     permutations = [list(i) for i in itertools.permutations(combinations)]
-    
     return permutations
-
 
 # within-between
 def wb(tasks, interfaces):
     permutations = []
-    taskperms = itertools.permutations(tasks)
-    for taskperm in taskperms:
-        for interface in interfaces:
-            perm = []
-            for i in range(len(taskperm)):
-                perm.append((taskperm[i], interface))
-            permutations.append(perm)
-    return permutations
+    for interface in interfaces:
+        combinations = []
+        for task in tasks:
+            combinations.append((task, interface))
+        print "Combinations %s" % str(combinations)
+        permutations = permutations + [list(i) for i in itertools.permutations(combinations)]
+    return permutations;
 
 # between-within
 def bw(tasks, interfaces):
     permutations = []
-    intperms = itertools.permutations(interfaces)
-    for intperm in intperms:
-        for task in tasks:
-            perm = []
-            for i in range(len(intperm)):
-                perm.append((task, intperm[i]))
-            permutations.append(perm)
-    return permutations
+    for task in tasks:
+        combinations = []
+        for interface in interfaces:
+            combinations.append((task, interface))
+        print "Combinations %s" % str(combinations)
+        permutations = permutations + [list(i) for i in itertools.permutations(combinations)]
+    return permutations;
 
 # between-between
 def bb(tasks, interfaces):
@@ -55,15 +52,26 @@ def constructTaskLists(task_count, task_disallow):
 
     taskLists = []
     if task_disallow and len(task_disallow) > 0:
-        for group in task_disallow:
-            print "\nDISALLOWING %s\n" % str(group)
+        ctk = list(itertools.product(*task_disallow))
+#        print "combinations to keep %s " % str(ctk)
+        ctr = []
+        for i in range(len(ctk)):
+            tk = ctk[i]
+            td = task_disallow
+#            print "tk %s td %s" % (tk, td)
+            tr = ()
+            for j in range(len(tk)):
+                tr = tr + tuple(td[j].replace(tk[j], ''))
+#            print "tr %s td %s" % (tr, td)
+            ctr.append(tr)
+#        print "combinations to remove %s " % str(ctr)
+        for group in ctr:
+#            print "REMOVING %s" % str(group)
+            tasksClone = list(tasks)
             for d in group:
-                tasksClone = list(tasks)
-                for e in group:
-                    if e != d:
-                        tasksClone.remove(e)
-                print "APPENDING %s\n" % str(tasksClone)
-                taskLists.append(tasksClone)
+                tasksClone.remove(d)
+#            print "APPENDING %s\n" % str(tasksClone)
+            taskLists.append(tasksClone)
     else:
         taskLists.append(tasks)
     return taskLists
@@ -86,3 +94,15 @@ def generate(toCall, task_count, interface_count, shuffle, task_disallow):
 
     return toDoList
 
+def calculate(toCall, task_count, interface_count, shuffle, task_disallow):
+    taskLists = constructTaskLists(task_count, task_disallow)
+    interfaceLists = constructInterfaceLists(interface_count, None)
+
+    count = 0;
+    for taskList in taskLists:
+        for interfaceList in interfaceLists:
+            print "taskList %s interfaceList %s" % (str(taskList), str(interfaceList))
+            print "adding %d!" % (len(taskList) * len(interfaceList))
+            count = count + math.factorial(len(taskList) * len(interfaceList))
+
+    return count
