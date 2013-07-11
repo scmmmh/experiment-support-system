@@ -5,7 +5,7 @@ Created on 24 Jan 2012
 @author: mhall
 '''
 import transaction
-
+import random
 import json
 
 from formencode import Schema, validators, api, variabledecode, foreach
@@ -366,7 +366,6 @@ def edit(request):
                         sub_schema.add_field('id', validators.Int(not_empty=True))
                         sub_schema.add_field('order', validators.Int(not_empty=True))
                         schema.add_field(unicode(question.id), sub_schema)
-                    import pdb; pdb.set_trace()
                     params = schema.to_python(request.POST)
                     with transaction.manager:
                         qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -545,6 +544,25 @@ def edit_add_question(request):
                 question = dbsession.query(Question).filter(Question.id==qid).first()
                 return {'question': question,
                         'idx': 0}
+
+@view_config(route_name='survey.qsheet.pcount')
+@render({'application/json': ''})
+def calculate_pcount(request):
+    import pdb; pdb.set_trace()
+    tcount = int(request.params['tcount'])
+    icount = int(request.params['icount'])
+    tDisallow = []
+    for bit in request.params['tcon'].split(','):
+       tDisallow.append(bit)
+    iDisallow = [] 
+    for bit in request.params['icon'].split(','):
+       iDisallow.append(bit)
+    pcount = todolist.calculate(request.params['worb'], tcount, icount, False, tDisallow, iDisallow)
+    tlist = [chr(i+65) for i in range(tcount)]
+    ilist = [chr(i+49) for i in range(icount)]
+    return {'pcount': str(pcount),
+            'tlist': str(tlist),
+            'ilist': str(ilist)}
 
 @view_config(route_name='survey.qsheet.edit.delete_question')
 @render({'application/json': ''})

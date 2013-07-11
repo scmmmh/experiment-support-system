@@ -30,6 +30,7 @@ def init(config):
     config.add_route('survey.qsheet.new', '/surveys/{sid}/pages/new')
     config.add_route('survey.qsheet.import', '/surveys/{sid}/pages/import')
     config.add_route('survey.qsheet.edit', '/surveys/{sid}/pages/{qsid}/edit')
+    config.add_route('survey.qsheet.pcount', '/surveys/{sid}/pages/{qsid}/pcount')
     config.add_route('survey.qsheet.edit.add_condition', '/surveys/{sid}/pages/{qsid}/add_condition')
     config.add_route('survey.qsheet.edit.delete_condition', '/surveys/{sid}/pages/{qsid}/delete_condition')
     config.add_route('survey.qsheet.edit.add_question', '/surveys/{sid}/pages/{qsid}/add_question')

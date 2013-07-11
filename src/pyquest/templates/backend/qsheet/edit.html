@@ -165,58 +165,25 @@
         return false;
         });
     }
-    function factorial(num)
-    {
-        if (num == 0)
-    {
-         return 1;
-}
-        else
-    {
-         return num * factorial(num - 1);
-}
-    }
-    function calculate_pcount(worb, tcount, icount){
-    var pcount = 0;
-    switch (worb)
-{
-    case 'ww': pcount = factorial(tcount + icount)
-               break;
-
-    case 'wb' : 
-               pcount = factorial(tcount) * icount
-               break;
-
-    case 'bw' :pcount = tcount * factorial(icount)
-               break;
-    case 'bb' :
-               pcount = tcount * icount;
-               break;
-    default:  
-              pcount = Math.random() * 1000;
-              break;
-}
-    return pcount;
-    }
     function display_participant_count(){
+
     var worb = $('[name="task_worb"]').val() + $('[name="interface_worb"]').val();
     var tcount = parseInt($('[name="task_count"]').val());
     var icount = parseInt($('[name="interface_count"]').val());
-    var tcon = $('[name="task_disallow"]').text();
-    var pcount, i;
-    pcount = calculate_pcount(worb, tcount, icount);
-
-    $('#pcount').text('' + pcount);
-
-    tlist = '';
-    for (i = 0; i != tcount; i++)
-		    tlist += (String.fromCharCode(i+65) + ',');
-    $('#task_list').text(tlist.replace(/,$/, ''));
-    ilist = '';
-    for (i = 0; i != icount; i++)
-		    ilist += ('' + (i+1) + ',');
-    $('#interface_list').text(ilist.replace(/,$/, ''));
+    var tcon = $('[name="task_disallow"]').val();
+    var icon = $('[name="interface_disallow"]').val();
+            
+     $.ajax('${r.route_url('survey.qsheet.pcount', sid=survey.id, qsid=qsheet.id)}', {type: 'GET',
+                  dataType: 'json',
+                  data: {"worb" : worb, "tcount" : tcount, "icount": icount, "tcon":tcon, "icon":icon},
+                  success: function(response) {
+                  $('#pcount').text(response['pcount']);
+                  $('#task_list').text(response['tlist']);
+                  $('#interface_list').text(response['ilist']);
+                }
+            })
     }
+
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
         make_toggle_link('role-js-edit');
@@ -324,7 +291,8 @@
             fix_control_positions();
             return false;
         });
-        $('.role-qsheet-permute').change(function(){display_participant_count();})
+        $('.role-qsheet-permute').change(function(ev){
+             display_participant_count();})
         $('.role-edit-layout').show();
         $('.role-edit-settings').hide();
         $(window).scroll(function(ev) {
@@ -402,6 +370,7 @@
 	      <tr>
 	      <td>Number of participants needed for this arrangement:</td> 
 	      <td><label id="pcount">many</label></td>
+	      <td><label id="test_output"></label></td>
 	      </tr>
 	      </table>
 	    </dd>

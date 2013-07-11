@@ -45,19 +45,23 @@ def bb(tasks, interfaces):
             permutations.append([(task, interface)])
     return permutations
 
-def constructTaskLists(task_count, task_disallow):
-    tasks = [] 
-    for i in range(task_count):
-        tasks.append(chr(i+65))
 
-    taskLists = []
-    if task_disallow and len(task_disallow) > 0:
-        ctk = list(itertools.product(*task_disallow))
+def constructLists(factors, disallow):
+    """ Constructs the sublists of combinations needed according to the restrictions passed in. So, for example, if passed 
+    ['A', 'B', 'C', 'D', 'E'] as factors and ['AB'] as disallow it will return the two lists ['A', 'C', 'D', 'E']
+    and ['B', 'C', 'D', 'E']. It is done as 'to keep' and then 'to remove' in order to handle cases where disallowed 
+    combinations contain more than two items. So with the previous task list and disallow ['ABC'] we want to first keep
+    'A' and so remove 'B' and 'C', then keep 'B' and remove 'A' and 'C' and so on. If there is more than one element in
+    disallow we need to form the product first - so ['AB', 'CD'] gives four pairs to remove AC AD BC BD.
+    """
+    lists = []
+    if disallow and len(disallow) > 0 and disallow[0] != '':
+        ctk = list(itertools.product(*disallow))
 #        print "combinations to keep %s " % str(ctk)
         ctr = []
         for i in range(len(ctk)):
             tk = ctk[i]
-            td = task_disallow
+            td = disallow
 #            print "tk %s td %s" % (tk, td)
             tr = ()
             for j in range(len(tk)):
@@ -67,22 +71,23 @@ def constructTaskLists(task_count, task_disallow):
 #        print "combinations to remove %s " % str(ctr)
         for group in ctr:
 #            print "REMOVING %s" % str(group)
-            tasksClone = list(tasks)
+            factorsClone = list(factors)
             for d in group:
-                tasksClone.remove(d)
-#            print "APPENDING %s\n" % str(tasksClone)
-            taskLists.append(tasksClone)
+                factorsClone.remove(d)
+#            print "APPENDING %s\n" % str(factorsClone)
+            lists.append(factorsClone)
     else:
-        taskLists.append(tasks)
-    return taskLists
+        lists.append(factors)
+    return lists
 
-def constructInterfaceLists(interface_count, interface_disallow):
-    interfaces = range(1, interface_count + 1)
-    return [interfaces]
 
-def generate(toCall, task_count, interface_count, shuffle, task_disallow):
-    taskLists = constructTaskLists(task_count, task_disallow)
-    interfaceLists = constructInterfaceLists(interface_count, None)
+def generate(toCall, task_count, interface_count, shuffle, task_disallow, interface_disallow):
+
+    tasks = [chr(i+65) for i in range(task_count)] 
+    interfaces = [chr(i+49) for i in range(interface_count)] 
+
+    taskLists = constructLists(tasks, task_disallow)
+    interfaceLists = constructLists(interfaces, interface_disallow)
 
     toDoList = []
     for i in range(len(taskLists)):
@@ -94,9 +99,13 @@ def generate(toCall, task_count, interface_count, shuffle, task_disallow):
 
     return toDoList
 
-def calculate(toCall, task_count, interface_count, shuffle, task_disallow):
-    taskLists = constructTaskLists(task_count, task_disallow)
-    interfaceLists = constructInterfaceLists(interface_count, None)
+def calculate(toCall, task_count, interface_count, shuffle, task_disallow, interface_disallow):
+
+    tasks = [chr(i+65) for i in range(task_count)] 
+    interfaces = [chr(i+49) for i in range(interface_count)] 
+
+    taskLists = constructLists(tasks, task_disallow)
+    interfaceLists = constructLists(interfaces, interface_disallow)
 
     count = 0;
     for taskList in taskLists:
