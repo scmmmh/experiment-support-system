@@ -15,13 +15,13 @@ This section explains how to edit the details of a survey you are developing, ho
 How to edit a developed survey
 ------------------------------
 
-	- If you are not already in the survey you want to edit, navigate to the **main profile screen** (:doc:`ref<glossary>`), as demonstrated in the *Access PyQuestionnaire* section earlier (:doc:`ref<access_Questionnaire>`).
+	- If you are not already in the survey you want to edit, navigate to the **main profile screen** (:doc:`ref<conceptsAndTerms>`), as demonstrated in the *Access PyQuestionnaire* section earlier (:doc:`ref<access_Questionnaire>`).
 
 	- If you are on the **main profile screen** (:doc:`ref<glossary>`), click on the |edit| button, next to the survey you want to edit.
 
 	- This will take you to the **Edit** screen, shown below:
 
-	.. image:: ../_static/user/editSurvScreen.png
+	.. image:: ../_static/user/editSurveyScreen.png
 	   :align: center
    
 	- On that screen, amend any field details according to your needs. 
@@ -30,4 +30,4 @@ How to edit a developed survey
 
 	- You can also change which of your survey pages will be the first page, by selecting one from the dropdown menu under the title **First page**.
 
-	- When you are happy with the changes you made, click on the |update| button. Otherwise, click on the |dontUpdate| button. In any case, you will be re-directed to the **home page** (:doc:`ref<glossary>`)  of the survey you are developing.
+	- When you are happy with the changes you made, click on the |update| button. Otherwise, click on the |dontUpdate| button. In any case, you will be re-directed to the **home page** (:doc:`ref<conceptsAndTerms>`)  of the survey you are developing.

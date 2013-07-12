@@ -1,8 +1,8 @@
 .. |results| image:: ../_static/user/resultsButton.png
-.. |particButton| image:: ../_static/user/exportParticipantButton.png
+.. |participantButton| image:: ../_static/user/exportParticipantButton.png
 .. |questionButton| image:: ../_static/user/exportQuestionButton.png
-.. |updateSettings| image:: ../_static/user/updSettings.png
-.. |downCSV| image:: ../_static/user/downCSV.png
+.. |updateSettings| image:: ../_static/user/updateSettings.png
+.. |downloadCSV| image:: ../_static/user/downloadCSV.png
 .. |dataButton| image:: ../_static/user/dataButton.png
 .. |download| image:: ../_static/user/download.png
 .. |upload| image:: ../_static/user/upload.png
@@ -12,7 +12,7 @@
 .. |dontUploadButton| image:: ../_static/user/dontUploadButton.png 
 .. |addDataButton| image:: ../_static/user/addDataButton.png
 .. |editButton| image:: ../_static/user/editButton.png
-.. |delButton| image:: ../_static/user/delButton.png
+.. |deleteButton| image:: ../_static/user/deleteButton.png
 .. |updateButton| image:: ../_static/user/updateButton.png
 .. |updateButton| image:: ../_static/user/updateButton.png
 .. |dontUpdateButton| image:: ../_static/user/dontUpdateButton.png 
@@ -44,17 +44,17 @@ Downloading data
 
   a) First, navigate to the required survey, if you are not already there.
   
-  b) Click on the |results| button, included in the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`) of the survey's **home page** (:doc:`ref<glossary>`) screen. An example screenshot of this is shown below, where the above button is highlighted:
-  
+  b) Click on the |results| button, included in the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`) of the survey's **home page** (:doc:`ref<conceptsAndTerms>`) screen. An example screenshot of this is shown below, where the above button is highlighted:
+	
   .. image:: ../_static/user/resultsHighlighted.png
    :align: center
-	 
-  c) Clicking on the above mentioned button will take you to the **results** screen, an example of which is demonstrated below: 
-  
+		
+  c) Clicking on the above mentioned button will take you to the **Results** screen, an example of which is demonstrated below: 
+	
   .. image:: ../_static/user/resultsScreen.png
    :align: center
-
-  d) You will then have the choice to export results by participant, by clicking on the |particButton| button, or by question, by clicking on the |questionButton| button.
+	
+  d) You will then have the choice to export results by participant, by clicking on the |participantButton| button, or by question, by clicking on the |questionButton| button.
   
     d1.1) **If you choose to export results by participant**, then the following screen will appear: 
    
@@ -84,7 +84,7 @@ Downloading data
 	   
 	   - By clicking that button, the webpage will refresh and a sample of how your extracted will look like, will be provided under the title *Sample Data* at the bottom of the screen.
 	   
-	   - When you are happy with the sample data shown, scroll up and find the |downCSV| button.
+	   - When you are happy with the sample data shown, scroll up and find the |downloadCSV| button.
 	   
 	   - Upon clicking that button, a prompt message will appear asking you to save the relevant .csv file on your computer.
 	   
@@ -107,7 +107,7 @@ Downloading data
 	   
 		   The *Sample Data* is only an excerpt of the available data. Use the "Download as CSV" button to export all results.
 	   
-	   - When you are happy with the sample data shown, scroll up and find the |downCSV| button.
+	   - When you are happy with the sample data shown, scroll up and find the |downloadCSV| button.
 	   
 	   - Upon clicking that button, a prompt message will appear asking you to save the relevant .csv file on your computer.
 	   
@@ -115,7 +115,7 @@ Downloading data
   
 - **From a survey question**
 
-  a) Navigate to the **home page** (:doc:`ref<glossary>`) of the appropriate survey and find the required questions from the list provided. 
+  a) Navigate to the **home page** (:doc:`ref<conceptsAndTerms>`) of the appropriate survey and find the required questions from the list provided. 
   
   b) Click on the |dataButton| button, located within the box of the relevant question, as illustrated in the screenshot below:
 	   
@@ -172,16 +172,16 @@ Editing the uploaded data
      .. image:: ../_static/user/scrollRight.png
 	    :align: center
 
-  b) By doing this, you will find the |editButton| and |delButton| buttons as indicated in the screenshot below:
+  b) By doing this, you will find the |editButton| and |deleteButton| buttons as indicated in the screenshot below:
   
-	 .. image:: ../_static/user/editDelScreen.png
+	 .. image:: ../_static/user/editDeleteScreen.png
 	    :align: center
   
   c) Clicking on the |editButton| button will allow you to edit the answers of a given record, through the **Edit Data** screen, an example of which is given below:
   
   d) When you are done editing, scroll to the bottom of the screen and either click on the |updateButton| button or the |dontUpdateButton| button. Whichever you click on, you will be directed back to the **Data** screen.
   
-  e) If you click on the |delButton| button, below the |editButton| button, you will be asked to confirm that you want to delete a given record. Click **OK** and the record will be deleted.
+  e) If you click on the |deleteButton| button, below the |editButton| button, you will be asked to confirm that you want to delete a given record. Click **OK** and the record will be deleted.
   
   f) You will have also noticed that a new button has now appeared next to the |uploadButton| button, above the uploaded records. This is the |addDataButton| button. This button is particularly useful should you need to enter experiment results gathered through a paper copy of the survey.
   

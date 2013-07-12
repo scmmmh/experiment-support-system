@@ -23,8 +23,8 @@ User documentation
 **Contents:**
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    
    access_Questionnaire
    work_Questionnaire
-   :doc:`ref<glossary>`
+   conceptsAndTerms

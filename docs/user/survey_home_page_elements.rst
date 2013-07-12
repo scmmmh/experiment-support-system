@@ -1,12 +1,12 @@
 Survey home page elements
 ==========================
 
-In this section of the manual, we will present and explain the different elements of the Survey **home page** (:doc:`ref<glossary>`), as this will allow you to better understand the sets of instructions that follow and will assist you in familiarising yourself with the architecture of the **home page** (:doc:`ref<glossary>`).
+In this section of the manual, we will present and explain the different elements of the Survey **home page** (:doc:`ref<conceptsAndTerms>`), as this will allow you to better understand the sets of instructions that follow and will assist you in familiarising yourself with the architecture of the **home page** (:doc:`ref<conceptsAndTerms>`).
 
 An explanation of the survey home page elements
 -----------------------------------------------
 
-	The following elements constitute the survey **home page** (:doc:`ref<glossary>`) and are demonstrated in the screenshot after the table below:
+	The following elements constitute the survey **home page** (:doc:`ref<conceptsAndTerms>`) and are demonstrated in the screenshot after the table below:
 
 	.. csv-table::
 	   :header: "Element number", "Element title", "Element description"
@@ -16,7 +16,7 @@ An explanation of the survey home page elements
 		"**(2)**", "Navigation tabs", "**These include**:
 		*All my Surveys*: By clicking on this link, you are directed to the list of surveys you have previously created, run or are in the process of developing.
 		
-		*Survey*: While in a survey under development, this button merely indicates that you are located in the **home page** (:doc:`ref<glossary>`) of that survey. Note that this button has a dark blue background, distinguished in this way by the *Preview* button next to it.
+		*Survey*: While in a survey under development, this button merely indicates that you are located in the **home page** (:doc:`ref<conceptsAndTerms>`) of that survey. Note that this button has a dark blue background, distinguished in this way by the *Preview* button next to it.
 		
 		*Preview*: By clicking on this button, you will be directed to a preview of the survey under development.
 		
@@ -47,7 +47,7 @@ An explanation of the survey home page elements
 		
 		**3.** how many participated in the survey and, of those, how many completed it."
 
-	An example screenshot of the **home page** screen (:doc:`ref<glossary>`). Each element number, in the table above, corresponds to the section of the **home page** (:doc:`ref<glossary>`) using the same number: 
+	An example screenshot of the **home page** screen (:doc:`ref<conceptsAndTerms>`). Each element number, in the table above, corresponds to the section of the **home page** (:doc:`ref<conceptsAndTerms>`) using the same number: 
 
 	.. image:: ../_static/user/homePageSurveyScreen.png
 	   :align: center

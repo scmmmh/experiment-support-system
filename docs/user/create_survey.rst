@@ -19,7 +19,7 @@ How to create a survey
 
    - Following the above, click on the button **Create** to create the required survey or on the button **Don't create**, if you decide that you do not require the survey anymore.
 
-   - Upon creation of the survey, you will be directed to the **home page** (:doc:`ref<glossary>`) of that survey, as shown below:
+   - Upon creation of the survey, you will be directed to the **home page** (:doc:`ref<conceptsAndTerms>`) of that survey, as shown below:
  
-     .. image:: ../_static/user/origHomePgSurveyScreen.png
+     .. image:: ../_static/user/originalHomePageSurveyScreen.png
         :align: center 
