@@ -1,15 +1,18 @@
+.. _topSection:
+
+##################
 Access PyQuestionnaire
-======================
+##################
 
-This section will demonstrate to you how to access PyQuestionnaire and how to navigate it. All subsequent sections of the manual assume that you have read this section first and refer you here as a reminder.
+This part will demonstrate to you how to access PyQuestionnaire and how to navigate it. The next part of this manual (*Working with PyQuestionnaire*) and that part's chapters assume that you have read this part first and refer you here as a reminder.
 
-If you only want to find out how to navigate within PyQuestionnaire, please click :ref:`here<navigating>` to be directed to the relevant sub-section.
+**If you only want to find out how to navigate within PyQuestionnaire**, please click :ref:`here<navigating>` to be directed to the relevant section.
 
 .. Navigation tab
 .. |allSurveys| image:: ../_static/user/allMySurveysLink.png
 
 How to login to PyQuestionnaire
----------------------------------
+===============================
 
 - Access PyQuestionnaire by typing the following address in a web browser of your choice:
 
@@ -29,12 +32,10 @@ How to login to PyQuestionnaire
 .. image:: ../_static/user/mainProfileScreen.png
    :align: center 
 
----------------------------------------------------------------------------------------------------------------------   
-
 .. _navigating:
 
 Navigating within PyQuestionnaire
----------------------------------
+=================================
    
 As mentioned above, the **main profile screen** (:doc:`ref<conceptsAndTerms>`) automatically appears each time you login in PyQuestionnaire. 
   

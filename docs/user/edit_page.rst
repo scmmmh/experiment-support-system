@@ -120,7 +120,9 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 	
   **1.6)** By doing this, you will be directed to the **Preview** screen of that page, where you will be presented with an example of how the page will look like in the live survey.
 	
-  **1.7)** On the **Validation** screen, you can test questions by providing combinations of replies (checking boxes, typing free text etc.) in order to ensure that responses that do not follow the conditions you set for a specific question, are not permitted.
+  **1.7)** On the **Validation** screen, you can test questions by providing combinations of replies (checking boxes, typing free text etc.) in order to ensure that responses that do not follow the conditions you set for a specific question, are not permitted. 
+  
+  If, for example, you specify that a question must be answered, then clicking on the "Test Validation" button enables you to check that this is actually being applied. Similarly, if you select a date or time or number question and then try to answer the question with an invalid value, then the "Test Validation" button will show what happens if you provide an incorrect answer.
 	
   **1.8)** When you are done completing a preview question, click on the |testValidation| button as indicated in the example screenshot below:
 	       .. image:: ../_static/user/testValidationScreen.png 
@@ -135,7 +137,7 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 	   
 	       .. image:: ../_static/user/failValidation.png 
                    :align: center 
-  
+		
   **1.10)** Once you have finished testing a survey page, in order to navigate away from it and back to the **home page** (:doc:`ref<conceptsAndTerms>`) screen, click on the |surveyButton| tab, one of the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`), located above the survey page's title.
  
 

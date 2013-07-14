@@ -1,10 +1,11 @@
+******************
 Creating a survey
-==================
+******************
 
-This section explains how to create a new survey from scratch, using the tools that the system provides.
+This chapter explains how to create a new survey from scratch, using the tools that the system provides.
 
 How to create a survey
-------------------------
+======================
 
    - Click on the **New Survey** button on the top left of the Survey screen.
 
