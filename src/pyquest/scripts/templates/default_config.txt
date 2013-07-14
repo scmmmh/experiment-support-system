@@ -40,16 +40,16 @@ keys = console
 keys = generic
 
 [logger_root]
-level = WARN
+level = ERROR
 handlers = console
 
 [logger_pyquestionnaire]
-level = WARN
+level = ERROR
 handlers =
 qualname = pyquestionnaire
 
 [logger_sqlalchemy]
-level = WARN
+level = ERROR
 handlers =
 qualname = sqlalchemy.engine
 
