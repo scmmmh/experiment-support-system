@@ -20,7 +20,7 @@ from sqlalchemy import engine_from_config
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             Question, QSheetTransition, QSheetAttribute,
-                            DataItemControlAnswer, DataSet)
+                            DataItemControlAnswer, DataSet, DataSetAttributeKey)
 from pyquest.validation import XmlValidator
 from pyquest.views.admin.question_types import load_q_types_from_xml
 from pyquest.views.backend.qsheet import load_questions_from_xml
@@ -86,8 +86,19 @@ def load_test_data(args):
         dbsession.add(survey)
         data_set = DataSet(name='test_samples', owned_by=user.id)
         data_set.survey = survey
-        #reader = DictReader(resource_stream('pyquest', 'scripts/templates/sample_survey_2.csv'))
-        
+        reader = DictReader(resource_stream('pyquest', 'scripts/templates/sample_survey_2.csv'))
+        keys = {}
+        for idx, column in enumerate(reader.fieldnames):
+            attr_key = DataSetAttributeKey(key=column, order=idx)
+            data_set.attribute_keys.append(attr_key)
+            keys[column] = attr_key
+        for line in reader:
+            data_item = DataItem(data_set=data_set)
+            for column, value in line.items():
+                data_item.attributes.append(DataItemAttribute(key=keys[column], value=value))
+        for qsheet in survey.qsheets:
+            if qsheet.name == 'data':
+                qsheet.data_set = data_set
         '''
         # SURVEY 1
         survey = Survey(title='A test survey', status='develop', styles='', scripts='')
