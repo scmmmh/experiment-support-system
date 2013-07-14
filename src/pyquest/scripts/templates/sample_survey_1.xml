@@ -1,0 +1,468 @@
+<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest" title="A test survey">
+  <pq:summary/>
+  <pq:language>en</pq:language>
+  <pq:styles/>
+  <pq:scripts/>
+  <pq:first_page>text_entry</pq:first_page>
+  <pq:qsheet name="text_entry" title="Text entry questions">
+    <pq:styles/>
+    <pq:scripts/>
+    <pq:attribute name="repeat">single</pq:attribute>
+    <pq:attribute name="data-items">0</pq:attribute>
+    <pq:attribute name="control-items">0</pq:attribute>
+    <pq:attribute name="show-question-numbers">no</pq:attribute>
+    <pq:questions>
+      <pq:question>
+        <pq:type>text</pq:type>
+        <pq:attribute name="text.text">
+          <p>
+    The first page demonstrates the basic question types</p>
+        </pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>short_text</pq:type>
+        <pq:name>single_text</pq:name>
+        <pq:title>This is a (required) pq:short_text question</pq:title>
+        <pq:help>Just a bit of help</pq:help>
+        <pq:required>true</pq:required>
+      </pq:question>
+      <pq:question>
+        <pq:type>long_text</pq:type>
+        <pq:name>multi_text</pq:name>
+        <pq:title>A pq:long_text question</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+      </pq:question>
+      <pq:question>
+        <pq:type>number</pq:type>
+        <pq:name>number</pq:name>
+        <pq:title>The pq:number question only allows numbers to be input</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+        <pq:attribute name="further.min">1</pq:attribute>
+        <pq:attribute name="further.max">3</pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>email</pq:type>
+        <pq:name>email</pq:name>
+        <pq:title>The pq:email question forces a valid e-mail address</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+      </pq:question>
+      <pq:question>
+        <pq:type>url</pq:type>
+        <pq:name>url</pq:name>
+        <pq:title>The pq:url question forces a http or https URL</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+      </pq:question>
+      <pq:question>
+        <pq:type>date</pq:type>
+        <pq:name>date</pq:name>
+        <pq:title>The pq:date question requires a valid date</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+      </pq:question>
+      <pq:question>
+        <pq:type>time</pq:type>
+        <pq:name>time</pq:name>
+        <pq:title>The pq:time question requires a valid time</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+      </pq:question>
+      <pq:question>
+        <pq:type>datetime</pq:type>
+        <pq:name>datetime</pq:name>
+        <pq:title>The pq:datetime question requires a valid date and time</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+      </pq:question>
+      <pq:question>
+        <pq:type>month</pq:type>
+        <pq:name>month</pq:name>
+        <pq:title>The pq:month question requires a month number between 1 and 12 or at least three letters of the English month name</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+      </pq:question>
+    </pq:questions>
+  </pq:qsheet>
+  <pq:qsheet name="single_choice" title="Single choice questions">
+    <pq:styles/>
+    <pq:scripts/>
+    <pq:attribute name="repeat">single</pq:attribute>
+    <pq:attribute name="data-items">0</pq:attribute>
+    <pq:attribute name="control-items">0</pq:attribute>
+    <pq:attribute name="show-question-numbers">no</pq:attribute>
+    <pq:questions>
+      <pq:question>
+        <pq:type>text</pq:type>
+        <pq:attribute name="text.text">
+          <p>
+    The second page demonstrates the basic single choice questions.</p>
+        </pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>single_choice</pq:type>
+        <pq:name>single_choice_1</pq:name>
+        <pq:title>Single choice</pq:title>
+        <pq:help/>
+        <pq:required>true</pq:required>
+        <pq:attribute name="further.subtype">table</pq:attribute>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label">1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label">2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label">3</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label">4</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label">5</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute name="further.allow_other">no</pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>single_choice</pq:type>
+        <pq:name>single_choice_2</pq:name>
+        <pq:title>A vertical list single choice (with an optional answer)</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+        <pq:attribute name="further.subtype">list</pq:attribute>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label">1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label">2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label">3</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label">4</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label">5</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute name="further.allow_other">single</pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>single_choice</pq:type>
+        <pq:name>single_choice_3</pq:name>
+        <pq:title>A drop-down select single choice (required)</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+        <pq:attribute name="further.subtype">select</pq:attribute>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label">1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label">2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label">3</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label">4</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label">5</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute name="further.allow_other">no</pq:attribute>
+      </pq:question>
+    </pq:questions>
+  </pq:qsheet>
+  <pq:qsheet name="multi_choice" title="Multi choice questions">
+    <pq:styles/>
+    <pq:scripts/>
+    <pq:attribute name="repeat">single</pq:attribute>
+    <pq:attribute name="data-items">0</pq:attribute>
+    <pq:attribute name="control-items">0</pq:attribute>
+    <pq:attribute name="show-question-numbers">no</pq:attribute>
+    <pq:questions>
+      <pq:question>
+        <pq:type>text</pq:type>
+        <pq:attribute name="text.text">
+          <p>
+    The third page demonstrates the basic multi choice questions.</p>
+        </pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>multi_choice</pq:type>
+        <pq:name>multi_choice_1</pq:name>
+        <pq:title>A horizontal multi choice</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+        <pq:attribute name="further.subtype">table</pq:attribute>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label">1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label">2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label">3</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label">4</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label">5</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute name="further.allow_other">no</pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>multi_choice</pq:type>
+        <pq:name>multi_choice_2</pq:name>
+        <pq:title>A vertical list multi choice (with an optional answer)</pq:title>
+        <pq:help/>
+        <pq:required>false</pq:required>
+        <pq:attribute name="further.subtype">list</pq:attribute>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label">1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label">2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label">3</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label">4</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label">5</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute name="further.allow_other">single</pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>multi_choice</pq:type>
+        <pq:name>multi_choice_3</pq:name>
+        <pq:title>A list select multi choice (required)</pq:title>
+        <pq:help/>
+        <pq:required>true</pq:required>
+        <pq:attribute name="further.subtype">select</pq:attribute>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label">1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label">2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label">3</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label">4</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label">5</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute name="further.allow_other">no</pq:attribute>
+      </pq:question>
+    </pq:questions>
+  </pq:qsheet>
+  <pq:qsheet name="grids" title="Grid-based questions">
+    <pq:styles/>
+    <pq:scripts/>
+    <pq:attribute name="repeat">single</pq:attribute>
+    <pq:attribute name="data-items">0</pq:attribute>
+    <pq:attribute name="control-items">0</pq:attribute>
+    <pq:attribute name="show-question-numbers">no</pq:attribute>
+    <pq:questions>
+      <pq:question>
+        <pq:type>text</pq:type>
+        <pq:attribute name="text.text">
+          <p>
+    The fourth page demonstrates the grid-based single and multi choice questions.</p>
+        </pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>single_choice_grid</pq:type>
+        <pq:name>grid_1</pq:name>
+        <pq:title>A grid of single choice questions</pq:title>
+        <pq:help/>
+        <pq:required>true</pq:required>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label">1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label">2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label">3</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label">4</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label">5</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute_group name="subquestion">
+          <pq:attribute>
+            <pq:value name="name">q1</pq:value>
+            <pq:value name="label">Question 1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="name">q2</pq:value>
+            <pq:value name="label">Question 2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="name">q3</pq:value>
+            <pq:value name="label">Question 3</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+      </pq:question>
+      <pq:question>
+        <pq:type>multi_choice_grid</pq:type>
+        <pq:name>grid_2</pq:name>
+        <pq:title>A grid of multi choice questions (required)</pq:title>
+        <pq:help/>
+        <pq:required>true</pq:required>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label">1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label">2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label">3</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label">4</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label">5</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute_group name="subquestion">
+          <pq:attribute>
+            <pq:value name="name">q1</pq:value>
+            <pq:value name="label">Question 1</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="name">q2</pq:value>
+            <pq:value name="label">Question 2</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="name">q3</pq:value>
+            <pq:value name="label">Question 3</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+      </pq:question>
+    </pq:questions>
+  </pq:qsheet>
+  <pq:qsheet name="other" title="Other questions">
+    <pq:styles/>
+    <pq:scripts/>
+    <pq:attribute name="repeat">single</pq:attribute>
+    <pq:attribute name="data-items">0</pq:attribute>
+    <pq:attribute name="control-items">0</pq:attribute>
+    <pq:attribute name="show-question-numbers">no</pq:attribute>
+    <pq:questions>
+      <pq:question>
+        <pq:type>text</pq:type>
+        <pq:attribute name="text.text">
+          <p>
+    The fifth page demonstrates the other questions.</p>
+        </pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>confirm</pq:type>
+        <pq:name>confirmation_1</pq:name>
+        <pq:title>A checkbox to confirm a value</pq:title>
+        <pq:help/>
+        <pq:required>true</pq:required>
+        <pq:attribute name="further.value">yes</pq:attribute>
+        <pq:attribute name="further.label">Label to show next to the checkbox</pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>ranking</pq:type>
+        <pq:name>ranking_1</pq:name>
+        <pq:title>Ranking of multiple elements (required)</pq:title>
+        <pq:help/>
+        <pq:required>true</pq:required>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">dog</pq:value>
+            <pq:value name="label">Dog</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">cat</pq:value>
+            <pq:value name="label">Cat</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">mouse</pq:value>
+            <pq:value name="label">Mouse</pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">bird</pq:value>
+            <pq:value name="label">Bird</pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+      </pq:question>
+    </pq:questions>
+  </pq:qsheet>
+  <pq:transition from="text_entry" to="single_choice"/>
+  <pq:transition from="single_choice" to="multi_choice"/>
+  <pq:transition from="multi_choice" to="grids"/>
+  <pq:transition from="grids" to="other"/>
+  <pq:transition from="other"/>
+</pq:survey>

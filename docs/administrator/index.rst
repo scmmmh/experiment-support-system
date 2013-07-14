@@ -5,3 +5,6 @@ Administrator Documentation
    :maxdepth: 2
 
    installation
+   setup
+   configuration
+   

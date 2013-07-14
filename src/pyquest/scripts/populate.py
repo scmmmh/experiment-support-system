@@ -10,457 +10,85 @@ import transaction
 
 from alembic.config import Config
 from alembic import command
+from csv import DictReader
 from json import dumps
+from lxml import etree
+from pkg_resources import resource_stream
 from pyramid.paster import (get_appsettings, setup_logging)
 from sqlalchemy import engine_from_config
-from lxml import etree
 
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             Question, QSheetTransition, QSheetAttribute,
-                            DataItemControlAnswer, QuestionType,
-                            QuestionTypeGroup, DataSet)
+                            DataItemControlAnswer, DataSet)
+from pyquest.validation import XmlValidator
+from pyquest.views.admin.question_types import load_q_types_from_xml
 from pyquest.views.backend.qsheet import load_questions_from_xml
+from pyquest.views.backend.survey import load_survey_from_xml
 
-def usage(argv):
-    cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri> [--no-test-data]\n'
-          '(example: "%s development.ini")' % (cmd, cmd)) 
-    sys.exit(1)
+def init(subparsers):
+    parser = subparsers.add_parser('initialise-database', help='Initialise the database')
+    parser.add_argument('configuration', help='PyQuestionnaire configuration file')
+    parser.add_argument('--drop-existing', action='store_true', default=False, help='Drop any existing tables')
+    parser.set_defaults(func=initialise_database)
+    parser = subparsers.add_parser('load-test-data', help='Load the test data')
+    parser.add_argument('configuration', help='PyQuestionnaire configuration file')
+    parser.set_defaults(func=load_test_data)
 
-def main(argv=sys.argv):
-    if len(argv) < 2:
-        usage(argv)
-    config_uri = argv[1]
-    setup_logging(config_uri)
-    settings = get_appsettings(config_uri)
+def initialise_database(args):
+    settings = get_appsettings(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
-    Base.metadata.drop_all(engine)
+    if args.drop_existing:
+        Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    init_data(DBSession)
-    alembic_cfg = Config(config_uri)
-    command.stamp(alembic_cfg, "head")
-    if len(argv) > 2 and argv[2] == '--with-test-data':
-        init_test_data(DBSession)
-
-DEFAULT_QUESTIONS = [{'name': 'text',
-                               'title': 'Text',
-                               'dbschema': dumps([{'type': 'attr', 'attr': 'text.text', 'default': 'Double-click to edit this text.'}]),
-                               'answer_validation': dumps(None),
-                               'backend': dumps([{'type': 'richtext', 'attr': 'text.text', 'name': 'text', 'validator': {'not_empty': False}}]),
-                               'frontend': "${Markup(sub(q.attr_value('text.text'), i, p))}"},
-                    {'name': 'short_text',
-                     'title': 'Single-line text input',
-                     'dbschema': dumps([]),
-                     'answer_validation': dumps({'type': 'unicode'}),
-                     'backend': dumps([{'type': 'question-name'},
-                                       {'type': 'question-title'},
-                                       {'type': 'question-help'},
-                                       {'type': 'question-required'}]),
-                     'frontend': "${f.text_field(name, '', e)}"},
-                     {'name': 'long_text',
-                      'title': 'Multi-line text input',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'unicode'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'}]),
-                      'frontend': "${f.textarea(name, '', e)}"},
-                     {'name': 'number',
-                      'title': 'Number input',
-                      'dbschema': dumps([{'type': 'attr', 'attr': 'further.min', 'default': None},
-                                         {'type': 'attr', 'attr': 'further.max', 'default': None}]),
-                      'answer_validation': dumps({'type': 'number', 'params': {'min': {'type': 'attr', 'attr': 'further.min', 'data_type': 'int'}, 'max': {'type': 'attr', 'attr': 'further.max', 'data_type': 'int'}}}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'int', 'name': 'min', 'title': 'Minimum value', 'attr': 'further.min', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'int', 'name': 'max', 'title': 'Maximum value', 'attr': 'further.max', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}}]),
-                      'frontend': "${f.number_field(name, '', e, min=q.attr_value('further.min'), max=q.attr_value('further.max'))}"},
-                     {'name': 'email',
-                      'title': 'E-Mail input',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'email'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'}]),
-                      'frontend': "${f.email_field(name, '', e)}"},
-                     {'name': 'url',
-                      'title': 'URL input',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'url'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'}]),
-                      'frontend': "${f.url_field(name, '', e)}"},
-                     {'name': 'date',
-                      'title': 'Date input',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'date'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'}]),
-                      'frontend': "${f.date_field(name, '', e)}"},
-                     {'name': 'time',
-                      'title': 'Time input',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'time'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'}]),
-                      'frontend': "${f.time_field(name, '', e)}"},
-                     {'name': 'datetime',
-                      'title': 'Date & Time input',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'datetime'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'}]),
-                      'frontend': "${f.datetime_field(name, '', e)}"},
-                     {'name': 'month',
-                      'title': 'Month input',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'month'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'}]),
-                      'frontend': "${f.month_field(name, '', e)}"},
-                     {'name': 'single_choice',
-                      'title': 'Single choice',
-                      'dbschema': dumps([{'type': 'attr', 'attr': 'further.subtype', 'default': 'table', 'group_order': 0},
-                                         {'type': 'attr', 'attr': 'further.before_label', 'default': None, 'group_order': 1},
-                                         {'type': 'attr', 'attr': 'further.after_label', 'default': None, 'group_order': 1}]),
-                      'answer_validation': dumps({'type': 'choice', 'attr': 'answer.value', 'params': {'allow_multiple': {'type': 'value', 'value': False},
-                                                                                                       'allow_other': {'type': 'attr', 'attr': 'further.allow_other', 'default': 'no'}}}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'select', 'name': 'display', 'title': 'Display as', 'attr': 'further.subtype', 'values': [('table', 'Horizontal table'), ('list', 'Vertical list'), ('select', 'Select box')], 'default': 'table', 'validator': {}},
-                                        {'type': 'unicode', 'name': 'before_label', 'title': 'Before label', 'attr': 'further.before_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'unicode', 'name': 'after_label', 'title': 'After label', 'attr': 'further.after_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'table', 'name': 'answer', 'title': 'Answers', 'attr': 'answer', 'columns': [{'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'value', 'default': None, 'validator': {'not_empty': True}},
-                                                                                                                              {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}},
-                                        {'type': 'select', 'name': 'other', 'title': 'Allow other answers', 'attr': 'further.allow_other', 'values': [('no', 'No'), ('single', 'Yes')], 'default': 'no', 'validator': {}}]),
-                      'frontend': """<div py:attrs="{'class':error_class}">
-  <table py:if="q.attr_value('further.subtype', 'table') == 'table'">
-    <thead>
-      <tr>
-        <th py:if="q.attr_value('further.before_label')"></th>
-        <th py:for="label in q.attr_value('answer.label', default=[], multi=True)">${label}</th>
-        <th py:if="q.attr_value('further.allow_other', 'no') == 'single'">Other</th>
-        <th py:if="q.attr_value('further.after_label')"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</th>
-        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)" class="answer">${f.radio('%s.answer' % (name), value, None)}</td>
-        <td py:if="q.attr_value('further.allow_other', 'no') == 'single'">${f.radio('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</td>
-        <th py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</th>
-      </tr>
-    </tbody>
-  </table>
-  <ul py:if="q.attr_value('further.subtype', 'table') == 'list'">
-    <li py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</li>
-    <li py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))" class="answer">${f.radio('%s.answer' % (name), value, None, label=label)}</li>
-    <li py:if="q.attr_value('further.allow_other', 'no') == 'single'" class="other">${f.radio('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</li>
-    <li py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</li>
-  </ul>
-  <div py:if="q.attr_value('further.subtype', 'table') == 'select'">
-    <select name="${name}.answer" py:attrs="{'class': 'role-with-other' if q.attr_value('further.allow_other', 'no') == 'single' else None}">
-      <option value="">--- Please choose ---</option>
-      <option py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))" value="${value}">${label}</option>
-      <option py:if="q.attr_value('further.allow_other', 'no') == 'single'" value="_other">--- Other ---</option>
-    </select>
-    <py:if test="q.attr_value('further.allow_other', 'no') == 'single'">${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</py:if>
-  </div>
-  <p py:if="error_text" class="error-explanation">${error_text}</p>
-</div>"""},
-                     {'name': 'multi_choice',
-                      'title': 'Multiple choice',
-                      'dbschema': dumps([{'type': 'attr', 'attr': 'further.subtype', 'default': 'table', 'group_order': 0},
-                                         {'type': 'attr', 'attr': 'further.before_label', 'default': None, 'group_order': 1},
-                                         {'type': 'attr', 'attr': 'further.after_label', 'default': None, 'group_order': 1}]),
-                      'answer_validation': dumps({'type': 'choice', 'attr': 'answer.value', 'params': {'allow_multiple': {'type': 'value', 'value': True},
-                                                                                                       'allow_other': {'type': 'attr', 'attr': 'further.allow_other', 'default': 'no'}}}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'select', 'name': 'display', 'title': 'Display as', 'attr': 'further.subtype', 'values': [('table', 'Horizontal table'), ('list', 'Vertical list'), ('select', 'Select box')], 'default': 'table', 'validator': {}},
-                                        {'type': 'unicode', 'name': 'before_label', 'title': 'Before label', 'attr': 'further.before_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'unicode', 'name': 'after_label', 'title': 'After label', 'attr': 'further.after_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'table', 'name': 'answer', 'title': 'Answers', 'attr': 'answer', 'columns': [{'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'value', 'default': None, 'validator': {'not_empty': True}},
-                                                                                                                              {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}},
-                                        {'type': 'select', 'name': 'other', 'title': 'Allow other answers', 'attr': 'further.allow_other', 'values': [('no', 'No'), ('single', 'Yes')], 'default': 'no', 'validator': {}}]),
-                      'frontend': """<div py:attrs="{'class':error_class}">
-  <table py:if="q.attr_value('further.subtype', 'table') == 'table'">
-    <thead>
-      <tr>
-        <th py:if="q.attr_value('further.before_label')"></th>
-        <th py:for="label in q.attr_value('answer.label', default=[], multi=True)">${label}</th>
-        <th py:if="q.attr_value('further.allow_other', 'no') == 'single'">Other</th>
-        <th py:if="q.attr_value('further.after_label')"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</th>
-        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)" class="answer">${f.checkbox('%s.answer' % (name), value, None)}</td>
-        <td py:if="q.attr_value('further.allow_other', 'no') == 'single'" class="other">${f.checkbox('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</td>
-        <th py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</th>
-      </tr>
-    </tbody>
-  </table>
-  <ul py:if="q.attr_value('further.subtype', 'table') == 'list'">
-    <li py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</li>
-    <li py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))" class="answer">${f.checkbox('%s.answer' % (name), value, None, label=label)}</li>
-    <li py:if="q.attr_value('further.allow_other', 'no') == 'single'" class="other">${f.checkbox('%s.answer' % (name), '_other', None)}${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</li>
-    <li py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</li>
-  </ul>
-  <div py:if="q.attr_value('further.subtype', 'table') == 'select'">
-    <select name="${name}.answer" multiple="multiple">
-      <option py:for="(label, value) in zip(q.attr_value('answer.label', default=[], multi=True), q.attr_value('answer.value', default=[], multi=True))" value="${value}">${label}</option>
-    </select>
-    <p py:if="q.attr_value('further.allow_other', 'no') == 'single'">Other: ${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}</p>
-  </div>
-  <p py:if="error_text" class="error-explanation">${error_text}</p>
-</div>"""},
-                     {'name': 'single_choice_grid',
-                      'title': 'Single choice grid',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'multiple', 'attr': 'subquestion.name', 'schema': {'type': 'choice', 'attr': 'answer.value', 'params': {'allow_multiple': {'type': 'value', 'value': False},
-                                                                                                                                                                  'allow_other': {'type': 'attr', 'attr': 'further.allow_other', 'default': 'no'}}}}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'unicode', 'name': 'before_label', 'title': 'Before label', 'attr': 'further.before_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'unicode', 'name': 'after_label', 'title': 'After label', 'attr': 'further.after_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'table', 'name': 'answer', 'title': 'Answers', 'attr': 'answer', 'columns': [{'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'value', 'default': None, 'validator': {'not_empty': True}},
-                                                                                                                              {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}},
-                                        {'type': 'table', 'name': 'subquestion', 'title': 'Sub-questions', 'attr': 'subquestion', 'columns': [{'type': 'unicode', 'name': 'name', 'title': 'Name', 'attr': 'name', 'default': None, 'validator': {'not_empty': True}},
-                                                                                                                                              {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}}]),
-                      'frontend': """<div py:attrs="{'class':error_class}">
-  <table>
-    <thead>
-      <tr>
-        <th></th>
-        <th py:if="q.attr_value('further.before_label')"></th>
-        <th py:for="label in q.attr_value('answer.label', default=[], multi=True)">${label}</th>
-        <th py:if="q.attr_value('further.after_label')"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr py:for="(sub_q_name, sub_q_label) in zip(q.attr_value('subquestion.name', default=[], multi=True), q.attr_value('subquestion.label', default=[], multi=True))">
-        <th class="sub-question">${sub_q_label}</th>
-        <th py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</th>
-        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)" class="answer">${f.radio('%s.%s' % (name, sub_q_name), value, None)}</td>
-        <th py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</th>
-      </tr>
-    </tbody>
-  </table>
-  <p py:if="error_text" class="error-explanation">${error_text}</p>
-</div>"""},
-                     {'name': 'multi_choice_grid',
-                      'title': 'Multiple choice grid',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'multiple', 'attr': 'subquestion.name', 'schema': {'type': 'choice', 'attr': 'answer.value', 'params': {'allow_multiple': {'type': 'value', 'value': True},
-                                                                                                                                                                  'allow_other': {'type': 'attr', 'attr': 'further.allow_other', 'default': 'no'}}}}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'unicode', 'name': 'before_label', 'title': 'Before label', 'attr': 'further.before_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'unicode', 'name': 'after_label', 'title': 'After label', 'attr': 'further.after_label', 'default': None, 'validator': {'not_empty': False, 'if_empty': None}},
-                                        {'type': 'table', 'name': 'answer', 'title': 'Answers', 'attr': 'answer', 'columns': [{'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'value', 'default': None, 'validator': {'not_empty': True}},
-                                                                                                                              {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}},
-                                        {'type': 'table', 'name': 'subquestion', 'title': 'Sub-questions', 'attr': 'subquestion', 'columns': [{'type': 'unicode', 'name': 'name', 'title': 'Name', 'attr': 'name', 'default': None, 'validator': {'not_empty': True}},
-                                                                                                                                              {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}}]),
-                      'frontend': """<div py:attrs="{'class':error_class}">
-  <table>
-    <thead>
-      <tr>
-        <th></th>
-        <th py:if="q.attr_value('further.before_label')"></th>
-        <th py:for="label in q.attr_value('answer.label', default=[], multi=True)">${label}</th>
-        <th py:if="q.attr_value('further.after_label')"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr py:for="(sub_q_name, sub_q_label) in zip(q.attr_value('subquestion.name', default=[], multi=True), q.attr_value('subquestion.label', default=[], multi=True))">
-        <th class="sub-question">${sub_q_label}</th>
-        <th py:if="q.attr_value('further.before_label')" class="before">${q.attr_value('further.before_label')}</th>
-        <td py:for="value in q.attr_value('answer.value', default=[], multi=True)" class="answer">${f.checkbox('%s.%s' % (name, sub_q_name), value, None)}</td>
-        <th py:if="q.attr_value('further.after_label')" class="after">${q.attr_value('further.after_label')}</th>
-      </tr>
-    </tbody>
-  </table>
-  <p py:if="error_text" class="error-explanation">${error_text}</p>
-</div>"""},
-                     {'name': 'confirm',
-                      'title': 'Confirmation checkbox',
-                      'dbschema': dumps([{'type': 'attr', 'attr': 'further.value', 'default': ''},
-                                         {'type': 'attr', 'attr': 'further.label', 'default': ''}]),
-                      'answer_validation': dumps({'type': 'unicode'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'further.value', 'validator': {'not_empty': True}},
-                                        {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'further.label', 'validator': {'not_empty': True}}]),
-                      'frontend': "${f.checkbox(name, q.attr_value('further.value'), e, label=q.attr_value('further.label', default=q.title))}"},
-                     {'name': 'ranking',
-                      'title': 'Ranking',
-                      'dbschema': dumps([{'type': 'attr_group', 'name': 'answer'}]),
-                      'answer_validation': dumps({'type': 'ranking', 'attr': 'answer.value'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'table', 'name': 'answer', 'title': 'Items', 'attr': 'answer', 'columns': [{'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'value', 'default': None, 'validator': {'not_empty': True}},
-                                                                                                                            {'type': 'unicode', 'name': 'label', 'title': 'Label', 'attr': 'label', 'default': None, 'validator': {'not_empty': False}}], 'validator': {}}]),
-                      'frontend': """<div py:attrs="{'class':error_class}">
-  <ul>
-    <li py:if="q.attr_value('further.before_label')" class="role-label" style="display:none;">${q.attr_value('further.before_label')}</li>
-    <li id="${name}.${value}" py:for="(value, label) in shuffle(zip(q.attr_value('answer.value', default=[], multi=True), q.attr_value('answer.label', default=[], multi=True)))">
-      <select id="${name}.${value}-select" name="${name}.${value}">
-        <option>--<py:if test="q.attr_value('further.before_label')"> ${q.attr_value('further.before_label')} --</py:if></option>
-        <option py:for="idx in range(0, len(q.attr_value('answer.label', default=[], multi=True)))" value="${idx}">${idx + 1}</option>
-        <option py:if="q.attr_value('further.after_label')">-- ${q.attr_value('further.after_label')} --</option>
-      </select>
-      <label for="${name}.${value}-item">${label}</label>
-    </li>
-    <li py:if="q.attr_value('further.after_label')" class="role-label" style="display:none;">${q.attr_value('further.after_label')}</li>
-  </ul>
-  <p py:if="error_text">${error_text}</p>
-</div>
-"""},
-                     {'name': 'page_timer',
-                      'title': 'Page Timer',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'int'}),
-                      'backend': dumps([{'type': 'question-name'}]),
-                      'frontend': """${f.hidden_field(name, '0', class_='role-timer')}"""},
-                     {'name': 'hidden_value',
-                      'title': 'Hidden value',
-                      'dbschema': dumps([{'type': 'attr', 'attr': 'further.value', 'default': ''}]),
-                      'answer_validation': dumps({'type': 'unicode'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'unicode', 'name': 'value', 'title': 'Value', 'attr': 'further.value', 'default': '', 'validator': {'not_empty': True}}]),
-                      'frontend': "${f.hidden_field(name, sub(q.attr_value('further.value'), i, p), None)}"},
-                     {'name': 'js_check',
-                      'title': 'JavaScript Check',
-                      'dbschema': dumps([]),
-                      'answer_validation': dumps({'type': 'unicode'}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-required'}]),
-                      'frontend': """<noscript><p py:if="q.required">JavaScript is required</p><p py:if="not q.required">JavaScript is recommended</p></noscript>
-<script>document.write('${f.hidden_field(name, 'yes', None)');</script>
-"""},
-                     {'name': 'auto_commit',
-                      'title': 'Automatic Next Page',
-                      'dbschema': dumps([{'type': 'attr', 'attr': 'further.timeout', 'default': '60'}]),
-                      'answer_validation': dumps(None),
-                      'backend': dumps([{'type': 'int', 'name': 'timeout', 'title': 'Timeout (seconds)', 'attr': 'further.timeout', 'default': '0', 'validator': {'not_empty': True}}]),
-                      'frontend': """<script type="text/javascript">$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('<input type="hidden" name="action_" value="Next Page"/>'); frm.submit();}, ${q.attr_value('further.timeout') * 1000})});</script>"""},
-                     {'name': u'country',
-                      'title': u'Country selection',
-                      'dbschema': dumps([{'type': 'attr', 'attr': 'further.priority', 'default': '', 'group_order': 0},
-                                         {'type': 'attr', 'attr': 'further.allow_multiple', 'default': 'no', 'group_order': 1}]),
-                      'answer_validation': dumps({'type': 'unicode', 'params': {'allow_multiple': {'type': 'attr', 'attr': 'further.allow_multiple', 'default': False, 'data_type': 'boolean'}}}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'unicode', 'name': 'priority', 'title': 'Prioritise these countries', 'attr': 'further.priority', 'default': '', 'validator': {'not_empty': False, 'if_empty': ''}},
-                                        {'type': 'select', 'name': 'multiple', 'title': 'Allow multiple selection', 'attr': 'further.allow_multiple', 'values': [('False', 'No'), ('True', 'Yes')], 'default': 'False', 'validator': {}}]),
-                      'frontend': """<?python
-    from babel import Locale
-    locale = Locale('en')
-    territories = locale.territories.items()
-    territories.sort(key=lambda t:t[1])
-?>
-<select name="${name}" py:with="priority=[l.strip().upper() for l in q.attr_value('further.priority', default='').split(',') if l.strip()]" py:attrs="{'multiple': 'multiple' if q.attr_value('further.allow_multiple', default=False, data_type='boolean') else None}">
-  <option value="" py:if="not q.attr_value('further.allow_multiple', default=False, data_type='boolean')">--- Please choose ---</option>
-  <py:if test="priority">
-    <option py:for="territory in territories" value="${territory[0]}" py:if="territory[0] in priority">${territory[1]}</option>
-    <option value="" disabled="disabled">--------------------</option>
-  </py:if>
-  <option py:for="territory in territories" value="${territory[0]}" py:if="territory[0] not in priority">${territory[1]}</option>
-</select>"""},
-                     {'name': u'language',
-                      'title': u'Language selection',
-                      'dbschema': dumps([{'type': 'attr', 'attr': 'further.priority', 'default': '', 'group_order': 0},
-                                         {'type': 'attr', 'attr': 'further.allow_multiple', 'default': 'no', 'group_order': 1}]),
-                      'answer_validation': dumps({'type': 'unicode', 'params': {'allow_multiple': {'type': 'attr', 'attr': 'further.allow_multiple', 'default': False, 'data_type': 'boolean'}}}),
-                      'backend': dumps([{'type': 'question-name'},
-                                        {'type': 'question-title'},
-                                        {'type': 'question-help'},
-                                        {'type': 'question-required'},
-                                        {'type': 'unicode', 'name': 'priority', 'title': 'Prioritise these countries', 'attr': 'further.priority', 'default': '', 'validator': {'not_empty': False, 'if_empty': ''}},
-                                        {'type': 'select', 'name': 'multiple', 'title': 'Allow multiple selection', 'attr': 'further.allow_multiple', 'values': [('False', 'No'), ('True', 'Yes')], 'default': 'False', 'validator': {}}]),
-                      'frontend': """<?python
-    from babel import Locale
-    locale = Locale('en')
-    languages = locale.languages.items()
-    languages.sort(key=lambda t:t[1])
-?>
-<select name="${name}" py:with="priority=[l.strip().lower() for l in q.attr_value('further.priority', default='').split(',') if l.strip()]" py:attrs="{'multiple': 'multiple' if q.attr_value('further.allow_multiple', default=False, data_type='boolean') else None}">
-  <option value="" py:if="not q.attr_value('further.allow_multiple', default=False, data_type='boolean')">--- Please choose ---</option>
-  <py:if test="priority">
-    <option py:for="language in languages" value="${language[0]}" py:if="language[0] in priority">${language[1]}</option>
-    <option value="" disabled="disabled">--------------------</option>
-  </py:if>
-  <option py:for="language in languages" value="${language[0]}" py:if="language[0] not in priority">${language[1]}</option>
-</select>"""}]
-
-def init_data(DBSession):
+    dbsession = DBSession()
     with transaction.manager:
-        user = User(u'admin', u'admin@example.com', u'Admin', u'adminPWD')
+        user = User(u'admin', u'admin@example.com', u'Admin', u'password')
         group = Group(title='Site administrator')
         group.permissions.append(Permission(name='admin.users', title='Administer the users'))
         group.permissions.append(Permission(name='admin.groups', title='Administer the permission groups'))
+        group.permissions.append(Permission(name='admin.question_types', title='Administer the question types'))
         user.groups.append(group)
         group = Group(title='Developer')
         group.permissions.append(Permission(name='survey.new', title='Create new surveys'))
         user.groups.append(group)
-        DBSession.add(user)
+        dbsession.add(user)
         group = Group(title='Content administrator')
         group.permissions.append(Permission(name='survey.view-all', title='View all surveys'))
         group.permissions.append(Permission(name='survey.edit-all', title='Edit all surveys'))
         group.permissions.append(Permission(name='survey.delete-all', title='Delete all surveys'))
-        DBSession.add(group)
-        q_type_group = QuestionTypeGroup(name='core', title='Core Questions', order=0)
-        DBSession.add(q_type_group)
-        for schema in DEFAULT_QUESTIONS:
-            DBSession.add(QuestionType(name=schema['name'],
-                                       title=schema['title'],
-                                       dbschema=schema['dbschema'],
-                                       answer_validation=schema['answer_validation'],
-                                       backend=schema['backend'],
-                                       frontend=schema['frontend'],
-                                       q_type_group=q_type_group
-                                       ))
+        dbsession.add(group)
+        element = XmlValidator().to_python(resource_stream('pyquest', 'scripts/templates/default_question_types.xml').read())
+        dbsession.add(load_q_types_from_xml(dbsession, element, 0))
+    alembic_cfg = Config(args.configuration)
+    command.stamp(alembic_cfg, "head")
 
-def init_test_data(DBSession):
+def load_test_data(args):
+    settings = get_appsettings(args.configuration)
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    DBSession.configure(bind=engine)
     def load_questions(qsheet, doc, DBSession):
         for item in doc:
             if item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
                 load_questions_from_xml(qsheet, item, DBSession, cleanup=False)
+    dbsession = DBSession()
     with transaction.manager:
-        user = DBSession.query(User).first()
+        user = dbsession.query(User).first()
+        
+        # Sample Survey 1
+        element = XmlValidator().to_python(resource_stream('pyquest', 'scripts/templates/sample_survey_1.xml').read())
+        dbsession.add(load_survey_from_xml(user, dbsession, element))
+        
+        # Sample Survey 2
+        element = XmlValidator().to_python(resource_stream('pyquest', 'scripts/templates/sample_survey_2.xml').read())
+        survey = load_survey_from_xml(user, dbsession, element)
+        dbsession.add(survey)
+        data_set = DataSet(name='test_samples', owned_by=user.id)
+        data_set.survey = survey
+        #reader = DictReader(resource_stream('pyquest', 'scripts/templates/sample_survey_2.csv'))
+        
+        '''
         # SURVEY 1
         survey = Survey(title='A test survey', status='develop', styles='', scripts='')
         # PAGE 1
@@ -940,7 +568,7 @@ def init_test_data(DBSession):
         QSheetTransition(source=qsheet3, target=qsheet4)
         QSheetTransition(source=qsheet4, target=qsheet5)
         user.surveys.append(survey)
-        DBSession.add(survey)
+        dbsession.add(survey)
         
         # SURVEY 2
         survey = Survey(title='A test sampling survey', status='develop', styles='', scripts='')
@@ -1041,7 +669,7 @@ def init_test_data(DBSession):
         survey.qsheets.append(qsheet2)
         survey.start = qsheet1
         QSheetTransition(source=qsheet1, target=qsheet2)
-        question = DBSession.query(Question).filter(Question.qsheet_id==qsheet2.id).filter(Question.name=='rating').first()
+        question = dbsession.query(Question).filter(Question.qsheet_id==qsheet2.id).filter(Question.name=='rating').first()
         """
         question = Question(type='text', name='', title='', required=False, help='', order=0)
         qa_group = QuestionAttributeGroup(key='text', label='Free text')
@@ -1119,5 +747,21 @@ def init_test_data(DBSession):
         survey.data_sets.append(dataset)
         user.data_sets.append(dataset)
         user.surveys.append(survey)
-        DBSession.add(survey)
-        
+        dbsession.add(survey)
+        '''
+
+def main(argv=sys.argv):
+    if len(argv) < 2:
+        usage(argv)
+    config_uri = argv[1]
+    setup_logging(config_uri)
+    settings = get_appsettings(config_uri)
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    DBSession.configure(bind=engine)
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+    init_data(DBSession)
+    alembic_cfg = Config(config_uri)
+    command.stamp(alembic_cfg, "head")
+    if len(argv) > 2 and argv[2] == '--with-test-data':
+        init_test_data(DBSession)

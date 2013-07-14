@@ -1,13 +1,52 @@
-Installation
-============
+####################
+Initial Installation
+####################
+
+It is generally recommended that PyQuestionnaire is installed into its own
+``virtualenv`` (see `https://pypi.python.org/pypi/virtualenv`_).
+
+****************************
+Installing the Core Software
+****************************
+
+It is recommended that you install the latest stable release, but if you wish
+to contribute back to the project, please considere installing the latest
+development version.
+
+Stable releases
+===============
+
+To install the latest stable release run:
+
+``pip install pyquestionnaire``
+
+To install an older release, download the release from
+`https://bitbucket.org/mhall/pyquestionnaire/downloads`_ and then install using:
 
 ``pip install pyquestionnaire-x.y.z.tar.gz``
 
-It is recommended that you install PyQuestionnaire into a virtual
-environment.
+Source code
+===========
 
-You then need to install either *pycryptopp* or *PyCrypto* packages to enable
-the use of session cookies:
+To install the latest development version from source, clone the Mercurial
+repository:
+
+``hg clone hg clone https://bitbucket.org/mhall/pyquestionnaire``
+
+****************************
+Additional Required Packages
+****************************
+
+PyQuestionnaire additionally requires further packages to be fully operational:
+
+* a cryptography library to support secure session cookies;
+* a database access library.
+
+Secure session handling
+=======================
+
+You need to install either *pycryptopp* or *PyCrypto* packages to enable
+the use of secure session cookies:
 
 ``pip install pycryptopp``
 
@@ -16,11 +55,35 @@ or
 Download PyCrypto from https://www.dlitz.net/software/pycrypto/ and install
 using ``pip install pycrypto-X.Y.tar.gz``.
 
-You will also need to download database libraries for the database you intend
-to use. For PostgreSQL ``pip install psycopg2``, for MySQL ``pip install mysql-python``.
-SQLite is not supported, because it does not provide all required features for
-smoothly migrating the database.
+Database access
+===============
 
-After the installation has completed, run ``populate_PyQuestionnaire pyquest.ini``.
+PyQuestionnaire uses `SQLAlchemy`_ as its database access library and thus in
+theory supports any `database supported by SQLAlchemy`_. The following databases
+have been tested with PyQuestionnaire:
 
-You can then start the application by running ``pserve pyquest.ini``.
+PostgreSQL
+    Recommended, fully supported and tested with the ``psycopg2`` database adapter:
+    
+    ``pip install psycopg2``
+
+MySQL
+    Fully supported and tested with the ``mysql-python`` database adapter:
+    
+    ``pip install mysql-python``
+
+SQLite
+    Only supported for testing purposes. SQLite does not support all DDL
+    statements required to upgrade the database for future releases, thus it is
+    not recommended to use it in a production environment.
+    
+All other databases
+    Should in theory be supported, but have not been tested. If you have
+    deployed PyQuestionnaire using another database backend, please let us know
+    and the documentation will be updated.
+
+After installing PyQuestionnaire, move on to :doc:`setup`.
+
+.. _SQLAlchemy: http://sqlalchemy.org
+.. _database supported by SQLAlchemy: docs.sqlalchemy.org/en/latest/dialects/
+.. _SQLite: http://www.sqlite.org/

@@ -51,5 +51,6 @@ setup(name='PyQuestionnaire',
       main = pyquest:main
       [console_scripts]
       populate_PyQuestionnaire = pyquest.scripts.populate:main
+      PyQuestionnaire = pyquest.scripts.main:main
       """,
       )

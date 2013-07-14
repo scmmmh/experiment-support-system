@@ -199,7 +199,7 @@ class Survey(Base):
         self.start_id = start_id
         self.language = language
         self.owend_by = owned_by
-        self.external_id = uuid1()
+        self.external_id = unicode(uuid1())
         
     def is_owned_by(self, user):
         if user:
