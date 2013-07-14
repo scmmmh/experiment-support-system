@@ -8,7 +8,8 @@ DEV
   it harder to just scan for surveys
 - UPDATE: Re-styled the frontend
 - UPDATE: Improved the frontend error messages
-- UPDATE: QSheet and Question names are now restricted to alpha-numeric and _.
+- UPDATE: QSheet and Question names are now restricted to alpha-numeric and _
+- UPDATE: New PyQuestionnaire script for all console-based admin actions
 
 0.9.1
 -----
