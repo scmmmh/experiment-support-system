@@ -31,7 +31,7 @@ def init(subparsers):
     parser.add_argument('configuration', help='PyQuestionnaire configuration file')
     parser.add_argument('--drop-existing', action='store_true', default=False, help='Drop any existing tables')
     parser.set_defaults(func=initialise_database)
-    parser = subparsers.add_parser('load-test-data', help='Load the test data')
+    parser = subparsers.add_parser('load-sample-data', help='Loads the sample data')
     parser.add_argument('configuration', help='PyQuestionnaire configuration file')
     parser.set_defaults(func=load_test_data)
 
