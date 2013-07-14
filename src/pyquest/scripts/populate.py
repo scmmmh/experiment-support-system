@@ -67,6 +67,7 @@ def initialise_database(args):
 
 def load_test_data(args):
     settings = get_appsettings(args.configuration)
+    setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     def load_questions(qsheet, doc, DBSession):
@@ -79,7 +80,10 @@ def load_test_data(args):
         
         # Sample Survey 1
         element = XmlValidator().to_python(resource_stream('pyquest', 'scripts/templates/sample_survey_1.xml').read())
-        dbsession.add(load_survey_from_xml(user, dbsession, element))
+        survey = load_survey_from_xml(user, dbsession, element)
+        dbsession.add(survey)
+        notification = Notification(ntype='interval', value=1, recipient=user.email)
+        survey.notifications.append(notification)
         
         # Sample Survey 2
         element = XmlValidator().to_python(resource_stream('pyquest', 'scripts/templates/sample_survey_2.xml').read())
@@ -107,57 +111,5 @@ def load_test_data(args):
         for qsheet in survey.qsheets:
             if qsheet.name == 'data':
                 qsheet.data_set = data_set
-
-        # SURVEY 3
-        survey = Survey(title='A very simple survey', status='develop', styles='', scripts='')
-        # PAGE 1
-        source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
-  <pq:styles></pq:styles>
-  <pq:scripts></pq:scripts>
-  <pq:questions>
-    <pq:question>
-  <pq:type>confirm</pq:type>
-  <pq:name>consent</pq:name>
-  <pq:title>Informed consent</pq:title>
-  <pq:help></pq:help>
-  <pq:required>true</pq:required>
-  <pq:attribute name="further.value">yes</pq:attribute>
-  <pq:attribute name="further.label">I know what I am letting myself in for</pq:attribute>
-</pq:question>
-<pq:question>
-  <pq:type>text</pq:type>
-  <pq:attribute name="text.text"><p>
-    Welcome to this survey.</p>
-<p>
-    You will be shown a number of items with questions.</p>
-</pq:attribute>
-</pq:question>
-  </pq:questions>
-</pq:qsheet>"""
-        qsheet1 = QSheet(name='welcome', title='Welcome', styles='', scripts='')
-        qsheet1.attributes.append(QSheetAttribute(key='repeat', value='single'))
-        qsheet1.attributes.append(QSheetAttribute(key='data-items', value='0'))
-        qsheet1.attributes.append(QSheetAttribute(key='control-items', value='0'))
-        qsheet1.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
-        load_questions(qsheet1, etree.fromstring(source), dbsession)
-        survey.qsheets.append(qsheet1)
-        """
-        question = Question(name='', title='', required=False, help='', order=0)
-        qa_group = QuestionAttributeGroup(key='text', label='Free text')
-        qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>Welcome to this survey.</p><p>You will be shown a number of items with questions.</p>', order=0))
-        question.attributes.append(qa_group)
-        qsheet1.questions.append(question)
-        question = Question(type='confirm', name='consent', title='Informed consent', required=True, help='', order=1)
-        qa_group = QuestionAttributeGroup(key='further', label='Answer', order=0)
-        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='true', order=0))
-        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='I know what I am letting myself in for', order=1))
-        question.attributes.append(qa_group)
-        qsheet1.questions.append(question)
-        """
-        survey.start = qsheet1
-        notification = Notification(ntype='interval', value=60, recipient='paul@paulserver.paulsnetwork')
+        notification = Notification(ntype='pcount', value=10, recipient=user.email)
         survey.notifications.append(notification)
-        notification = Notification(ntype='pcount', value=1, recipient='paul@paulserver.paulsnetwork')
-        survey.notifications.append(notification)
-        user.surveys.append(survey)
-        dbsession.add(survey)
