@@ -65,7 +65,10 @@ class ParticipantManager(object):
     
     def current_qsheet(self):
         state = self.state()
-        return self._dbsession.query(QSheet).filter(QSheet.id==state['current-qsheet']).first()
+        if state['current-qsheet'] != '_finished':
+            return self._dbsession.query(QSheet).filter(QSheet.id==state['current-qsheet']).first()
+        else:
+            return None
     
     def participant(self):
         self._dbsession.add(self._participant)
@@ -127,7 +130,7 @@ class ParticipantManager(object):
                 data_item = self._dbsession.query(DataItem).filter(DataItem.id==did).first()
                 data_item_data = {'did': data_item.id}
                 for attr in data_item.attributes:
-                    data_item_data[attr.key] = attr.value
+                    data_item_data[attr.key.key] = attr.value
                 current_items.append(data_item_data)
             return current_items
         else:
@@ -142,6 +145,7 @@ class ParticipantManager(object):
                 transition = transition
                 if transition.target:
                     next_qs = transition.target
+                    break
         action = 'next'
         if params['action_'] == 'More Questions':
             action = 'more'
@@ -172,8 +176,9 @@ class ParticipantManager(object):
     
     def progress(self):
         def count_to_end(qsheet, seen = []): # TODO: Cycle detection
+            seen.append(qsheet.id)
             if qsheet and qsheet.next:
-                followers = [count_to_end(t.target, seen + [qsheet.id]) for t in qsheet.next if t.id not in seen]
+                followers = [count_to_end(t.target, seen) for t in qsheet.next if t.target and t.target.id not in seen]
                 if followers:
                     return max(followers) + 1
                 else:

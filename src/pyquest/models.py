@@ -10,6 +10,7 @@ This module contains all the database-abstraction classes.
 import json
 import random
 import hashlib
+import time
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         Table, DateTime, Boolean, func)
@@ -26,7 +27,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '444a8338869c'
+DB_VERSION = '26adf3f9d0f5'
 """The currently required database version."""
 
 class DBUpgradeException(Exception):
@@ -177,7 +178,8 @@ class Survey(Base):
     owned_by = Column(ForeignKey(User.id, name='surveys_users_owner_fk'))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime)
-    
+    public = Column(Boolean, default=True)
+
     owner = relationship('User', backref='surveys')
     qsheets = relationship('QSheet',
                            backref='survey',
@@ -189,6 +191,10 @@ class Survey(Base):
     start = relationship('QSheet',
                          primaryjoin='Survey.start_id==QSheet.id',
                          post_update=True)
+
+    notifications = relationship('Notification',
+                          backref='survey',
+                          cascade='all, delete, delete-orphan')
     
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
@@ -556,7 +562,7 @@ class TransitionCondition(Base):
                         actual_answer = actual_answer + av.value + ',' 
                     actual_answer = actual_answer[:-1]
 
-        return eval('actual_answer =="' + self.expected_answer + '"')
+        return actual_answer == self.expected_answer
 
 class DataSet(Base):
 
@@ -566,17 +572,32 @@ class DataSet(Base):
     owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
     survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
 
-    items = relationship('DataItem', backref='data_set')
+    items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
     qsheets = relationship('QSheet', backref='data_set')
     owner = relationship('User', backref='data_sets')
     survey = relationship('Survey', backref='data_sets')
-
+    attribute_keys = relationship('DataSetAttributeKey', 
+                                  backref='dataset', order_by='DataSetAttributeKey.order',
+                                  cascade='all, delete, delete-orphan')
+                                 
     def is_owned_by(self, user):
         if user:
             return self.owned_by == user.id
         else:
             return False
-    
+
+class DataSetAttributeKey(Base):
+
+    __tablename__ = 'data_set_attribute_keys'
+    id = Column(Integer, primary_key=True)
+    key = Column(Unicode(255))
+    order = Column(Integer)
+    dataset_id = Column(ForeignKey(DataSet.id, name="data_set_attribute_keys_dataset_id_fk"))
+ 
+    values = relationship('DataItemAttribute',
+                          backref='key',
+                          cascade='all, delete, delete-orphan')
+
 class DataItem(Base):
     
     __tablename__ = 'data_items'
@@ -587,7 +608,7 @@ class DataItem(Base):
     control = Column(Boolean, default=False)
 
     attributes = relationship('DataItemAttribute',
-                              backref='data_item', order_by='DataItemAttribute.order',
+                              backref='data_item', 
                               cascade='all, delete, delete-orphan')
     counts = relationship('DataItemCount',
                           backref='counts',
@@ -599,15 +620,17 @@ class DataItem(Base):
                                    backref='data_item',
                                    cascade='all, delete, delete-orphan')
 
+    def sorted_attributes(self):
+        return sorted(self.attributes, key = lambda attribute: attribute.key.order)
+
 class DataItemAttribute(Base):
     
     __tablename__ = 'data_item_attributes'
     
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
-    order = Column(Integer)
-    key = Column(Unicode(255))
     value = Column(Unicode(255))
+    key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
 
 class DataItemCount(Base):
     
@@ -669,3 +692,28 @@ class AnswerValue(Base):
     answer_id = Column(ForeignKey(Answer.id, name='answer_values_answers_fk'))
     name = Column(Unicode(255))
     value = Column(Unicode(4096))
+
+class Notification(Base):
+
+    __tablename__ = 'notifications'
+    id = Column(Integer, primary_key=True)
+    survey_id = Column(ForeignKey(Survey.id, name='notifications_surveys_fk'))
+    ntype = Column(Unicode(32))
+    value = Column(Integer)
+    recipient = Column(Unicode(255))
+    timestamp = Column(Integer, default=0)
+
+    def respond(self, dbsession, time_factor):
+        response = {'message': None, 'addresses': self.recipient.split(',')}
+        participants = dbsession.query(Participant).filter(Participant.survey_id==self.survey.id).all()
+        if self.ntype == 'interval':
+            time_now = int(time.time())
+            if (self.timestamp == 0) or (time_now - self.timestamp) > (self.value * time_factor):
+                response['message'] = 'Survey "%s" has had %d participants.\n' % (self.survey.title, len(participants))
+
+        if self.ntype == 'pcount':
+            if (len(participants) >= self.value) and (self.timestamp == 0):
+                response['message'] = 'Survey "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.value)
+                
+        return response
+

@@ -701,48 +701,103 @@ def load_test_data(args):
         """
         # DATA ITEMS
         dataset = DataSet(name="TestDataSet")
+        key_one = DataSetAttributeKey(key='title', order=1)
+        dataset.attribute_keys.append(key_one)
+        key_two = DataSetAttributeKey(key='url', order=2)
+        dataset.attribute_keys.append(key_two)
+
         data_item = DataItem(order=1)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the first item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/1.html'))
+        dia = DataItemAttribute(value='This is the first item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/1.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         dataset.items.append(data_item)
+
         data_item = DataItem(order=2)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the second item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/2.html'))
+        dia = DataItemAttribute(value='This is the second item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/2.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         dataset.items.append(data_item)
+
         data_item = DataItem(order=3, control=True)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the third item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/3.html'))
+        dia = DataItemAttribute(value='This is the third item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/3.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         data_item.control_answers.append(DataItemControlAnswer(answer='0', question=question))
         dataset.items.append(data_item)
+
         data_item = DataItem(order=4)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the fourth item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/4.html'))
+        dia = DataItemAttribute(value='This is the fourth item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/4.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         dataset.items.append(data_item)
+
         data_item = DataItem(order=5)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the fifth item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/5.html'))
+        dia = DataItemAttribute(value='This is the fifth item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/5.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         dataset.items.append(data_item)
+
         data_item = DataItem(order=6)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the sixth item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/6.html'))
+        dia = DataItemAttribute(value='This is the sixth item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/6.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         dataset.items.append(data_item)
+
         data_item = DataItem(order=7, control=True)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the seventh item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/7.html'))
+        dia = DataItemAttribute(value='This is the seventh item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/7.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         data_item.control_answers.append(DataItemControlAnswer(answer='4', question=question))
         dataset.items.append(data_item)
+
         data_item = DataItem(order=8)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the eighth item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/8.html'))
+        dia = DataItemAttribute(value='This is the eighth item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/8.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         dataset.items.append(data_item)
+
         data_item = DataItem(order=9)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the ninth item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/9.html'))
+        dia = DataItemAttribute(value='This is the ninth item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/9.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         dataset.items.append(data_item)
+
         data_item = DataItem(order=10)
-        data_item.attributes.append(DataItemAttribute(order=1, key='title', value='This is the tenth item'))
-        data_item.attributes.append(DataItemAttribute(order=2, key='url', value='http://www.example.com/10.html'))
+        dia = DataItemAttribute(value='This is the tenth item')
+        data_item.attributes.append(dia)
+        key_one.values.append(dia)
+        dia = DataItemAttribute(value='http://www.example.com/10.html')
+        data_item.attributes.append(dia)
+        key_two.values.append(dia)
         dataset.items.append(data_item)
+
         dataset.qsheets.append(qsheet2)
         survey.data_sets.append(dataset)
         user.data_sets.append(dataset)
@@ -765,3 +820,57 @@ def main(argv=sys.argv):
     command.stamp(alembic_cfg, "head")
     if len(argv) > 2 and argv[2] == '--with-test-data':
         init_test_data(DBSession)
+
+        # SURVEY 3
+        survey = Survey(title='A very simple survey', status='develop', styles='', scripts='')
+        # PAGE 1
+        source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
+  <pq:styles></pq:styles>
+  <pq:scripts></pq:scripts>
+  <pq:questions>
+    <pq:question>
+  <pq:type>confirm</pq:type>
+  <pq:name>consent</pq:name>
+  <pq:title>Informed consent</pq:title>
+  <pq:help></pq:help>
+  <pq:required>true</pq:required>
+  <pq:attribute name="further.value">yes</pq:attribute>
+  <pq:attribute name="further.label">I know what I am letting myself in for</pq:attribute>
+</pq:question>
+<pq:question>
+  <pq:type>text</pq:type>
+  <pq:attribute name="text.text"><p>
+    Welcome to this survey.</p>
+<p>
+    You will be shown a number of items with questions.</p>
+</pq:attribute>
+</pq:question>
+  </pq:questions>
+</pq:qsheet>"""
+        qsheet1 = QSheet(name='welcome', title='Welcome', styles='', scripts='')
+        qsheet1.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet1.attributes.append(QSheetAttribute(key='data-items', value='0'))
+        qsheet1.attributes.append(QSheetAttribute(key='control-items', value='0'))
+        qsheet1.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
+        load_questions(qsheet1, etree.fromstring(source), DBSession)
+        survey.qsheets.append(qsheet1)
+        """
+        question = Question(name='', title='', required=False, help='', order=0)
+        qa_group = QuestionAttributeGroup(key='text', label='Free text')
+        qa_group.attributes.append(QuestionAttribute(key='text', label='Free text', value='<p>Welcome to this survey.</p><p>You will be shown a number of items with questions.</p>', order=0))
+        question.attributes.append(qa_group)
+        qsheet1.questions.append(question)
+        question = Question(type='confirm', name='consent', title='Informed consent', required=True, help='', order=1)
+        qa_group = QuestionAttributeGroup(key='further', label='Answer', order=0)
+        qa_group.attributes.append(QuestionAttribute(key='value', label='Value', value='true', order=0))
+        qa_group.attributes.append(QuestionAttribute(key='label', label='Label', value='I know what I am letting myself in for', order=1))
+        question.attributes.append(qa_group)
+        qsheet1.questions.append(question)
+        """
+        survey.start = qsheet1
+        notification = Notification(ntype='interval', value=60, recipient='paul@paulserver.paulsnetwork')
+        survey.notifications.append(notification)
+        notification = Notification(ntype='pcount', value=1, recipient='paul@paulserver.paulsnetwork')
+        survey.notifications.append(notification)
+        user.surveys.append(survey)
+        DBSession.add(survey)

@@ -1,0 +1,13 @@
+<span xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <py:for each="idx,n in enumerate(survey.notifications)">
+    <section class="notification">
+      ${h.form.hidden_field('notifications-%i.id' % idx, n.id)} 
+      Notify ${h.form.text_field('notifications-%i.recipient' % idx, n.recipient, None)}
+      ${h.form.select('notifications-%i.ntype' % idx, n.ntype, [('interval', 'Every'),('pcount', 'When the number of participants passes')], None)} 
+      ${h.form.text_field('notifications-%i.value' % idx, n.value, None)}
+      <span class="days-$idx"> days </span>
+    </section>
+  </py:for>
+  <a href="" class="button add-notification">AddNotification</a>
+  <a href="" class="button delete-notification">DeleteNotification</a>
+</span>
