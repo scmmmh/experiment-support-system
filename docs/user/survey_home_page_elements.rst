@@ -1,10 +1,11 @@
+***************************
 Survey home page elements
-==========================
+***************************
 
-In this section of the manual, we will present and explain the different elements of the Survey **home page** (:doc:`ref<conceptsAndTerms>`), as this will allow you to better understand the sets of instructions that follow and will assist you in familiarising yourself with the architecture of the **home page** (:doc:`ref<conceptsAndTerms>`).
+In this chapter, we will present and explain the different elements of the Survey **home page** (:doc:`ref<conceptsAndTerms>`), as this will allow you to better understand the sets of instructions that follow and will assist you in familiarising yourself with the architecture of the **home page** (:doc:`ref<conceptsAndTerms>`).
 
 An explanation of the survey home page elements
------------------------------------------------
+==========================
 
 	The following elements constitute the survey **home page** (:doc:`ref<conceptsAndTerms>`) and are demonstrated in the screenshot after the table below:
 

@@ -1,5 +1,6 @@
+##################
 Working with PyQuestionnaire
-==================================
+##################
 .. toctree::
    :maxdepth: 4 
    
@@ -7,7 +8,6 @@ Working with PyQuestionnaire
    survey_home_page_elements
    manipulate_survey
    run_survey 
-   get_data
    
 
 
