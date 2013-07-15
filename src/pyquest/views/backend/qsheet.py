@@ -71,6 +71,8 @@ class QSheetVisualSchema(Schema):
     interface_worb = validators.UnicodeString()
     task_disallow = validators.UnicodeString()
     interface_disallow = validators.UnicodeString()
+    task_order = validators.UnicodeString()
+    interface_order = validators.UnicodeString()
 
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -384,13 +386,15 @@ def edit(request):
                         qsheet.set_attr_value('interface-worb', params['interface_worb'])
                         qsheet.set_attr_value('task-disallow', params['task_disallow'])
                         qsheet.set_attr_value('interface-disallow', params['interface_disallow'])
+                        qsheet.set_attr_value('task-order', params['task_order'])
+                        qsheet.set_attr_value('interface-order', params['interface_order'])
                         dbsession.add(survey)
                         dbsession.add(user)
                         for perm in survey.permutations:
                             dbsession.delete(perm.dataset)
                             dbsession.delete(perm)
                         
-                        permutations = todolist.generate(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'])
+                        permutations = todolist.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'], params['interface_disallow'], True)
                         for perm in permutations:
                             pds = perm_string_to_dataset(dbsession, perm, survey)
                             dbsession.add(pds)
@@ -548,18 +552,9 @@ def edit_add_question(request):
 @view_config(route_name='survey.qsheet.pcount')
 @render({'application/json': ''})
 def calculate_pcount(request):
-    import pdb; pdb.set_trace()
-    tcount = int(request.params['tcount'])
-    icount = int(request.params['icount'])
-    tDisallow = []
-    for bit in request.params['tcon'].split(','):
-       tDisallow.append(bit)
-    iDisallow = [] 
-    for bit in request.params['icon'].split(','):
-       iDisallow.append(bit)
-    pcount = todolist.calculate(request.params['worb'], tcount, icount, False, tDisallow, iDisallow)
-    tlist = [chr(i+65) for i in range(tcount)]
-    ilist = [chr(i+49) for i in range(icount)]
+    pcount = todolist.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], False, request.params['tcon'], request.params['icon'], False)
+    tlist = [chr(i+65) for i in range(int(request.params['tcount']))]
+    ilist = [chr(i+49) for i in range(int(request.params['icount']))]
     return {'pcount': str(pcount),
             'tlist': str(tlist),
             'ilist': str(ilist)}
@@ -620,6 +615,8 @@ def edit_source(request):
                         qsheet.set_attr_value('interface-worb', params['interface_worb'])
                         qsheet.set_attr_value('task-disallow', params['task_disallow'])
                         qsheet.set_attr_value('interface-disallow', params['interface_disallow'])
+                        qsheet.set_attr_value('task-order', params['task_order'])
+                        qsheet.set_attr_value('interface-order', params['interface_order'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
 

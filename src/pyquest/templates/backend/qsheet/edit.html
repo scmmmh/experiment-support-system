@@ -356,19 +356,25 @@
 	    <dd class="task-spec">
 	      <table>
 	      <tr>
-	      <td>Tasks:  <label id="task_list">tasks</label></td>
-	      <td>${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td><label>Tasks:  </label><label id="task_list">tasks</label></td>
+	      <td>${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
 	      <td>${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
-	      <td>${h.form.text_field('task_disallow', qsheet.attr_value('task-disallow', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td><label>Exclude:</label>
+                  ${h.form.text_field('task_disallow', qsheet.attr_value('task-disallow', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td><label>Order:</label>
+                  ${h.form.text_field('task_order', qsheet.attr_value('task-order', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
 	      </tr>
               <tr>
-	      <td>Interfaces:  <label id="interface_list">tasks</label></td>
-	      <td>${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td><label>Interfaces: </label><label id="interface_list">tasks</label></td>
+	      <td>${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
 	      <td>${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
-	      <td>${h.form.text_field('interface_disallow', qsheet.attr_value('interface-disallow', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td><label>Exclude: </label>
+                  ${h.form.text_field('interface_disallow', qsheet.attr_value('interface-disallow', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td><label>Order:</label>
+                  ${h.form.text_field('interface_order', qsheet.attr_value('interface-order', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
 	      </tr>
 	      <tr>
-	      <td>Number of participants needed for this arrangement:</td> 
+	      <td><label>Number of participants needed for this arrangement:</label></td> 
 	      <td><label id="pcount">many</label></td>
 	      <td><label id="test_output"></label></td>
 	      </tr>
