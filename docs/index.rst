@@ -11,9 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   installation
-   design
-   api/index
+   administrator/index
+   user/index
+   developer/index
 
 
 Indices and tables

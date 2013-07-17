@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+:mod:`pyquest.models`
+=============================
+
+This module contains all the database-abstraction classes.
+
+.. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
+"""
 import json
 import random
 import hashlib
@@ -19,10 +27,20 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
+<<<<<<< variant A
 DB_VERSION = '44a76d75263'
+>>>>>>> variant B
+DB_VERSION = '26adf3f9d0f5'
+"""The currently required database version."""
+####### Ancestor
+DB_VERSION = '26adf3f9d0f5'
+======= end
 
 class DBUpgradeException(Exception):
-    
+    """The :class:`~pyquest.models.DBUpgradeException` is used to indicate that
+    the database requires an upgrade before the PyQuestionnaire system can be
+    used.
+    """
     def __init__(self, current, required):
         self.current = current
         self.required = required
@@ -39,6 +57,9 @@ again.
 """ % (self.current, self.required)
     
 def check_database_version():
+    """Checks that the current version of the database matches the version specified
+    by :data:`~pyquest.models.DB_VERSION`.
+    """
     dbsession = DBSession()
     try:
         result = dbsession.query('version_num').\
@@ -51,7 +72,10 @@ def check_database_version():
             raise DBUpgradeException('no version-information found', DB_VERSION)
 
 class User(Base):
-    
+    """The :class:`~pyquest.models.User` represents the researcher who creates
+    the experiment via a :class:`~pyquest.models.Survey`. The participant in
+    the experiment is represented by :class:`~pyquest.models.Participant`.
+    """
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True)
@@ -191,7 +215,7 @@ class Survey(Base):
         self.start_id = start_id
         self.language = language
         self.owend_by = owned_by
-        self.external_id = uuid1()
+        self.external_id = unicode(uuid1())
         
     def is_owned_by(self, user):
         if user:

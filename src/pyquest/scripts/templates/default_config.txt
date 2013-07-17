@@ -1,0 +1,65 @@
+[app:main]
+use = egg:PyQuestionnaire
+
+pyramid.reload_templates = false
+pyramid.debug_authorization = false
+pyramid.debug_notfound = false
+pyramid.debug_routematch = false
+pyramid.debug_templates = false
+pyramid.default_locale_name = en
+pyramid.includes = pyramid_tm
+
+sqlalchemy.url = ${sqlalchemy_url}
+
+beaker.session.lock_dir = %(here)s/tmp
+beaker.session.type = cookie
+beaker.session.key = pyquest
+beaker.session.encrypt_key = ${encrypt_key}
+beaker.session.validate_key = ${validate_key}
+
+email.smtp_host = 
+
+[server:main]
+use = egg:waitress#main
+host = 0.0.0.0
+port = 6543
+
+[alembic]
+script_location = pyquest:migrations
+sqlalchemy.url = ${sqlalchemy_url}
+
+# Begin logging configuration
+
+[loggers]
+keys = root, pyquestionnaire, sqlalchemy
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = ERROR
+handlers = console
+
+[logger_pyquestionnaire]
+level = ERROR
+handlers =
+qualname = pyquestionnaire
+
+[logger_sqlalchemy]
+level = ERROR
+handlers =
+qualname = sqlalchemy.engine
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
+
+# End logging configuration

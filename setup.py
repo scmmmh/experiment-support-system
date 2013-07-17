@@ -27,7 +27,7 @@ requires = [
     ]
 
 setup(name='PyQuestionnaire',
-      version='0.10',
+      version='0.10.99',
       description='PyQuestionnaire',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
@@ -50,6 +50,6 @@ setup(name='PyQuestionnaire',
       [paste.app_factory]
       main = pyquest:main
       [console_scripts]
-      populate_PyQuestionnaire = pyquest.scripts.populate:main
+      PyQuestionnaire = pyquest.scripts.main:main
       """,
       )
