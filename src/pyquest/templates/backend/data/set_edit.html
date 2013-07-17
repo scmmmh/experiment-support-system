@@ -96,31 +96,6 @@
             <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=dis.survey_id))}</li>
             <li>${h.form.submit('Update', class_='button')}</li>
           </ul>
-<!--          <table>
-            <thead>
-              <tr py:if="dis.items">
-		<th>Control item</th>
-		<th py:for="attribute in dis.attribute_keys">${attribute.key}</th>
-		<th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr py:if="len(dis.items) == 0">
-		<td class="placeholder">This dataset contains no data item. Use the "Add Item" button to
-                 add data.</td>
-              </tr>
-              <tr py:for="item in dis.items">
-		<td><py:if test="item.control">Yes</py:if></td>
-		<td py:for="attribute in item.sorted_attributes()">${attribute.value}</td>
-		<td>
-                  <ul class="inline no-symbol no-margin">
-                    <li><a href="${r.route_url('data.item.edit', sid=dis.survey_id, dsid=dis.id, did=item.id)}" class="button">Edit</a></li>
-                    <li><a href="${r.route_url('data.item.delete', sid=dis.survey_id, dsid=dis.id, did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
-                  </ul>
-		</td>
-              </tr>
-            </tbody>
-          </table>-->
 	</div>
       </form>
     </article>
