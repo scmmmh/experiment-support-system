@@ -113,5 +113,3 @@ def load_test_data(args):
                 qsheet.data_set = data_set
         notification = Notification(ntype='pcount', value=10, recipient=user.email)
         survey.notifications.append(notification)
-        user.surveys.append(survey)
-        DBSession.add(survey)
