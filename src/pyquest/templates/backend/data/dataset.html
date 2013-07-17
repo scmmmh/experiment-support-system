@@ -8,6 +8,7 @@
       <tr py:if="dis.items">
 	<th>Control item</th>
 	<th py:for="attribute in dis.attribute_keys">${attribute.key}</th>
+	<th>Action</th>
       </tr>
     </thead>
     <tbody>
@@ -18,6 +19,12 @@
       <tr py:for="item in dis.items">
 	<td><py:if test="item.control">Yes</py:if></td>
 	<td py:for="attribute in item.sorted_attributes()">${attribute.value}</td>
+	<td>
+          <ul class="inline no-symbol no-margin">
+            <li><a href="${r.route_url('data.item.edit', sid=dis.survey_id, dsid=dis.id, did=item.id)}" class="button">Edit</a></li>
+            <li><a href="${r.route_url('data.item.delete', sid=dis.survey_id, dsid=dis.id, did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
+          </ul>
+	</td>
       </tr>
     </tbody>
   </table>

@@ -54,12 +54,6 @@
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
     <nav class="toolbar">
-      <ul>
-        <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
-          <li><a href="${r.route_url('data.item.new', sid=dis.survey_id, dsid=dis.id)}" class="button">Add Item</a></li>
-          <li><a href="${r.route_url('data.delete', sid=dis.survey_id, dsid=dis.id)}" class="button">Delete</a></li>
-        </py:if>
-      </ul>
     </nav>
     <article>
       <hgroup>
@@ -102,7 +96,7 @@
             <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=dis.survey_id))}</li>
             <li>${h.form.submit('Update', class_='button')}</li>
           </ul>
-          <table>
+<!--          <table>
             <thead>
               <tr py:if="dis.items">
 		<th>Control item</th>
@@ -126,7 +120,7 @@
 		</td>
               </tr>
             </tbody>
-          </table>
+          </table>-->
 	</div>
       </form>
     </article>
