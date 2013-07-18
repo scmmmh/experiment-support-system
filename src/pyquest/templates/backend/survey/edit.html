@@ -5,7 +5,7 @@
     <title>${survey.title} - Edit</title>
     <script type="text/javascript">
     function set_notification_buttons(){
-        $('.add-notification').click(function() {
+        $('.action-add-row').click(function() {
             $.ajax('${r.route_url('survey.edit.add_notification', sid=survey.id)}', {
         			success: function(response) {
             $('dd.notification').html(response);
@@ -15,7 +15,7 @@
 });
         return false;
         });
-        $('.delete-notification').click(function() {
+        $('.action-remove-row').click(function() {
             $.ajax('${r.route_url('survey.edit.delete_notification', sid=survey.id)}', {
         			success: function(response) {
             $('dd.notification').html(response);
