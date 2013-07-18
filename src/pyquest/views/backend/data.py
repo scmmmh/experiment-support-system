@@ -267,9 +267,9 @@ def dataset_download(request):
             columns = []
             rows = []
             if len(dis.items) > 0:
-                columns = ['id_', 'control_'] + [a.key.encode('utf-8') for a in dis.items[0].attributes]
+                columns = ['id_', 'control_'] + [a.key.key.encode('utf-8') for a in dis.items[0].attributes]
                 for item in dis.items:
-                    row = dict([(a.key.encode('utf-8'), a.value.encode('utf-8')) for a in item.attributes])
+                    row = dict([(a.key.key.encode('utf-8'), a.value.encode('utf-8')) for a in item.attributes])
                     row.update(dict([('id_', item.id), ('control_', item.control)]))
                     rows.append(row)
             return {'columns': columns,
@@ -310,10 +310,6 @@ def new(request):
                         dbsession.add(dis)
                         new_data_item = DataItem(dataset_id=dis.id,
                                                  control=params['control_'])
-                        if len(dis.items) > 0:
-                            new_data_item.order = dbsession.query(func.max(DataItem.order)).filter(DataItem.dataset_id==dis.id).first()[0] + 1
-                        else:
-                            new_data_item.order = 1
                         for attribute_key in dis.attribute_keys:
                             new_data_item.attributes.append(DataItemAttribute(value=params[attribute_key.key],
                                                                               key_id=attribute_key.id))
@@ -323,7 +319,7 @@ def new(request):
                                 new_data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(new_data_item)
                     request.session.flash('Data added', 'info')
-                    raise HTTPFound(request.route_url('data.edit', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
+                    raise HTTPFound(request.route_url('data.view', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
@@ -350,14 +346,14 @@ def edit(request):
                 try:
                     validator = DataItemSchema()
                     for attribute_key in dis.attribute_keys:
-                        validator.add_field(str(attribute_key.order), validators.UnicodeString(not_empty=True))
+                        validator.add_field(attribute_key.key, validators.UnicodeString(not_empty=True))
                     params = validator.to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
                         data_item = dbsession.query(DataItem).filter(DataItem.id==request.matchdict['did']).first()
                         data_item.control = params['control_']
                         for attribute in data_item.attributes:
-                            attribute.value = params[str(attribute.order)]
+                            attribute.value = params[attribute.key.key]
                         data_item.control_answers = []
                         for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
                             question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
@@ -367,7 +363,7 @@ def edit(request):
                         dsid = data_item.dataset_id
                         sid = data_item.data_set.survey_id
                     request.session.flash('Data updated', 'info')
-                    raise HTTPFound(request.route_url('data.edit', sid=sid, dsid=dsid))
+                    raise HTTPFound(request.route_url('data.view', sid=sid, dsid=dsid))
 
                 except api.Invalid as e:
                     e.params = request.POST
@@ -400,7 +396,7 @@ def delete(request):
                 with transaction.manager:
                     dbsession.delete(data_item)
                 request.session.flash('Data deleted', 'info')
-                raise HTTPFound(request.route_url('data.edit', sid=sid, dsid=dsid))
+                raise HTTPFound(request.route_url('data.view', sid=sid, dsid=dsid))
             else:
                 return {'dis': dis,
                         'data_item': data_item}

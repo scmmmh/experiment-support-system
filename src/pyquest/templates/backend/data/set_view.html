@@ -20,6 +20,9 @@
       <ul>
         <py:if test="h.auth.is_authorised(':dis.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'dis': dis})">
           <li><a href="${r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id)}" class="button">Edit</a></li>
+          <li><a href="${r.route_url('data.delete', sid=dis.survey_id, dsid=dis.id)}" class="button">Delete</a></li>
+          <li><a href="${r.route_url('data.download', sid=dis.survey_id, dsid=dis.id)}" class="button">Download</a></li>
+          <li><a href="${r.route_url('data.item.new', sid=dis.survey_id, dsid=dis.id)}" class="button">Add Item</a></li>
         </py:if>
       </ul>
     </nav>
