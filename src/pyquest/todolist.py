@@ -61,7 +61,7 @@ def bb(tasks, interfaces, generate):
 
     return permutations
 
-def constructLists(factors, disallow):
+def constructLists(factors, disallow, order):
     """ Constructs the sublists of combinations needed according to the restrictions passed in. So, for example, if passed 
     ['A', 'B', 'C', 'D', 'E'] as factors and ['AB'] as disallow it will return the two lists ['A', 'C', 'D', 'E']
     and ['B', 'C', 'D', 'E']. It is done as 'to keep' and then 'to remove' in order to handle cases where disallowed 
@@ -95,7 +95,7 @@ def constructLists(factors, disallow):
         lists.append(factors)
     return lists
 
-def getPermutations(worb, task_count, interface_count, shuffle, task_disallow, interface_disallow, generate, tOrder):
+def getPermutations(worb, task_count, interface_count, shuffle, task_disallow, interface_disallow, generate, task_order):
 
     tasks = [chr(i+65) for i in range(int(task_count))] 
     interfaces = [chr(i+49) for i in range(int(interface_count))] 
@@ -109,8 +109,12 @@ def getPermutations(worb, task_count, interface_count, shuffle, task_disallow, i
         for bit in interface_disallow.split(','):
             iDisallow.append(bit)
 
-    taskLists = constructLists(tasks, tDisallow)
-    interfaceLists = constructLists(interfaces, iDisallow)
+    tOrder = []
+    for bit in task_order.split(','):
+        tOrder.append(bit)
+
+    taskLists = constructLists(tasks, tDisallow, tOrder)
+    interfaceLists = constructLists(interfaces, iDisallow, None)
 
     if generate:
         toDoList = []
@@ -126,37 +130,32 @@ def getPermutations(worb, task_count, interface_count, shuffle, task_disallow, i
 
     # First attemp BFI 
     # get the two tasks from 'tOrder'
-    if generate and tOrder and len(tOrder) > 0:
-        tOrder = tOrder[::-1]
+    if tOrder and len(tOrder) > 0 and tOrder[0] != '':
+        for order in tOrder:
+            if generate:
+                order = order[::-1]
 
-        toRemove = []
-        for i in range(len(toDoList)):
-        # # search for a tuple that begins with tTwo
-        #     for j in range(0, len(toDoList[i])):
-        #         if toDoList[i][j][0] == tOrder[0]:
-        # # search from the finding point for a tuple that starts with tOne, if there is one then
-        #             for k in range(j, len(toDoList[i])):
-        #                 if toDoList[i][k][0] == tOrder[1]:
-        #                     # remove this permutation from the list
-        #                     toRemove.append(i)
-        #                     break
+                toRemove = []
+                for i in range(len(toDoList)):
 
-            if recur(toDoList[i], 0, tOrder, len(toDoList[i])):
-                toRemove.append(i)
+                    if remove(toDoList[i], 0, order, len(toDoList[i])):
+                        toRemove.append(i)
 
-        toRemove.reverse()
-        print "reversed toRemove is %s" % str(toRemove)
+                toRemove.reverse()
+                print "reversed toRemove is %s" % str(toRemove)
 
-        for i in toRemove:
-            del toDoList[i]
-
+                for i in toRemove:
+                    del toDoList[i]
+            else:
+                toDoList = toDoList / 2
+                    
     return toDoList
 
-def recur(perm, start, searchFor, end):
+def remove(perm, start, searchFor, end):
     for j in range(start, end):
         if perm[j][0] == searchFor[0]:
             if len(searchFor) > 1:
-                return recur(perm, j, searchFor[1:], end)
+                return remove(perm, j, searchFor[1:], end)
             else:
                 return True
     return False;

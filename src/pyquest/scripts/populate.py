@@ -19,25 +19,13 @@ from sqlalchemy import engine_from_config
 
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
-<<<<<<< variant A
-                            Question, QSheetTransition, QSheetAttribute,
-                            DataItemControlAnswer, QuestionType,
-                            QuestionTypeGroup, DataSet, DataSetAttributeKey, Notification, Permutation)
-from pyquest.views.backend.qsheet import load_questions_from_xml, perm_string_to_dataset
-from pyquest import todolist
->>>>>>> variant B
-                            QSheetAttribute,
-                            DataSet, DataSetAttributeKey, Notification)
+                            QSheetAttribute, QSheetTransition,
+                            DataSet, DataSetAttributeKey, Notification, Permutation)
 from pyquest.validation import XmlValidator
 from pyquest.views.admin.question_types import load_q_types_from_xml
-from pyquest.views.backend.qsheet import load_questions_from_xml
+from pyquest.views.backend.qsheet import load_questions_from_xml, perm_string_to_dataset
 from pyquest.views.backend.survey import load_survey_from_xml
-####### Ancestor
-                            Question, QSheetTransition, QSheetAttribute,
-                            DataItemControlAnswer, QuestionType,
-                            QuestionTypeGroup, DataSet, DataSetAttributeKey, Notification)
-from pyquest.views.backend.qsheet import load_questions_from_xml
-======= end
+from pyquest import todolist
 
 def init(subparsers):
     parser = subparsers.add_parser('initialise-database', help='Initialise the database')
@@ -126,7 +114,6 @@ def load_test_data(args):
                 qsheet.data_set = data_set
         notification = Notification(ntype='pcount', value=10, recipient=user.email)
         survey.notifications.append(notification)
-<<<<<<< variant A
         user.surveys.append(survey)
         DBSession.add(survey)
 
@@ -201,7 +188,7 @@ def load_test_data(args):
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
-        permutations = todolist.generate('ww', 2, 2, False, None)
+        permutations = todolist.getPermutations('ww', 2, 2, False, None, None, True, None)
         counter = 0
         for perm in permutations:
             ds = perm_string_to_dataset(DBSession, perm, survey)
@@ -219,8 +206,3 @@ def load_test_data(args):
         survey.notifications.append(notification)
         user.surveys.append(survey)
         DBSession.add(survey)
->>>>>>> variant B
-####### Ancestor
-        user.surveys.append(survey)
-        DBSession.add(survey)
-======= end
