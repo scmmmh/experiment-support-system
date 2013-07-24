@@ -26,6 +26,11 @@ def ww(tasks, interfaces, taskRestores, interfaceRestores, generate):
             ap = [list(i) for i in itertools.permutations(ac)]
             print "TR additional permutations before %s" % str(ap)
 #            permutations = []
+# THIS IS NOT SUFFICIENT, for example if a is [[(A,1), (A,2)], [(C,1), (C,2)]] and p is [[(B,1), (B,2)]] then
+# [(A,1), (A,2), (C,1), (C,2), (B,1), (B,2)] is allowed but so also is
+# [(A,1), (A,2), (C,1), (B,1), (C,2), (B,2)]
+# and [(A,1), (A,2), (B,1), (B,2), (C,1), (C,2)] will have been calculated by other means
+# I think perhaps the whole scheme is wrong - the within-within allows intermingling of the partitions.
             for a in ap:
                 for p in rawpermutations:
                     permutations.append(a + p)
