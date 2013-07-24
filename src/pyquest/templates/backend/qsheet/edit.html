@@ -165,6 +165,26 @@
         return false;
         });
     }
+
+    function set_restriction_appearances(){
+    if ($('[name="task_worb"]').val() == 'w')
+{
+    $('.task-restriction').css({'visibility':'visible'});
+  }
+    else
+{
+    $('.task-restriction').css({'visibility':'hidden'});
+  }
+    if ($('[name="interface_worb"]').val() == 'w')
+{
+    $('.interface-restriction').css({'visibility':'visible'});
+  }
+    else
+{
+    $('.interface-restriction').css({'visibility':'hidden'});
+  }
+
+}
     function display_participant_count(){
 
     var worb = $('[name="task_worb"]').val() + $('[name="interface_worb"]').val();
@@ -294,7 +314,8 @@
             return false;
         });
         $('.role-qsheet-permute').change(function(ev){
-             display_participant_count();})
+             display_participant_count();
+             set_restriction_appearances();})
         $('.role-edit-layout').show();
         $('.role-edit-settings').hide();
         $(window).scroll(function(ev) {
@@ -305,6 +326,7 @@
         fix_control_positions();
         set_transition_buttons();
         display_participant_count();
+        set_restriction_appearances();
     });
     </script>
   </head>
@@ -361,19 +383,19 @@
 	      <td><label>Tasks:  </label><label id="task_list">tasks</label></td>
 	      <td>${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
 	      <td>${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
-	      <td><label>Exclude:</label>
-                  ${h.form.text_field('task_disallow', qsheet.attr_value('task-disallow', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
-	      <td><label>Order:</label>
-                  ${h.form.text_field('task_order', qsheet.attr_value('task-order', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td><label class="task-restriction">Exclude:</label>
+                  ${h.form.text_field('task_disallow', qsheet.attr_value('task-disallow', default=''), e, class_='role-qsheet-permute task-restriction', style='width:50px')}</td>
+	      <td><label class="task-restriction">Order:</label>
+                  ${h.form.text_field('task_order', qsheet.attr_value('task-order', default=''), e, class_='role-qsheet-permute task-restriction', style='width:50px')}</td>
 	      </tr>
               <tr>
 	      <td><label>Interfaces: </label><label id="interface_list">tasks</label></td>
 	      <td>${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
 	      <td>${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
-	      <td><label>Exclude: </label>
-                  ${h.form.text_field('interface_disallow', qsheet.attr_value('interface-disallow', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
-	      <td><label>Order:</label>
-                  ${h.form.text_field('interface_order', qsheet.attr_value('interface-order', default=''), e, class_='role-qsheet-permute', style='width:50px')}</td>
+	      <td><label class="interface-restriction">Exclude: </label>
+                  ${h.form.text_field('interface_disallow', qsheet.attr_value('interface-disallow', default=''), e, class_='role-qsheet-permute interface-restriction', style='width:50px')}</td>
+	      <td><label class="interface-restriction">Order:</label>
+                  ${h.form.text_field('interface_order', qsheet.attr_value('interface-order', default=''), e, class_='role-qsheet-permute interface-restriction', style='width:50px')}</td>
 	      </tr>
 	      <tr>
 	      <td><label>Number of participants needed for this arrangement:</label></td> 
