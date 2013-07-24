@@ -173,10 +173,11 @@
     var tcon = $('[name="task_disallow"]').val();
     var icon = $('[name="interface_disallow"]').val();
     var tord = $('[name="task_order"]').val();
+    var iord = $('[name="interface_order"]').val();
             
      $.ajax('${r.route_url('survey.qsheet.pcount', sid=survey.id, qsid=qsheet.id)}', {type: 'GET',
                   dataType: 'json',
-                  data: {"worb" : worb, "tcount" : tcount, "icount": icount, "tcon":tcon, "icon":icon, "tord":tord},
+                  data: {"worb" : worb, "tcount" : tcount, "icount": icount, "tcon":tcon, "icon":icon, "tord":tord, "iord":iord},
                   success: function(response) {
                   $('#pcount').text(response['pcount']);
                   $('#task_list').text(response['tlist']);

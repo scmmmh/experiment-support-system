@@ -14,16 +14,42 @@ def ww(tasks, interfaces, taskRestores, interfaceRestores, generate):
                 combinations.append((task, interface))
         print "Combinations before %s" % str(combinations)
         rawpermutations = [list(i) for i in itertools.permutations(combinations)]
-        ac = []
-        for tr in taskRestores:
-            for interface in interfaces:
-                ac.append((tr, interface))
-        print "additional combinations before %s" % str(ac)
+
         permutations = []
-        for p in rawpermutations:
-            permutations.append(ac + p)
+
+        if len(taskRestores) > 0:
+            ac = []
+            for tr in taskRestores:
+                for interface in interfaces:
+                    ac.append((tr, interface))
+            print "TR additional combinations before %s" % str(ac)
+            ap = [list(i) for i in itertools.permutations(ac)]
+            print "TR additional permutations before %s" % str(ap)
+#            permutations = []
+            for a in ap:
+                for p in rawpermutations:
+                    permutations.append(a + p)
+
+        elif len(interfaceRestores) > 0:
+            ac = []
+            for t in tasks:
+                for ir in interfaceRestores:
+                    ac.append((t, ir))
+            print "IR additional combinations before %s" % str(ac)
+            ap = [list(i) for i in itertools.permutations(ac)]
+            print "IR additional permutations before %s" % str(ap)
+#            permutations = []
+            for a in ap:
+                for p in rawpermutations:
+                    permutations.append(a + p)
+        else:
+            permutations = rawpermutations
     else:
         permutations = math.factorial(len(tasks) * len(interfaces))
+        if len(taskRestores) > 0:
+            permutations = math.factorial(len(taskRestores) * len(interfaces)) * permutations
+        elif len(interfaceRestores) > 0:
+            permutations = math.factorial(len(tasks) * len(interfaceRestores)) * permutations
 
     return permutations
 
@@ -152,7 +178,7 @@ def constructLists(factors, disallow, order):
         print "restore %s perm %s" %(str(restores[i]), str(lists[i]))
     return (restores, lists)
 
-def getPermutations(worb, task_count, interface_count, shuffle, task_disallow, interface_disallow, generate, task_order):
+def getPermutations(worb, task_count, interface_count, shuffle, task_disallow, interface_disallow, generate, task_order, interface_order):
 
     tasks = [chr(i+65) for i in range(int(task_count))] 
     interfaces = [chr(i+49) for i in range(int(interface_count))] 
@@ -170,10 +196,14 @@ def getPermutations(worb, task_count, interface_count, shuffle, task_disallow, i
     for bit in task_order.split(','):
         tOrder.append(bit)
 
+    iOrder = []
+    for bit in interface_order.split(','):
+        iOrder.append(bit)
+
     reply = constructLists(tasks, tDisallow, tOrder)
     taskRestores = reply[0]
     taskLists = reply[1]
-    reply = constructLists(interfaces, iDisallow, None)
+    reply = constructLists(interfaces, iDisallow, iOrder)
     interfaceRestores = reply[0]
     interfaceLists = reply[1]
 
