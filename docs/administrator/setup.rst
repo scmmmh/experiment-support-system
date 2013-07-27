@@ -1,6 +1,6 @@
-#####
+*****
 Setup
-#####
+*****
 
 The next step is to set up PyQuestionnaire so that it is ready to run. For this
 you need to:
@@ -14,9 +14,8 @@ run:
 
 ``PyQuestionnaire -h``
 
-**************************
 Generate the Configuration
-**************************
+==========================
 
 To generate a configuration file run:
 
@@ -31,10 +30,9 @@ You can also set the following parameters on the commandline:
 * --sqla-connection-string <SQL Alchemy connection string>
 * --filename <Configuration Filename defaults to production.ini>
 
-For details on the available configuration options, check :doc:`configuration`.
+For details on the available configuration options, check the :doc:`configuration <configuration>` section.
 
-***********************
 Initialise the Database
-***********************
+=======================
 
 .. _SQLAlchemy connection string: docs.sqlalchemy.org/en/latest/dialects/
