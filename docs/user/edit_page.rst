@@ -4,7 +4,7 @@
 	
    The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within PyQuestionnaire*, located at the bottom-half of the section :doc:`Access PyQuestionnaire<access_Questionnaire>`. 
    
-   It is also assumed that you know how to add a survey page to a new survey you are developing. More details regarding this, can be found in the section :doc:`Adding a new survey page <add_page>`.
+   It is also assumed that you know how to add a survey page to a new survey you are developing. More details regarding this, can be found in the section :doc:`Adding a new survey page <import_add_export_delete_page>`.
    
    
 .. |add| image:: ../_static/user/add.png
@@ -21,9 +21,9 @@
 .. |preview| image:: ../_static/user/previewButton.png
 .. |testValidation| image:: ../_static/user/testValidation.png
 
-   
+###############################
 Editing an existing survey page
--------------------------------
+###############################
 
 This section explains how to edit an existing survey. This can be done in two ways:
 
@@ -37,7 +37,7 @@ Edit graphically
 ================
 There are two sets of steps to edit a survey page graphically, depending on where in the system you are:
 
-1. Let's assume that you have just created a new survey and have added a new page, as shown in the section :doc:`Adding a new survey page <add_page>`. You should now be in the **Edit** screen shown below:
+1. Let's assume that you have just created a new survey and have added a new page, as shown in the section :doc:`Adding a new survey page <import_add_export_delete_page>`. You should now be in the **Edit** screen shown below:
   
    .. image:: ../_static/user/pageEditScreen.png   
       :align: center

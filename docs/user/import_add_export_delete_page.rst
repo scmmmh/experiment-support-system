@@ -3,7 +3,8 @@
    The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within PyQuestionnaire*, located at the bottom-half of the section :doc:`Access PyQuestionnaire<access_Questionnaire>`.
 
 Importing, adding, exporting and deleting a survey page
---------------------
+-------------------------------------------------------
+
 .. manipulation buttons
 .. |importPage| image:: ../_static/user/importPageButton.png
 .. |importButton| image:: ../_static/user/importButton.png
@@ -30,7 +31,7 @@ This section explains how to:
 .. _importPageSection:
 
 Importing a page
-******************
+****************
 You can import a new page by uploading an external XML file that you or your colleagues might have created. This allows the customisation of the survey pages according to your needs, without necessarily using the default options provided by our survey system.
 
 - While on the **home page** of your survey (:doc:`ref<conceptsAndTerms>`), click on the |importPage| button, included in the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) of that screen.
@@ -85,8 +86,7 @@ Exporting a page works in a similar way to exporting a survey, as shown earlier 
 	   
   c) To export the XML code of the page, click on the |downloadXML| button. The relevant XML code will then appear in your browser and you will be able to copy in one of your files.
 
--------------------------------------------------------------
-  
+
 - If you are in a survey page, but not the one you want to export
 	
   a) Let's assume you are in page 2 of your survey, as shown below, but you want to export page 1 instead:
@@ -118,8 +118,6 @@ Deleting a page is pretty straightforward.
   
   d) if you have clicked **OK**, you will be re-directed to the survey's **home page** (:doc:`ref<conceptsAndTerms>`).
 
-  --------------------------------------------------------------------------------
-  
 - If you are in the survey's **home page** (:doc:`ref<conceptsAndTerms>`)
 
   a) You will be seeing a list of the available survey pages, under the title **Pages**, as shown below:
