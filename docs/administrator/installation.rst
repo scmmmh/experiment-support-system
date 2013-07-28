@@ -9,8 +9,7 @@ Installing the Core Software
 ============================
 
 It is recommended that you install the latest stable release, but if you wish
-to contribute back to the project, please considere installing the latest
-development version.
+to contribute back to the project, please install the latest development version.
 
 Stable releases
 ---------------

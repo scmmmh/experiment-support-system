@@ -5,7 +5,7 @@ Setup
 The next step is to set up PyQuestionnaire so that it is ready to run. For this
 you need to:
 
-1. Generate a configuratipn file
+1. Generate a configuration file
 2. Initialise the database
 
 Both tasks are done using the configuration application included in
