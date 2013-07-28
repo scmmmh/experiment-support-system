@@ -30,7 +30,8 @@ You can also set the following parameters on the commandline:
 * --sqla-connection-string <SQL Alchemy connection string>
 * --filename <Configuration Filename defaults to production.ini>
 
-For details on the available configuration options, check the :doc:`configuration <configuration>` section.
+For details on the available configuration options, check the
+:doc:`configuration <configuration>` documentation.
 
 Initialise the Database
 =======================

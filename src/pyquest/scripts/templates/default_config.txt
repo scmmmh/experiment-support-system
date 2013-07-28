@@ -1,6 +1,31 @@
-[app:main]
-use = egg:PyQuestionnaire
+# #############################
+# PyQuestionnaire configuration
+# #############################
 
+[app:main]
+
+# *************************************
+# SQLAlchemy database connection string
+# *************************************
+sqlalchemy.url = ${sqlalchemy_url}
+
+# ***************
+# E-Mail settings
+# ***************
+email.smtp_host = 
+
+# ******************************
+# Session handling configuration
+# ******************************
+beaker.session.lock_dir = %(here)s/tmp
+beaker.session.type = cookie
+beaker.session.key = pyquest
+beaker.session.encrypt_key = ${encrypt_key}
+beaker.session.validate_key = ${validate_key}
+
+# *******************************
+# Pyramid framework configuration
+# *******************************
 pyramid.reload_templates = false
 pyramid.debug_authorization = false
 pyramid.debug_notfound = false
@@ -9,26 +34,29 @@ pyramid.debug_templates = false
 pyramid.default_locale_name = en
 pyramid.includes = pyramid_tm
 
+# DON'T CHANGE THIS
+use = egg:PyQuestionnaire
+
+# ************************
+# Database update settings
+# ************************
+
+[alembic]
+script_location = pyquest:migrations
 sqlalchemy.url = ${sqlalchemy_url}
 
-beaker.session.lock_dir = %(here)s/tmp
-beaker.session.type = cookie
-beaker.session.key = pyquest
-beaker.session.encrypt_key = ${encrypt_key}
-beaker.session.validate_key = ${validate_key}
-
-email.smtp_host = 
+# ############################
+# Default server configuration
+# ############################
 
 [server:main]
 use = egg:waitress#main
 host = 0.0.0.0
 port = 6543
 
-[alembic]
-script_location = pyquest:migrations
-sqlalchemy.url = ${sqlalchemy_url}
-
-# Begin logging configuration
+# #####################
+# Logging configuration
+# #####################
 
 [loggers]
 keys = root, pyquestionnaire, sqlalchemy
@@ -61,5 +89,3 @@ formatter = generic
 
 [formatter_generic]
 format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
-
-# End logging configuration
