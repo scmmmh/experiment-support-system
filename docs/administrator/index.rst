@@ -9,3 +9,4 @@ Administrator Documentation
    setup
    configuration
    deployment
+   updating
