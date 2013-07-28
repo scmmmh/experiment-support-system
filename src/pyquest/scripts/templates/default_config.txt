@@ -41,10 +41,6 @@ use = egg:PyQuestionnaire
 # Database update settings
 # ************************
 
-[alembic]
-script_location = pyquest:migrations
-sqlalchemy.url = ${sqlalchemy_url}
-
 # ############################
 # Default server configuration
 # ############################

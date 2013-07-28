@@ -1,26 +1,16 @@
 # -*- coding: utf-8 -*-
 
-try:
-    import cPickle as pickle
-except:
-    import pickle
-import os
-import sys
 import transaction
 
-from alembic.config import Config
-from alembic import command
+from alembic import config, command
 from csv import DictReader
-from json import dumps
-from lxml import etree
 from pkg_resources import resource_stream
 from pyramid.paster import (get_appsettings, setup_logging)
 from sqlalchemy import engine_from_config
 
-from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
-                            DataItemAttribute, User, Group, Permission,
-                            QSheetAttribute,
-                            DataSet, DataSetAttributeKey, Notification)
+from pyquest.models import (DBSession, Base, DataItem, DataItemAttribute, User,
+                            Group, Permission, DataSet, DataSetAttributeKey,
+                            Notification)
 from pyquest.validation import XmlValidator
 from pyquest.views.admin.question_types import load_q_types_from_xml
 from pyquest.views.backend.qsheet import load_questions_from_xml
@@ -62,8 +52,9 @@ def initialise_database(args):
         dbsession.add(group)
         element = XmlValidator().to_python(resource_stream('pyquest', 'scripts/templates/default_question_types.xml').read())
         dbsession.add(load_q_types_from_xml(dbsession, element, 0))
-    alembic_cfg = Config(args.configuration)
-    command.stamp(alembic_cfg, "head")
+    alembic_config = config.Config(args.configuration, ini_section='app:main')
+    alembic_config.set_section_option('app:main', 'script_location', 'pyquest:migrations')
+    command.stamp(alembic_config, "head")
 
 def load_test_data(args):
     settings = get_appsettings(args.configuration)
