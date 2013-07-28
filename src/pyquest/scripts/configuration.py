@@ -25,7 +25,7 @@ def generate_config(args):
     if args.sqla_connection_string:
         params['sqlalchemy_url'] = args.sqla_connection_string
     else:
-        params['sqlalchemy_url'] = get_user_parameter('SQL Alchemy Connection String', 'sqlite:///(here)s/pyquestionnaire_test.db')
+        params['sqlalchemy_url'] = get_user_parameter('SQL Alchemy Connection String', 'sqlite:///%(here)s/pyquestionnaire_test.db')
     
     with open(args.filename, 'w') as out_f:
         for data in tmpl.generate(**params).render('text'):
