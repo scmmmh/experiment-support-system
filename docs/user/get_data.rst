@@ -14,7 +14,6 @@
 .. |editButton| image:: ../_static/user/editButton.png
 .. |deleteButton| image:: ../_static/user/deleteButton.png
 .. |updateButton| image:: ../_static/user/updateButton.png
-.. |updateButton| image:: ../_static/user/updateButton.png
 .. |dontUpdateButton| image:: ../_static/user/dontUpdateButton.png 
 .. |add| image:: ../_static/user/add.png
 .. |dontAdd| image:: ../_static/user/dontAdd.png 
@@ -38,7 +37,7 @@ In this section you will learn how to work with data gathered from your experime
 .. _downloadData:
 
 Downloading data
--------------------
+----------------
 
 - **From a survey**
 
@@ -138,7 +137,7 @@ Downloading data
 .. _uploadData:
 
 Uploading data
---------------------
+--------------
 
 Data can only be uploaded to a specific survey question.
 
@@ -165,7 +164,7 @@ Data can only be uploaded to a specific survey question.
 .. _editData:
 
 Editing the uploaded data
------------------------------
+-------------------------
 
   a) If you want to *edit* or *delete* any of the records uploaded, then scroll to the right of the above screen by using the scroll bar as indicated in the screenshot below:
   
@@ -197,7 +196,7 @@ Editing the uploaded data
 .. _clearData:
 
 Clearing data
----------------
+-------------
 
 Last, but not least, is the option to clear any data you have uploaded before. 
 
