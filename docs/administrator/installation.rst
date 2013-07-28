@@ -20,7 +20,7 @@ To install the latest stable release run:
 ``pip install pyquestionnaire``
 
 To install an older release, download the release from
-`https://bitbucket.org/mhall/pyquestionnaire/downloads`_ and then install using:
+https://bitbucket.org/mhall/pyquestionnaire/downloads and then install using:
 
 ``pip install pyquestionnaire-x.y.z.tar.gz``
 
