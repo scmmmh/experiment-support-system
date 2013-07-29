@@ -394,7 +394,7 @@ def edit(request):
                             dbsession.delete(perm.dataset)
                             dbsession.delete(perm)
                         
-                        permutations = todolist.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'], params['interface_disallow'], True, params['task_order'], params['interface_order'])
+                        permutations = todolist.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'])
                         for perm in permutations:
                             pds = perm_string_to_dataset(dbsession, perm, survey)
                             dbsession.add(pds)
@@ -552,7 +552,7 @@ def edit_add_question(request):
 @view_config(route_name='survey.qsheet.pcount')
 @render({'application/json': ''})
 def calculate_pcount(request):
-    pcount = todolist.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], False, request.params['tcon'], request.params['icon'], False, request.params['tord'], request.params['iord'])
+    pcount = todolist.countPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], False, request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'])
     tlist = [chr(i+65) for i in range(int(request.params['tcount']))]
     ilist = [chr(i+49) for i in range(int(request.params['icount']))]
     return {'pcount': str(pcount),
