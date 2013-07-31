@@ -570,9 +570,7 @@ def calculate_pcount(request):
     return {'h' : helpers,
             'qsheet' : qsheet,
             'pcount': str(pcount),
-            'exclusion_pairs': [('', 'None')],
-            'tlist': str(tlist),
-            'ilist': str(ilist)}
+            'exclusion_pairs': [('', 'None')]}
 
 @view_config(route_name='survey.qsheet.edit.delete_question')
 @render({'application/json': ''})
