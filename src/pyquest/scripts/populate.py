@@ -25,7 +25,7 @@ from pyquest.validation import XmlValidator
 from pyquest.views.admin.question_types import load_q_types_from_xml
 from pyquest.views.backend.qsheet import load_questions_from_xml, perm_string_to_dataset
 from pyquest.views.backend.survey import load_survey_from_xml
-from pyquest import todolist
+from pyquest import taskperms
 
 def init(subparsers):
     parser = subparsers.add_parser('initialise-database', help='Initialise the database')
@@ -188,7 +188,7 @@ def load_test_data(args):
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
-        permutations = todolist.getPermutations('ww', 2, 2, False, None, None, True, None, None)
+        permutations = taskperms.getPermutations('ww', 2, 2, False, None, None, True, None, None)
         counter = 0
         for perm in permutations:
             ds = perm_string_to_dataset(DBSession, perm, survey)

@@ -243,10 +243,15 @@ def question_list(qsheet):
     return qlist
 
 def exclusion_pairs(task_count):
-    tasks = [chr(i+65) for i in range(int(task_count))] 
+    generate_tasks(task_count)
     combinations = itertools.combinations(tasks, 2)
     pairs = [('', 'None')]
     for comb in combinations:
         pairs.append(("".join(comb), "".join(comb)))
     return pairs
 
+def generate_tasks(count):
+    return [chr(i+65) for i in range(int(count))] 
+
+def generate_interfaces(count):
+    return [chr(i+49) for i in range(int(count))] 

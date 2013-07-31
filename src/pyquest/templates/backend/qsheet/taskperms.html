@@ -1,7 +1,7 @@
 <span xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <table>
     <tr>
-      <td><label>Tasks:  </label><label id="task_list">$tlist</label></td>
+      <td><label>Tasks:  </label><label id="task_list">${h.qsheet.generate_tasks(qsheet.attr_value('task-count'))}</label></td>
       <td>${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
       <td>${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
       <td><label class="task-restriction">Exclude:</label></td>
@@ -10,7 +10,7 @@
         ${h.form.text_field('task_order', qsheet.attr_value('task-order', default=''), e, class_='role-qsheet-permute task-restriction', style='width:50px')}</td>
     </tr>
     <tr>
-      <td><label>Interfaces: </label><label id="interface_list">$ilist</label></td>
+      <td><label>Interfaces: </label><label id="interface_list">${h.qsheet.generate_interfaces(qsheet.attr_value('interface-count'))}</label></td>
       <td>${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
       <td>${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
       <td><label class="interface-restriction">Exclude: </label></td>

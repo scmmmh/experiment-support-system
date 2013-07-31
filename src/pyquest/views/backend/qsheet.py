@@ -17,7 +17,7 @@ from pywebtools.renderer import render
 from sqlalchemy import and_, desc
 
 from pyquest import helpers
-from pyquest import todolist
+from pyquest import taskperms
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
@@ -394,7 +394,7 @@ def edit(request):
                             dbsession.delete(perm.dataset)
                             dbsession.delete(perm)
                         
-                        permutations = todolist.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'])
+                        permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'])
                         for perm in permutations:
                             pds = perm_string_to_dataset(dbsession, perm, survey)
                             dbsession.add(pds)
@@ -550,13 +550,13 @@ def edit_add_question(request):
                         'idx': 0}
 
 @view_config(route_name='survey.qsheet.pcount')
-@render({'text/html': 'backend/qsheet/exclusions.html'})
+@render({'text/html': 'backend/qsheet/taskperms.html'})
 def calculate_pcount(request):
     dbsession = DBSession()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
 
-    pcount = todolist.countPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], False, request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'])
+    pcount = taskperms.countPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], False, request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'])
     qsheet.set_attr_value('task-count', request.params['tcount'])
     qsheet.set_attr_value('interface-count', request.params['icount'])
     qsheet.set_attr_value('task-worb', request.params['worb'][0])
