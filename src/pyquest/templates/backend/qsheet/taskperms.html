@@ -1,0 +1,27 @@
+<span xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <table>
+    <tr>
+      <td><label>Tasks:  </label><label id="task_list">$tlist</label></td>
+      <td>${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
+      <td>${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
+      <td><label class="task-restriction">Exclude:</label></td>
+	<td>${h.form.select('task_disallow', qsheet.attr_value('task-disallow', default=' '), exclusion_pairs, e, class_='role-qsheet-permute task-restriction', multiple="True", size="1")}</td>
+      <td><label class="task-restriction">Order:</label>
+        ${h.form.text_field('task_order', qsheet.attr_value('task-order', default=''), e, class_='role-qsheet-permute task-restriction', style='width:50px')}</td>
+    </tr>
+    <tr>
+      <td><label>Interfaces: </label><label id="interface_list">$ilist</label></td>
+      <td>${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
+      <td>${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
+      <td><label class="interface-restriction">Exclude: </label></td>
+      <td>${h.form.text_field('interface_disallow', qsheet.attr_value('interface-disallow', default=''), e, class_='role-qsheet-permute interface-restriction', style='width:50px')}</td>
+      <td><label class="interface-restriction">Order:</label>
+        ${h.form.text_field('interface_order', qsheet.attr_value('interface-order', default=''), e, class_='role-qsheet-permute interface-restriction', style='width:50px')}</td>
+    </tr>
+    <tr>
+      <td><label>Number of participants needed for this arrangement:</label></td> 
+      <td><label id="pcount">$pcount</label></td>
+      <td><label id="test_output"></label></td>
+    </tr>
+  </table>
+</span>

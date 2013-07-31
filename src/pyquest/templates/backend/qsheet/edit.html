@@ -2,6 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
+    <script type="text/javascript" src="${r.static_url('pyquest:static/js/taskperms.js')}"></script>
     <title>${survey.title} - ${qsheet.title} - Edit</title>
     <script type="text/javascript">
     function fix_control_positions() {
@@ -166,45 +167,6 @@
         });
     }
 
-    function set_restriction_appearances(){
-    if ($('[name="task_worb"]').val() == 'w')
-{
-    $('.task-restriction').css({'visibility':'visible'});
-  }
-    else
-{
-    $('.task-restriction').css({'visibility':'hidden'});
-  }
-    if ($('[name="interface_worb"]').val() == 'w')
-{
-    $('.interface-restriction').css({'visibility':'visible'});
-  }
-    else
-{
-    $('.interface-restriction').css({'visibility':'hidden'});
-  }
-
-}
-    function display_participant_count(){
-
-    var worb = $('[name="task_worb"]').val() + $('[name="interface_worb"]').val();
-    var tcount = parseInt($('[name="task_count"]').val());
-    var icount = parseInt($('[name="interface_count"]').val());
-    var tcon = $('[name="task_disallow"]').val();
-    var icon = $('[name="interface_disallow"]').val();
-    var tord = $('[name="task_order"]').val();
-    var iord = $('[name="interface_order"]').val();
-            
-     $.ajax('${r.route_url('survey.qsheet.pcount', sid=survey.id, qsid=qsheet.id)}', {type: 'GET',
-                  dataType: 'json',
-                  data: {"worb" : worb, "tcount" : tcount, "icount": icount, "tcon":tcon, "icon":icon, "tord":tord, "iord":iord},
-                  success: function(response) {
-                  $('#pcount').text(response['pcount']);
-                  $('#task_list').text(response['tlist']);
-                  $('#interface_list').text(response['ilist']);
-                }
-            })
-    }
 
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
@@ -313,9 +275,6 @@
             fix_control_positions();
             return false;
         });
-        $('.role-qsheet-permute').change(function(ev){
-             display_participant_count();
-             set_restriction_appearances();})
         $('.role-edit-layout').show();
         $('.role-edit-settings').hide();
         $(window).scroll(function(ev) {
@@ -325,8 +284,7 @@
         });
         fix_control_positions();
         set_transition_buttons();
-        display_participant_count();
-        set_restriction_appearances();
+        task_init('${r.route_url('survey.qsheet.pcount', sid=survey.id, qsid=qsheet.id)}');
     });
     </script>
   </head>
@@ -377,33 +335,9 @@
 	    <dd class="transition"><xi:include href="transitions.html"/></dd>
 	    </py:with>
 	    <dt>Task Specification</dt>
-	    <dd class="task-spec">
-	      <table>
-	      <tr>
-	      <td><label>Tasks:  </label><label id="task_list">tasks</label></td>
-	      <td>${h.form.number_field('task_count', qsheet.attr_value('task-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
-	      <td>${h.form.select('task_worb', qsheet.attr_value('task-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
-	      <td><label class="task-restriction">Exclude:</label>
-                  ${h.form.text_field('task_disallow', qsheet.attr_value('task-disallow', default=''), e, class_='role-qsheet-permute task-restriction', style='width:50px')}</td>
-	      <td><label class="task-restriction">Order:</label>
-                  ${h.form.text_field('task_order', qsheet.attr_value('task-order', default=''), e, class_='role-qsheet-permute task-restriction', style='width:50px')}</td>
-	      </tr>
-              <tr>
-	      <td><label>Interfaces: </label><label id="interface_list">tasks</label></td>
-	      <td>${h.form.number_field('interface_count', qsheet.attr_value('interface-count', default='0'), e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
-	      <td>${h.form.select('interface_worb', qsheet.attr_value('interface-worb', default='w'), [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
-	      <td><label class="interface-restriction">Exclude: </label>
-                  ${h.form.text_field('interface_disallow', qsheet.attr_value('interface-disallow', default=''), e, class_='role-qsheet-permute interface-restriction', style='width:50px')}</td>
-	      <td><label class="interface-restriction">Order:</label>
-                  ${h.form.text_field('interface_order', qsheet.attr_value('interface-order', default=''), e, class_='role-qsheet-permute interface-restriction', style='width:50px')}</td>
-	      </tr>
-	      <tr>
-	      <td><label>Number of participants needed for this arrangement:</label></td> 
-	      <td><label id="pcount">many</label></td>
-	      <td><label id="test_output"></label></td>
-	      </tr>
-	      </table>
-	    </dd>
+	    <py:with vars="tlist='[]';ilist='[]';pcount=0;exclusion_pairs=[(' ', 'None')]">
+	    <dd class="task-spec"><xi:include href="taskperms.html"/></dd>
+	    </py:with>
             <dt class="role-css-edit-toggle">CSS styles</dt>
             <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>
             <dt class="role-js-edit-toggle">Javascript</dt>

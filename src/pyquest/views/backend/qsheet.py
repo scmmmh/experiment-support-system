@@ -550,12 +550,27 @@ def edit_add_question(request):
                         'idx': 0}
 
 @view_config(route_name='survey.qsheet.pcount')
-@render({'application/json': ''})
+@render({'text/html': 'backend/qsheet/exclusions.html'})
 def calculate_pcount(request):
+    dbsession = DBSession()
+    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
+                                                 QSheet.survey_id==request.matchdict['sid'])).first()
+
     pcount = todolist.countPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], False, request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'])
+    qsheet.set_attr_value('task-count', request.params['tcount'])
+    qsheet.set_attr_value('interface-count', request.params['icount'])
+    qsheet.set_attr_value('task-worb', request.params['worb'][0])
+    qsheet.set_attr_value('interface-worb', request.params['worb'][1])
+    qsheet.set_attr_value('task-disallow', request.params['tcon'])
+    qsheet.set_attr_value('interface-disallow', request.params['icon'])
+    qsheet.set_attr_value('task-order', request.params['tord'])
+    qsheet.set_attr_value('interface-order', request.params['iord'])
     tlist = [chr(i+65) for i in range(int(request.params['tcount']))]
     ilist = [chr(i+49) for i in range(int(request.params['icount']))]
-    return {'pcount': str(pcount),
+    return {'h' : helpers,
+            'qsheet' : qsheet,
+            'pcount': str(pcount),
+            'exclusion_pairs': [('', 'None')],
             'tlist': str(tlist),
             'ilist': str(ilist)}
 

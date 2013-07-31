@@ -4,6 +4,7 @@ Created on 20 Jan 2012
 
 @author: mhall
 '''
+import itertools
 from random import shuffle
 
 from decorator import decorator
@@ -240,3 +241,12 @@ def question_list(qsheet):
                 qlist.append((question.id, question.name))
 
     return qlist
+
+def exclusion_pairs(task_count):
+    tasks = [chr(i+65) for i in range(int(task_count))] 
+    combinations = itertools.combinations(tasks, 2)
+    pairs = [('', 'None')]
+    for comb in combinations:
+        pairs.append(("".join(comb), "".join(comb)))
+    return pairs
+
