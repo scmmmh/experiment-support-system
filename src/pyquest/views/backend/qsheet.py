@@ -22,7 +22,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
                             QuestionAttributeGroup, QSheetAttribute, QSheetTransition,
-                            Participant, QuestionType, QuestionTypeGroup, TransitionCondition, DataSet, DataSetAttributeKey, Permutation, DataItem, DataItemAttribute)
+                            Participant, QuestionType, QuestionTypeGroup, TransitionCondition, DataSet, DataSetAttributeKey, Permutation, DataItem, DataItemAttribute, PermutationSet)
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
                                 XmlValidator, QuestionTypeSchema)
 
@@ -395,7 +395,19 @@ def edit(request):
                             dbsession.delete(perm)
                         
                         permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'])
+                        import pdb; pdb.set_trace()
+                        np = PermutationSet(owned_by=user.id, survey_id=survey.id)
+                        dbsession.add(np)
+                        dbsession.flush()
+                        permstring_key_id = np.get_permstring_key_id()
+                        assigned_to_key_id = np.get_assigned_to_key_id()
+                        order = 1
                         for perm in permutations:
+                            di = DataItem(dataset_id=np.id, order=order)
+                            di.attributes.append(DataItemAttribute(key_id=permstring_key_id, value=str(perm)))
+                            di.attributes.append(DataItemAttribute(key_id=assigned_to_key_id, value=None))
+                            order = order + 1
+                            np.items.append(di)
                             pds = perm_string_to_dataset(dbsession, perm, survey)
                             dbsession.add(pds)
                             user.data_sets.append(pds)

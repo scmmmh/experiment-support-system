@@ -19,7 +19,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
                             DataItemAttribute, Question, DataItemControlAnswer,
-                            Participant, DataSet, DataSetAttributeKey)
+                            Participant, DataSet, DataSetAttributeKey, PermutationSet)
 import re
 
 class DataItemSchema(Schema):
@@ -46,16 +46,18 @@ class NewDataSetSchema(Schema):
 @view_config(route_name='data.list')
 @render({'text/html': 'backend/data/set_list.html'})
 def list_datasets(request):
+    import pdb; pdb.set_trace()
     dbsession = DBSession()
     user = current_user(request)
-    dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.show_in_list==True)).all()
-    perm_dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.show_in_list==False)).all()
+    dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.type=='dataset')).all()
+    perm_dis = dbsession.query(PermutationSet).filter(and_(PermutationSet.owned_by==user.id, PermutationSet.survey_id==request.matchdict['sid'])).all()
     perms = []
     for perm in perm_dis:
-        dias = dbsession.query(DataItemAttribute).join(DataItem).filter(DataItem.dataset_id==perm.id).all()
+        dias = dbsession.query(DataItemAttribute, DataItem).filter(and_(DataItem.dataset_id==perm.id, DataItemAttribute.data_item_id==DataItem.id)).all()
         perm = ''
         for dia in dias:
-            perm = perm + ' ' + dia.value
+            if dia[0].value != None:
+                perm = perm + ' ' + dia[0].value 
         perms.append(perm)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     return {'survey': survey,

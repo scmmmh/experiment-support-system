@@ -584,7 +584,11 @@ class DataSet(Base):
     attribute_keys = relationship('DataSetAttributeKey', 
                                   backref='dataset', order_by='DataSetAttributeKey.order',
                                   cascade='all, delete, delete-orphan')
-                                 
+    type = Column(Unicode(20))
+
+    __mapper_args__ = {'polymorphic_on': type,
+                       'polymorphic_identity' : 'dataset' }
+
     def is_owned_by(self, user):
         if user:
             return self.owned_by == user.id
@@ -739,3 +743,26 @@ class Permutation(Base):
     applicant = relationship('QSheet')
 
     dataset = relationship('DataSet')
+
+class PermutationSet(DataSet):
+
+    __mapper_args__ = {'polymorphic_identity' : 'permutationset' }
+
+    def __init__(self, owned_by=None, survey_id=None):
+        self.name = 'permset'
+        self.show_in_list = False
+        self.owned_by = owned_by
+        self.survey_id = survey_id
+
+        self.attribute_keys.append(DataSetAttributeKey(key="permstring", order=1))
+        self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=2))
+        
+    def get_permstring_key_id(self):
+        for attribute_key in self.attribute_keys:
+            if attribute_key.key == "permstring":
+                return attribute_key.id
+
+    def get_assigned_to_key_id(self):
+        for attribute_key in self.attribute_keys:
+            if attribute_key.key == "assigned_to":
+                return attribute_key.id
