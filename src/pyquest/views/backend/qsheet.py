@@ -330,24 +330,6 @@ def preview(request):
     else:
         raise HTTPNotFound()
 
-def perm_string_to_dataset(dbsession, perm, survey):
-    # convert the bits of perm into a DataSet
-    ds = DataSet(name="perm", show_in_list=False)
-    dsak = DataSetAttributeKey(key='perm', order=1)
-    dbsession.add(ds)
-    ds.attribute_keys.append(dsak)
-    li = perm
-    o = 1
-    for item in li:
-        di = DataItem(order=o)
-        dbsession.add(di)
-        dia = DataItemAttribute(value=str(item))
-        di.attributes.append(dia)
-        ds.items.append(di)
-        dsak.values.append(dia)
-        o = o + 1
-    return ds
-
 @view_config(route_name='survey.qsheet.edit')
 @render({'text/html': 'backend/qsheet/edit.html',
          'application/json': True})
@@ -390,31 +372,37 @@ def edit(request):
                         qsheet.set_attr_value('interface-order', params['interface_order'])
                         dbsession.add(survey)
                         dbsession.add(user)
-                        for perm in survey.permutations:
-                            dbsession.delete(perm.dataset)
-                            dbsession.delete(perm)
+#                        dbsession.query(PermutationSet).filter(PermutationSet.survey_id==request.matchdict['sid']).delete()
+                        for ds in survey.data_sets:
+                            if ds.type == 'permutationset':
+                                dbsession.delete(ds)
+#                        for perm in survey.permutations:
+#                            dbsession.delete(perm.dataset)
+#                            dbsession.delete(perm)
                         
                         permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'])
-                        import pdb; pdb.set_trace()
                         np = PermutationSet(owned_by=user.id, survey_id=survey.id)
                         dbsession.add(np)
                         dbsession.flush()
                         permstring_key_id = np.get_permstring_key_id()
+                        applies_to_key_id = np.get_applies_to_key_id()
                         assigned_to_key_id = np.get_assigned_to_key_id()
                         order = 1
                         for perm in permutations:
                             di = DataItem(dataset_id=np.id, order=order)
                             di.attributes.append(DataItemAttribute(key_id=permstring_key_id, value=str(perm)))
+                            di.attributes.append(DataItemAttribute(key_id=applies_to_key_id, value=qsheet.id))
                             di.attributes.append(DataItemAttribute(key_id=assigned_to_key_id, value=None))
                             order = order + 1
                             np.items.append(di)
-                            pds = perm_string_to_dataset(dbsession, perm, survey)
-                            dbsession.add(pds)
-                            user.data_sets.append(pds)
-                            survey.data_sets.append(pds)
-                            p = Permutation(dataset = pds, applicant=qsheet)
-                            dbsession.add(p)
-                            survey.permutations.append(p)
+#                            pds = perm_string_to_dataset(dbsession, perm, survey)
+#                            dbsession.add(pds)
+#                            user.data_sets.append(pds)
+#                            survey.data_sets.append(pds)
+#                            p = Permutation(dataset = pds, applicant=qsheet)
+#                            dbsession.add(p)
+                        survey.data_sets.append(np)
+                        user.data_sets.append(np)
                             
                         for transition in qsheet.next:
                             t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)

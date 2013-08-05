@@ -46,7 +46,6 @@ class NewDataSetSchema(Schema):
 @view_config(route_name='data.list')
 @render({'text/html': 'backend/data/set_list.html'})
 def list_datasets(request):
-    import pdb; pdb.set_trace()
     dbsession = DBSession()
     user = current_user(request)
     dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.type=='dataset')).all()

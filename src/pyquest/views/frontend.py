@@ -19,7 +19,7 @@ from sqlalchemy.sql.expression import not_
 
 from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
-    DataItemCount, Answer, AnswerValue, Question, TransitionCondition, DataSet, DataSetAttributeKey, DataItemAttribute, Permutation)
+    DataItemCount, Answer, AnswerValue, Question, TransitionCondition, DataSet, DataSetAttributeKey, DataItemAttribute, Permutation, PermutationSet)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 from pyquest.helpers.qsheet import transition_sorter
 import json
@@ -43,14 +43,20 @@ class ParticipantManager(object):
             self._participant = Participant(survey_id=survey.id)
             with transaction.manager:
                 dbsession.add(survey)
-                available_perms = dbsession.query(Permutation).filter(and_(Permutation.survey_id==survey.id,
-                                                                           Permutation.assigned_to==None)).all()
-                if len(available_perms) > 0:
-                    perm = available_perms[int(random() * len(available_perms))]
-                    dbsession.add(perm)
-                    self._participant.permutation = perm
-                #else: ???
+#                available_perms = dbsession.query(DataItems).filter(and_(Permutation.survey_id==survey.id,
+#                                                                           Permutation.assigned_to==None)).all()
+                ps = dbsession.query(PermutationSet).filter(PermutationSet.survey_id==survey.id).first()
                 dbsession.add(self._participant)
+                dbsession.flush()
+                pds = ps.get_next_perm(dbsession, self._participant.id)
+                dbsession.add(pds)
+                dbsession.flush()
+                self._participant.permutation_id = pds.id
+#                if len(available_perms) > 0:
+#                    perm = available_perms[int(random() * len(available_perms))]
+#                    dbsession.add(perm)
+#                    self._participant.permutation = perm
+                #else: ???
                 dbsession.flush()
             dbsession.add(self._participant)
             session['participant_id'] = self._participant.id
@@ -94,8 +100,9 @@ class ParticipantManager(object):
         # if there is a permutation DataSet for this participant and this qsheet then use that
         self.data_set_in_use = None
         pds = None
-        if self._participant.permutation and self._participant.permutation.applies_to == qsheet.id:
-            pds = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation.dataset_id).first()
+        if self._participant.permutation_id and qsheet.dataset_id == self._participant.permutation_id:
+#            pds = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation.dataset_id).first()
+            pds = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation_id).first()
         if pds:
             # we want the data items to be presented in the order specified by the to_do_list generation
             self.data_set_in_use = pds

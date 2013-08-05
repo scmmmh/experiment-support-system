@@ -13,7 +13,7 @@ import hashlib
 import time
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
-                        Table, DateTime, Boolean, func)
+                        Table, DateTime, Boolean, func, and_)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref,
@@ -196,9 +196,9 @@ class Survey(Base):
                           backref='survey',
                           cascade='all, delete, delete-orphan')
     
-    permutations = relationship('Permutation',
-                                backref = 'survey',
-                                cascade = 'all, delete, delete-orphan')
+#    permutations = relationship('PermutationSet',
+#                                backref = 'survey',
+#                                cascade = 'all, delete, delete-orphan')
     
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
@@ -666,6 +666,7 @@ class Participant(Base):
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
+    permutation_id = Column(Integer)
     
     answers = relationship('Answer',
                            backref='participant',
@@ -737,16 +738,20 @@ class Permutation(Base):
     dataset_id = Column(ForeignKey(DataSet.id, name='permutations_dataset_id_fk'))
     assigned_to = Column(ForeignKey(Participant.id, name='permutations_participant_fk'))
 
-    participant = relationship('Participant',
-                               backref=backref('permutation', uselist=False))
+#    participant = relationship('Participant',
+#                               backref=backref('permutation', uselist=False))
 
     applicant = relationship('QSheet')
 
     dataset = relationship('DataSet')
 
+
 class PermutationSet(DataSet):
 
     __mapper_args__ = {'polymorphic_identity' : 'permutationset' }
+
+#    participant = relationship('Participant',
+#                               backref=backref('permutation', uselist=False))
 
     def __init__(self, owned_by=None, survey_id=None):
         self.name = 'permset'
@@ -755,14 +760,69 @@ class PermutationSet(DataSet):
         self.survey_id = survey_id
 
         self.attribute_keys.append(DataSetAttributeKey(key="permstring", order=1))
-        self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=2))
+        self.attribute_keys.append(DataSetAttributeKey(key="applies_to", order=2))
+        self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=3))
         
     def get_permstring_key_id(self):
         for attribute_key in self.attribute_keys:
             if attribute_key.key == "permstring":
                 return attribute_key.id
 
+    def get_applies_to_key_id(self):
+        for attribute_key in self.attribute_keys:
+            if attribute_key.key == "applies_to":
+                return attribute_key.id
+
     def get_assigned_to_key_id(self):
         for attribute_key in self.attribute_keys:
             if attribute_key.key == "assigned_to":
                 return attribute_key.id
+
+    def perm_string_to_dataset(self, dbsession, perm):
+    # convert the bits of perm into a DataSet
+        ds = DataSet(name="perm", show_in_list=False)
+        dsak = DataSetAttributeKey(key='perm', order=1)
+        dbsession.add(ds)
+        ds.attribute_keys.append(dsak)
+        li = perm.replace('[', '').replace(']', '')
+        o = 1
+#        for item in li:
+        finished = False
+        while not finished:
+            t = li.partition('), ')
+            item = t[0] + t[1].replace(', ', '')
+            di = DataItem(order=o)
+            dbsession.add(di)
+            dia = DataItemAttribute(value=str(item))
+            di.attributes.append(dia)
+            ds.items.append(di)
+            dsak.values.append(dia)
+            o = o + 1
+            if t[2] == '' :
+                finished = True
+            else:
+                li = t[2]
+        return ds
+
+    def get_next_perm(self, dbsession, participant_id):
+        # find all the DataItems
+        dis = dbsession.query(DataItem).filter(DataItem.dataset_id==self.id).all()
+        # find the first DataItem which has a NULL assigned to attribute
+        pki = self.get_permstring_key_id()
+        applies_key = self.get_applies_to_key_id()
+        assigned_key = self.get_assigned_to_key_id()
+        for di in dis:
+            at = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==di.id, DataItemAttribute.key_id==assigned_key)).first()
+            if at.value == None:
+                dbsession.add(at)
+                at.value = participant_id
+                applies_to = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==di.id, DataItemAttribute.key_id==applies_key)).first().value
+                permstring = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==di.id, DataItemAttribute.key_id==pki)).first().value
+                break
+  
+        ds = self.perm_string_to_dataset(dbsession, permstring)
+        qs = dbsession.query(QSheet).filter(QSheet.id==applies_to).first()
+        dbsession.add(qs)
+        qs.dataset_id = ds.id
+        return ds
+
