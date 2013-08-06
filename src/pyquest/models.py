@@ -727,33 +727,14 @@ class Notification(Base):
                 
         return response
 
-class Permutation(Base):
-
-    __tablename__ = 'permutations'
-    
-    id = Column(Integer, primary_key=True)
-    survey_id = Column(ForeignKey(Survey.id, name='permutations_survey_fk'))
-    applies_to = Column(ForeignKey(QSheet.id, name='permutations_applies_to_fk'))
-
-    dataset_id = Column(ForeignKey(DataSet.id, name='permutations_dataset_id_fk'))
-    assigned_to = Column(ForeignKey(Participant.id, name='permutations_participant_fk'))
-
-#    participant = relationship('Participant',
-#                               backref=backref('permutation', uselist=False))
-
-    applicant = relationship('QSheet')
-
-    dataset = relationship('DataSet')
-
-
 class PermutationSet(DataSet):
-
+    """ PermutationSet extends DataSet. A PermutationSet is created when a QSheet has tasks and interfaces to permute.
+    The DataItems in a PermutationSet are strings representing the individual permutations. A DataSet containing the parts
+    of the actual permutation is created when a Participant actually starts the survey. 
+    """
     __mapper_args__ = {'polymorphic_identity' : 'permutationset' }
 
-#    participant = relationship('Participant',
-#                               backref=backref('permutation', uselist=False))
-
-    def __init__(self, owned_by=None, survey_id=None):
+    def __init__(self, owned_by=None, survey_id=None, permutations=None, qsheet=None):
         self.name = 'permset'
         self.show_in_list = False
         self.owned_by = owned_by
@@ -762,31 +743,41 @@ class PermutationSet(DataSet):
         self.attribute_keys.append(DataSetAttributeKey(key="permstring", order=1))
         self.attribute_keys.append(DataSetAttributeKey(key="applies_to", order=2))
         self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=3))
-        
+        if permutations and qsheet:
+            self.add_permutations(permutations, qsheet)
+
+    def add_permutations(self, permutations, qsheet):
+        dbsession = DBSession()
+        dbsession.add(self)
+        dbsession.flush()
+        permstring_key_id = self.get_permstring_key_id()
+        applies_to_key_id = self.get_applies_to_key_id()
+        assigned_to_key_id = self.get_assigned_to_key_id()
+        order = 1
+        for perm in permutations:
+            di = DataItem(dataset_id=self.id, order=order)
+            di.attributes.append(DataItemAttribute(key_id=permstring_key_id, value=str(perm)))
+            di.attributes.append(DataItemAttribute(key_id=applies_to_key_id, value=qsheet.id))
+            di.attributes.append(DataItemAttribute(key_id=assigned_to_key_id, value=None))
+            order = order + 1
+            self.items.append(di)
+
     def get_permstring_key_id(self):
-        for attribute_key in self.attribute_keys:
-            if attribute_key.key == "permstring":
-                return attribute_key.id
+        return self.attribute_keys[0].id
 
     def get_applies_to_key_id(self):
-        for attribute_key in self.attribute_keys:
-            if attribute_key.key == "applies_to":
-                return attribute_key.id
+        return self.attribute_keys[1].id
 
     def get_assigned_to_key_id(self):
-        for attribute_key in self.attribute_keys:
-            if attribute_key.key == "assigned_to":
-                return attribute_key.id
+        return self.attribute_keys[2].id
 
     def perm_string_to_dataset(self, dbsession, perm):
-    # convert the bits of perm into a DataSet
         ds = DataSet(name="perm", show_in_list=False)
         dsak = DataSetAttributeKey(key='perm', order=1)
         dbsession.add(ds)
         ds.attribute_keys.append(dsak)
         li = perm.replace('[', '').replace(']', '')
         o = 1
-#        for item in li:
         finished = False
         while not finished:
             t = li.partition('), ')
@@ -804,7 +795,11 @@ class PermutationSet(DataSet):
                 li = t[2]
         return ds
 
-    def get_next_perm(self, dbsession, participant_id):
+    def assign_next_permutation(self, participant):
+        dbsession = DBSession()
+        participant_id = participant.id
+        permstring = ''
+        ds = None
         # find all the DataItems
         dis = dbsession.query(DataItem).filter(DataItem.dataset_id==self.id).all()
         # find the first DataItem which has a NULL assigned to attribute
@@ -819,10 +814,15 @@ class PermutationSet(DataSet):
                 applies_to = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==di.id, DataItemAttribute.key_id==applies_key)).first().value
                 permstring = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==di.id, DataItemAttribute.key_id==pki)).first().value
                 break
-  
-        ds = self.perm_string_to_dataset(dbsession, permstring)
-        qs = dbsession.query(QSheet).filter(QSheet.id==applies_to).first()
-        dbsession.add(qs)
-        qs.dataset_id = ds.id
+
+        if permstring != '':
+            ds = self.perm_string_to_dataset(dbsession, permstring)
+            qs = dbsession.query(QSheet).filter(QSheet.id==applies_to).first()
+            dbsession.add(qs)
+            qs.dataset_id = ds.id
+            dbsession.add(ds)
+            dbsession.flush()
+            participant.permutation_id = ds.id
+
         return ds
 

@@ -244,10 +244,18 @@ def question_list(qsheet):
 
 
 def generate_tasks(count):
-    return [chr(i+65) for i in range(int(count))] 
+    tasks = []
+    if count:
+        tasks = [chr(i+65) for i in range(int(count))] 
+
+    return tasks
 
 def generate_interfaces(count):
-    return [chr(i+49) for i in range(int(count))] 
+    interfaces = []
+    if count:
+        interfaces = [chr(i+49) for i in range(int(count))] 
+
+    return interfaces
 
 def task_pairs(task_count):
     tasks = generate_tasks(task_count)

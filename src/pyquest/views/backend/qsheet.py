@@ -22,7 +22,7 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
                             QuestionAttributeGroup, QSheetAttribute, QSheetTransition,
-                            Participant, QuestionType, QuestionTypeGroup, TransitionCondition, DataSet, DataSetAttributeKey, Permutation, DataItem, DataItemAttribute, PermutationSet)
+                            Participant, QuestionType, QuestionTypeGroup, TransitionCondition, DataSet, DataSetAttributeKey, DataItem, DataItemAttribute, PermutationSet)
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
                                 XmlValidator, QuestionTypeSchema)
 
@@ -372,35 +372,12 @@ def edit(request):
                         qsheet.set_attr_value('interface-order', params['interface_order'])
                         dbsession.add(survey)
                         dbsession.add(user)
-#                        dbsession.query(PermutationSet).filter(PermutationSet.survey_id==request.matchdict['sid']).delete()
                         for ds in survey.data_sets:
                             if ds.type == 'permutationset':
                                 dbsession.delete(ds)
-#                        for perm in survey.permutations:
-#                            dbsession.delete(perm.dataset)
-#                            dbsession.delete(perm)
                         
                         permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], False, params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'])
-                        np = PermutationSet(owned_by=user.id, survey_id=survey.id)
-                        dbsession.add(np)
-                        dbsession.flush()
-                        permstring_key_id = np.get_permstring_key_id()
-                        applies_to_key_id = np.get_applies_to_key_id()
-                        assigned_to_key_id = np.get_assigned_to_key_id()
-                        order = 1
-                        for perm in permutations:
-                            di = DataItem(dataset_id=np.id, order=order)
-                            di.attributes.append(DataItemAttribute(key_id=permstring_key_id, value=str(perm)))
-                            di.attributes.append(DataItemAttribute(key_id=applies_to_key_id, value=qsheet.id))
-                            di.attributes.append(DataItemAttribute(key_id=assigned_to_key_id, value=None))
-                            order = order + 1
-                            np.items.append(di)
-#                            pds = perm_string_to_dataset(dbsession, perm, survey)
-#                            dbsession.add(pds)
-#                            user.data_sets.append(pds)
-#                            survey.data_sets.append(pds)
-#                            p = Permutation(dataset = pds, applicant=qsheet)
-#                            dbsession.add(p)
+                        np = PermutationSet(owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet=qsheet)
                         survey.data_sets.append(np)
                         user.data_sets.append(np)
                             

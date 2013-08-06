@@ -20,7 +20,7 @@ from sqlalchemy import engine_from_config
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             QSheetAttribute, QSheetTransition,
-                            DataSet, DataSetAttributeKey, Notification, Permutation, PermutationSet)
+                            DataSet, DataSetAttributeKey, Notification, PermutationSet)
 from pyquest.validation import XmlValidator
 from pyquest.views.admin.question_types import load_q_types_from_xml
 from pyquest.views.backend.qsheet import load_questions_from_xml
@@ -189,31 +189,9 @@ def load_test_data(args):
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
         permutations = taskperms.getPermutations('ww', 2, 2, False, None, None, None, None)
-        counter = 0
-        np = PermutationSet(owned_by=user.id, survey_id=survey.id)
-        dbsession.add(np)
-        dbsession.flush()
-        permstring_key_id = np.get_permstring_key_id()
-        applies_to_key_id = np.get_applies_to_key_id()
-        assigned_to_key_id = np.get_assigned_to_key_id()
-        order = 1
-        for perm in permutations:
-            di = DataItem(dataset_id=np.id, order=order)
-            di.attributes.append(DataItemAttribute(key_id=permstring_key_id, value=str(perm)))
-            di.attributes.append(DataItemAttribute(key_id=applies_to_key_id, value=qsheet2.id))
-            di.attributes.append(DataItemAttribute(key_id=assigned_to_key_id, value=None))
-            order = order + 1
-            np.items.append(di)
+        np = PermutationSet(owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet=qsheet)
         survey.data_sets.append(np)
         user.data_sets.append(np)
-#        for perm in permutations:
-#            ds = perm_string_to_dataset(DBSession, perm, survey)
-#            user.data_sets.append(ds)
-#            survey.data_sets.append(ds)
-#            survey.permutations.append(Permutation(dataset=ds, applicant=qsheet2))
-#            counter = counter + 1
-        """
-        """
         survey.start = qsheet1
         QSheetTransition(source=qsheet1, target=qsheet2)
         notification = Notification(ntype='interval', value=60, recipient='paul@paulserver.paulsnetwork')

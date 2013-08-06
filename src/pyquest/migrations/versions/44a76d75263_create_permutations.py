@@ -27,17 +27,5 @@ def upgrade():
     for dataset in op.get_bind().execute(ds.select()):
         op.get_bind().execute(ds.update().values({'type':'dataset'}))
 
-    op.create_table('permutations',
-                    Column('id', Integer, primary_key=True),
-                    Column('survey_id', Integer, ForeignKey('surveys.id', name='permutations_survey_fk')),
-                    Column('applies_to', Integer, ForeignKey('qsheets.id', name='permutations_applies_to_fk')),
-                    Column('dataset_id', Integer, ForeignKey('data_sets.id', name='permutations_dataset_id_fk')),
-                    Column('assigned_to', Integer, ForeignKey('participants.id', name='permutations_participant_fk')))
-
 def downgrade():
     op.drop_column('data_sets', 'type')
-    op.drop_constraint('permutations_survey_fk', 'permutations', type='foreignkey')
-    op.drop_constraint('permutations_applies_to_fk', 'permutations', type='foreignkey')
-    op.drop_constraint('permutations_dataset_id_fk', 'permutations', type='foreignkey')
-    op.drop_constraint('permutations_participant_fk', 'permutations', type='foreignkey')
-    op.drop_table('permutations')
