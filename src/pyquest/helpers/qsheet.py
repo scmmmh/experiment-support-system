@@ -120,6 +120,11 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         return text
 
 def transition_as_text(transition):
+    """ Translates a transition into XML text for writing to file.
+
+    :param transition: the :py:class:`~pyquest.models.Transition` to be translated
+    :return the XML representation
+    """
     text = '<pq:transition from="%s"' % transition.source.name
 
     if transition.target:
@@ -243,32 +248,62 @@ def question_list(qsheet):
     return qlist
 
 
-def generate_tasks(count):
-    tasks = []
+def generate_list(count, offset):
+    """ Generates a list of characters of length count starting with ASCII character offset
+
+    :param count: the number of characters to generate
+    :param offset: the ASCII number of the starting character
+    :return a list of characters
+    """
+    factors = []
     if count:
-        tasks = [chr(i+65) for i in range(int(count))] 
+        factors = [chr(i+offset) for i in range(int(count))] 
+    return factors
 
-    return tasks
+def generate_task_list(count):
+    """ Generates a list of task names ('A', 'B', etc.)
 
-def generate_interfaces(count):
-    interfaces = []
-    if count:
-        interfaces = [chr(i+49) for i in range(int(count))] 
+    :param count: the number of tasks
+    :return a list of task names
+    """
+    return generate_list(count, 65)
 
-    return interfaces
+def generate_interface_list(count):
+    """ Genarates a list of inteface names ('1', '2', etc.)
 
-def task_pairs(task_count):
-    tasks = generate_tasks(task_count)
-    combinations = itertools.combinations(tasks, 2)
+    :param count: the number of interfaces
+    :return a list of interface names
+    """
+    return generate_list(count, 49)
+
+def generate_pairs(factors):
+    """ Generates a list of (value, name-pair) tuples for the use in a PyWebTools select menu.  The tuple (' ', 'None'), 
+    no selection, is put at the start of the list. So, for example, the factor list ['A', 'B', 'C'] will generate:
+    [(' ', 'None'), ('AB', 'AB'), ('BC', 'BC'), ('AC', 'AC')]
+
+    :param factors: a list of the factors
+    :return a list of strings representing the possible pairs
+    """
+    combinations = itertools.combinations(factors, 2)
     pairs = [(' ', 'None')]
     for comb in combinations:
         pairs.append(("".join(comb), "".join(comb)))
     return pairs
 
-def interface_pairs(interface_count):
-    interfaces = generate_interfaces(interface_count)
-    combinations = itertools.combinations(interfaces, 2)
-    pairs = [(' ', 'None')]
-    for comb in combinations:
-        pairs.append(("".join(comb), "".join(comb)))
-    return pairs
+    
+def generate_task_pairs(count):
+    """ Generates a list of tuples of task pair values and names for use in the exclusion and ordering menus. 
+
+    :param count: the number of tasks
+    :return a list of strings representing the possible pairs
+    """
+    return generate_pairs(generate_task_list(count))
+
+def generate_interface_pairs(count):
+    """ Generates a list of tuples of interface pair values and names for use in the exclusion and ordering menus. 
+
+    :param count: the number of interfaces
+    :return a list of strings representing the possible pairs
+    """
+    return generate_pairs(generate_interface_list(count))
+
