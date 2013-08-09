@@ -376,7 +376,7 @@ def edit(request):
                             if ds.type == 'permutationset':
                                 dbsession.delete(ds)
                         
-                        permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'])
+                        permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
                         np = PermutationSet(owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet=qsheet)
                         survey.data_sets.append(np)
                         user.data_sets.append(np)
@@ -533,7 +533,7 @@ def calculate_pcount(request):
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
 
-    pcount = taskperms.countPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'])
+    pcount = taskperms.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'], False)
     qsheet.set_attr_value('task-count', request.params['tcount'])
     qsheet.set_attr_value('interface-count', request.params['icount'])
     qsheet.set_attr_value('task-worb', request.params['worb'][0])
