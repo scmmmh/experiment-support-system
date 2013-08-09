@@ -25,8 +25,8 @@
 
 .. _topSection:
    
-Downloading, uploading and clearing data 
-----------------------------------------
+Downloading, creating, uploading and clearing data and datasets 
+---------------------------------------------------------------
 In this sub-section you will learn how to work with data gathered from your experiments. As the title suggests, there are four data-relevant functions that the survey system has:
 
 1. Download data - go to the :ref:`relevant sub-subsection <downloadData>`

@@ -1,4 +1,4 @@
-.. _topSection:
+.. _topAccessSection:
 
 **********************
 Access PyQuestionnaire
@@ -10,6 +10,11 @@ This chapter will demonstrate to you how to access PyQuestionnaire and how to na
 
 .. Navigation tab
 .. |allSurveys| image:: ../_static/user/allMySurveysLink.png
+.. |forgottenPasswordButton| image:: ../_static/user/forgottenPasswordButton.png
+.. |dontRequestButton| image:: ../_static/user/dontRequestButton.png
+
+.. |forgottenPasswordScreen| image:: ../_static/user/forgottenPasswordScreen.png
+
 
 How to login to PyQuestionnaire
 ===============================
@@ -29,9 +34,21 @@ How to login to PyQuestionnaire
 
 - The **main profile screen** (:doc:`ref<conceptsAndTerms>`) will then appear. Any surveys that you create will be listed here, under the title *Surveys*. An example of this screen is shown below:
 
-.. image:: ../_static/user/ProfileScreen.png
+.. image:: ../_static/user/mainProfileScreen.png
    :align: center 
 
+- If you have forgotten your password, click on the |forgottenPasswordButton| button. This will take you to the **Forgotten Password** screen, an example of which is demonstrated below:
+
+.. image:: ../_static/user/forgottenPasswordScreen.png
+   :align: center 
+
+- You will then be prompted to enter an e-mail address where the new password will be send to. Then click on the corresponding button to send the password.
+
+- If you decide, you do not want to request a new button, click on the |dontRequestButton| button.
+
+
+:ref:`back to the top <topAccessSection>`
+   
 .. _navigating:
 
 Navigating within PyQuestionnaire
@@ -46,13 +63,17 @@ However, if you already are in a survey that you are developing, there are two w
   2. The other way is to click on the link |allSurveys| , which is part of the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`) located below the **Breadcrumbs** (:doc:`ref<survey_home_page_elements>`).
   
 
-Now, let's assume you are in page 2 of your survey, as shown below, but you want to go to page 1 instead:
+Now, let's assume you are in page 2 of your survey (or any other page for that matter), as shown below, but you want to go to the survey's **Home Page** (:doc:`ref<conceptsAndTerms>`) instead:
 
-.. image:: ../_static/user/pageTwoScreen.png
-   :align: center  
-   
-  a) Click on the **Survey** above the page's title.
+  .. image:: ../_static/user/pageTwoScreen.png
+     :align: center  
+    
+  a) Click on the **Survey** tab above the page's title, indicated on the screenshot above with a dashed oval and arrow.
   
-  b) Use the **Breadcrumbs**, above the **Survey** button, and click on the title of the Survey. In the above example screenshot, the Survey title would be *Test Survey*.
+  **or**
+  
+  b) Use the **Breadcrumbs**, above the **Survey** tab, and click on the title of the Survey. In the above example screenshot, the Survey title would be *Chic - Test*.
 
-:ref:`back to the top <topSection>`
+Then, simply find the survey page you want to move to from the list of pages on the appearing screen and click on its title. 
+
+:ref:`back to the top <topAccessSection>`
