@@ -1,5 +1,6 @@
+###########################
 Administrator Documentation
-===========================
+###########################
 
 .. toctree::
    :maxdepth: 2
@@ -7,4 +8,5 @@ Administrator Documentation
    installation
    setup
    configuration
-   
+   deployment
+   updating

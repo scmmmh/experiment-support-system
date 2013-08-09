@@ -1,18 +1,9 @@
 # -*- coding: utf-8 -*-
 
-try:
-    import cPickle as pickle
-except:
-    import pickle
-import os
-import sys
 import transaction
 
-from alembic.config import Config
-from alembic import command
+from alembic import config, command
 from csv import DictReader
-from json import dumps
-from lxml import etree
 from pkg_resources import resource_stream
 from pyramid.paster import (get_appsettings, setup_logging)
 from sqlalchemy import engine_from_config
@@ -32,7 +23,7 @@ def init(subparsers):
     parser.add_argument('configuration', help='PyQuestionnaire configuration file')
     parser.add_argument('--drop-existing', action='store_true', default=False, help='Drop any existing tables')
     parser.set_defaults(func=initialise_database)
-    parser = subparsers.add_parser('load-test-data', help='Load the test data')
+    parser = subparsers.add_parser('load-sample-data', help='Loads the sample data')
     parser.add_argument('configuration', help='PyQuestionnaire configuration file')
     parser.set_defaults(func=load_test_data)
 
@@ -63,8 +54,9 @@ def initialise_database(args):
         dbsession.add(group)
         element = XmlValidator().to_python(resource_stream('pyquest', 'scripts/templates/default_question_types.xml').read())
         dbsession.add(load_q_types_from_xml(dbsession, element, 0))
-    alembic_cfg = Config(args.configuration)
-    command.stamp(alembic_cfg, "head")
+    alembic_config = config.Config(args.configuration, ini_section='app:main')
+    alembic_config.set_section_option('app:main', 'script_location', 'pyquest:migrations')
+    command.stamp(alembic_config, "head")
 
 def load_test_data(args):
     settings = get_appsettings(args.configuration)
@@ -114,8 +106,6 @@ def load_test_data(args):
                 qsheet.data_set = data_set
         notification = Notification(ntype='pcount', value=10, recipient=user.email)
         survey.notifications.append(notification)
-        user.surveys.append(survey)
-        DBSession.add(survey)
 
         # SURVEY 4
         survey = Survey(title='Multi-task test survey', status='develop', styles='', scripts='')
