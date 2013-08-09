@@ -1,8 +1,10 @@
-######################
-Access PyQuestionnaire
-######################
+.. _topSection:
 
-This part will demonstrate to you how to access PyQuestionnaire and how to navigate it. The next part of this manual (*Working with PyQuestionnaire*) and that part's chapters assume that you have read this part first and refer you here as a reminder.
+**********************
+Access PyQuestionnaire
+**********************
+
+This chapter will demonstrate to you how to access PyQuestionnaire and how to navigate it. The next chapter of this manual (*Working with PyQuestionnaire*) and that chapter's sections assume that you have read this part first and refer you here as a reminder.
 
 **If you only want to find out how to navigate within PyQuestionnaire**, please click :ref:`here<navigating>` to be directed to the relevant section.
 
@@ -27,7 +29,7 @@ How to login to PyQuestionnaire
 
 - The **main profile screen** (:doc:`ref<conceptsAndTerms>`) will then appear. Any surveys that you create will be listed here, under the title *Surveys*. An example of this screen is shown below:
 
-.. image:: ../_static/user/mainProfileScreen.png
+.. image:: ../_static/user/ProfileScreen.png
    :align: center 
 
 .. _navigating:
@@ -49,6 +51,8 @@ Now, let's assume you are in page 2 of your survey, as shown below, but you want
 .. image:: ../_static/user/pageTwoScreen.png
    :align: center  
    
-a) Click on the **Survey** above the page's title.
+  a) Click on the **Survey** above the page's title.
   
-b) Use the **Breadcrumbs**, above the **Survey** button, and click on the title of the Survey. In the above example screenshot, the Survey title would be *Test Survey*.
+  b) Use the **Breadcrumbs**, above the **Survey** button, and click on the title of the Survey. In the above example screenshot, the Survey title would be *Test Survey*.
+
+:ref:`back to the top <topSection>`

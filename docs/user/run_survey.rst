@@ -1,10 +1,11 @@
 .. note::
 	
    The following chapter assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within PyQuestionnaire*, located at the bottom-half of the part :doc:`Access PyQuestionnaire<access_Questionnaire>`.
+   
+.. _topSection:
 
-****************
 Running a survey
-****************
+================
 
 .. manipulation buttons/navigation tabs
 .. |test| image:: ../_static/user/testButton.png
@@ -35,7 +36,7 @@ This chapter explains the following:
 .. _testingSurvey:
 
 Testing a survey
-================
+----------------
 Before you go live with your survey, it is a good idea to test it. The test run will allow answers to be validated and recorded as if the survey was live, but will be wiped automatically at the end of the test. You will also be able to complete the survey multiple times. 
 
 - Navigate to the **home page** (:doc:`ref<conceptsAndTerms>`) of the survey you want to test (see **Note** at the top of this section).
@@ -77,10 +78,12 @@ Before you go live with your survey, it is a good idea to test it. The test run 
 
 - To navigate back to the **home page** (:doc:`ref<conceptsAndTerms>`) of your survey, click on the |surveyButton| button, located next to the |results| button mentioned above. Otherwise, if you want to navigate your list of surveys, click on the link |allSurveys|, next to the |surveyButton| button. 
 
+:ref:`back to the top <topSection>`
+
 .. _stopingTest:
 
 Stopping survey testing 
-=======================
+-----------------------
 There are two ways to stop a survey depending on where in the system you are.
 
 - If you are in the survey you are testing, click on the |stopTest| button, which now appears as part of the *Manipulation buttons* (:doc:`ref<survey_home_page_elements>`) above the title of the survey.
@@ -89,10 +92,12 @@ There are two ways to stop a survey depending on where in the system you are.
  
 In any case, by clicking on the above mentioned button, you will be directed to the survey's **home page** (:doc:`ref<conceptsAndTerms>`), where you can carry on editing the survey or starting the survey as shown below.
 
+:ref:`back to the top <topSection>`
+
 .. _startingSurvey: 
 
 Starting a survey
-=================
+-----------------
 As with the previous section, there are two ways to start a survey depending on where in the system you are.
 
 - If you are in the survey you are testing, click on the |start| button, which now appears as part of the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) above the title of the survey.
@@ -108,10 +113,12 @@ As with the previous section, there are two ways to start a survey depending on 
 
 - Distribute the live link to the experiment participants. Note that as more participants complete your survey, the **Participant** data in the *Stats* table on the right of the survey's **home page** (:doc:`ref<conceptsAndTerms>`) will change. The *Stats* table is indicated in the image above by a rectangular with dotted borders.
 
+:ref:`back to the top <topSection>`
+
 .. _pausingSurvey: 
 
 Pausing or finishing a survey
-=============================
+-----------------------------
 Note that the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) on the survey's **home page** (:doc:`ref<conceptsAndTerms>`) have now slightly changed to include the |pause| and the |finish| buttons.
 
 - To pause the survey, simply click on the |pause| button. This will enable you to make changes to the survey without any participants answering questions that have or are likely to change. 
@@ -121,3 +128,5 @@ Note that the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) o
 - To stop your survey from running, click on the |finish| button. This will take you to the **Results** screen, an example screenshot of which has been given further above, in the end of the sub-section :ref:`testingSurvey`. As mentioned above, an explanation of the **Results** screen will be given in the **Downloading, uploading and clearing data** section of this manual (:doc:`ref<get_data>`).
 
 - You can also pause or stop your survey from running, from the **main profile screen** (:doc:`ref<conceptsAndTerms>`), by finding the survey in the list provided and clicking the |pause| and the |finish| buttons available.
+
+:ref:`back to the top <topSection>`

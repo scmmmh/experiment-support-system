@@ -1,6 +1,5 @@
 Manipulating a survey
----------------------
-
+=====================
 .. toctree::
    :maxdepth: 2
 

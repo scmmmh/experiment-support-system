@@ -1,10 +1,11 @@
+.. _topSection:
+
 .. note::
 	
-   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within PyQuestionnaire*, located at the bottom-half of the section :doc:`Access PyQuestionnaire<access_Questionnaire>`.
+   The following sub-section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within PyQuestionnaire*, located at the bottom-half of the chapter :doc:`Access PyQuestionnaire<access_Questionnaire>`.
 
 Importing, adding, exporting and deleting a survey page
 -------------------------------------------------------
-
 .. manipulation buttons
 .. |importPage| image:: ../_static/user/importPageButton.png
 .. |importButton| image:: ../_static/user/importButton.png
@@ -18,20 +19,20 @@ Importing, adding, exporting and deleting a survey page
 .. |dontAdd| image:: ../_static/user/dontAdd.png
 .. |editSource| image:: ../_static/user/editSource.png
 
-This section explains how to:
+This sub-section explains how to:
 
-1. import a new survey page - go to relevant section by clicking :ref:`here<importPageSection>`. 
+1. import a new survey page - go to relevant sub-subsection by clicking :ref:`here<importPageSub-subsection>`. 
 
-2. add a new survey page - go to relevant section by clicking :ref:`here<addPageSection>`.
+2. add a new survey page - go to relevant sub-subsection by clicking :ref:`here<addPageSub-subsection>`.
 
-3. export a survey page - go to relevant section by clicking :ref:`here<exportPageSection>`. 
+3. export a survey page - go to relevant sub-subsection by clicking :ref:`here<exportPageSub-subsection>`. 
 
-4. delete a survey page - go to relevant section by clicking :ref:`here<deletePageSection>`. 
+4. delete a survey page - go to relevant sub-subsection by clicking :ref:`here<deletePageSub-subsection>`. 
 
-.. _importPageSection:
+.. _importPageSub-subsection:
 
 Importing a page
-****************
+^^^^^^^^^^^^^^^^
 You can import a new page by uploading an external XML file that you or your colleagues might have created. This allows the customisation of the survey pages according to your needs, without necessarily using the default options provided by our survey system.
 
 - While on the **home page** of your survey (:doc:`ref<conceptsAndTerms>`), click on the |importPage| button, included in the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) of that screen.
@@ -49,13 +50,15 @@ You can import a new page by uploading an external XML file that you or your col
 
 .. note:: For instructions on how to edit a newly imported page, refer to :doc:`Editing an existing survey page <edit_page>`.
 
-.. _addPageSection:
+:ref:`back to the top <topSection>`
+
+.. _addPageSub-subsection:
 
 Adding a page
-*************
+^^^^^^^^^^^^^
 To add a new page on a survey under development, carry out the following steps:
 
-- As shown in the section *Creating a survey*, an |addPage| button is included within the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) of that screen. Click on that button to add a new page in the survey under development. By doing this, the **Add a Page** screen will appear as shown below:
+- As shown in the chapter :doc:`Creating a survey <create_survey>`, an |addPage| button is included within the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) of that screen. Click on that button to add a new page in the survey under development. By doing this, the **Add a Page** screen will appear as shown below:
 
   .. image:: ../_static/user/addPageScreen.png   
           :align: center  
@@ -67,13 +70,15 @@ To add a new page on a survey under development, carry out the following steps:
    .. image:: ../_static/user/pageEditScreen.png   
            :align: center
 
-.. note:: For instructions on how to edit a newly added page, refer to :doc:`Editing an existing survey page <edit_page>`.
+.. note:: For instructions on how to edit a newly added page, refer to sub-section :doc:`Editing an existing survey page <edit_page>`.
+
+:ref:`back to the top <topSection>`
 		   
-.. _exportPageSection:
+.. _exportPageSub-subsection:
 
 Exporting a page
-****************
-Exporting a page works in a similar way to exporting a survey, as shown earlier in the *Importing, exporting, duplicating and deleting an existing survey* section (:doc:`ref<import_export_duplicate_delete_survey>`).
+^^^^^^^^^^^^^^^^
+Exporting a page works in a similar way to exporting a survey, as shown earlier in the sub-section :doc:`Importing, editing, exporting, duplicating and deleting an existing survey <import_edit_export_duplicate_delete_survey>`.
 
 - If you are in the survey page you want to export
 
@@ -86,7 +91,8 @@ Exporting a page works in a similar way to exporting a survey, as shown earlier 
 	   
   c) To export the XML code of the page, click on the |downloadXML| button. The relevant XML code will then appear in your browser and you will be able to copy in one of your files.
 
-
+-------------------------------------------------------------
+  
 - If you are in a survey page, but not the one you want to export
 	
   a) Let's assume you are in page 2 of your survey, as shown below, but you want to export page 1 instead:
@@ -94,18 +100,20 @@ Exporting a page works in a similar way to exporting a survey, as shown earlier 
     .. image:: ../_static/user/pageTwoScreen.png
       :align: center  
 
-  b) There are two ways to do this - see **Note** at the top of this section for guidance, if you do not remember how to do this.
+  b) There are two ways to do this - see :ref:`Note<topSection>` at the top of this section for guidance, if you do not remember how to do this.
   
   c) Whatever way you use, you will be directed to the survey's **home page** (:doc:`ref<conceptsAndTerms>`).
   
   d) You can then click on the link of the survey page you want to export.
   
-  e) Finally follow the instructions (a) to (c) of the previous sub-section above.
-       
-.. _deletePageSection:
+  e) Finally follow the instructions (a) to (c) of the previous sub-subsection.
+ 
+:ref:`back to the top <topSection>`
+ 
+.. _deletePageSub-subsection:
 	
 Deleting a page
-*************** 
+^^^^^^^^^^^^^^^ 
 Deleting a page is pretty straightforward.
 
 - If you are in the survey page you want to delete
@@ -118,17 +126,27 @@ Deleting a page is pretty straightforward.
   
   d) if you have clicked **OK**, you will be re-directed to the survey's **home page** (:doc:`ref<conceptsAndTerms>`).
 
+  --------------------------------------------------------------------------------
+  
 - If you are in the survey's **home page** (:doc:`ref<conceptsAndTerms>`)
 
   a) You will be seeing a list of the available survey pages, under the title **Pages**, as shown below:
   
-   **Note that** the details of each page (i.e. questions included, type of page and next page) and the available buttons are enclosed within a rectangle with dotted borders.
+  .. image:: ../_static/user/listPagesScreen.png
+     :align: center
+  
+  **Note that** the details of each page (i.e. questions included, type of page and next page) and the available buttons are enclosed within a rectangle with dotted borders.
   
   b) Find the page you want to delete and click on the |delete| button of that page. 
   
-  c) This will prompt a message asking to confirm the deletion.
+  c) This will prompt a message asking to confirm the deletion, like the one shown below:
   
+  .. image:: ../_static/user/deletionConfirmMessage.png
+     :align: center
+	  
   d) If you are sure you want to delete the page, click **OK**. Otherwise, **Cancel** the request. 
   
   e) As previously, if you have clicked **OK**, you will be re-directed to the survey's **home page** (:doc:`ref<conceptsAndTerms>`).
+  
+:ref:`back to the top <topSection>`
   

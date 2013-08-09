@@ -14,30 +14,33 @@
 .. |editButton| image:: ../_static/user/editButton.png
 .. |deleteButton| image:: ../_static/user/deleteButton.png
 .. |updateButton| image:: ../_static/user/updateButton.png
+.. |updateButton| image:: ../_static/user/updateButton.png
 .. |dontUpdateButton| image:: ../_static/user/dontUpdateButton.png 
 .. |add| image:: ../_static/user/add.png
 .. |dontAdd| image:: ../_static/user/dontAdd.png 
 
 .. note::
 
-   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within PyQuestionnaire*, located at the bottom-half of the section :doc:`Access PyQuestionnaire<access_Questionnaire>`.
-  
-Downloading, uploading and clearing data
-========================================
-In this section you will learn how to work with data gathered from your experiments. As the title suggests, there are four data-relevant functions that the survey system has:
+   The following sub-section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within PyQuestionnaire*, located at the bottom-half of the chapter :doc:`Access PyQuestionnaire<access_Questionnaire>`.
 
-1. Download data - go to the :ref:`relevant section <downloadData>`
+.. _topSection:
+   
+Downloading, uploading and clearing data 
+----------------------------------------
+In this sub-section you will learn how to work with data gathered from your experiments. As the title suggests, there are four data-relevant functions that the survey system has:
+
+1. Download data - go to the :ref:`relevant sub-subsection <downloadData>`
  
-2. Upload data to a survey question - go to the :ref:`relevant section <uploadData>`
+2. Upload data to a survey question - go to the :ref:`relevant sub-subsection <uploadData>`
 
-3. Editing the uploaded data, with particular attention to the option of manually adding experiment results gathered through a paper copy of the survey - go to the :ref:`relevant section <editData>`
+3. Editing the uploaded data, with particular attention to the option of manually adding experiment results gathered through a paper copy of the survey - go to the :ref:`relevant sub-subsection <editData>`
 
-4. Clear data attached to a survey question - go to the :ref:`relevant section <clearData>`
+4. Clear data attached to a survey question - go to the :ref:`relevant sub-subsection <clearData>`
 
 .. _downloadData:
 
 Downloading data
-----------------
+^^^^^^^^^^^^^^^^
 
 - **From a survey**
 
@@ -111,7 +114,9 @@ Downloading data
 	   - Upon clicking that button, a prompt message will appear asking you to save the relevant .csv file on your computer.
 	   
 	   - To navigate back to your **Results** screen, click on the |results| button at the top of the screen.
-  
+
+:ref:`back to the top <topSection>`
+	   
 - **From a survey question**
 
   a) Navigate to the **home page** (:doc:`ref<conceptsAndTerms>`) of the appropriate survey and find the required questions from the list provided. 
@@ -132,16 +137,18 @@ Downloading data
   
   f) To navigate back to your **Results** screen, click on the |results| button at the top of the screen.
   
-.. Important:: *Downloading data from a survey question, works only after uploading data to it. The relevant process is explained in the sub-section below.*
+.. Important:: *Downloading data from a survey question, works only after uploading data to it. The relevant process is explained in the sub-subsection below.*
       
+:ref:`back to the top <topSection>`
+
 .. _uploadData:
 
 Uploading data
---------------
+^^^^^^^^^^^^^^
 
 Data can only be uploaded to a specific survey question.
 
-  a) To do this, navigate to the appropriate survey question as shown above, in the previous sub-section.
+  a) To do this, navigate to the appropriate survey question as shown above, in the previous sub-subsection.
   
   b) Click on the |upload| button, located on the grey strip above the title of the survey.
 
@@ -159,12 +166,14 @@ Data can only be uploaded to a specific survey question.
 	 .. image:: ../_static/user/addDataScreen.png
 	    :align: center
 
-  g) You will then be able to edit the uploaded data as shown in the relevant sub-section below.
+  g) You will then be able to edit the uploaded data as shown in the relevant sub-subsection below.
+
+:ref:`back to the top <topSection>`
 
 .. _editData:
 
 Editing the uploaded data
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
   a) If you want to *edit* or *delete* any of the records uploaded, then scroll to the right of the above screen by using the scroll bar as indicated in the screenshot below:
   
@@ -193,10 +202,12 @@ Editing the uploaded data
   
   k) Whichever you click on, you will be directed back to the **Data** screen. The only difference will be that if you added a record manually, this will appear at the end of the list of records in the **Data** screen.
 
+:ref:`back to the top <topSection>`
+
 .. _clearData:
 
 Clearing data
--------------
+^^^^^^^^^^^^^
 
 Last, but not least, is the option to clear any data you have uploaded before. 
 
@@ -213,4 +224,4 @@ Last, but not least, is the option to clear any data you have uploaded before.
      .. image:: ../_static/user/noDataMessage.png
 	    :align: center
   
-  
+:ref:`back to the top <topSection>`

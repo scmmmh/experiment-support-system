@@ -1,10 +1,8 @@
-.. _topSection:
-
 .. note::
 	
-   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within PyQuestionnaire*, located at the bottom-half of the section :doc:`Access PyQuestionnaire<access_Questionnaire>`. 
+   The following sub-section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within PyQuestionnaire*, located at the bottom-half of the chapter :doc:`Access PyQuestionnaire<access_Questionnaire>`. 
    
-   It is also assumed that you know how to add a survey page to a new survey you are developing. More details regarding this, can be found in the section :doc:`Adding a new survey page <import_add_export_delete_page>`.
+   It is also assumed that you know how to add a survey page to a new survey you are developing. More details regarding this, can be found in the sub-section :doc:`Importing, adding, exporting and deleting a survey page <import_add_export_delete_page>`.
    
    
 .. |add| image:: ../_static/user/add.png
@@ -21,23 +19,24 @@
 .. |preview| image:: ../_static/user/previewButton.png
 .. |testValidation| image:: ../_static/user/testValidation.png
 
-###############################
+.. _topSection:
+   
 Editing an existing survey page
-###############################
+-------------------------------
 
-This section explains how to edit an existing survey. This can be done in two ways:
+This sub-section explains how to edit an existing survey. This can be done in two ways:
 
-1. Edit the survey graphically - go to relevant section by clicking :ref:`here <graphicEditSection>`.
+1. Edit the survey graphically - go to relevant sub-subsection by clicking :ref:`here <graphicEditSub-subsection>`.
 
-2. Edit the source of the survey - go to relevant section by clicking :ref:`here <sourceEditSection>`. 
+2. Edit the source of the survey - go to relevant sub-subsection by clicking :ref:`here <sourceEditSub-subsection>`. 
 
-.. _graphicEditSection:
+.. _graphicEditSub-subsection:
 
 Edit graphically 
-================
+^^^^^^^^^^^^^^^^
 There are two sets of steps to edit a survey page graphically, depending on where in the system you are:
 
-1. Let's assume that you have just created a new survey and have added a new page, as shown in the section :doc:`Adding a new survey page <import_add_export_delete_page>`. You should now be in the **Edit** screen shown below:
+1. Let's assume that you have just created a new survey and have added a new page, as shown in the sub-section :doc:`Importing, adding, exporting and deleting a survey page <import_add_export_delete_page>`. You should now be in the **Edit** screen shown below:
   
    .. image:: ../_static/user/pageEditScreen.png   
       :align: center
@@ -99,12 +98,12 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
            .. image:: ../_static/user/nameTitleExample.png 
                    :align: center  
    
-      The element's name will be used to refer to the relevant question, when you export a survey's results, as shown in the sub-section **Downloading data** of the section :doc:`Downloading, uploading and clearing data <get_data>`. For example, using the above screenshot, if you clicked on the |results| button, you would get the following screen:
+      The element's name will be used to refer to the relevant question, when you export a survey's results, as shown in the sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data <get_data>`. For example, using the above screenshot, if you clicked on the |results| button, you would get the following screen:
    
            .. image:: ../_static/user/ nameTitleExampleResults.png 
                    :align: center  
    
-      For a more detailed explanation of the **Results** screen, refer to sub-section **Downloading data** of the section :doc:`Downloading, uploading and clearing data <get_data>`.
+      For a more detailed explanation of the **Results** screen, refer to sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data <get_data>`.
    
   **1.4)** On the **Settings** screen, you can also:
    
@@ -145,22 +144,22 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
    
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-2. If you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`) and not on the survey page you want to edit, then click on the |edit| button, located under the title and listed characteristics of that page. You will then be directed to the **Edit** screen, an example of which is provided further above. Now simply follow the steps described in sub-section (1) above to edit a survey page graphically.
+2. If you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`) and not on the survey page you want to edit, then click on the |edit| button, located under the title and listed characteristics of that page. You will then be directed to the **Edit** screen, an example of which is provided further above. Now simply follow the steps described in **paragraph 1** above to edit a survey page graphically.
 
    
 :ref:`back to the top <topSection>`
 
-.. _sourceEditSection:
+.. _sourceEditSub-subsection:
 
 Edit source
-===========
+^^^^^^^^^^^
 The way to access this option depends on whether you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`) or the actual survey page you want to edit. 
 
-1. If you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`), follow the instructions provided in sub-section (2) of the :ref:`Edit graphically<graphicEditSection>` section above.
+1. If you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`), follow the instructions provided in **paragraph 2** of the :ref:`Edit graphically<graphicEditSection>` sub-subsection above.
 	
-2. If you are on the actual survey page you want to edit, that is on the **Edit** screen of the page (see screenshot in :ref:`Edit graphically<graphicEditSection>` section), click on the |editSource| button, above the title of the survey page:
+2. If you are on the actual survey page you want to edit, that is on the **Edit** screen of the page (see screenshot in :ref:`Edit graphically<graphicEditSub-subsection>` sub-subsection), click on the |editSource| button, above the title of the survey page:
 
- **2.1)** You will now be directed to the **Edit Source** screen, as demonstrated below. This screen is the same as the **Settings** screen mentioned in the ref:`Edit graphically<graphicEditSection>` section above, except from the textbox *Content* that the **Settings** screen does not have. The first screenshot corresponds to the top part of the screen. Notice that some.
+ **2.1)** You will now be directed to the **Edit Source** screen, as demonstrated below. This screen is the same as the **Settings** screen mentioned in the :ref:`Edit graphically<graphicEditSub-subsection>` sub-subsection above, except from the textbox *Content* that the **Settings** screen does not have. The first screenshot corresponds to the top part of the screen. Notice that some.
 	
           .. image:: ../_static/user/editSourceScreenOne.png 
                   :align: center
@@ -170,9 +169,9 @@ The way to access this option depends on whether you are on the survey's **home 
           .. image:: ../_static/user/editSourceScreenTwo.png 
                   :align: center  
 		  
-  **2.2)** To revert to the screen used in the **Edit graphically** section, simply click on the |editGraphically| button above the survey page's title.
+  **2.2)** To revert to the screen used in the sub-subsection :ref:`Edit graphically <graphicEditSub-subsection>`, simply click on the |editGraphically| button above the survey page's title.
    
-  **2.3)** The top part of the **Edit Source** screen, is the same as the **Settings** screen described in sub-section **(1.4)** of the section :ref:`Edit graphically <graphicEditSection>`, except from the **Content** box.
+  **2.3)** The top part of the **Edit Source** screen, is the same as the **Settings** screen described in **sub-paragraph 1.4** of the sub-subsection :ref:`Edit graphically <graphicEditSub-subsection>`, except from the **Content** box.
   
   
 :ref:`back to the top <topSection>`
