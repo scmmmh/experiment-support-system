@@ -15,6 +15,7 @@ encoding//src/pyquest/scripts/__init__.py=utf-8
 encoding//src/pyquest/scripts/configuration.py=utf-8
 encoding//src/pyquest/scripts/main.py=utf-8
 encoding//src/pyquest/scripts/populate.py=utf-8
+encoding//src/pyquest/scripts/update.py=utf-8
 encoding//src/pyquest/util.py=utf-8
 encoding//src/pyquest/validation.py=utf-8
 encoding//src/pyquest/views/__init__.py=utf-8

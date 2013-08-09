@@ -1,8 +1,6 @@
-.. _topSection:
-
-##################
+######################
 Access PyQuestionnaire
-##################
+######################
 
 This part will demonstrate to you how to access PyQuestionnaire and how to navigate it. The next part of this manual (*Working with PyQuestionnaire*) and that part's chapters assume that you have read this part first and refer you here as a reminder.
 
@@ -51,6 +49,6 @@ Now, let's assume you are in page 2 of your survey, as shown below, but you want
 .. image:: ../_static/user/pageTwoScreen.png
    :align: center  
    
-  a) Click on the **Survey** above the page's title.
+a) Click on the **Survey** above the page's title.
   
-  b) Use the **Breadcrumbs**, above the **Survey** button, and click on the title of the Survey. In the above example screenshot, the Survey title would be *Test Survey*.
+b) Use the **Breadcrumbs**, above the **Survey** button, and click on the title of the Survey. In the above example screenshot, the Survey title would be *Test Survey*.

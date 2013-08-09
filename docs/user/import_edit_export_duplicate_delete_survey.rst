@@ -3,7 +3,8 @@
    The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within PyQuestionnaire*, located at the bottom-half of the section :doc:`Access PyQuestionnaire<access_Questionnaire>`.
 
 Importing, editing, exporting, duplicating and deleting an existing survey
-----------------------------
+--------------------------------------------------------------------------
+
 .. manipulation buttons
 .. |export| image:: ../_static/user/exportButton.png
 .. |duplicate| image:: ../_static/user/duplicateButton.png
@@ -58,7 +59,8 @@ The system allows you to write a survey in XML and upload it on your PyQuestionn
 .. _editingSurveySection:
 
 Editing a survey
-******************
+****************
+
 You can edit the details of a survey you are developing, add your own CSS Styles and JavaScript code and change which of the survey pages will be the first to display. You can do this by carrying out the following steps:
 
 	- If you are not already in the survey you want to edit, navigate to the **main profile screen** (:doc:`ref<conceptsAndTerms>`), as demonstrated in the *Access PyQuestionnaire* section earlier (:doc:`ref<access_Questionnaire>`).
@@ -119,7 +121,6 @@ In order to action the above, follow the steps below:
   
   f) the duplicated survey will now appear in the list of surveys of your **main profile screen**  (:doc:`ref<conceptsAndTerms>`).
 
------------------------------------------------------------------------------------------------------------------------------------------
    
 - If you are not already on the **main profile screen**  (:doc:`ref<conceptsAndTerms>`) but are in a different survey to the one you want to duplicate
 
@@ -127,7 +128,6 @@ In order to action the above, follow the steps below:
   
   b) follow the steps described above in the previous sub-section.
 
------------------------------------------------------------------------------------------------------------------------------------------
 
 - If you are in the survey that you want to duplicate
 
@@ -149,15 +149,13 @@ To delete a survey, follow the steps below:
 
   c) click **OK** and that survey will disappear from your list. 
  
------------------------------------------------------------------------------------------------------------------------------------------
- 
+
 - If you are not already on the **main profile screen**  (:doc:`ref<conceptsAndTerms>`), but are in a different survey to the one you want to delete
 
   a) navigate to the **main profile screen** (:doc:`ref<conceptsAndTerms>`) - see **Note** at the top of this section.
   
   b) follow the steps described above in the previous sub-section.
 
------------------------------------------------------------------------------------------------------------------------------------------
 
 - If you are in the survey that you want to delete
 
