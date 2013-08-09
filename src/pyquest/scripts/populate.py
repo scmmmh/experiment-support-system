@@ -4,6 +4,7 @@ import transaction
 
 from alembic import config, command
 from csv import DictReader
+from lxml import etree
 from pkg_resources import resource_stream
 from pyramid.paster import (get_appsettings, setup_logging)
 from sqlalchemy import engine_from_config
