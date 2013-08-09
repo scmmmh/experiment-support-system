@@ -179,7 +179,7 @@ def load_test_data(args):
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
-        permutations = taskperms.getPermutations('ww', 2, 2, None, None, None, None)
+        permutations = taskperms.getPermutations('ww', 2, 2, None, None, None, None, True)
         np = PermutationSet(owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet=qsheet)
         survey.data_sets.append(np)
         user.data_sets.append(np)
