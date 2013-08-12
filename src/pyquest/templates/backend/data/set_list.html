@@ -43,7 +43,21 @@
       </table>
 
       <h1> Permutations </h1>
-	<span py:for="idx,set in enumerate(perms)"> $idx $set <br/></span>
+      <py:for each="ps in permsets">
+	<h4>${ps[0]}</h4>
+	<table>
+	  <thead>
+	    <th>Number</th>
+	    <th>Permutation</th>
+	  </thead>
+	  <tbody>
+	    <tr py:for="perm in ps[1]">
+	      <td>${perm[0]}</td>
+	      <td>${perm[1]}</td>
+	    </tr>
+	  </tbody>
+	</table>
+      </py:for>
     </div>
   </body>
 </html>

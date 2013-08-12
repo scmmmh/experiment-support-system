@@ -828,3 +828,19 @@ class PermutationSet(DataSet):
 
         return ds
 
+    def display(self):
+        """ Produces a list suitable for presentation.
+        :return a list with two items, item[0] is some information about the PermutationSet, item[1] is a list of the permutations as strings
+        """
+        dbsession = DBSession()
+        perms = []
+        values = dbsession.query(DataItemAttribute, DataItem).filter(and_(DataItemAttribute.data_item_id==DataItem.id, 
+                                                                       DataItem.dataset_id==self.id,
+                                                                       DataItemAttribute.key_id==self.attribute_keys[0].id)).all()
+        
+        applies_to = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==values[0][1].id, DataItemAttribute.key_id==self.attribute_keys[1].id)).first().value
+
+        header = "Set of %d permutations applying to page %s" % (len(values), applies_to)
+        for i, value in enumerate(values):
+            perms.append((i+1, value[0].value))
+        return [header, perms]

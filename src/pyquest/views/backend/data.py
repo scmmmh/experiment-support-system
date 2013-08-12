@@ -48,20 +48,15 @@ class NewDataSetSchema(Schema):
 def list_datasets(request):
     dbsession = DBSession()
     user = current_user(request)
-    dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.type=='dataset')).all()
-    perm_dis = dbsession.query(PermutationSet).filter(and_(PermutationSet.owned_by==user.id, PermutationSet.survey_id==request.matchdict['sid'])).all()
-    perms = []
-    for perm in perm_dis:
-        dias = dbsession.query(DataItemAttribute, DataItem).filter(and_(DataItem.dataset_id==perm.id, DataItemAttribute.data_item_id==DataItem.id)).all()
-        perm = ''
-        for dia in dias:
-            if dia[0].value != None:
-                perm = perm + ' ' + dia[0].value 
-        perms.append(perm)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.type=='dataset')).all()
+    permsets = dbsession.query(PermutationSet).filter(and_(PermutationSet.owned_by==user.id, PermutationSet.survey_id==request.matchdict['sid'])).all()
+    perms = []
+    for permset in permsets:
+        perms.append(permset.display())
     return {'survey': survey,
             'dis': dis,
-            'perms': perms}
+            'permsets': perms}
 
 @view_config(route_name='data.view')
 @render({'text/html': 'backend/data/set_view.html'})
