@@ -35,7 +35,7 @@ This chapter explains the following:
 .. _testingSurvey:
 
 Testing a survey
-====================
+================
 Before you go live with your survey, it is a good idea to test it. The test run will allow answers to be validated and recorded as if the survey was live, but will be wiped automatically at the end of the test. You will also be able to complete the survey multiple times. 
 
 - Navigate to the **home page** (:doc:`ref<conceptsAndTerms>`) of the survey you want to test (see **Note** at the top of this section).
@@ -80,7 +80,7 @@ Before you go live with your survey, it is a good idea to test it. The test run 
 .. _stopingTest:
 
 Stopping survey testing 
-====================
+=======================
 There are two ways to stop a survey depending on where in the system you are.
 
 - If you are in the survey you are testing, click on the |stopTest| button, which now appears as part of the *Manipulation buttons* (:doc:`ref<survey_home_page_elements>`) above the title of the survey.
@@ -92,7 +92,7 @@ In any case, by clicking on the above mentioned button, you will be directed to 
 .. _startingSurvey: 
 
 Starting a survey
-====================
+=================
 As with the previous section, there are two ways to start a survey depending on where in the system you are.
 
 - If you are in the survey you are testing, click on the |start| button, which now appears as part of the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) above the title of the survey.
@@ -111,7 +111,7 @@ As with the previous section, there are two ways to start a survey depending on 
 .. _pausingSurvey: 
 
 Pausing or finishing a survey
-====================
+=============================
 Note that the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) on the survey's **home page** (:doc:`ref<conceptsAndTerms>`) have now slightly changed to include the |pause| and the |finish| buttons.
 
 - To pause the survey, simply click on the |pause| button. This will enable you to make changes to the survey without any participants answering questions that have or are likely to change. 

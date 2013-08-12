@@ -17,13 +17,14 @@ def get_user_parameter(prompt, default=''):
         return response
 
 def main():
-    from . import configuration, populate
+    from . import configuration, populate, update
 
     parser = ArgumentParser(description='PyQuestionnaire administration application')
     subparsers = parser.add_subparsers()
     
     configuration.init(subparsers)
     populate.init(subparsers)
+    update.init(subparsers)
     
     args = parser.parse_args()
 

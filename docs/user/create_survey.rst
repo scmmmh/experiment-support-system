@@ -1,6 +1,6 @@
-******************
+*****************
 Creating a survey
-******************
+*****************
 
 This chapter explains how to create a new survey from scratch, using the tools that the system provides.
 
