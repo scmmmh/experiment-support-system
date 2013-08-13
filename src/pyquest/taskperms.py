@@ -139,7 +139,7 @@ def generate_combinations(worb, task_count, interface_count, task_disallow, inte
 
 
     combinations = globals()['generate_' + worb](tasks, interfaces, tDisallow, iDisallow)
-    
+
     return combinations
 
 def generate_permutations(worb, task_order, interface_order, combinations):
@@ -174,8 +174,8 @@ def generate_permutations(worb, task_order, interface_order, combinations):
         if len(order) != 2:
             return True
 
-        #FIXME: this does not behave correctly if either order[0] or order[1] is not present!
-        return factor.rfind(order[0]) < factor.find(order[1])
+        rtrn = factor.rfind(order[0]) == -1 or factor.find(order[1]) == -1 or  factor.rfind(order[0]) < factor.find(order[1])
+        return rtrn
 
     def order_func(i):
 	""" Set as the filter function on the permutation generation. Applies the factor orderings
@@ -312,7 +312,12 @@ def count_permutations(worb, task_order, interface_order, combinations):
     if orders:
         for subc in combinations:
             subcombination = list(subc)
-            for order in orders:
-                permcount = permcount + count_subcombination(subcombination, order)
+            # Halving for each two element ordering constraint is true for non-overlapping constraints. Overlapping
+            # constraints will produce fewer permutations so this is an upper bound.
+            rf = 1
+            for order in tOrder:
+                if order != ' ' and (str(subc).find(order[0]) != -1) and (str(subc).find(order[1]) != -1):
+                    rf = rf * 2
+            permcount = permcount + math.factorial(len(subc)) / rf
 
     return permcount

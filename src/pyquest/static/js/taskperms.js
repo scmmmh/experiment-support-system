@@ -91,8 +91,8 @@ function set_task_buttons(url)
 
 function task_init(url)
 {
-    display_participant_count(url);
     set_task_buttons(url);
     set_restriction_appearances();
     fix_multiple_selects();
+    display_participant_count(url);
 }

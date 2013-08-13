@@ -7,6 +7,7 @@ Created on 24 Jan 2012
 import transaction
 import random
 import json
+import re
 
 from formencode import Schema, validators, api, variabledecode, foreach
 from lxml import etree
@@ -69,10 +70,10 @@ class QSheetVisualSchema(Schema):
     interface_count = validators.Int(if_missing=0, if_empty=0)
     task_worb = validators.UnicodeString()
     interface_worb = validators.UnicodeString()
-    task_disallow = validators.UnicodeString()
-    interface_disallow = validators.UnicodeString()
-    task_order = validators.UnicodeString()
-    interface_order = validators.UnicodeString()
+    task_disallow = foreach.ForEach(validators.UnicodeString())
+    interface_disallow = foreach.ForEach(validators.UnicodeString())
+    task_order = foreach.ForEach(validators.UnicodeString())
+    interface_order = foreach.ForEach(validators.UnicodeString())
 
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -330,6 +331,14 @@ def preview(request):
     else:
         raise HTTPNotFound()
 
+def process_multiple_select_value(value):
+    new_value = ''
+    for element in value:
+        new_value = new_value + element + ','
+    new_value = re.sub(',$', '', new_value)
+
+    return new_value
+
 @view_config(route_name='survey.qsheet.edit')
 @render({'text/html': 'backend/qsheet/edit.html',
          'application/json': True})
@@ -366,17 +375,21 @@ def edit(request):
                         qsheet.set_attr_value('interface-count', params['interface_count'])
                         qsheet.set_attr_value('task-worb', params['task_worb'])
                         qsheet.set_attr_value('interface-worb', params['interface_worb'])
-                        qsheet.set_attr_value('task-disallow', params['task_disallow'])
-                        qsheet.set_attr_value('interface-disallow', params['interface_disallow'])
-                        qsheet.set_attr_value('task-order', params['task_order'])
-                        qsheet.set_attr_value('interface-order', params['interface_order'])
+                        tdis = process_multiple_select_value(params['task_disallow'])
+                        qsheet.set_attr_value('task-disallow', tdis)
+                        idis = process_multiple_select_value(params['interface_disallow'])
+                        qsheet.set_attr_value('interface-disallow', idis)
+                        tord = process_multiple_select_value(params['task_order'])
+                        qsheet.set_attr_value('task-order', tord)
+                        iord = process_multiple_select_value(params['interface_order'])
+                        qsheet.set_attr_value('interface-order', iord)
                         dbsession.add(survey)
                         dbsession.add(user)
                         for ds in survey.data_sets:
                             if ds.type == 'permutationset':
                                 dbsession.delete(ds)
                         
-                        permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
+                        permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], tdis, idis, tord, iord, True)
                         np = PermutationSet(owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet=qsheet)
                         survey.data_sets.append(np)
                         user.data_sets.append(np)
