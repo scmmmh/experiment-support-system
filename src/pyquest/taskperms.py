@@ -312,7 +312,10 @@ def count_permutations(worb, task_order, interface_order, combinations):
     if orders:
         for subc in combinations:
             subcombination = list(subc)
-            for order in orders:
-                permcount = permcount + count_subcombination(subcombination, order)
+            # This is not the correct way to apply multiple ordering constraints
+            #for order in orders:
+            # However applying only the first ordering will give an upper bound
+            # pending discovery of the correct way to do it.
+            permcount = permcount + count_subcombination(subcombination, orders[0])
 
     return permcount
