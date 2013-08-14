@@ -13,7 +13,7 @@ from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.helpers.results import fix_na
-from pyquest.models import (DBSession, Survey, Answer, AnswerValue, Question)
+from pyquest.models import (DBSession, Survey, Answer, AnswerValue)
 from pyquest.util import load_question_schema_params
 import re
 
