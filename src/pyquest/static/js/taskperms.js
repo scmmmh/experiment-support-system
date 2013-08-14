@@ -72,7 +72,7 @@ function display_participant_count(url)
 	   {
 	       data: {"worb" : worb, "tcount" : tcount, "icount": icount, "tcon":tcon, "icon":icon, "tord":tord, "iord":iord},
 	       success: function(response) {
-                   $('dd.task-spec').html(response);
+                   $('span.task-spec').html(response);
 		   set_task_buttons(url);
 		   set_restriction_appearances();
 		   fix_multiple_selects();
@@ -94,5 +94,5 @@ function task_init(url)
     set_task_buttons(url);
     set_restriction_appearances();
     fix_multiple_selects();
-    display_participant_count(url);
+//    display_participant_count(url);
 }

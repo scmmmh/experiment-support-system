@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>New Permutation Set</title>
+    <script type="text/javascript" src="${r.static_url('pyquest:static/js/taskperms.js')}"></script>
+    <script type="text/javascript">
+     $(document).ready(function() {
+        task_init('${r.route_url('survey.qsheet.pcount', sid=survey.id)}');
+     });
+    </script>
+  </head>
+  <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New Permutation Set', {'href':''})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
+    <article>
+      <hgroup>
+        <h1>New Permutation Set</h1>
+      </hgroup>
+      <form action="${r.route_url('data.new.permset', sid=survey.id)}" method="post">
+        ${h.form.csrf_token_field(r.session.get_csrf_token())}
+	<span class="task-spec"><xi:include href="taskperms.html"/></span>
+	<label>To apply to page:</label>${h.form.select('qsheet', 1, h.qsheet.list(survey), e)}
+	<ul class="buttons span-22">
+          <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>
+          <li>${h.form.submit('Create', class_='button')}</li>
+	</ul>
+      </form>
+    </article>
+  </body>
+</html>

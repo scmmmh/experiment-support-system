@@ -182,7 +182,8 @@ def load_test_data(args):
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
         permutations = taskperms.getPermutations('ww', 2, 2, None, None, None, None, True)
-        np = PermutationSet(owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet=qsheet2)
+        name = 'ww, 2, 2, None, None, None, None'
+        np = PermutationSet(name=name, owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet_id=qsheet2.id)
         survey.data_sets.append(np)
         user.data_sets.append(np)
         survey.start = qsheet1

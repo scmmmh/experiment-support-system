@@ -1,0 +1,20 @@
+<section xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:i18n="http://genshi.edgewall.org/i18n">
+<hgroup>
+  <h1>Permutations</h1>
+</hgroup>
+<div class="span-24" style="overflow:auto;">
+  <table>
+    <thead>
+      <th>Number</th>
+      <th>Permutation</th>
+    </thead>
+    <tbody>
+      <py:for each="idx, item in enumerate(dis.items)">
+	<tr>
+	  <td>${idx+1}</td><td>${item.sorted_attributes()[0].value}</td>
+	</tr>
+      </py:for>
+    </tbody>
+  </table>
+</div>
+</section>

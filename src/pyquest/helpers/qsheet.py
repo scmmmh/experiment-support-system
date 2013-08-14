@@ -225,6 +225,14 @@ def transition_destinations(qsheet):
     """
     return [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in qsheet.survey.qsheets if qs.id != qsheet.id]
 
+def list(survey):
+    """ Returns a list of (id, title) tuples for all qsheets in the given survey. The list is in the form used by PyWebtools select items.
+
+    :param survey: the survey
+    :return a list of tuples
+    """
+    return [(qs.id, qs.title) for qs in survey.qsheets]
+
 def question_list(qsheet):
     """ Returns a list of (id, name) tuples for the questions available on the given sheet. The list is in the form
     used by PyWebtools select items. The actual items are specific to their use in the transitions section of qsheet

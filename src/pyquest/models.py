@@ -734,8 +734,8 @@ class PermutationSet(DataSet):
     """
     __mapper_args__ = {'polymorphic_identity' : 'permutationset' }
 
-    def __init__(self, owned_by=None, survey_id=None, permutations=None, qsheet=None):
-        self.name = 'permset'
+    def __init__(self, name=None, owned_by=None, survey_id=None, permutations=None, qsheet_id=None):
+        self.name = name
         self.show_in_list = False
         self.owned_by = owned_by
         self.survey_id = survey_id
@@ -743,10 +743,10 @@ class PermutationSet(DataSet):
         self.attribute_keys.append(DataSetAttributeKey(key="permstring", order=1))
         self.attribute_keys.append(DataSetAttributeKey(key="applies_to", order=2))
         self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=3))
-        if permutations and qsheet:
-            self.add_permutations(permutations, qsheet)
+        if permutations:
+            self.add_permutations(permutations, qsheet_id)
 
-    def add_permutations(self, permutations, qsheet):
+    def add_permutations(self, permutations, qsheet_id):
         dbsession = DBSession()
         dbsession.add(self)
         dbsession.flush()
@@ -754,7 +754,7 @@ class PermutationSet(DataSet):
         for perm in permutations:
             di = DataItem(dataset_id=self.id, order=order)
             di.attributes.append(DataItemAttribute(key_id=self.attribute_keys[0].id, value=str(perm)))
-            di.attributes.append(DataItemAttribute(key_id=self.attribute_keys[1].id, value=qsheet.id))
+            di.attributes.append(DataItemAttribute(key_id=self.attribute_keys[1].id, value=qsheet_id))
             di.attributes.append(DataItemAttribute(key_id=self.attribute_keys[2].id, value=''))
             order = order + 1
             self.items.append(di)
