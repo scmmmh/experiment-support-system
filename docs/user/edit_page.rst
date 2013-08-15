@@ -65,38 +65,71 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
             
 		1.4.1) **Informative**
 		     
-			   * *Text*: this element allows the presentation of useful information to the participants about the survey, a survey page or a particular question. 
+			   * **Text**: this element allows the presentation of useful information to the participants about the survey, a survey page or a particular question.
 		
 		1.4.2) **Input**
 		
-			   * *Single-line text input*: where the participants can type a single-line response in free text.
-			   * *Multi-line text input*: where the participants can type more than one lines in free text.
-			   * *Number input*: where participants can type a number, within a minimum and maximum value defined by you.
-			   * *E-mail input*: where participants can type their e-mail address.
-			   * *URL input*: where participants are allowed to type a URL, starting with *https://*.
-			   * *Date input*: where participants are allowed to type a date in the usual date format, i.e. "dd/mm/yyyy".
-			   * *Time input*: where participants are allowed to type a date in the usual time format, i.e. "hh:mm".
-			   * *Date & time input*: where participants are allowed to type a date and time using the above formats, i.e. "dd/mm/yyyy hh:mm".
-			   * *Month input*: where participants are allowed to type a valid month by either inputting a number from 1 to 12 or by typing the name of a valid month. The two options ensure that no incorrect data are entered should a participant enters an invalid month (either by typing the name or entering a number other than the valid ones) or spell a valid month incorrectly. 
-			   * *Single choice grid*:
+			   * **Single-line text input**: where the participants can type a single-line response in free text.
+			   * **Multi-line text input**: where the participants can type more than one lines in free text.
+			   * **Number input**: where participants can type a number, within a minimum and maximum value defined by you.
+			   * **E-mail input**: where participants can type their e-mail address.
+			   * **URL input**: where participants are allowed to type a URL, starting with *https://*.
+			   * **Date input**: where participants are allowed to type a date in the usual date format, i.e. "dd/mm/yyyy".
+			   * **Time input**: where participants are allowed to type a date in the usual time format, i.e. "hh:mm".
+			   * **Date & time input**: where participants are allowed to type a date and time using the above formats, i.e. "dd/mm/yyyy hh:mm".
+			   * **Month input**: where participants are allowed to type a valid month by either inputting a number from 1 to 12 or by typing the name of a valid month. The two options ensure that no incorrect data are entered should a participant enters an invalid month (either by typing the name or entering a number other than the valid ones) or spell a valid month incorrectly. 
+			   * **Single choice grid**: where the participants can choose, rather than type as in the elements mentioned above, only one value on the question's likert scales. Each single choice grid can have one or more subquestions displayed on a grid, along with the corresponding likert scales, as the name of this element clearly suggests.
+			   * **Single choice**: similar to the *Single choice grid* with its only difference being that this element does have sub-questions.
+			   * **Multiple choice grid**: similar to the *Single choice grid* mentioned above, with the difference that the participants can choose more than one values from the question's likert scales.
+			   * **Multiple choice**: similar to the *Multiple choice grid* with its only difference being that this element does have sub-questions.
+			   * **Country selection**: where the participant can choose their country of origin, country of residence etc.
+			   * **Language selection**: where the participant can choose the language they speak, they study in etc.
 
 		1.4.3) **Other**
-		
+		        
+			   * **Hidden value**:
+			   * **Page timer**: which counts how much time a participant spends on a survey page.
+			   * **Automatic next page**: which automatically leads the participant to another survey page after a time period, that you have previously determined, has passed.
+			   * **JavaScript check**:
+			   * **Confirmation checkbox**: as the name suggests, this is simply a checkbox that the participant will have to check so that they are able to progress with answering a survey. An example of using this element is when you need to ensure that the participant has understood the terms of the survey and provided their consent to you recording and using their replies.
+			   * **Ranking**:
 			
-  **1.5)** Go through the list of elements, drag and drop the element you need to the left, on the main contents part of the screen, until you see a rectangular with dotted lines appearing below the above mentioned message. An example of this is shown in the screenshot below:
+  **1.5)** Now that you have an idea of the different elements mentioned above, go through the elements' list to identify the element you believe is appropriate for your purposes. 
   
-           .. image:: ../_static/user/dragElementScreen.png
-                   :align: center
+  **1.6)** Drag and drop the element you need to the left, on the main contents part of the screen, below the *"Drag elements from the right..."* message. When you do this, before you drop the element, you will notice a rectangular with dotted lines appearing below the above mentioned message. This shows you where in the survey page the element will be dropped, a helpful functionality when re-arranging or adding elements to the list of elements you have already added on a survey page. An example of this is shown in the screenshot below: 
+  
+        .. image:: ../_static/user/dragElementScreen.png
+                :align: center
+  
+  **1.7)** If you have made a mistake and would like to remove an element from the survey page, click on the big **x** button on the right hand-side of the blue bar of the element, indicated in the provided screenshot below by red arrows and circles:
+  
+        .. image:: ../_static/user/deleteElements.png
+                :align: center
+  
+  **1.8)** Depending on the element you choose, you will either need to double-click within the edit area of the element (an example of this is the element *Text*) or start typing the information required in the relevant fields (all other elements on the list use this approach). To help you understand what we mean by this, some screenshots are provided below, illustrating the different editing options that exist for different types of elements:
+  
+       1.8.1) **The option relating to the Text element**:
+	   
+			1.8.1.a) As mentioned above, the *Text* element has different editing options than the rest of the elements available. The screenshot below show how an added *Text* element would look like on your survey page:
+			
+			.. image:: ../_static/user/textElement.png
+					:align: center
+        
+			1.8.1.b) To edit this element, either double-click where prompted to do so or click on the pencil button, indicated in the above screenshot by a red arrow and circle.
+			
+			1.8.1.c) This will take you to the relevant edit screen, which offers options similar to those provided by any off-the-shelf Word editor. A screenshot showing the mentioned edit screen is provided below:
+		
+			.. image:: ../_static/user/editTextScreen.png
+		
+			1.8.1.d) By hovering with your mouse cursor above each element of the editing bar in the screenshot provided above, a tooltip will appear informing of the functionality of that element.
+		   
+	   1.8.2) **The options relating to all other elements**:
  
- By double-clicking within the elements box, you are presented with the following **Edit** window, with similar options to those provided by a standard word editor:
-			 
-			     .. image:: ../_static/user/editTextWindow.png
-			             :align: center
-  **1.6)** Depending on the element you choose, you will either need to double-click within the edit area of the element (an example of this is the element *Text*, shown in the above picture) or start typing the information required in the relevant fields (all other elements on the list use this approach).
+  **1.9)** Remember to click on the update button when finished adding and editing elements on a survey page.
   
-  **1.7)** Now click on the |Settings| button to be directed to the **Settings** screen, mentioned above.
+  **1.8)** Now click on the |Settings| button to be directed to the **Settings** screen, mentioned above.
    
-  **1.8)** On this screen, you can change the *Name* and the *Title* of the survey page according to your experiment's needs. Note that the field *Name* refers to the name of the element, that is the specific survey page you are viewing at any given time, whereas the field *Title* refers to the actual question that appears on that page. An example of this is provided with the screenshot below, with the relevant fields enclosed in rectangular with dotted borders:
+  **1.9)** On this screen, you can change the *Name* and the *Title* of the survey page according to your experiment's needs. Note that the field *Name* refers to the name of the element, that is the specific survey page you are viewing at any given time, whereas the field *Title* refers to the actual question that appears on that page. An example of this is provided with the screenshot below, with the relevant fields enclosed in rectangular with dotted borders:
    
            .. image:: ../_static/user/nameTitleExample.png 
                    :align: center  
