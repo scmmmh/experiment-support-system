@@ -36,64 +36,67 @@ Edit graphically
 ^^^^^^^^^^^^^^^^
 There are two sets of steps to edit a survey page graphically, depending on where in the system you are:
 
-1. Let's assume that you have just created a new survey and have added a new page, as shown in the sub-section :doc:`Importing, adding, exporting and deleting a survey page <import_add_export_delete_page>`. You should now be in the **Edit** screen shown below:
+1. Let's assume that you have just created a new survey and have added a new page, as shown in the sub-section :doc:`Importing, adding, exporting and deleting a survey page <import_add_export_delete_page>`. By default, following the creation of a new survey page, you would be directed to the graphically **Edit** screen shown below:
   
-   .. image:: ../_static/user/pageEditScreen.png   
-      :align: center
+.. image:: ../_static/user/pageEditScreen.png   
+   :align: center
 
 Notice that on the screenshot shown above, the |Layout| button is dark blue, whereas the |Settings| button is light blue. This indicates that, by default, you are on the **Layout** screen. If you click on the |Settings| button, you will be directed to the **Settings** screen, as demonstrated below, and the background colours of the mentioned buttons will reverse, i.e. |Layout| button now has a light blue background etc:
    
-   .. image:: ../_static/user/settingsScreen.png
-      :align: center
+  .. image:: ../_static/user/settingsScreen.png
+     :align: center
 
-  **1.1)** When you are directed to the **Layout** screen for the first time, the following message appears:
+  **1.1)** When you are directed to the **Layout** screen, the following message appears:
       
-	       .. image:: ../_static/user/dragElementsMessage.png
-                   :align: center
+	   .. image:: ../_static/user/dragElementsMessage.png
+	      :align: center
 				  
-  **1.2)** The elements the message refers to, are included in a list on the right-hand side of your screen, as illustrated in the example below:
-		   .. image:: ../_static/user/elementsList.png
-				   :align: center
-				   
-  **1.3)** The list above includes the following types of elements, distinguished in three categories:
-           
-		1.3.1) **Informative**
-		     
-			   * *Text*: this element allows the presentation of useful information to the participants about the survey, a survey page or a particular question. By double-clicking within the elements box, you are presented with the following **Edit** window, with similar options to those provided by a standard word editor:
-			 
-			     .. image:: ../_static/user/editTextWindow.png
-			             :align: center
-		
-		1.3.2) **Input**
-		
-				 * *Single-line text input*: where the participants can type a single-line response in free text.
-				 * *Multi-line text input*: where the participants can type more than one lines in free text.
-				 * *Number input*: where participants can type a number, within a minimum and maximum value defined by you.
-				 * *E-mail input*: where participants can type their e-mail address.
-				 * *URL input*: where participants are allow to type a URL, starting with *https://*.
-				 *
+  **1.2)** The elements the message refers to, are included in a list on the right-hand side of your screen, entitled *Core Questions*. The list has four sections, specifically: *Text*, *Choice*, *Hidden* and *Other*, as illustrated in the example below:
+   
+	   .. image:: ../_static/user/elementsList.png
+	      :align: center
+  
+  **1.3)** To access any of the above four sections of elements, all you need to do is to click on the arrow next to each section's title, as illustrated below:
 
-		1.3.3) **Choice**
+       .. image:: ../_static/user/clickElementsList.png
+	      :align: center
+  
+  **1.4)** As you can see, the lists above include the following types of elements, distinguished in three categories:
+            
+		1.4.1) **Informative**
+		     
+			   * *Text*: this element allows the presentation of useful information to the participants about the survey, a survey page or a particular question. 
+		
+		1.4.2) **Input**
+		
+			   * *Single-line text input*: where the participants can type a single-line response in free text.
+			   * *Multi-line text input*: where the participants can type more than one lines in free text.
+			   * *Number input*: where participants can type a number, within a minimum and maximum value defined by you.
+			   * *E-mail input*: where participants can type their e-mail address.
+			   * *URL input*: where participants are allowed to type a URL, starting with *https://*.
+			   * *Date input*: where participants are allowed to type a date in the usual date format, i.e. "dd/mm/yyyy".
+			   * *Time input*: where participants are allowed to type a date in the usual time format, i.e. "hh:mm".
+			   * *Date & time input*: where participants are allowed to type a date and time using the above formats, i.e. "dd/mm/yyyy hh:mm".
+			   * *Month input*: where participants are allowed to type a valid month by either inputting a number from 1 to 12 or by typing the name of a valid month. The two options ensure that no incorrect data are entered should a participant enters an invalid month (either by typing the name or entering a number other than the valid ones) or spell a valid month incorrectly. 
+			   * *Single choice grid*:
+
+		1.4.3) **Other**
+		
 			
-                
-				
-	       .. hint:: Most types of elements have the following fields in common: 
-		             
-					 1. Name, 
-					 2. Title, 
-					 3. Help box: where you can provide the participant with information that will help them respond to a survey question
-					 4. Required-This question must be answered checkbox: this will ensure that the participant answers a survey question before progressing to the next one
-			
-  **1.3)** Go through the list of elements, left-click on the element you need and drag it to the left, until you see a rectangular with dotted lines appearing below the above mentioned message. An example of this is shown in the screenshot below:
+  **1.5)** Go through the list of elements, drag and drop the element you need to the left, on the main contents part of the screen, until you see a rectangular with dotted lines appearing below the above mentioned message. An example of this is shown in the screenshot below:
   
            .. image:: ../_static/user/dragElementScreen.png
                    :align: center
+ 
+ By double-clicking within the elements box, you are presented with the following **Edit** window, with similar options to those provided by a standard word editor:
+			 
+			     .. image:: ../_static/user/editTextWindow.png
+			             :align: center
+  **1.6)** Depending on the element you choose, you will either need to double-click within the edit area of the element (an example of this is the element *Text*, shown in the above picture) or start typing the information required in the relevant fields (all other elements on the list use this approach).
   
-  **1.4)** Depending on the element you choose, you will either need to double-click within the edit area of the element (an example of this is the element *Text*, shown in the above picture) or start typing the information required in the relevant fields (all other elements on the list use this approach).
-  
-  **1.3)** Now click on the |Settings| button to be directed to the **Settings** screen, mentioned above.
+  **1.7)** Now click on the |Settings| button to be directed to the **Settings** screen, mentioned above.
    
-  **1.3)** On this screen, you can change the *Name* and the *Title* of the survey page according to your experiment's needs. Note that the field *Name* refers to the name of the element, that is the specific survey page you are viewing at any given time, whereas the field *Title* refers to the actual question that appears on that page. An example of this is provided with the screenshot below, with the relevant fields enclosed in rectangular with dotted borders:
+  **1.8)** On this screen, you can change the *Name* and the *Title* of the survey page according to your experiment's needs. Note that the field *Name* refers to the name of the element, that is the specific survey page you are viewing at any given time, whereas the field *Title* refers to the actual question that appears on that page. An example of this is provided with the screenshot below, with the relevant fields enclosed in rectangular with dotted borders:
    
            .. image:: ../_static/user/nameTitleExample.png 
                    :align: center  
@@ -105,7 +108,7 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
    
       For a more detailed explanation of the **Results** screen, refer to sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data <get_data>`.
    
-  **1.4)** On the **Settings** screen, you can also:
+  **1.9)** On the **Settings** screen, you can also:
    
 	       - Choose the type of question asked, for example whether it would be a *single* or a *repeated* question.
 	       - Add data items.
@@ -115,19 +118,19 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 	       - Add your own CSS Styles by clicking on the link *CSS styles* below the *Transition to* menu and typing in the box that appears. Clicking on the link again will make the text box disappear, but keep the text you have just added.			
 	       - Add your own code in JavaScript by clicking on the link *Javascript* below the link *CSS styles* and typing in the box that appears. As with *CSS Styles*, clicking on the *Javascript* link again will make the text box disappear, but keep the text you have just added.
 
-  **1.5)** Following any changes you carried out on a survey page, it is a good idea to validate these in order to make sure that everything will work fine when the survey is actually running. To do this, click on the |preview| button located above the survey page's title.
+  **1.10)** Following any changes you carried out on a survey page, it is a good idea to validate these in order to make sure that everything will work fine when the survey is actually running. To do this, click on the |preview| button located above the survey page's title.
 	
-  **1.6)** By doing this, you will be directed to the **Preview** screen of that page, where you will be presented with an example of how the page will look like in the live survey.
+  **1.11)** By doing this, you will be directed to the **Preview** screen of that page, where you will be presented with an example of how the page will look like in the live survey.
 	
-  **1.7)** On the **Validation** screen, you can test questions by providing combinations of replies (checking boxes, typing free text etc.) in order to ensure that responses that do not follow the conditions you set for a specific question, are not permitted. 
+  **1.12)** On the **Validation** screen, you can test questions by providing combinations of replies (checking boxes, typing free text etc.) in order to ensure that responses that do not follow the conditions you set for a specific question, are not permitted. 
   
   If, for example, you specify that a question must be answered, then clicking on the "Test Validation" button enables you to check that this is actually being applied. Similarly, if you select a date or time or number question and then try to answer the question with an invalid value, then the "Test Validation" button will show what happens if you provide an incorrect answer.
 	
-  **1.8)** When you are done completing a preview question, click on the |testValidation| button as indicated in the example screenshot below:
+  **1.13)** When you are done completing a preview question, click on the |testValidation| button as indicated in the example screenshot below:
 	       .. image:: ../_static/user/testValidationScreen.png 
                    :align: center
 
-  **1.9)** If you have completed the preview question appropriately, the following message will appear below the title of the survey page:
+  **1.14)** If you have completed the preview question appropriately, the following message will appear below the title of the survey page:
   
            .. image:: ../_static/user/successValidation.png 
                    :align: center
@@ -137,7 +140,7 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 	       .. image:: ../_static/user/failValidation.png 
                    :align: center 
 		
-  **1.10)** Once you have finished testing a survey page, in order to navigate away from it and back to the **home page** (:doc:`ref<conceptsAndTerms>`) screen, click on the |surveyButton| tab, one of the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`), located above the survey page's title.
+  **1.15)** Once you have finished testing a survey page, in order to navigate away from it and back to the **home page** (:doc:`ref<conceptsAndTerms>`) screen, click on the |surveyButton| tab, one of the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`), located above the survey page's title.
  
 
 :ref:`back to the top <topSection>`

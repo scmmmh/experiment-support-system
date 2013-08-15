@@ -27,6 +27,8 @@ This sub-section explains how to:
 3. duplicate a survey - go to relevant sub-subsection by clicking :ref:`here<duplicateSurveySub-subsection>`.
 
 4. delete a survey - go to relevant sub-subsection by clicking :ref:`here<deleteSurveySub-subsection>`. 
+
+This sub-section assumes that you are in the survey you want to edit by importing, adding, exporting or deleting a page. For instructions on how to navigate to the correct survey, see :ref:`Note <topEditExportSurveySection>` mentioned above.
   
 .. _editingSurveySub-subsection:
 
@@ -36,38 +38,49 @@ You can edit the details of a survey you are developing, add your own CSS Styles
 
 Depending on where you are in the system, there are three ways to do the above, detailed below as (a), (b) and (c):
 
-	(a) **If you are not already in the survey you want to edit**, navigate to the **main profile screen** (:doc:`ref<conceptsAndTerms>`), as demonstrated in the *Access PyQuestionnaire* section earlier (:doc:`ref<access_Questionnaire>`).
+	(a) **If you are not already in the survey you want to edit**, see instructions provided in the :ref:`Note <topEditExportSurveySection>` at the top of this page.
+	
+----------------------------------------------------------------------------------------------------------------------------------------
 
-	(b) **When you reach or if you are on the main profile screen** (:doc:`ref<conceptsAndTerms>`), click on the |edit| button, next to the survey you want to edit.
+	(b) **When you reach or if you are on the main profile screen** (:doc:`ref<conceptsAndTerms>`)  and you have more than one surveys that you develop simultaneously, a list of surveys will appear here.
+	
+	  1. Find the survey you want to edit from the list of surveys provided and click on the |edit| button, next to it.click on the |edit| button, next to the survey you want to edit.
 
-		- This will take you to the **Edit** screen, shown below:
-
-		.. image:: ../_static/user/editSurveyScreen.png
-		   :align: center
+	  2. This will take you to the **Edit** screen, shown below:
+ 
+	  .. image:: ../_static/user/editSurveyScreen.png
+		 :align: center
    
-		- On that screen, amend any field details according to your needs. 
+	  3. On that screen, amend any field details according to your needs. 
 
-		- By clicking on the links **CSS Styles** and **Javascript**, two boxes will appear, allowing you to type your own CSS Styles or JavaScript code respectively.
+	  4. By clicking on the links **CSS Styles** and **Javascript**, two boxes will appear, allowing you to type your own CSS Styles or JavaScript code respectively.
 
-		- You can also change which of your survey pages will be the first page, by selecting one from the dropdown menu under the title **First page**.
+	  5. You can also change which of your survey pages will be the first page, by selecting one from the dropdown menu under the title **First page**.
 	
-		- Further to the above, you can add a notification to be sent to your e-mail either every so many days or when the number of participants reaches a specific threshold.
+	  6. Following the above, you have the option to add notifications, in effect alerts, to the survey, to ensure that you get a message through your e-mail address when a specific survey threshold has been passed. This can be a number of days or of participants thats has been reached.
 	
-		- You can do the above by:
-		
-		  1. adding your e-mail address in the field *Notify* under the title **Notifications**.
-	  
-		  2. then clicking on the drop-down menu as shown in the screenshot below:
-	  
-		  .. image:: ../_static/user/notificationsExample.png
-		
-		  3. choosing the number of days or participants that will trigger the notification. The notification will now added and stay on the list of notifications you have created.
-	  
-		  4. clicking on the |addNotificationButton| button to add another notification or the |deleteNotificationButton| button to delete the notification you have just created.
+	  7. To add a notification, click on the button as shown in the screenshot below, encircled in a green dashed circle:
+	
+	  .. image:: ../_static/user/notificationsExampleOne.png
+	     :align: center
+	   
+	  8. A notification will then be added, auto-populating the e-mail address field with the e-mail address you specified when you setup your account on PyQuestionnaire. An example is shown in the screenshot below:
+	
+	  .. image:: ../_static/user/addedNotificationExample.png
+	     :align: center
+	
+	  9. To remove the notification added, click on the button encircled, in the above screenshot, with a red circle.
+	
+	  10. Also notice that the system defaults to the notification *Every xxx number of days*. To change this to the notification that corresponds to the number of participants to your survey, click on the drop-down menu button as shown in the screenshot below and then change the number under the field *Time or Count* to an appropriate number:
+	
+	  .. image:: ../_static/user/notificationsOptions.png
+	     :align: center
 
-		- When you are happy with the changes you made, click on the |update| button. Otherwise, click on the |dontUpdate| button. In any case, you will be re-directed to the **home page** (:doc:`ref<conceptsAndTerms>`)  of the survey you are developing.
-	
-	(c). **If you already are in the survey you need to edit**, click on the |edit| button of the **Manipulation buttons**, above the title of the survey. Then, simply follow the steps of option (b) mentioned above.
+	  11. When you are happy with the changes you made, click on the |update| button. Otherwise, click on the |dontUpdate| button. In any case, you will be re-directed to the **home page** (:doc:`ref<conceptsAndTerms>`)  of the survey you are developing.
+
+----------------------------------------------------------------------------------------------------------------------------------------
+	  
+	(c) **If you already are in the survey you need to edit**, click on the |edit| button of the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`), above the title of the survey. Then, simply follow the steps of option(b) mentioned further above.
 	
 :ref:`back to the top <topEditExportSurveySection>`
 
@@ -79,14 +92,19 @@ You can export a survey by downloading its XML code in your files. To do this, y
 
 - If you are not already in the required survey, navigate to your list of surveys in the **main profile screen** (:doc:`ref<conceptsAndTerms>`), as described further above.
 
-  a) When you are in the survey you want to export, click on the |export| button, included in the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) of that screen.
-   
-  b) The **Export** screen will appear as shown below:
+- When you reach the **main profile screen**, click on the title of the survey you want to export.
 
-  .. image:: ../_static/user/exportScreen.png
-     :align: center
+- This action will take you in the survey you want to export, where you will need to click on the |export| button, included in the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) of that screen.
+   
+- The **Export** screen will appear as shown below:
+
+.. image:: ../_static/user/exportScreen.png
+   :align: center
 	   
-  c) In that screen, click on the |downloadXML| button, for the relevant XML code to appear in your browser.
+- In that screen, click on the |downloadXML| button, for the relevant XML code to appear in your browser. You can then copy and paste the code to a document. An example screenshot is provided below:
+
+.. image:: ../_static/user/XMLCodeExample.png
+   :align: center
 
 :ref:`back to the top <topEditExportSurveySection>`
  
@@ -97,11 +115,11 @@ Duplicating a survey
 If you have a survey that is a good basis for further surveys to be developed on or if you want to test ideas you might have regarding the possible development paths you could follow without messing up the original survey, PyQuestionnaire allows you to duplicate it.
 
 In order to action the above, follow the steps below:
-
+  
 - If you are on the **main profile screen** (:doc:`ref<conceptsAndTerms>`)
  
   a) click on the |duplicate| button, next to the survey you want to duplicate. 
-  
+   
   b) the **Duplicate** screen will appear, as illustrated below:
 
   .. image:: ../_static/user/duplicateScreen.png
@@ -109,7 +127,7 @@ In order to action the above, follow the steps below:
 
   c) change the survey title in the field *Title* to avoid confusion with the original survey.
   
-  d) click on the |duplicate| button again.
+  d) click on the |duplicate| button below the title field.
   
   e) you will then be directed to the **home page** (:doc:`ref<conceptsAndTerms>`) of the duplicated survey.
   
@@ -119,7 +137,7 @@ In order to action the above, follow the steps below:
   
 - If you are not already on the **main profile screen**  (:doc:`ref<conceptsAndTerms>`) but are in a different survey to the one you want to duplicate
 
-  a) navigate to the **main profile screen** (:doc:`ref<conceptsAndTerms>`) - see **Note** at the top of this section.
+  a) navigate to the **main profile screen** (:doc:`ref<conceptsAndTerms>`) - see **Note** at the top of this section for references to the detailed steps to do this.
   
   b) follow the steps described above in the previous sub-section.
 
