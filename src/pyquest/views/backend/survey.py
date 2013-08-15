@@ -240,7 +240,7 @@ def duplicate(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
                     check_csrf_token(request, request.POST)
