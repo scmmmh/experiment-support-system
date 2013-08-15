@@ -27,7 +27,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '26adf3f9d0f5'
+DB_VERSION = '384006772f60'
 """The currently required database version."""
 
 class DBUpgradeException(Exception):
@@ -629,7 +629,7 @@ class DataItemAttribute(Base):
     
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
-    value = Column(Unicode(255))
+    value = Column(UnicodeText)
     key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
 
 class DataItemCount(Base):
