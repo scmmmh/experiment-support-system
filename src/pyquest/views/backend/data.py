@@ -8,7 +8,7 @@ import csv
 import math
 import transaction
 
-from formencode import Schema, validators, api, variabledecode, foreach
+from formencode import Schema, validators, api, variabledecode, foreach, FancyValidator
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
@@ -436,14 +436,6 @@ def create_ds_options(dbsession, user, survey):
 
     return ds_options;
 
-def process_multiple_select_value(value):
-    new_value = ''
-    for element in value:
-        new_value = new_value + element + ','
-    new_value = re.sub(',$', '', new_value)
-
-    return new_value
-
 @view_config(route_name='data.new.permset')
 @render({'text/html': 'backend/data/permset_new.html'})
 def permset_new(request):
@@ -457,19 +449,11 @@ def permset_new(request):
             validator = NewPermutationSetSchema()
             params = validator.to_python(request.POST)
             with transaction.manager:
-                tdis = process_multiple_select_value(params['task_disallow'])
-                idis = process_multiple_select_value(params['interface_disallow'])
-                tord = process_multiple_select_value(params['task_order'])
-                iord = process_multiple_select_value(params['interface_order'])
                 dbsession.add(survey)
                 dbsession.add(user)
-                for ds in survey.data_sets:
-                    if ds.type == 'permutationset':
-                        dbsession.delete(ds)
-                        
-                permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], tdis, idis, tord, iord, True)
-                name = "%s%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], params['task_count'], params['interface_count'], tdis, idis, tord, iord)
-                np = PermutationSet(name=name, owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet_id=params['qsheet'])
+                permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], 
+                                                         params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
+                np = PermutationSet(name="new permset", params=params, owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet_id=params['qsheet'])
                 qs = dbsession.query(QSheet).filter(QSheet.id==params['qsheet']).first()
                 dbsession.add(qs)
                 survey.data_sets.append(np)
@@ -481,28 +465,73 @@ def permset_new(request):
         except api.Invalid as e:
             e.params = request.POST
             params = {}
-            params['task-count'] = 0
-            params['interface-count'] = 0
-            params['task-worb'] = 'w'
-            params['interface-worb'] = 'w'
-            params['task-disallow'] = ' '
-            params['interface-disallow'] = ' '
-            params['task-order'] = ' '
-            params['interface-order'] = ' '
+            params['task_count'] = 0
+            params['interface_count'] = 0
+            params['task_worb'] = 'w'
+            params['interface_worb'] = 'w'
+            params['task_disallow'] = ' '
+            params['interface_disallow'] = ' '
+            params['task_order'] = ' '
+            params['interface_order'] = ' '
             return {'survey': survey,
                     'params': params,
                     'pcount': 0}
     else:
         params = {}
-        params['task-count'] = 0
-        params['interface-count'] = 0
-        params['task-worb'] = 'w'
-        params['interface-worb'] = 'w'
-        params['task-disallow'] = ' '
-        params['interface-disallow'] = ' '
-        params['task-order'] = ' '
-        params['interface-order'] = ' '
+        params['task_count'] = 0
+        params['interface_count'] = 0
+        params['task_worb'] = 'w'
+        params['interface_worb'] = 'w'
+        params['task_disallow'] = ' '
+        params['interface_disallow'] = ' '
+        params['task_order'] = ' '
+        params['interface_order'] = ' '
 
         return {'survey': survey,
                 'params': params,
                 'pcount': 0}
+
+@view_config(route_name='data.edit.permset')
+@render({'text/html': 'backend/data/permset_edit.html'})
+def permset_edit(request):
+    dbsession = DBSession()
+    user = current_user(request)
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+    permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
+    params = permset.get_params()
+    pcount = len(permset.items)
+    import pdb; pdb.set_trace()
+    if request.method == 'POST':
+        try:
+            check_csrf_token(request, request.POST)
+            validator = NewPermutationSetSchema()
+            params = validator.to_python(request.POST)
+            with transaction.manager:
+                dbsession.add(survey)
+                dbsession.add(user)
+                permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], 
+                                                         params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
+                permset.set_params(params)
+                oldqs = dbsession.query(QSheet).filter(QSheet.dataset_id==permset.id).all()
+                for oq in oldqs:
+                    dbsession.add(oq)
+                    oq.dataset_id = None
+                dbsession.flush()
+                newqs = dbsession.query(QSheet).filter(QSheet.id==params['qsheet']).first()
+                permset.set_permutations(permutations)
+                dbsession.add(newqs)
+                permset.applies_to = newqs.id
+                newqs.dataset_id = permset.id
+            request.session.flash('DataSet created', 'info')
+            raise HTTPFound(request.route_url('data.list', sid=request.matchdict['sid']))
+        except api.Invalid as e:
+            e.params = request.POST
+            return {'survey': survey,
+                    'permset': permset,
+                    'params': params,
+                    'pcount': pcount}
+    else:
+        return {'survey': survey,
+                'permset': permset,
+                'params': params,
+                'pcount': pcount}

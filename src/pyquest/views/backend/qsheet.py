@@ -509,14 +509,14 @@ def calculate_pcount(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     pcount = taskperms.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'], False)
     params = {}
-    params['task-count'] = request.params['tcount']
-    params['interface-count'] = request.params['icount']
-    params['task-worb'] = request.params['worb'][0]
-    params['interface-worb'] = request.params['worb'][1]
-    params['task-disallow'] = request.params['tcon']
-    params['interface-disallow'] = request.params['icon']
-    params['task-order'] = request.params['tord']
-    params['interface-order'] = request.params['iord']
+    params['task_count'] = request.params['tcount']
+    params['interface_count'] = request.params['icount']
+    params['task_worb'] = request.params['worb'][0]
+    params['interface_worb'] = request.params['worb'][1]
+    params['task_disallow'] = request.params['tcon']
+    params['interface_disallow'] = request.params['icon']
+    params['task_order'] = request.params['tord']
+    params['interface_order'] = request.params['iord']
     return {'survey': survey,
             'params': params,
             'pcount': str(pcount)}
@@ -571,14 +571,6 @@ def edit_source(request):
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
-                        qsheet.set_attr_value('task-count', params['task_count'])
-                        qsheet.set_attr_value('interface-count', params['interface_count'])
-                        qsheet.set_attr_value('task-worb', params['task_worb'])
-                        qsheet.set_attr_value('interface-worb', params['interface_worb'])
-                        qsheet.set_attr_value('task-disallow', params['task_disallow'])
-                        qsheet.set_attr_value('interface-disallow', params['interface_disallow'])
-                        qsheet.set_attr_value('task-order', params['task_order'])
-                        qsheet.set_attr_value('interface-order', params['interface_order'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
 

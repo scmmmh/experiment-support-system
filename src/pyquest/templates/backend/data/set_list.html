@@ -64,6 +64,8 @@
 	      <td><py:for each="qs in set.qsheets">${qs.id} </py:for></td>
 	      <td>
 		<ul class="inline no-symbol no-margin">
+		  <li><a href="${r.route_url('data.view', sid=set.survey_id, dsid=set.id)}" class="button">View</a></li>
+		  <li><a href="${r.route_url('data.edit.permset', sid=set.survey_id, dsid=set.id)}" class="button">Edit</a></li>
 		  <li><a href="${r.route_url('data.delete', sid=set.survey_id, dsid=set.id)}" class="button">Delete</a></li>
 		</ul>
 	      </td>

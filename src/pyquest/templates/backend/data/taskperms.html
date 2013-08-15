@@ -1,22 +1,22 @@
 <span xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2003/XInclude">
       <table>
 	<tr>
-	  <td><label>Tasks:  </label><label id="task_list">${h.qsheet.generate_task_list(params['task-count'])}</label></td>
-	  <td>${h.form.number_field('task_count', params['task-count'], e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
-	  <td>${h.form.select('task_worb', params['task-worb'], [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
+	  <td><label>Tasks:  </label><label id="task_list">${h.qsheet.generate_task_list(params['task_count'])}</label></td>
+	  <td>${h.form.number_field('task_count', params['task_count'], e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
+	  <td>${h.form.select('task_worb', params['task_worb'], [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
 	  <td><label class="task-restriction">Exclude:</label></td>
-	  <td><label id="task-disallow-repeater" style="display:none">${params['task-disallow']}</label>${h.form.select('task_disallow', ' ', h.qsheet.generate_task_pairs(params['task-count']), e, class_='role-qsheet-permute task-restriction', multiple="True", size="2")}</td>
+	  <td><label id="task-disallow-repeater" style="display:none">${params['task_disallow']}</label>${h.form.select('task_disallow', '', h.qsheet.generate_task_pairs(params['task_count']), e, class_='role-qsheet-permute task-restriction', multiple="True", size="2")}</td>
 	  <td><label class="task-restriction">Order:</label></td>
-	  <td><label id="task-order-repeater" style="display:none">${params['task-order']}</label>${h.form.select('task_order', ' ', h.qsheet.generate_task_pairs(params['task-count']), e, class_='role-qsheet-permute task-restriction', multiple="True", size="2")}</td>
+	  <td><label id="task-order-repeater" style="display:none">${params['task_order']}</label>${h.form.select('task_order', '', h.qsheet.generate_task_pairs(params['task_count']), e, class_='role-qsheet-permute task-restriction', multiple="True", size="2")}</td>
 	</tr>
 	<tr>
-	  <td><label>Interfaces: </label><label id="interface_list">${h.qsheet.generate_interface_list(params['interface-count'])}</label></td>
-	  <td>${h.form.number_field('interface_count', params['interface-count'], e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
-	  <td>${h.form.select('interface_worb', params['interface-worb'], [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
+	  <td><label>Interfaces: </label><label id="interface_list">${h.qsheet.generate_interface_list(params['interface_count'])}</label></td>
+	  <td>${h.form.number_field('interface_count', params['interface_count'], e, class_='role-qsheet-permute', style='width:50px', min='0')}</td>
+	  <td>${h.form.select('interface_worb', params['interface_worb'], [('w', 'Within'), ('b', 'Between')], e, class_='role-qsheet-permute')}</td>
 	  <td><label class="interface-restriction">Exclude: </label></td>
-	  <td><label id="interface-disallow-repeater" style="display:none">${params['interface-disallow']}</label>${h.form.select('interface_disallow', ' ', h.qsheet.generate_interface_pairs(params['interface-count']), e, class_='role-qsheet-permute interface-restriction', multiple="True", size="2")}</td>
+	  <td><label id="interface-disallow-repeater" style="display:none">${params['interface_disallow']}</label>${h.form.select('interface_disallow', '', h.qsheet.generate_interface_pairs(params['interface_count']), e, class_='role-qsheet-permute interface-restriction', multiple="True", size="2")}</td>
 	  <td><label class="interface-restriction">Order:</label></td>
-	  <td><label id="interface-order-repeater" style="display:none">${params['interface-order']}</label>${h.form.select('interface_order', ' ', h.qsheet.generate_interface_pairs(params['interface-count']), e, class_='role-qsheet-permute interface-restriction', multiple="True", size="2")}</td>
+	  <td><label id="interface-order-repeater" style="display:none">${params['interface_order']}</label>${h.form.select('interface_order', '', h.qsheet.generate_interface_pairs(params['interface_count']), e, class_='role-qsheet-permute interface-restriction', multiple="True", size="2")}</td>
 	</tr>
 	<tr>
 	  <td><label>Number of participants needed for this arrangement:</label></td> 

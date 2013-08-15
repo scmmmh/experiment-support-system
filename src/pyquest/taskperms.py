@@ -129,20 +129,19 @@ def generate_combinations(worb, task_count, interface_count, task_disallow, inte
     tasks = [chr(i+65) for i in range(int(task_count))] 
     interfaces = [chr(i+49) for i in range(int(interface_count))] 
 
-    tDisallow = [' ']
-    if worb[0] == 'w' and task_disallow:
-        tDisallow = [bit for bit in task_disallow.split(',')]
+#    tDisallow = [' ']
+#    if worb[0] == 'w' and task_disallow:
+#        tDisallow = [bit for bit in task_disallow.split(',')]
 
-    iDisallow = [' ']
-    if worb[1] == 'w' and interface_disallow:
-        iDisallow = [bit for bit in interface_disallow.split(',')]
+    # iDisallow = [' ']
+    # if worb[1] == 'w' and interface_disallow:
+    #     iDisallow = [bit for bit in interface_disallow.split(',')]
 
-
-    combinations = globals()['generate_' + worb](tasks, interfaces, tDisallow, iDisallow)
+    combinations = globals()['generate_' + worb](tasks, interfaces, task_disallow, interface_disallow)
 
     return combinations
 
-def generate_permutations(worb, task_order, interface_order, combinations):
+def generate_permutations(worb, tOrder, iOrder, combinations):
     """Generates the permutations for the given combinations. This is done by using itertools to generate the permutations
     for each subcombination and filtering through a function which determines whether the required ordering is maintained.
 
@@ -152,13 +151,14 @@ def generate_permutations(worb, task_order, interface_order, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    tOrder = [' ']
-    if worb[0] == 'w' and task_order:
-        tOrder = [bit for bit in task_order.split(',')]
+    
+    # tOrder = [' ']
+    # if worb[0] == 'w' and task_order:
+    #     tOrder = [bit for bit in task_order.split(',')]
 
-    iOrder = [' ']
-    if worb[1] == 'w' and interface_order:
-        iOrder = [bit for bit in interface_order.split(',')]
+    # iOrder = [' ']
+    # if worb[1] == 'w' and interface_order:
+    #     iOrder = [bit for bit in interface_order.split(',')]
 
 
     def orderFactors(factor, order):
@@ -273,7 +273,7 @@ def count_subcombination(combination, order):
         count = math.factorial(len(combination))
     return count
 
-def count_permutations(worb, task_order, interface_order, combinations):
+def count_permutations(worb, tOrder, iOrder, combinations):
     """ Counts how many permutations will be produced by the given combinations. This is actually more difficult than generating the 
     permutations but it takes much less time for large (> 3) values of task_count or interface_count. If there are no order constraints
     then the number of permutations is generated here as the total of the factorials of the lengths of all the subcombinations in 
@@ -286,13 +286,13 @@ def count_permutations(worb, task_order, interface_order, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    tOrder = [' ']
-    if worb[0] == 'w' and task_order:
-        tOrder = [bit for bit in task_order.split(',')]
+    # tOrder = [' ']
+    # if worb[0] == 'w' and task_order:
+    #     tOrder = [bit for bit in task_order.split(',')]
 
-    iOrder = [' ']
-    if worb[1] == 'w' and interface_order:
-        iOrder = [bit for bit in interface_order.split(',')]
+    # iOrder = [' ']
+    # if worb[1] == 'w' and interface_order:
+    #     iOrder = [bit for bit in interface_order.split(',')]
 
     permcount = 0
 
@@ -315,7 +315,7 @@ def count_permutations(worb, task_order, interface_order, combinations):
             # Halving for each two element ordering constraint is true for non-overlapping constraints. Overlapping
             # constraints will produce fewer permutations so this is an upper bound.
             rf = 1
-            for order in tOrder:
+            for order in orders:
                 if order != ' ' and (str(subc).find(order[0]) != -1) and (str(subc).find(order[1]) != -1):
                     rf = rf * 2
             permcount = permcount + math.factorial(len(subc)) / rf

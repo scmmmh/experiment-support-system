@@ -181,11 +181,13 @@ def load_test_data(args):
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
-        permutations = taskperms.getPermutations('ww', 2, 2, None, None, None, None, True)
-        name = 'ww, 2, 2, None, None, None, None'
-        np = PermutationSet(name=name, owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet_id=qsheet2.id)
+        dbsession.flush()
+        permutations = taskperms.getPermutations('ww', 2, 2, [' '], [' '], [' '], [' '], True)
+        params = {'task_worb':'w', 'interface_worb':'w', 'task_count':2, 'interface_count': 2, 'task_disallow':[' '], 'interface_disallow':[' '], 'task_order':[' '], 'interface_order':[' ']}
+        np = PermutationSet(name="test permset", params=params, owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet_id=qsheet2.id)
         survey.data_sets.append(np)
         user.data_sets.append(np)
+        np.qsheets.append(qsheet2)
         survey.start = qsheet1
         QSheetTransition(source=qsheet1, target=qsheet2)
         notification = Notification(ntype='interval', value=60, recipient='paul@paulserver.paulsnetwork')
