@@ -55,7 +55,7 @@ class NewPermutationSetSchema(Schema):
     interface_disallow = foreach.ForEach(validators.UnicodeString())
     task_order = foreach.ForEach(validators.UnicodeString())
     interface_order = foreach.ForEach(validators.UnicodeString())
-    qsheet = validators.Int()
+    qsheet = foreach.ForEach(validators.UnicodeString())
 
 @view_config(route_name='data.list')
 @render({'text/html': 'backend/data/set_list.html'})
@@ -65,9 +65,6 @@ def list_datasets(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     dis = dbsession.query(DataSet).filter(and_(DataSet.owned_by==user.id, DataSet.survey_id==request.matchdict['sid'], DataSet.type=='dataset')).all()
     permsets = dbsession.query(PermutationSet).filter(and_(PermutationSet.owned_by==user.id, PermutationSet.survey_id==request.matchdict['sid'])).all()
-#    perms = []
-#    for permset in permsets:
-#        perms.append(permset.display())
     return {'survey': survey,
             'dis': dis,
             'permsets': permsets}
@@ -501,6 +498,7 @@ def permset_edit(request):
     permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
     params = permset.get_params()
     pcount = len(permset.items)
+    import pdb; pdb.set_trace()
     if request.method == 'POST':
         try:
             check_csrf_token(request, request.POST)
@@ -518,11 +516,12 @@ def permset_edit(request):
                     dbsession.add(oq)
                     oq.dataset_id = None
                 dbsession.flush()
-                newqs = dbsession.query(QSheet).filter(QSheet.id==params['qsheet']).first()
                 permset.set_permutations(permutations)
-                dbsession.add(newqs)
-                permset.applies_to = newqs.id
-                newqs.dataset_id = permset.id
+                permset.applies_to = ",".join(params['qsheet'])
+                for id in params['qsheet']:
+                    newqs = dbsession.query(QSheet).filter(QSheet.id==id).first()
+                    dbsession.add(newqs)
+                    newqs.dataset_id = permset.id
             request.session.flash('DataSet created', 'info')
             raise HTTPFound(request.route_url('data.list', sid=request.matchdict['sid']))
         except api.Invalid as e:
@@ -536,3 +535,24 @@ def permset_edit(request):
                 'permset': permset,
                 'params': params,
                 'pcount': pcount}
+
+@view_config(route_name='data.pcount')
+@render({'text/html': 'backend/data/taskperms.html'})
+def calculate_pcount(request):
+    dbsession = DBSession()
+    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
+
+    pcount = taskperms.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
+    params = {}
+    params['task_count'] = request.params['tcount']
+    params['interface_count'] = request.params['icount']
+    params['task_worb'] = request.params['worb'][0]
+    params['interface_worb'] = request.params['worb'][1]
+    params['task_disallow'] = request.params['tcon']
+    params['interface_disallow'] = request.params['icon']
+    params['task_order'] = request.params['tord']
+    params['interface_order'] = request.params['iord']
+    return {'survey': survey,
+            'params': params,
+            'pcount': str(pcount)}
+

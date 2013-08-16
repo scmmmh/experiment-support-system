@@ -190,6 +190,35 @@ def load_test_data(args):
         np.qsheets.append(qsheet2)
         survey.start = qsheet1
         QSheetTransition(source=qsheet1, target=qsheet2)
+        # PAGE 3
+        source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
+  <pq:styles></pq:styles>
+  <pq:scripts></pq:scripts>
+  <pq:questions>
+     <pq:question>
+     <pq:type>confirm</pq:type>
+     <pq:name>PermDone</pq:name>
+     <pq:title>Participant ${pid_} imagine that iframe with ${perm} again then tick the box</pq:title>
+     <pq:help></pq:help>
+     <pq:required>true</pq:required>
+     <pq:attribute name="further.value">done</pq:attribute>
+     <pq:attribute name="further.label">Re-imagined</pq:attribute>
+     </pq:question>
+  </pq:questions>
+</pq:qsheet>"""
+        qsheet3 = QSheet(name='another_task_interface_page', title='Some more tasks...', styles='', scripts='')
+        qsheet3.attributes.append(QSheetAttribute(key='repeat', value='repeat'))
+        qsheet3.attributes.append(QSheetAttribute(key='data-items', value='1'))
+        qsheet3.attributes.append(QSheetAttribute(key='control-items', value='0'))
+        qsheet3.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
+        qsheet3.attributes.append(QSheetAttribute(key='task-count', value='2'))
+        qsheet3.attributes.append(QSheetAttribute(key='interface-count', value='2'))
+        load_questions(qsheet3, etree.fromstring(source), DBSession)
+        survey.qsheets.append(qsheet3)
+        dbsession.flush()
+        survey.start = qsheet1
+        QSheetTransition(source=qsheet1, target=qsheet2)
+        QSheetTransition(source=qsheet2, target=qsheet3)
         notification = Notification(ntype='interval', value=60, recipient='paul@paulserver.paulsnetwork')
         survey.notifications.append(notification)
         notification = Notification(ntype='pcount', value=1, recipient='paul@paulserver.paulsnetwork')

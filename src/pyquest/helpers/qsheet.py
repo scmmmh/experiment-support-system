@@ -231,7 +231,7 @@ def list(survey):
     :param survey: the survey
     :return a list of tuples
     """
-    return [(qs.id, qs.title) for qs in survey.qsheets]
+    return [(str(qs.id), qs.title) for qs in survey.qsheets]
 
 def question_list(qsheet):
     """ Returns a list of (id, name) tuples for the questions available on the given sheet. The list is in the form

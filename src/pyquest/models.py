@@ -667,7 +667,7 @@ class Participant(Base):
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
     permutation_id = Column(Integer)
-    permutation_qsheet_id = Column(Integer)
+    permutation_qsheet_id = Column(Unicode(20))
 
     answers = relationship('Answer',
                            backref='participant',
@@ -734,14 +734,14 @@ class PermutationSet(DataSet):
     of the actual permutation is created when a Participant actually starts the survey. 
     """
     paramstring = Column(Unicode(255))
-    applies_to = Column(Integer)
+    applies_to = Column(Unicode(255))
 
     __mapper_args__ = {'polymorphic_identity' : 'permutationset' }
 
     def __init__(self, name=None, params=None, owned_by=None, survey_id=None, permutations=None, qsheet_id=None):
         self.name = name
         self.set_params(params)
-        self.applies_to = qsheet_id
+        self.applies_to = str(qsheet_id)
         self.show_in_list = False
         self.owned_by = owned_by
         self.survey_id = survey_id

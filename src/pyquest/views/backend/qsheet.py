@@ -502,26 +502,6 @@ def edit_add_question(request):
                 return {'question': question,
                         'idx': 0}
 
-@view_config(route_name='survey.qsheet.pcount')
-@render({'text/html': 'backend/data/taskperms.html'})
-def calculate_pcount(request):
-    dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-
-    pcount = taskperms.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
-    params = {}
-    params['task_count'] = request.params['tcount']
-    params['interface_count'] = request.params['icount']
-    params['task_worb'] = request.params['worb'][0]
-    params['interface_worb'] = request.params['worb'][1]
-    params['task_disallow'] = request.params['tcon']
-    params['interface_disallow'] = request.params['icon']
-    params['task_order'] = request.params['tord']
-    params['interface_order'] = request.params['iord']
-    return {'survey': survey,
-            'params': params,
-            'pcount': str(pcount)}
-
 @view_config(route_name='survey.qsheet.edit.delete_question')
 @render({'application/json': ''})
 # TODO: CSRF Protection

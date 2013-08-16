@@ -6,7 +6,7 @@
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/taskperms.js')}"></script>
     <script type="text/javascript">
      $(document).ready(function() {
-        task_init('${r.route_url('survey.qsheet.pcount', sid=survey.id)}');
+        task_init('${r.route_url('data.pcount', sid=survey.id)}');
      });
     </script>
   </head>
@@ -26,7 +26,6 @@
 	  <dt>Parameters</dt>
 	  <dd>
 	    <span class="task-spec"><xi:include href="taskperms.html"/></span>
-	    <label>To apply to page:</label>${h.form.select('qsheet', 1, h.qsheet.list(survey), e)}
 	  </dd>
 	</dl>
 	<ul class="buttons span-22">

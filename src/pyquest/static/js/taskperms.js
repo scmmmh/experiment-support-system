@@ -23,6 +23,12 @@ function fix_multiple_selects()
     {
 	$('[name="interface_order"] option').filter(function() { return $(this).val() == bits[i];}).prop('selected', true);
     }
+
+    bits = $('#applies-to-repeater').text().split(',');
+    for (var i = 0; i < bits.length; i++)
+    {
+	$('[name="qsheet"] option').filter(function() { return $(this).val() == bits[i];}).prop('selected', true);
+    }
 }
 
 function set_restriction_appearances()
