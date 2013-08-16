@@ -198,7 +198,7 @@ def generate_permutations(worb, tOrder, iOrder, combinations):
 
     return permutations
 
-def getPermutations(worb, task_count, interface_count, task_disallow, interface_disallow, task_order, interface_order, generate):
+def getPermutations(worb, task_count, interface_count, tExclude, iExclude, tOrder, iOrder, generate):
     """ Gets the actual permutations or counts how many permutations there will be for the given configuration. There are two
     stages. The first stage is to generate the allowed combinations of tasks and interfaces. The second stage is either to generate
     the actual permutations or to count how many there will be. 
@@ -213,13 +213,12 @@ def getPermutations(worb, task_count, interface_count, task_disallow, interface_
     :param generate: if True return permutations, else return number of permutation
     :return either a list of permutations or a count of how many permutations there will be
     """
-    
-    combinations = generate_combinations(worb, task_count, interface_count, task_disallow, interface_disallow)
+    combinations = generate_combinations(worb, task_count, interface_count, tExclude, iExclude)
 
     if generate:
-        permutations = generate_permutations(worb, task_order, interface_order, combinations)
+        permutations = generate_permutations(worb, tOrder, iOrder, combinations)
     else:
-        permutations = count_permutations(worb, task_order, interface_order, combinations)
+        permutations = count_permutations(worb, tOrder, iOrder, combinations)
 
     return permutations
 

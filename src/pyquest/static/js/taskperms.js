@@ -1,7 +1,7 @@
 function fix_multiple_selects()
 {
     var text = $('#task-disallow-repeater').text();
-    var bits = text.match(/\[u\'(.*)\'\]/g);
+    var bits = text.replace(/[\[\]]/g, '').split(',')
     for (var i = 0; i < bits.length; i++)
     {
 	$('[name="task_disallow"] option').filter(function() { 
@@ -50,10 +50,10 @@ function display_participant_count(url)
     var worb = $('[name="task_worb"]').val() + $('[name="interface_worb"]').val();
     var tcount = parseInt($('[name="task_count"]').val());
     var icount = parseInt($('[name="interface_count"]').val());
-    var tcon = $('[name="task_disallow"]').val();
-    var icon = $('[name="interface_disallow"]').val();
-    var tord = $('[name="task_order"]').val();
-    var iord = $('[name="interface_order"]').val();
+    var tcon = $('[name="task_disallow"]').val().join(','); 
+    var icon = $('[name="interface_disallow"]').val().join(',');
+    var tord = $('[name="task_order"]').val().join(',');
+    var iord = $('[name="interface_order"]').val().join(',');
     
 //    $.ajax('${r.route_url("survey.qsheet.pcount", sid=survey.id, qsid=qsheet.id)}', 
     $.ajax(url, 

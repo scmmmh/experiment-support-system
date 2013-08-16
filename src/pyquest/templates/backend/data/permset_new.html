@@ -20,8 +20,15 @@
       </hgroup>
       <form action="${r.route_url('data.new.permset', sid=survey.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
-	<span class="task-spec"><xi:include href="taskperms.html"/></span>
-	<label>To apply to page:</label>${h.form.select('qsheet', 1, h.qsheet.list(survey), e)}
+	<dl>
+          <dt>Name</dt>
+          <dd>${h.form.text_field('name', 'new permutation set', e, class_='span-12')}</dd>
+	  <dt>Parameters</dt>
+	  <dd>
+	    <span class="task-spec"><xi:include href="taskperms.html"/></span>
+	    <label>To apply to page:</label>${h.form.select('qsheet', 1, h.qsheet.list(survey), e)}
+	  </dd>
+	</dl>
 	<ul class="buttons span-22">
           <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>
           <li>${h.form.submit('Create', class_='button')}</li>

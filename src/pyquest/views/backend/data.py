@@ -46,6 +46,7 @@ class NewDataSetSchema(Schema):
 
 class NewPermutationSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
+    name = validators.UnicodeString()
     task_count = validators.Int(if_missing=0, if_empty=0)
     interface_count = validators.Int(if_missing=0, if_empty=0)
     task_worb = validators.UnicodeString()
@@ -453,7 +454,7 @@ def permset_new(request):
                 dbsession.add(user)
                 permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], 
                                                          params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
-                np = PermutationSet(name="new permset", params=params, owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet_id=params['qsheet'])
+                np = PermutationSet(params['name'], params=params, owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet_id=params['qsheet'])
                 qs = dbsession.query(QSheet).filter(QSheet.id==params['qsheet']).first()
                 dbsession.add(qs)
                 survey.data_sets.append(np)
@@ -500,7 +501,6 @@ def permset_edit(request):
     permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
     params = permset.get_params()
     pcount = len(permset.items)
-    import pdb; pdb.set_trace()
     if request.method == 'POST':
         try:
             check_csrf_token(request, request.POST)
@@ -509,6 +509,7 @@ def permset_edit(request):
             with transaction.manager:
                 dbsession.add(survey)
                 dbsession.add(user)
+                permset.name = params['name']
                 permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], 
                                                          params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
                 permset.set_params(params)

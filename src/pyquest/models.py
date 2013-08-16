@@ -852,6 +852,6 @@ class PermutationSet(DataSet):
         return params
 
     def set_params(self, params):
-        paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], params['task_count'], params['interface_count'], params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'])
+        paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], params['task_count'], params['interface_count'], ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
         self.paramstring = paramstring
 

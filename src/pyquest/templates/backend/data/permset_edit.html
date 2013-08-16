@@ -19,9 +19,16 @@
         <h1>Edit Permutation Set</h1>
       </hgroup>
       <form action="${r.route_url('data.edit.permset', sid=survey.id, dsid=permset.id)}" method="post">
-        ${h.form.csrf_token_field(r.session.get_csrf_token())}
-	<span class="task-spec"><xi:include href="taskperms.html"/></span>
-	<label>To apply to page: </label>${h.form.select('qsheet', permset.applies_to, h.qsheet.list(survey), e)}
+	<dl>
+	  <dt>Name</dt>
+	  <dd>${h.form.text_field('name', permset.name, e, class_='span-12')}</dd>
+	  <dt></dt>
+	  <dd>
+            ${h.form.csrf_token_field(r.session.get_csrf_token())}
+	    <span class="task-spec"><xi:include href="taskperms.html"/></span>
+	    <label>To apply to page: </label>${h.form.select('qsheet', permset.applies_to, h.qsheet.list(survey), e)}
+	  </dd>
+	</dl>
 	<ul class="buttons span-22">
           <li>${h.form.button("Don't Update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>
           <li>${h.form.submit("Update", class_='button')}</li>

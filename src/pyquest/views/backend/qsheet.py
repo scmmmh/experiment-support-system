@@ -507,7 +507,8 @@ def edit_add_question(request):
 def calculate_pcount(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    pcount = taskperms.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'], False)
+
+    pcount = taskperms.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
     params = {}
     params['task_count'] = request.params['tcount']
     params['interface_count'] = request.params['icount']
