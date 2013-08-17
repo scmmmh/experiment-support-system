@@ -65,7 +65,7 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
             
 		1.4.1) **Informative**
 		     
-			   * **Text**: this element allows the presentation of useful information to the participants about the survey, a survey page or a particular question.
+			   * **Text**: this element allows the presentation of useful information to the participants about the survey, a survey page or a particular question. Pictures or screenshots can also be added in a *Text* box.
 		
 		1.4.2) **Input**
 		
@@ -78,9 +78,9 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 			   * **Time input**: where participants are allowed to type a date in the usual time format, i.e. "hh:mm".
 			   * **Date & time input**: where participants are allowed to type a date and time using the above formats, i.e. "dd/mm/yyyy hh:mm".
 			   * **Month input**: where participants are allowed to type a valid month by either inputting a number from 1 to 12 or by typing the name of a valid month. The two options ensure that no incorrect data are entered should a participant enters an invalid month (either by typing the name or entering a number other than the valid ones) or spell a valid month incorrectly. 
-			   * **Single choice grid**: where the participants can choose, rather than type as in the elements mentioned above, only one value on the question's likert scales. Each single choice grid can have one or more subquestions displayed on a grid, along with the corresponding likert scales, as the name of this element clearly suggests.
+			   * **Single choice grid**: where the participants can choose, rather than type as in the elements mentioned above, only one value on the question's Likert scales. Each single choice grid can have one or more subquestions displayed on a grid, along with the corresponding Likert scales, as the name of this element clearly suggests.
 			   * **Single choice**: similar to the *Single choice grid* with its only difference being that this element does have sub-questions.
-			   * **Multiple choice grid**: similar to the *Single choice grid* mentioned above, with the difference that the participants can choose more than one values from the question's likert scales.
+			   * **Multiple choice grid**: similar to the *Single choice grid* mentioned above, with the difference that the participants can choose more than one values from the question's Likert scales.
 			   * **Multiple choice**: similar to the *Multiple choice grid* with its only difference being that this element does have sub-questions.
 			   * **Country selection**: where the participant can choose their country of origin, country of residence etc.
 			   * **Language selection**: where the participant can choose the language they speak, they study in etc.
@@ -92,7 +92,10 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 			   * **Automatic next page**: which automatically leads the participant to another survey page after a time period, that you have previously determined, has passed.
 			   * **JavaScript check**:
 			   * **Confirmation checkbox**: as the name suggests, this is simply a checkbox that the participant will have to check so that they are able to progress with answering a survey. An example of using this element is when you need to ensure that the participant has understood the terms of the survey and provided their consent to you recording and using their replies.
-			   * **Ranking**:
+			   * **Ranking**: this allows you to rank a list of items by moving items up or down the list, through dragging and dropping them. An example of this is provided below:
+			    
+			               .. image:: ../_static/user/rankingExample.png
+						           :align: center
 			
   **1.5)** Now that you have an idea of the different elements mentioned above, go through the elements' list to identify the element you believe is appropriate for your purposes. 
   
@@ -120,12 +123,74 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 			1.8.1.c) This will take you to the relevant edit screen, which offers options similar to those provided by any off-the-shelf Word editor. A screenshot showing the mentioned edit screen is provided below:
 		
 			.. image:: ../_static/user/editTextScreen.png
+					:align: center
 		
 			1.8.1.d) By hovering with your mouse cursor above each element of the editing bar in the screenshot provided above, a tooltip will appear informing of the functionality of that element.
 		   
-	   1.8.2) **The options relating to all other elements**:
+	   1.8.2) **The options relating to all other elements** (*Note that not all these options are present to all other elements*):
+	   
+	   - Field *Name*: This corresponds to the variable or the group of variables that a survey question examines. The label of each variable will be used in a statistical software for data analysis. This option is common to all elements, except from *Text*.
+	   
+	   - Field **Title**: This is the text that will appear on your survey. This option is common to all elements, except from *Text*, *Page Timer*, *Automatic Next Page* and *Hidden Value*.An example, of single choice grid question that illustrates how the text in the field *Title* appears on a preview of a survey under development, is provided below: 
+	   
+	    .. image:: ../_static/user/titleExample .png
+	       :align: center
+		 
+	   - Field **Help**: In this field you can add some advice on how to complete the question, perhaps some information regarding the purpose of the question and so on. In effect, any information that will help the participant to understand how to reply to a survey question. This option is common to all elements, except from *Text*, *Automatic Next Page*, *Page Timer*,*Hidden Value* and JavaScript Check.
+	   
+	   - Checkbox **Required**: As you will notice under the checkbox, there is the phrase *"This question must be answered"*. Ticking this checkbox, therefore, will ensure that the participant does not move away from a survey page without answering the compulsory questions. This option is common to all elements, except from *Text*, *Page Timer*, *Automatic Next Page* and *Hidden Value*.
+	    
+	   - Fields **Minimum value** and **Maximum value**: This option is only available for the *Number input* element. As is clear from the option's title, the only values that a participant is permitted to type in the relevant fields are those that are not less than the minimum value and larger than the maximum value.
+	    
+	   - Fields **Before label** and **After label**: Especially useful in Likert scales, these options allow you to type words that represent the two extremes of a Likert scale. For example, for the Likert scale **not satisfied/very satisfied**, the value in the *Before label* field would be the phrase *not satisfied*, whereas the value in the *After label* field would be the phrase *very satisfied*. The Likert scale would then appear in the survey as shown in the example screenshot below:
+	   
+	    .. image:: ../_static/user/likertScale.png
+	       :align: center
+	  
+	   - List **Answers** or **Items**:
+	    
+		- Field **Value**: Can be part of the list **Answers**/**Items** or a field on its own. This option corresponds to the code used for statistical analysis. Each *value* corresponds only to one response selected by a participant from a list of possible responses to a question. An example of this option is provided below:
+		
+		 .. image:: ../_static/user/valuesExample.png
+		    :align: center
+	         
+		- Field **Label**: Can be part of the list **Answers**/**Items** or a field on its own. This option relates to the field **Value** explained above. Each *label* corresponds to a possible response that a participant can give when answering a question. All labels put together represent the exact set of possible responses to be selected by participant. The above screenshot demonstrates this.
+		  
+	   - List **Sub-questions**:
+	   
+		- Field **Name**:
+		
+		- Field **Label**:
+	   
+	   - Drop-down menu **Display as**: The following options are only available for *Multiple Choice* and *Single Choice*.
+	   
+		- Menu option **Horizontal table**: The option allows you to display a question's possible answers as a horizontal table. An example is provided below:
+		
+		 .. image:: ../_static/user/horizontalTable.png
+		    :align: center
+
+		- Menu option **Vertical list**: The option allows you to display a question's possible answers as a vertical list. An example is provided below:
+		
+		 .. image:: ../_static/user/verticalList.png
+		    :align: center
+		
+		- Menu option **Select box**: The option allows you to display a question's possible answers as options in a drop-down menu. An example is provided below:
+		
+		 .. image:: ../_static/user/selectBox.png
+		    :align: center
+		
+	   - Drop-down menu **Allow other answers**: As the menu title suggests, this option is used to specify whether other answers are permitted beyond the ones you have specified when developing your survey. The sub-options of this menu are either *Yes* or *No*. This option is common to all elements, except from *Text*, *Automatic Next Page*, *Hidden Value* and JavaScript Check.
+	    
+	   - Field **Prioritise these countries**: The option enables you to specify which countries you want appearing first on the list of countries that the system contains. This option only applies to the elements *Country Selection* and *Language Selection*. An example of this option is provided below:
+	   
+	    .. image:: ../_static/user/priorityCountries.png
+	       :align: center
+	   
+	   - Field **Timeout (Seconds)**: This field allows you to specify how many seconds you want passing before the survey automatically moves the participant to the next survey page. You do this by typing the required number in the relevant field. This option only applies to the element *Automatic Next Page*.
  
-  **1.9)** Remember to click on the update button when finished adding and editing elements on a survey page.
+  **1.9)** When you have finished editing a page, you can click on the preview button. This will allow you to see how the element would look in a live survey and also to test that it works properly, by using the test validation button.
+  
+  **1.10)** Remember to click on the update button when finished adding, editing and previewing elements on a survey page. You can
   
   **1.8)** Now click on the |Settings| button to be directed to the **Settings** screen, mentioned above.
    
