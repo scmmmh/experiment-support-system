@@ -498,7 +498,6 @@ def permset_edit(request):
     permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
     params = permset.get_params()
     pcount = len(permset.items)
-    import pdb; pdb.set_trace()
     if request.method == 'POST':
         try:
             check_csrf_token(request, request.POST)
