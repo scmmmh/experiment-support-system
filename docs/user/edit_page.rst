@@ -18,15 +18,21 @@
 .. |surveyButton| image:: ../_static/user/surveyButton.png
 .. |preview| image:: ../_static/user/previewButton.png
 .. |testValidation| image:: ../_static/user/testValidation.png
+.. |plusButton| image:: ../_static/user/plusButton.png
+.. |minusButton| image:: ../_static/user/minusButton.png
+.. |previewButton| image:: ../_static/user/previewButton.png
+.. |testValidationButton| image:: ../_static/user/testValidationButton.png
 
-.. _topSection:
+.. _topSurveyPageSection:
    
 Editing an existing survey page
 -------------------------------
 
 This sub-section explains how to edit an existing survey. This can be done in two ways:
 
-1. Edit the survey graphically - go to relevant sub-subsection by clicking :ref:`here <graphicEditSub-subsection>`.
+1. Edit the survey graphically - go to relevant sub-subsection by clicking :ref:`here <graphicEditSub-subsection>`. 
+
+   You could also navigate to the specific paragraphs of this sub-subsection: scroll down to check the instructions and relevant information on how to edit a page's layout or :ref:`here <settingsParagraph>` to learn what is included in the option *"Settings"* and how to change these.
 
 2. Edit the source of the survey - go to relevant sub-subsection by clicking :ref:`here <sourceEditSub-subsection>`. 
 
@@ -34,9 +40,24 @@ This sub-section explains how to edit an existing survey. This can be done in tw
 
 Edit graphically 
 ^^^^^^^^^^^^^^^^
-There are two sets of steps to edit a survey page graphically, depending on where in the system you are:
+There are two options (i.e. sets of steps) to edit a survey page graphically, depending on where in the system you are:
+ 
+ **Option 1** if you are in the survey page you have just added or imported. Click on the relevant link from the navigation menu on the left hand-side of this screen.
+ 
+ **or** 
+ 
+ **Option 2** if you are in the survey's **home page** (:doc:`ref<conceptsAndTerms>`) and not on the survey page you want to edit. Click on the relevant link from the navigation menu on the left hand-side of this screen.
 
-1. Let's assume that you have just created a new survey and have added a new page, as shown in the sub-section :doc:`Importing, adding, exporting and deleting a survey page <import_add_export_delete_page>`. By default, following the creation of a new survey page, you would be directed to the graphically **Edit** screen shown below:
+.. _layoutParagraph: 
+Edit a page's layout
+""""""""""""""""""""
+  
+.. _stepOne:: 
+
+**Option 1** 
+$$$$$$$$$$$
+
+Let's assume that you have just created a new survey and have added a new page, as shown in the sub-section :doc:`Importing, adding, exporting and deleting a survey page <import_add_export_delete_page>`. By default, following the creation of a new survey page, you would be directed to the graphically **Edit** screen shown below:
   
 .. image:: ../_static/user/pageEditScreen.png   
    :align: center
@@ -69,21 +90,63 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 		
 		1.4.2) **Input**
 		
-			   * **Single-line text input**: where the participants can type a single-line response in free text.
-			   * **Multi-line text input**: where the participants can type more than one lines in free text.
-			   * **Number input**: where participants can type a number, within a minimum and maximum value defined by you.
-			   * **E-mail input**: where participants can type their e-mail address.
-			   * **URL input**: where participants are allowed to type a URL, starting with *https://*.
-			   * **Date input**: where participants are allowed to type a date in the usual date format, i.e. "dd/mm/yyyy".
-			   * **Time input**: where participants are allowed to type a date in the usual time format, i.e. "hh:mm".
-			   * **Date & time input**: where participants are allowed to type a date and time using the above formats, i.e. "dd/mm/yyyy hh:mm".
-			   * **Month input**: where participants are allowed to type a valid month by either inputting a number from 1 to 12 or by typing the name of a valid month. The two options ensure that no incorrect data are entered should a participant enters an invalid month (either by typing the name or entering a number other than the valid ones) or spell a valid month incorrectly. 
-			   * **Single choice grid**: where the participants can choose, rather than type as in the elements mentioned above, only one value on the question's Likert scales. Each single choice grid can have one or more subquestions displayed on a grid, along with the corresponding Likert scales, as the name of this element clearly suggests.
-			   * **Single choice**: similar to the *Single choice grid* with its only difference being that this element does have sub-questions.
-			   * **Multiple choice grid**: similar to the *Single choice grid* mentioned above, with the difference that the participants can choose more than one values from the question's Likert scales.
-			   * **Multiple choice**: similar to the *Multiple choice grid* with its only difference being that this element does have sub-questions.
-			   * **Country selection**: where the participant can choose their country of origin, country of residence etc.
-			   * **Language selection**: where the participant can choose the language they speak, they study in etc.
+			  * **Single-line text input**: where the participants can type a single-line response in free text.
+			   
+			   ------------------------------------------------------------------------------------------
+			   
+			  * **Multi-line text input**: where the participants can type more than one lines in free text.
+			   
+			   ------------------------------------------------------------------------------------------
+			   
+			  * **Number input**: where participants can type a number, within a minimum and maximum value defined by you.
+			   
+			   ------------------------------------------------------------------------------------------
+			   
+			  * **E-mail input**: where participants can type their e-mail address.
+			   
+			   ------------------------------------------------------------------------------------------
+			   
+			  * **URL input**: where participants are allowed to type a URL, starting with *https://*.
+			   
+			   ------------------------------------------------------------------------------------------
+			   
+			  * **Date input**: where participants are allowed to type a date in the usual date format, i.e. "dd/mm/yyyy".
+			   
+			   ------------------------------------------------------------------------------------------
+			   
+			  * **Time input**: where participants are allowed to type a date in the usual time format, i.e. "hh:mm".
+			   
+			   ------------------------------------------------------------------------------------------
+			   
+			  * **Date & time input**: where participants are allowed to type a date and time using the above formats, i.e. "dd/mm/yyyy hh:mm".
+			   
+			   ------------------------------------------------------------------------------------------
+			   
+			  * **Month input**: where participants are allowed to type a valid month by either inputting a number from 1 to 12 or by typing the name of a valid month. The two options ensure that no incorrect data are entered should a participant enters an invalid month (either by typing the name or entering a number other than the valid ones) or spell a valid month incorrectly. 
+			   
+			   ------------------------------------------------------------------------------------------
+			  
+			  * **Single choice grid**: where the participants can choose, rather than type as in the elements mentioned above, only one value on the question's Likert scales. Each single choice grid can have one or more subquestions displayed on a grid, along with the corresponding Likert scales, as the name of this element clearly suggests.
+			  
+			  ------------------------------------------------------------------------------------------
+			  
+			  * **Single choice**: similar to the *Single choice grid* with its only difference being that this element does have sub-questions.
+			  
+			  ------------------------------------------------------------------------------------------
+			  
+			  * **Multiple choice grid**: similar to the *Single choice grid* mentioned above, with the difference that the participants can choose more than one values from the question's Likert scales.
+			  
+			  ------------------------------------------------------------------------------------------
+			  
+			  * **Multiple choice**: similar to the *Multiple choice grid* with its only difference being that this element does have sub-questions.
+			  
+			  ------------------------------------------------------------------------------------------
+			  
+			  * **Country selection**: where the participant can choose their country of origin, country of residence etc.
+			  
+			  ------------------------------------------------------------------------------------------
+			  
+			  * **Language selection**: where the participant can choose the language they speak, they study in etc.
 
 		1.4.3) **Other**
 		        
@@ -109,92 +172,186 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
         .. image:: ../_static/user/deleteElements.png
                 :align: center
   
-  **1.8)** Depending on the element you choose, you will either need to double-click within the edit area of the element (an example of this is the element *Text*) or start typing the information required in the relevant fields (all other elements on the list use this approach). To help you understand what we mean by this, some screenshots are provided below, illustrating the different editing options that exist for different types of elements:
+  --------------------------------------------------------------------------------------------------------------------------------------
   
-       1.8.1) **The option relating to the Text element**:
+	.. note:: Remember to click on the **Update** button after any change or addition you make, when you are in the **Edit** mode. More instructions regarding this are given in paragraph 1.12 further below.
+  
+  --------------------------------------------------------------------------------------------------------------------------------------
+  
+  **1.8)** Depending on the element you choose, you will either need to double-click within the edit area of the element (an example of this is the element *Text*) or start typing the information required in the relevant fields (all other elements on the list use this approach).
+  
+  To help you understand what we mean by this, some screenshots are provided below, illustrating the different editing options that exist for different types of elements:
+  
+	  1.8.1) **The option relating to the Text element**:
 	   
-			1.8.1.a) As mentioned above, the *Text* element has different editing options than the rest of the elements available. The screenshot below show how an added *Text* element would look like on your survey page:
-			
-			.. image:: ../_static/user/textElement.png
-					:align: center
-        
-			1.8.1.b) To edit this element, either double-click where prompted to do so or click on the pencil button, indicated in the above screenshot by a red arrow and circle.
-			
-			1.8.1.c) This will take you to the relevant edit screen, which offers options similar to those provided by any off-the-shelf Word editor. A screenshot showing the mentioned edit screen is provided below:
-		
-			.. image:: ../_static/user/editTextScreen.png
-					:align: center
-		
-			1.8.1.d) By hovering with your mouse cursor above each element of the editing bar in the screenshot provided above, a tooltip will appear informing of the functionality of that element.
-		   
-	   1.8.2) **The options relating to all other elements** (*Note that not all these options are present to all other elements*):
-	   
-	   - Field *Name*: This corresponds to the variable or the group of variables that a survey question examines. The label of each variable will be used in a statistical software for data analysis. This option is common to all elements, except from *Text*.
-	   
-	   - Field **Title**: This is the text that will appear on your survey. This option is common to all elements, except from *Text*, *Page Timer*, *Automatic Next Page* and *Hidden Value*.An example, of single choice grid question that illustrates how the text in the field *Title* appears on a preview of a survey under development, is provided below: 
-	   
-	    .. image:: ../_static/user/titleExample .png
-	       :align: center
-		 
-	   - Field **Help**: In this field you can add some advice on how to complete the question, perhaps some information regarding the purpose of the question and so on. In effect, any information that will help the participant to understand how to reply to a survey question. This option is common to all elements, except from *Text*, *Automatic Next Page*, *Page Timer*,*Hidden Value* and JavaScript Check.
-	   
-	   - Checkbox **Required**: As you will notice under the checkbox, there is the phrase *"This question must be answered"*. Ticking this checkbox, therefore, will ensure that the participant does not move away from a survey page without answering the compulsory questions. This option is common to all elements, except from *Text*, *Page Timer*, *Automatic Next Page* and *Hidden Value*.
-	    
-	   - Fields **Minimum value** and **Maximum value**: This option is only available for the *Number input* element. As is clear from the option's title, the only values that a participant is permitted to type in the relevant fields are those that are not less than the minimum value and larger than the maximum value.
-	    
-	   - Fields **Before label** and **After label**: Especially useful in Likert scales, these options allow you to type words that represent the two extremes of a Likert scale. For example, for the Likert scale **not satisfied/very satisfied**, the value in the *Before label* field would be the phrase *not satisfied*, whereas the value in the *After label* field would be the phrase *very satisfied*. The Likert scale would then appear in the survey as shown in the example screenshot below:
-	   
-	    .. image:: ../_static/user/likertScale.png
-	       :align: center
-	  
-	   - List **Answers** or **Items**:
-	    
-		- Field **Value**: Can be part of the list **Answers**/**Items** or a field on its own. This option corresponds to the code used for statistical analysis. Each *value* corresponds only to one response selected by a participant from a list of possible responses to a question. An example of this option is provided below:
-		
-		 .. image:: ../_static/user/valuesExample.png
-		    :align: center
-	         
-		- Field **Label**: Can be part of the list **Answers**/**Items** or a field on its own. This option relates to the field **Value** explained above. Each *label* corresponds to a possible response that a participant can give when answering a question. All labels put together represent the exact set of possible responses to be selected by participant. The above screenshot demonstrates this.
+	    1. As mentioned above, the *Text* element has different editing options than the rest of the elements available. The screenshot below show how an added *Text* element would look like on your survey page:
+			   
+		   .. image:: ../_static/user/textElement.png
+			        :align: center
+					 
+		  ---------------------------------------------------------------------------------------------------------------------------
+					 
+	    2. To edit this element, either double-click where prompted to do so or click on the pencil button, indicated in the above screenshot by a red arrow and circle.
 		  
-	   - List **Sub-questions**:
+		  ---------------------------------------------------------------------------------------------------------------------------
+		  
+	    3. This will take you to the relevant edit screen, which offers options similar to those provided by any off-the-shelf Word editor. A screenshot showing the mentioned edit screen is provided below:
+		
+		   .. image:: ../_static/user/editTextScreen.png
+				    :align: center
+		
+		 ---------------------------------------------------------------------------------------------------------------------------
+		
+	    4. By hovering with your mouse cursor above each element of the editing bar in the screenshot provided above, a tooltip will appear informing of the functionality of that element.
+		   
+	  1.8.2) **The options relating to all other elements**:
+	  
+	   1. Field **Name**: This corresponds to the variable or the group of variables that a survey question examines. The label of each variable will be used in a statistical software for data analysis. This option is common to all elements, except from *Text*.
+		  
+	   ---------------------------------------------------------------------------------------------------------------------------
+		  
+	   2. Field **Title**: This is the text that will appear on your survey. This option is common to all elements, except from *Text*, *Page Timer*, *Automatic Next Page* and *Hidden Value*.An example, of single choice grid question that illustrates how the text in the field *Title* appears on a preview of a survey under development, is provided below:
+		 
+		  .. image:: ../_static/user/titleExample.png
+	               :align: center
+		 
+	   ---------------------------------------------------------------------------------------------------------------------------
+		  
+	   3. Field **Help**: In this field you can add some advice on how to complete the question, perhaps some information regarding the purpose of the question and so on. In effect, any information that will help the participant to understand how to reply to a survey question. This option is common to all elements, except from *Text*, *Automatic Next Page*, *Page Timer*,*Hidden Value* and JavaScript Check.
+		   
+	   ---------------------------------------------------------------------------------------------------------------------------
+		  
+	   4. Checkbox **Required**: As you will notice under the checkbox, there is the phrase *"This question must be answered"*. Ticking this checkbox, therefore, will ensure that the participant does not move away from a survey page without answering the compulsory questions. This option is common to all elements, except from *Text*, *Page Timer*, *Automatic Next Page* and *Hidden Value*.
+		   
+	   ---------------------------------------------------------------------------------------------------------------------------
+		   
+	   5. Fields **Minimum value** and **Maximum value**: This option is only available for the *Number input* element. As is clear from the option's title, the only values that a participant is permitted to type in the relevant fields are those that are not less than the minimum value and larger than the maximum value.
+		  
+	   ---------------------------------------------------------------------------------------------------------------------------
+		  
+	   6. Fields **Before label** and **After label**: Especially useful in Likert scales, these options allow you to type words that represent the two extremes of a Likert scale. For example, for the Likert scale **not satisfied/very satisfied**, the value in the *Before label* field would be the phrase *not satisfied*, whereas the value in the *After label* field would be the phrase *very satisfied*. The Likert scale would then appear in the survey as shown in the example screenshot below:
 	   
-		- Field **Name**:
+	      .. image:: ../_static/user/likertScale.png
+	               :align: center
+	  
+	   ---------------------------------------------------------------------------------------------------------------------------
+		 
+	   7. List **Answers** or **Items**:
+		   
+		7.1. Field **Value**: This option can be part of the list **Answers**/**Items** or a field on its own. Both this option and *Label* explained below, are only applicable to elements **Single Choice**, **Single Choice Grid**, **Multiple Choice** and **Multiple Choice Grid**. The option **Value** corresponds to the code used for statistical analysis. Each *value* represents only one response selected by a participant from a list of possible responses available to a question. An example of this option is provided below: 
 		
-		- Field **Label**:
-	   
-	   - Drop-down menu **Display as**: The following options are only available for *Multiple Choice* and *Single Choice*.
-	   
-		- Menu option **Horizontal table**: The option allows you to display a question's possible answers as a horizontal table. An example is provided below:
-		
-		 .. image:: ../_static/user/horizontalTable.png
-		    :align: center
-
-		- Menu option **Vertical list**: The option allows you to display a question's possible answers as a vertical list. An example is provided below:
-		
-		 .. image:: ../_static/user/verticalList.png
-		    :align: center
-		
-		- Menu option **Select box**: The option allows you to display a question's possible answers as options in a drop-down menu. An example is provided below:
-		
-		 .. image:: ../_static/user/selectBox.png
-		    :align: center
-		
-	   - Drop-down menu **Allow other answers**: As the menu title suggests, this option is used to specify whether other answers are permitted beyond the ones you have specified when developing your survey. The sub-options of this menu are either *Yes* or *No*. This option is common to all elements, except from *Text*, *Automatic Next Page*, *Hidden Value* and JavaScript Check.
+		     .. image:: ../_static/user/valuesExample.png
+		              :align: center
+	         
+		7.2. Field **Label**: This option can be part of the list **Answers**/**Items** or a field on its own. This option relates to the field **Value** explained above. Each *label* corresponds to a possible response that a participant can give when answering a question. All labels put together represent the exact set of possible responses to be selected by participant. The above screenshot demonstrates this.
+		  
+	   ---------------------------------------------------------------------------------------------------------------------------
+		  
+	   8. List **Sub-questions**:
 	    
-	   - Field **Prioritise these countries**: The option enables you to specify which countries you want appearing first on the list of countries that the system contains. This option only applies to the elements *Country Selection* and *Language Selection*. An example of this option is provided below:
+	    The list appears only when using the elements **Single Choice Grid** and **Multiple Choice Grid**. You can add or remove a sub-question (consisting of a *Name* and a *Label*), by using the **buttons** |plusButton| or |minusButton|. 
 	   
-	    .. image:: ../_static/user/priorityCountries.png
-	       :align: center
+	    This option is particularly useful for those survey questions that use Likert scales and examine a set of variables, rather than just one. The screenshot below demonstrates such a case, with the question at hand examining a set of variables corresponding to the interface used in a search system setup for an experiment. This set of variables consists of 8 variables, namely *thumbnail, title, description, creator, type, subject, relation and country*: 
 	   
-	   - Field **Timeout (Seconds)**: This field allows you to specify how many seconds you want passing before the survey automatically moves the participant to the next survey page. You do this by typing the required number in the relevant field. This option only applies to the element *Automatic Next Page*.
+	        .. image:: ../_static/user/subQuestions.png
+				     :align: center
+					 
+		8.1. Field **Name**: As with the field **Value** (7.1 above), any word entered in the field **Name** corresponds to the code used for statistical analysis. Each field value represents only one response selected by a participant from a list of possible responses available to a question.
+		     
+		8.2. Field **Label**: The functionality of this option has already been described in (7.2) above. Note, however, that this option can only be found under the list **Sub-questions** and not as a field on its own.
+		   
+	   ---------------------------------------------------------------------------------------------------------------------------
+		   
+	   9. Drop-down menu **Display as**: The following options are only available for *Multiple Choice* and *Single Choice*.
+	   
+		9.1. Menu option **Horizontal table**: The option allows you to display a question's possible answers as a horizontal table. An example is provided below:
+		
+		     .. image:: ../_static/user/horizontalTable.png
+		              :align: center
+
+		9.2. Menu option **Vertical list**: The option allows you to display a question's possible answers as a vertical list. An example is provided below:
+		
+		     .. image:: ../_static/user/verticalList.png
+		              :align: center
+		
+		9.3. Menu option **Select box**: The option allows you to display a question's possible answers as options in a drop-down menu. An example is provided below:
+		
+			 .. image:: ../_static/user/selectBox.png 
+				      :align: center
+		
+	   ---------------------------------------------------------------------------------------------------------------------------
+		 
+	   10. Drop-down menu **Allow other answers**: As the menu title suggests, this option is used to specify whether other answers are permitted beyond the ones you have specified when developing your survey. The sub-options of this menu are either *Yes* or *No*. This option is common to all elements, except from *Text*, *Automatic Next Page*, *Hidden Value* and JavaScript Check.
+		 
+	  ---------------------------------------------------------------------------------------------------------------------------
+		 
+	   11. Field **Prioritise these countries**: The option enables you to specify which countries you want appearing first on the list of countries that the system contains. This option only applies to the elements *Country Selection* and *Language Selection*.
+	   
+	     An example of this option is provided below:
+	   
+		   .. image:: ../_static/user/priorityCountries.png
+					:align: center
+	   
+	  ---------------------------------------------------------------------------------------------------------------------------
+		
+	   12. Field **Timeout (Seconds)**: This field allows you to specify how many seconds you want passing before the survey automatically moves the participant to the next survey page. You do this by typing the required number in the relevant field. This option only applies to the element *Automatic Next Page*.
  
-  **1.9)** When you have finished editing a page, you can click on the preview button. This will allow you to see how the element would look in a live survey and also to test that it works properly, by using the test validation button.
+  **1.9)** When you have finished editing a page, you can click on the |previewButton| button, located in the grey ribbon above the title of the survey page edited, or what we have previously called **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`), as shown in the screenshot below:
   
-  **1.10)** Remember to click on the update button when finished adding, editing and previewing elements on a survey page. You can
+			.. image:: ../_static/user/previewButtonScreen.png
+					:align: center
+
+  By clicking on the |previewButton| button, the **Preview** screen will appear, allowing you to see how the element or elements, you have just added on the page, would look in a live survey. An example is provided below - **note** how the set of **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) on the grey ribbon have now changed to include the buttons **Edit, Data, Delete** and **Export**:
   
-  **1.8)** Now click on the |Settings| button to be directed to the **Settings** screen, mentioned above.
+            .. image:: ../_static/user/previewButtonScreenTwo.png
+					:align: center
+  
+  Use the scroll bar on the right of the system's preview screen, **not** your browser's bar, to scroll up and down the survey page. If you want to go back to **Edit** mode, simply click on the |edit| button.
+  
+  **1.10)** To test whether an element on the survey page is working properly, scroll down the **Preview** screen, populating the available fields with possible responses and then click on the |testValidationButton| button at the bottom of that screen. If all your answers follow the rules set by you in the previous stages described above, then you will get the following message:
+  
+			 .. image:: ../_static/user/positiveValidationMessage.png
+				     :align: center
+  
+  Otherwise, an error message will come up, such as the one below, demonstrating to you that incorrect answers will not be accepted by the system:
+  
+			 .. image:: ../_static/user/negativeValidationMessage.png
+			         :align: center
+					 
+  The error message will also indicate to you which section of your survey page is incorrect or where on it answers are missing, by putting this within a rectangle with red borders. Depending on the error, different prompt messages will appear, as the screenshot below demonstrates:
+  
+  .. image:: ../_static/user/negativeValidationMessageTwo.png  
+             :align: center
+
+  **1.11)** Finally, when you have finished adding, editing and previewing elements on a survey page and decided that you want to keep the changes you have made, remember to click on the |update| button.
+  
+  This is part of the white ribbon that follows you around when you are in **Edit** mode and is enclosed in a rectangle with black dotted borders. Two screenshots illustrating how this ribbon looks like in different parts of the **Edit** mode, are provided below:
+  
+	    .. image:: ../_static/user/updateButtonScreen.png
+                   :align: center
+
+.. _stepTwo::
+
+**Option 2** 
+$$$$$$$$$$$
+
+If you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`) and not on the survey page you want to edit, then click on the |edit| button, part of the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) and located under the title and listed characteristics of that page. 
+
+You will then be directed to the **Edit** screen, an example of which is provided further above. Now simply follow the steps described in **Option 1** above to edit a survey page graphically.
+				   
+:ref:`back to the top <topSurveyPageSection>`
    
-  **1.9)** On this screen, you can change the *Name* and the *Title* of the survey page according to your experiment's needs. Note that the field *Name* refers to the name of the element, that is the specific survey page you are viewing at any given time, whereas the field *Title* refers to the actual question that appears on that page. An example of this is provided with the screenshot below, with the relevant fields enclosed in rectangular with dotted borders:
+----------------------------------------------------------------------------------------------------------------------------------------
+
+.. _settingsParagraph:
+
+Edit a page's settings
+""""""""""""""""""""""
+**2.1)** Let's now assume that you have completed the graphical editing of your survey page. You can now click on the |Settings| tab, located below the survey page's title, as demonstrated in the screenshot below:
+
+**2.2)** This will take you to the **Settings** screen:
+
+**2.3)** On this screen, you can change the *Name* and the *Title* of the survey page according to your experiment's needs. Note that the field *Name* refers to the name of the element, that is the specific survey page you are viewing at any given time, whereas the field *Title* refers to the actual question that appears on that page. An example of this is provided with the screenshot below, with the relevant fields enclosed in rectangular with dotted borders:
    
            .. image:: ../_static/user/nameTitleExample.png 
                    :align: center  
@@ -206,7 +363,7 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
    
       For a more detailed explanation of the **Results** screen, refer to sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data <get_data>`.
    
-  **1.9)** On the **Settings** screen, you can also:
+  **1.14)** On the **Settings** screen, you can also:
    
 	       - Choose the type of question asked, for example whether it would be a *single* or a *repeated* question.
 	       - Add data items.
@@ -216,19 +373,19 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 	       - Add your own CSS Styles by clicking on the link *CSS styles* below the *Transition to* menu and typing in the box that appears. Clicking on the link again will make the text box disappear, but keep the text you have just added.			
 	       - Add your own code in JavaScript by clicking on the link *Javascript* below the link *CSS styles* and typing in the box that appears. As with *CSS Styles*, clicking on the *Javascript* link again will make the text box disappear, but keep the text you have just added.
 
-  **1.10)** Following any changes you carried out on a survey page, it is a good idea to validate these in order to make sure that everything will work fine when the survey is actually running. To do this, click on the |preview| button located above the survey page's title.
+  **1.15)** Following any changes you carried out on a survey page, it is a good idea to validate these in order to make sure that everything will work fine when the survey is actually running. To do this, click on the |preview| button located above the survey page's title.
 	
-  **1.11)** By doing this, you will be directed to the **Preview** screen of that page, where you will be presented with an example of how the page will look like in the live survey.
+  **1.16)** By doing this, you will be directed to the **Preview** screen of that page, where you will be presented with an example of how the page will look like in the live survey.
 	
-  **1.12)** On the **Validation** screen, you can test questions by providing combinations of replies (checking boxes, typing free text etc.) in order to ensure that responses that do not follow the conditions you set for a specific question, are not permitted. 
+  **1.17)** On the **Validation** screen, you can test questions by providing combinations of replies (checking boxes, typing free text etc.) in order to ensure that responses that do not follow the conditions you set for a specific question, are not permitted. 
   
   If, for example, you specify that a question must be answered, then clicking on the "Test Validation" button enables you to check that this is actually being applied. Similarly, if you select a date or time or number question and then try to answer the question with an invalid value, then the "Test Validation" button will show what happens if you provide an incorrect answer.
 	
-  **1.13)** When you are done completing a preview question, click on the |testValidation| button as indicated in the example screenshot below:
+  **1.18)** When you are done completing a preview question, click on the |testValidation| button as indicated in the example screenshot below:
 	       .. image:: ../_static/user/testValidationScreen.png 
                    :align: center
 
-  **1.14)** If you have completed the preview question appropriately, the following message will appear below the title of the survey page:
+  **1.19)** If you have completed the preview question appropriately, the following message will appear below the title of the survey page:
   
            .. image:: ../_static/user/successValidation.png 
                    :align: center
@@ -238,17 +395,11 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 	       .. image:: ../_static/user/failValidation.png 
                    :align: center 
 		
-  **1.15)** Once you have finished testing a survey page, in order to navigate away from it and back to the **home page** (:doc:`ref<conceptsAndTerms>`) screen, click on the |surveyButton| tab, one of the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`), located above the survey page's title.
- 
-
-:ref:`back to the top <topSection>`
+  **1.20)** Once you have finished testing a survey page, in order to navigate away from it and back to the **home page** (:doc:`ref<conceptsAndTerms>`) screen, click on the |surveyButton| tab, one of the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`), located above the survey page's title.
    
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+:ref:`back to the top <topSurveyPageSection>`
 
-2. If you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`) and not on the survey page you want to edit, then click on the |edit| button, located under the title and listed characteristics of that page. You will then be directed to the **Edit** screen, an example of which is provided further above. Now simply follow the steps described in **paragraph 1** above to edit a survey page graphically.
-
-   
-:ref:`back to the top <topSection>`
+------------------------------------------------------------------------------------------------------------------------------
 
 .. _sourceEditSub-subsection:
 
@@ -275,4 +426,4 @@ The way to access this option depends on whether you are on the survey's **home 
   **2.3)** The top part of the **Edit Source** screen, is the same as the **Settings** screen described in **sub-paragraph 1.4** of the sub-subsection :ref:`Edit graphically <graphicEditSub-subsection>`, except from the **Content** box.
   
   
-:ref:`back to the top <topSection>`
+:ref:`back to the top <topSurveyPageSection>`
