@@ -23,6 +23,7 @@ from uuid import uuid1
 
 from pyquest.helpers import as_data_type
 from pyquest.util import convert_type
+from pyquest import taskperms
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
@@ -735,21 +736,23 @@ class PermutationSet(DataSet):
     """
     paramstring = Column(Unicode(255))
     applies_to = Column(Unicode(255))
+    tasks = Column(Unicode(255))
+    interfaces = Column(Unicode(255))
 
     __mapper_args__ = {'polymorphic_identity' : 'permutationset' }
 
-    def __init__(self, name=None, params=None, owned_by=None, survey_id=None, permutations=None, qsheet_id=None):
+    def __init__(self, name=None, params=None, owned_by=None, survey_id=None, qsheet_id=None, tasks="", interfaces=""):
         self.name = name
-        self.set_params(params)
         self.applies_to = str(qsheet_id)
+        self.tasks = ",".join(tasks)
+        self.interfaces = ",".join(interfaces)
         self.show_in_list = False
         self.owned_by = owned_by
         self.survey_id = survey_id
 
         self.attribute_keys.append(DataSetAttributeKey(key="permstring", order=1))
         self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=2))
-        if permutations:
-            self.set_permutations(permutations)
+        self.set_params(params)
 
     def set_permutations(self, permutations):
         dbsession = DBSession()
@@ -757,7 +760,6 @@ class PermutationSet(DataSet):
         for di in self.items:
             dbsession.add(di)
             dbsession.delete(di)
-        dbsession.flush()
         order = 1
         for perm in permutations:
             di = DataItem(dataset_id=self.id, order=order)
@@ -797,6 +799,7 @@ class PermutationSet(DataSet):
                 finished = True
             else:
                 li = t[2]
+        dbsession.flush()
         return ds
 
     def assign_next_permutation(self, participant):
@@ -826,7 +829,6 @@ class PermutationSet(DataSet):
             so_far = so_far + 2
 
         ds = self.perm_string_to_dataset(permstring)
-        dbsession.flush()
         participant.permutation_id = ds.id
         participant.permutation_qsheet_id = self.applies_to
 
@@ -848,10 +850,19 @@ class PermutationSet(DataSet):
         params['interface_disallow'] = bits[5]
         params['task_order'] = bits[6]
         params['interface_order'] = bits[7]
+        params['tasks'] = self.tasks
+        params['interfaces'] = self.interfaces
         
         return params
 
     def set_params(self, params):
-        paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], params['task_count'], params['interface_count'], ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
+        self.tasks = params['tasks']
+        self.interfaces = params['interfaces']
+        paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], len(self.tasks), len(self.interfaces), ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
+        permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], 
+                                                 self.tasks, self.interfaces, 
+                                                 params['task_disallow'], params['interface_disallow'], 
+                                                 params['task_order'], params['interface_order'], True)
+        self.set_permutations(permutations)
         self.paramstring = paramstring
 

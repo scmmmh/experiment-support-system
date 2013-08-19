@@ -6,7 +6,7 @@
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/taskperms.js')}"></script>
     <script type="text/javascript">
      $(document).ready(function() {
-        task_init('${r.route_url('data.pcount', sid=survey.id)}');
+        task_init('${r.route_url('data.pcount', sid=survey.id, dsid=permset.id)}');
      });
     </script>
   </head>
@@ -18,11 +18,11 @@
       <hgroup>
         <h1>New Permutation Set</h1>
       </hgroup>
-      <form action="${r.route_url('data.new.permset', sid=survey.id)}" method="post">
+      <form action="${r.route_url('data.new.permset', sid=survey.id, dsid=permset.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
 	<dl>
           <dt>Name</dt>
-          <dd>${h.form.text_field('name', 'new permutation set', e, class_='span-12')}</dd>
+          <dd>${h.form.text_field('name', permset.name, e, class_='span-12')}</dd>
 	  <dt>Parameters</dt>
 	  <dd>
 	    <span class="task-spec"><xi:include href="taskperms.html"/></span>

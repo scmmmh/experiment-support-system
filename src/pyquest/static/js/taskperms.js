@@ -54,8 +54,8 @@ function set_restriction_appearances()
 function display_participant_count(url)
 {
     var worb = $('[name="task_worb"]').val() + $('[name="interface_worb"]').val();
-    var tcount = parseInt($('[name="task_count"]').val());
-    var icount = parseInt($('[name="interface_count"]').val());
+    var tasks = $('[name="tasks"]').val();
+    var interfaces = $('[name="interfaces"]').val();
     var tcon = $('[name="task_disallow"]').val().join(','); 
     var icon = $('[name="interface_disallow"]').val().join(',');
     var tord = $('[name="task_order"]').val().join(',');
@@ -64,7 +64,7 @@ function display_participant_count(url)
 //    $.ajax('${r.route_url("survey.qsheet.pcount", sid=survey.id, qsid=qsheet.id)}', 
     $.ajax(url, 
 	   {
-	       data: {"worb" : worb, "tcount" : tcount, "icount": icount, "tcon":tcon, "icon":icon, "tord":tord, "iord":iord},
+	       data: {"worb" : worb, "tasks" : tasks, "interfaces": interfaces, "tcon":tcon, "icon":icon, "tord":tord, "iord":iord},
 	       success: function(response) {
                    $('span.task-spec').html(response);
 		   set_task_buttons(url);

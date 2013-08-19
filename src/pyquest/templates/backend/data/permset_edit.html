@@ -6,7 +6,7 @@
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/taskperms.js')}"></script>
     <script type="text/javascript">
      $(document).ready(function() {
-        task_init('${r.route_url('data.pcount', sid=survey.id)}');
+        task_init('${r.route_url('data.pcount', sid=survey.id, dsid=permset.id)}');
      });
     </script>
   </head>

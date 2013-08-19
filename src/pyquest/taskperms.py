@@ -113,7 +113,7 @@ def generate_bb(tasks, interfaces, tDisallow, iDisallow):
     return combinations
 
 
-def generate_combinations(worb, task_count, interface_count, task_disallow, interface_disallow):
+def generate_combinations(worb, tasks, interfaces, task_disallow, interface_disallow):
     """ Generates the allowed combinations of task and interface. This function only prepares the
     task and interface lists and the combinations to be disallowed. The actual procedure differs
     according to the within-between values and so there is a separate function for each of the
@@ -126,8 +126,8 @@ def generate_combinations(worb, task_count, interface_count, task_disallow, inte
     :param interface_disallow: interface combinations to exclude
     :return a list of lists of the combinations which must be permuted
     """
-    tasks = [chr(i+65) for i in range(int(task_count))] 
-    interfaces = [chr(i+49) for i in range(int(interface_count))] 
+#    tasks = [chr(i+65) for i in range(int(task_count))] 
+#    interfaces = [chr(i+49) for i in range(int(interface_count))] 
 
 #    tDisallow = [' ']
 #    if worb[0] == 'w' and task_disallow:
@@ -198,7 +198,7 @@ def generate_permutations(worb, tOrder, iOrder, combinations):
 
     return permutations
 
-def getPermutations(worb, task_count, interface_count, tExclude, iExclude, tOrder, iOrder, generate):
+def getPermutations(worb, tasks, interfaces, tExclude, iExclude, tOrder, iOrder, generate):
     """ Gets the actual permutations or counts how many permutations there will be for the given configuration. There are two
     stages. The first stage is to generate the allowed combinations of tasks and interfaces. The second stage is either to generate
     the actual permutations or to count how many there will be. 
@@ -213,7 +213,12 @@ def getPermutations(worb, task_count, interface_count, tExclude, iExclude, tOrde
     :param generate: if True return permutations, else return number of permutation
     :return either a list of permutations or a count of how many permutations there will be
     """
-    combinations = generate_combinations(worb, task_count, interface_count, tExclude, iExclude)
+    combinations = []
+
+    if len(tasks) > 0 and len(interfaces) > 0:
+        tasks = tasks.split(',')
+        interfaces = interfaces.split(',')
+        combinations = generate_combinations(worb, tasks, interfaces, tExclude, iExclude)
 
     if generate:
         permutations = generate_permutations(worb, tOrder, iOrder, combinations)
