@@ -284,20 +284,9 @@ def duplicate(request):
                                                           value=attr.value,
                                                           order=attr.order)
                             if qsheet.data_set:
-                                for data_item in qsheet.data_set.items:
-                                    dupl_data_item = DataItem(qsheet=dupl_qsheet,
-                                                              order=data_item.order,
-                                                              control=data_item.control)
-                                    for attr in data_item.attributes:
-                                        DataItemAttribute(data_item=dupl_data_item,
-                                                          order=attr.order,
-                                                          key=attr.key,
-                                                          value=attr.value)
-                                    for control_answer in data_item.control_answers:
-                                        if control_answer.question and control_answer.question.name in questions:
-                                            DataItemControlAnswer(data_item=dupl_data_item,
-                                                                  question=questions[control_answer.question.name],
-                                                                  answer=control_answer.answer)
+                                dupl_qsheet.data_set = qsheet.data_set.duplicate()
+                                user.data_sets.append(dupl_qsheet.data_set)
+                                dupl_survey.data_sets.append(dupl_qsheet.data_set)
                             qsheets[dupl_qsheet.name] = dupl_qsheet
                             dupl_survey.qsheets.append(dupl_qsheet)
                         for qsheet in survey.qsheets:

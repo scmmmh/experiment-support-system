@@ -13,8 +13,7 @@
     </thead>
     <tbody>
       <tr py:if="len(dis.items) == 0">
-	<td class="placeholder">This dataset contains no data item. Use the "Edit" button to
-          add data.</td>
+	<td class="placeholder">This dataset contains no data items. Use the "Add Item" button to add data.</td>
       </tr>
       <tr py:for="item in dis.items">
 	<td><py:if test="item.control">Yes</py:if></td>

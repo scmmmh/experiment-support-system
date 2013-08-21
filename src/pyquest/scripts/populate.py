@@ -181,8 +181,33 @@ def load_test_data(args):
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
+        tasksds = DataSet(name="test_tasks", owned_by=user.id, survey_id=survey.id)
+        tasksds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
+        survey.data_sets.append(tasksds)
         dbsession.flush()
-        params = {'task_worb':'w', 'interface_worb':'w', 'task_disallow':' ', 'interface_disallow':' ', 'task_order':' ', 'interface_order':' ', 'tasks': 'A,B', 'interfaces':'1,2'}
+        taskitem = DataItem(order=0)
+        ak = tasksds.attribute_keys[0]
+        taskitem.attributes.append(DataItemAttribute(value="task_A", key_id=ak.id))
+        tasksds.items.append(taskitem)
+        taskitem = DataItem(order=1)
+        ak = tasksds.attribute_keys[0]
+        taskitem.attributes.append(DataItemAttribute(value="task_B", key_id=ak.id))
+        tasksds.items.append(taskitem)
+
+        interfacesds = DataSet(name="test_interfaces", owned_by=user.id, survey_id=survey.id)
+        interfacesds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
+        survey.data_sets.append(interfacesds)
+        dbsession.flush()
+        interfaceitem = DataItem(order=0)
+        ak = interfacesds.attribute_keys[0]
+        interfaceitem.attributes.append(DataItemAttribute(value="interface_1", key_id=ak.id))
+        interfacesds.items.append(interfaceitem)
+        interfaceitem = DataItem(order=1)
+        ak = interfacesds.attribute_keys[0]
+        interfaceitem.attributes.append(DataItemAttribute(value="interface_2", key_id=ak.id))
+        interfacesds.items.append(interfaceitem)
+
+        params = {'task_worb':'w', 'interface_worb':'w', 'task_disallow':' ', 'interface_disallow':' ', 'task_order':' ', 'interface_order':' ', 'tasks_dataset': tasksds.id, 'interfaces_dataset': interfacesds.id}
         np = PermutationSet(name="test permset", params=params, owned_by=user.id, survey_id=survey.id, qsheet_id=qsheet2.id)
         survey.data_sets.append(np)
         user.data_sets.append(np)

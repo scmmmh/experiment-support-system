@@ -11,6 +11,7 @@ import json
 import random
 import hashlib
 import time
+import re
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         Table, DateTime, Boolean, func, and_)
@@ -596,6 +597,27 @@ class DataSet(Base):
         else:
             return False
 
+    def duplicate(self):
+        """ Creates and returns a new DataSet which is a copy of this one. The owned_by and survey_id fields are
+        left unfilled.
+        """
+        dbsession = DBSession()
+        newds = DataSet(name=self.name, show_in_list=self.show_in_list)
+        new_keys_for_old = {}
+        for ak in self.attribute_keys:
+            new_ak = DataSetAttributeKey(key=ak.key, order=ak.order)
+            dbsession.add(new_ak)
+            newds.attribute_keys.append(new_ak)
+            dbsession.flush()
+            new_keys_for_old[ak.id] = new_ak.id
+        for item in self.items:
+            new_item = DataItem(order=item.order, control=item.control)
+            for attribute in item.attributes:
+                new_attribute = DataItemAttribute(value=attribute.value, key_id=new_keys_for_old[attribute.key_id])
+                new_item.attributes.append(new_attribute)
+            newds.items.append(new_item)
+        return newds
+
 class DataSetAttributeKey(Base):
 
     __tablename__ = 'data_set_attribute_keys'
@@ -845,8 +867,8 @@ class PermutationSet(DataSet):
         bits = self.paramstring.split(',')
         params['task_worb'] = bits[0]
         params['interface_worb'] = bits[1]
-        params['task_count'] = int(bits[2])
-        params['interface_count'] = int(bits[3])
+        params['tasks_dataset'] = bits[2]
+        params['interfaces_dataset'] = bits[3]
         params['task_disallow'] = bits[4]
         params['interface_disallow'] = bits[5]
         params['task_order'] = bits[6]
@@ -857,10 +879,21 @@ class PermutationSet(DataSet):
         return params
 
     def set_params(self, params):
-        # Convert the tasks and interfaces to old-fashioned strings, otherwise all the u markers get displayed by the html. 
-        self.tasks = str(params['tasks'])
-        self.interfaces = str(params['interfaces'])
-        paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], len(self.tasks), len(self.interfaces), ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
+        dbsession = DBSession()
+        taskitems = dbsession.query(DataItem).filter(DataItem.dataset_id==params['tasks_dataset']).all()
+        tasks = ''
+        for ti in taskitems:
+            tasks = tasks + ti.attributes[0].value + ','
+        tasks = re.sub(',$', '', tasks)
+        interfaceitems = dbsession.query(DataItem).filter(DataItem.dataset_id==params['interfaces_dataset']).all()
+        interfaces = ''
+        for ii in interfaceitems:
+            interfaces = interfaces + ii.attributes[0].value + ','
+        interfaces = re.sub(',$', '', interfaces)
+        self.tasks = str(tasks)
+        self.interfaces = str(interfaces)
+        paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], params['tasks_dataset'], params['interfaces_dataset'], ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
+
         permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], 
                                                  self.tasks, self.interfaces, 
                                                  params['task_disallow'], params['interface_disallow'], 

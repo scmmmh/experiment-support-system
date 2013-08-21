@@ -48,7 +48,9 @@ class NewPermutationSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString()
     tasks = validators.UnicodeString()
+    tasks_dataset = validators.Int()
     interfaces = validators.UnicodeString()
+    interfaces_dataset = validators.Int()
     task_worb = validators.UnicodeString()
     interface_worb = validators.UnicodeString()
     task_disallow = foreach.ForEach(validators.UnicodeString())
@@ -125,7 +127,6 @@ def dataset_detach(request):
 @view_config(route_name='data.new')
 @render({'text/html': 'backend/data/set_new.html'})
 def dataset_new(request):
-    import pdb; pdb.set_trace()
     dbsession = DBSession()
     user = current_user(request)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -467,6 +468,8 @@ def permset_new(request):
              e.params = request.POST
              params = {}
              params['tasks'] = ""
+             params['tasks_dataset'] = 0
+             params['interfaces_dataset'] = 0
              params['interfaces'] = ""
              params['task_worb'] = 'w'
              params['interface_worb'] = 'w'
@@ -482,6 +485,8 @@ def permset_new(request):
         params = {}
         params['name'] = ""
         params['tasks'] = ""
+        params['tasks_dataset'] = 0
+        params['interfaces_dataset'] = 0
         params['interfaces'] = ""
         params['task_worb'] = 'w'
         params['interface_worb'] = 'w'
@@ -548,7 +553,17 @@ def calculate_pcount(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
-    pcount = taskperms.getPermutations(request.params['worb'], request.params['tasks'], request.params['interfaces'], request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
+    taskitems = dbsession.query(DataItem).filter(DataItem.dataset_id==request.params['tasks_dataset']).all()
+    tasks = ''
+    for ti in taskitems:
+        tasks = tasks + ti.attributes[0].value + ','
+    tasks = re.sub(',$', '', tasks)
+    interfaceitems = dbsession.query(DataItem).filter(DataItem.dataset_id==request.params['interfaces_dataset']).all()
+    interfaces = ''
+    for ii in interfaceitems:
+        interfaces = interfaces + ii.attributes[0].value + ','
+    interfaces = re.sub(',$', '', interfaces)
+    pcount = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
     params = {}
     params['task_worb'] = request.params['worb'][0]
     params['interface_worb'] = request.params['worb'][1]
@@ -556,8 +571,10 @@ def calculate_pcount(request):
     params['interface_disallow'] = request.params['icon']
     params['task_order'] = request.params['tord']
     params['interface_order'] = request.params['iord']
-    params['tasks'] = request.params['tasks']
-    params['interfaces'] = request.params['interfaces']
+    params['tasks'] = tasks
+    params['tasks_dataset'] = request.params['tasks_dataset']
+    params['interfaces'] = interfaces
+    params['interfaces_dataset'] = request.params['interfaces_dataset']
     return {'survey': survey,
             'params': params,
             'permset': permset,

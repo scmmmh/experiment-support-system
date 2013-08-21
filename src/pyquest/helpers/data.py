@@ -30,3 +30,11 @@ def generate_summary(qsheet):
         else:
             counts.append(len(data_item.answers))
     return (len(qsheet.data_set.items), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))
+
+def dataset_list(survey):
+    """ Returns a list of (id, title) tuples for all DataSets in the given survey. The list is in the form used by PyWebtools select items.
+
+    :param survey: the survey
+    :return a list of tuples
+    """
+    return [(0, 'None')] + [(str(ds.id), ds.name) for ds in survey.data_sets]
