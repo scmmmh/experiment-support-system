@@ -457,6 +457,7 @@ def permset_new(request):
                  dbsession.add(user)
                  user.data_sets.append(permset)
                  dsid = permset.id
+                 permset.applies_to = ",".join(params['qsheet'])
                  for id in params['qsheet']:
                      newqs = dbsession.query(QSheet).filter(QSheet.id==id).first()
                      dbsession.add(newqs)

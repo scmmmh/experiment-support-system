@@ -760,6 +760,7 @@ class PermutationSet(DataSet):
         for di in self.items:
             dbsession.add(di)
             dbsession.delete(di)
+        dbsession.flush()
         order = 1
         for perm in permutations:
             di = DataItem(dataset_id=self.id, order=order)
@@ -856,8 +857,9 @@ class PermutationSet(DataSet):
         return params
 
     def set_params(self, params):
-        self.tasks = params['tasks']
-        self.interfaces = params['interfaces']
+        # Convert the tasks and interfaces to old-fashioned strings, otherwise all the u markers get displayed by the html. 
+        self.tasks = str(params['tasks'])
+        self.interfaces = str(params['interfaces'])
         paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], len(self.tasks), len(self.interfaces), ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
         permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], 
                                                  self.tasks, self.interfaces, 

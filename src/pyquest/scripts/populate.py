@@ -182,11 +182,8 @@ def load_test_data(args):
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
         dbsession.flush()
-        tasks = 'A,B'
-        interfaces = '1,2'
-#        permutations = taskperms.getPermutations('ww', tasks, interfaces, [' '], [' '], [' '], [' '], True)
-        params = {'task_worb':'w', 'interface_worb':'w', 'task_count':2, 'interface_count': 2, 'task_disallow':[' '], 'interface_disallow':[' '], 'task_order':[' '], 'interface_order':[' '], 'tasks': tasks, 'interfaces':interfaces}
-        np = PermutationSet(name="test permset", params=params, owned_by=user.id, survey_id=survey.id, qsheet_id=qsheet2.id, tasks=tasks, interfaces=interfaces)
+        params = {'task_worb':'w', 'interface_worb':'w', 'task_disallow':' ', 'interface_disallow':' ', 'task_order':' ', 'interface_order':' ', 'tasks': 'A,B', 'interfaces':'1,2'}
+        np = PermutationSet(name="test permset", params=params, owned_by=user.id, survey_id=survey.id, qsheet_id=qsheet2.id)
         survey.data_sets.append(np)
         user.data_sets.append(np)
         np.qsheets.append(qsheet2)
