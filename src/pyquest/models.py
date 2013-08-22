@@ -198,10 +198,11 @@ class Survey(Base):
                           backref='survey',
                           cascade='all, delete, delete-orphan')
     
-#    permutations = relationship('PermutationSet',
-#                                backref = 'survey',
-#                                cascade = 'all, delete, delete-orphan')
-    
+    data_sets = relationship('DataSet', 
+                             backref='survey',
+                             cascade='all, delete, delete-orphan')
+
+
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
         self.summary = summary
@@ -582,7 +583,6 @@ class DataSet(Base):
     items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
     qsheets = relationship('QSheet', backref='data_set')
     owner = relationship('User', backref='data_sets')
-    survey = relationship('Survey', backref='data_sets')
     attribute_keys = relationship('DataSetAttributeKey', 
                                   backref='dataset', order_by='DataSetAttributeKey.order',
                                   cascade='all, delete, delete-orphan')
@@ -597,12 +597,8 @@ class DataSet(Base):
         else:
             return False
 
-    def duplicate(self):
-        """ Creates and returns a new DataSet which is a copy of this one. The owned_by and survey_id fields are
-        left unfilled.
-        """
+    def copy_data(self, newds):
         dbsession = DBSession()
-        newds = DataSet(name=self.name, show_in_list=self.show_in_list)
         new_keys_for_old = {}
         for ak in self.attribute_keys:
             new_ak = DataSetAttributeKey(key=ak.key, order=ak.order)
@@ -616,6 +612,14 @@ class DataSet(Base):
                 new_attribute = DataItemAttribute(value=attribute.value, key_id=new_keys_for_old[attribute.key_id])
                 new_item.attributes.append(new_attribute)
             newds.items.append(new_item)
+
+    def duplicate(self):
+        """ Creates and returns a new DataSet which is a copy of this one. The owned_by and survey_id fields are
+        left unfilled.
+        """
+        dbsession = DBSession()
+        newds = DataSet(name=self.name, show_in_list=self.show_in_list)
+        self.copy_data(newds)
         return newds
 
 class DataSetAttributeKey(Base):
@@ -775,6 +779,13 @@ class PermutationSet(DataSet):
         self.attribute_keys.append(DataSetAttributeKey(key="permstring", order=1))
         self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=2))
         self.set_params(params)
+
+    def duplicate(self):
+        dbsession = DBSession()
+        newds = PermutationSet(name=self.name, params=self.get_params(), tasks=self.tasks, interfaces=self.interfaces)
+        self.copy_data(newds)
+        newds.applies_to = self.applies_to
+        return newds
 
     def set_permutations(self, permutations):
         dbsession = DBSession()
