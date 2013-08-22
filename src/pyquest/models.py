@@ -29,7 +29,7 @@ from pyquest import taskperms
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '384006772f60'
+DB_VERSION = '44a76d75263'
 """The currently required database version."""
 
 class DBUpgradeException(Exception):
