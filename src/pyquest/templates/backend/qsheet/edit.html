@@ -2,7 +2,6 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <script type="text/javascript" src="${r.static_url('pyquest:static/js/taskperms.js')}"></script>
     <title>${survey.title} - ${qsheet.title} - Edit</title>
     <script type="text/javascript">
     function fix_control_positions() {
@@ -284,7 +283,6 @@
         });
         fix_control_positions();
         set_transition_buttons();
-        task_init('${r.route_url('survey.qsheet.pcount', sid=survey.id, qsid=qsheet.id)}');
     });
     </script>
   </head>
@@ -333,10 +331,6 @@
 	    <dt>Transition</dt>
 	    <py:with vars="source=False">
 	    <dd class="transition"><xi:include href="transitions.html"/></dd>
-	    </py:with>
-	    <dt>Task Specification</dt>
-	    <py:with vars="pcount=0;exclusion_pairs=[(' ', 'None')]">
-	    <dd class="task-spec"><xi:include href="taskperms.html"/></dd>
 	    </py:with>
             <dt class="role-css-edit-toggle">CSS styles</dt>
             <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>

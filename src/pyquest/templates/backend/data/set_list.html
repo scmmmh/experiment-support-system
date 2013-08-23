@@ -12,52 +12,67 @@
       <ul>
         <li><a href="${r.route_url('data.upload', sid=survey.id)}" class="button">Upload Data Set</a></li>
         <li><a href="${r.route_url('data.new', sid=survey.id)}" class="button">New Data Set</a></li>
+        <li><a href="${r.route_url('data.new.permset', sid=survey.id, dsid=None)}" class="button">New Permutation Set</a></li>
       </ul>
     </nav>
-    <h1>Data Sets</h1>
-    <div>
-      <table>
-	<thead>
-	  <th>Name</th>
-	  <th>Pages</th>
-	  <th>Action</th>
-	</thead>
-	<tr py:for="set in dis">
-	  <td><a href="${r.route_url('data.view', sid=set.survey_id, dsid=set.id)}">${set.name}</a></td>
-	  <py:choose test="set.qsheets">
-	   <py:when test="None">
-	     <td></td>
-	   </py:when>
-	   <py:otherwise>
-	     <td><py:for each="qs in set.qsheets">${qs.id} </py:for></td>
-	   </py:otherwise>
-	  </py:choose>
-	  <td>
-            <ul class="inline no-symbol no-margin">
-              <li><a href="${r.route_url('data.edit', sid=set.survey_id, dsid=set.id)}" class="button">Edit</a></li>
-              <li><a href="${r.route_url('data.delete', sid=set.survey_id, dsid=set.id)}" class="button">Delete</a></li>
-              <li><a href="${r.route_url('data.download', sid=set.survey_id, dsid=set.id)}" class="button">Download</a></li>
-	    </ul>
-	  </td>
-	</tr>
-      </table>
-
-      <h1> Permutations </h1>
-      <py:for each="ps in permsets">
-	<h4>${ps[0]}</h4>
+    <py:if test="len(dis)>0">
+      <h1>Data Sets</h1>
+      <div>
 	<table>
 	  <thead>
-	    <th>Number</th>
-	    <th>Permutation</th>
+	    <th>Name</th>
+	    <th>Pages</th>
+	    <th>Action</th>
+	  </thead>
+	  <tr py:for="set in dis">
+	    <td><a href="${r.route_url('data.view', sid=set.survey_id, dsid=set.id)}">${set.name}</a></td>
+	    <py:choose test="set.qsheets">
+	      <py:when test="None">
+		<td></td>
+	      </py:when>
+	      <py:otherwise>
+		<td><py:for each="qs in set.qsheets">${qs.id} </py:for></td>
+	      </py:otherwise>
+	    </py:choose>
+	    <td>
+              <ul class="inline no-symbol no-margin">
+		<li><a href="${r.route_url('data.edit', sid=set.survey_id, dsid=set.id)}" class="button">Edit</a></li>
+		<li><a href="${r.route_url('data.delete', sid=set.survey_id, dsid=set.id)}" class="button">Delete</a></li>
+		<li><a href="${r.route_url('data.download', sid=set.survey_id, dsid=set.id)}" class="button">Download</a></li>
+	      </ul>
+	    </td>
+	  </tr>
+	</table>
+      </div>
+    </py:if>
+    <py:if test="len(permsets)>0">
+      <h1> Permutations </h1>
+      <div>
+	<table>
+	  <thead>
+	    <th>Name</th>
+	    <th>Permutations</th>
+	    <th>Pages</th>
+	    <th>Action</th>
 	  </thead>
 	  <tbody>
-	    <tr py:for="perm in ps[1]">
-	      <td>${perm[0]}</td>
-	      <td>${perm[1]}</td>
+	    <tr py:for="set in permsets">
+	      <td>${set.name}</td>
+	      <py:with vars="count=len(set.items)">
+		<td><a href="${r.route_url('data.view', sid=set.survey_id, dsid=set.id)}">$count</a></td>
+	      </py:with>
+	      <td><py:for each="qs in set.qsheets">${qs.id} </py:for></td>
+	      <td>
+		<ul class="inline no-symbol no-margin">
+		  <li><a href="${r.route_url('data.view', sid=set.survey_id, dsid=set.id)}" class="button">View</a></li>
+		  <li><a href="${r.route_url('data.edit.permset', sid=set.survey_id, dsid=set.id)}" class="button">Edit</a></li>
+		  <li><a href="${r.route_url('data.delete', sid=set.survey_id, dsid=set.id)}" class="button">Delete</a></li>
+		</ul>
+	      </td>
 	    </tr>
 	  </tbody>
 	</table>
-      </py:for>
-    </div>
+      </div>
+    </py:if>
   </body>
 </html>

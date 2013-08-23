@@ -11,6 +11,7 @@ import json
 import random
 import hashlib
 import time
+import re
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         Table, DateTime, Boolean, func, and_)
@@ -23,6 +24,7 @@ from uuid import uuid1
 
 from pyquest.helpers import as_data_type
 from pyquest.util import convert_type
+from pyquest import taskperms
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
@@ -196,10 +198,11 @@ class Survey(Base):
                           backref='survey',
                           cascade='all, delete, delete-orphan')
     
-#    permutations = relationship('PermutationSet',
-#                                backref = 'survey',
-#                                cascade = 'all, delete, delete-orphan')
-    
+    data_sets = relationship('DataSet', 
+                             backref='survey',
+                             cascade='all, delete, delete-orphan')
+
+
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
         self.summary = summary
@@ -580,7 +583,6 @@ class DataSet(Base):
     items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
     qsheets = relationship('QSheet', backref='data_set')
     owner = relationship('User', backref='data_sets')
-    survey = relationship('Survey', backref='data_sets')
     attribute_keys = relationship('DataSetAttributeKey', 
                                   backref='dataset', order_by='DataSetAttributeKey.order',
                                   cascade='all, delete, delete-orphan')
@@ -594,6 +596,31 @@ class DataSet(Base):
             return self.owned_by == user.id
         else:
             return False
+
+    def copy_data(self, newds):
+        dbsession = DBSession()
+        new_keys_for_old = {}
+        for ak in self.attribute_keys:
+            new_ak = DataSetAttributeKey(key=ak.key, order=ak.order)
+            dbsession.add(new_ak)
+            newds.attribute_keys.append(new_ak)
+            dbsession.flush()
+            new_keys_for_old[ak.id] = new_ak.id
+        for item in self.items:
+            new_item = DataItem(order=item.order, control=item.control)
+            for attribute in item.attributes:
+                new_attribute = DataItemAttribute(value=attribute.value, key_id=new_keys_for_old[attribute.key_id])
+                new_item.attributes.append(new_attribute)
+            newds.items.append(new_item)
+
+    def duplicate(self):
+        """ Creates and returns a new DataSet which is a copy of this one. The owned_by and survey_id fields are
+        left unfilled.
+        """
+        dbsession = DBSession()
+        newds = DataSet(name=self.name, show_in_list=self.show_in_list)
+        self.copy_data(newds)
+        return newds
 
 class DataSetAttributeKey(Base):
 
@@ -638,7 +665,7 @@ class DataItemAttribute(Base):
     
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
-    value = Column(Unicode(255))
+    value = Column(UnicodeText)
     key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
 
 class DataItemCount(Base):
@@ -667,7 +694,8 @@ class Participant(Base):
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
     permutation_id = Column(Integer)
-    
+    permutation_qsheet_id = Column(Unicode(20))
+
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
@@ -732,32 +760,48 @@ class PermutationSet(DataSet):
     The DataItems in a PermutationSet are strings representing the individual permutations. A DataSet containing the parts
     of the actual permutation is created when a Participant actually starts the survey. 
     """
+    paramstring = Column(Unicode(255))
+    applies_to = Column(Unicode(255))
+    tasks = Column(Unicode(255))
+    interfaces = Column(Unicode(255))
+
     __mapper_args__ = {'polymorphic_identity' : 'permutationset' }
 
-    def __init__(self, owned_by=None, survey_id=None, permutations=None, qsheet=None):
-        self.name = 'permset'
+    def __init__(self, name=None, params=None, owned_by=None, survey_id=None, qsheet_id=None, tasks="", interfaces=""):
+        self.name = name
+        self.applies_to = str(qsheet_id)
+        self.tasks = ",".join(tasks)
+        self.interfaces = ",".join(interfaces)
         self.show_in_list = False
         self.owned_by = owned_by
         self.survey_id = survey_id
 
         self.attribute_keys.append(DataSetAttributeKey(key="permstring", order=1))
-        self.attribute_keys.append(DataSetAttributeKey(key="applies_to", order=2))
-        self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=3))
-        if permutations and qsheet:
-            self.add_permutations(permutations, qsheet)
+        self.attribute_keys.append(DataSetAttributeKey(key="assigned_to", order=2))
+        self.set_params(params)
 
-    def add_permutations(self, permutations, qsheet):
+    def duplicate(self):
+        dbsession = DBSession()
+        newds = PermutationSet(name=self.name, params=self.get_params(), tasks=self.tasks, interfaces=self.interfaces)
+        self.copy_data(newds)
+        newds.applies_to = self.applies_to
+        return newds
+
+    def set_permutations(self, permutations):
         dbsession = DBSession()
         dbsession.add(self)
+        for di in self.items:
+            dbsession.add(di)
+            dbsession.delete(di)
         dbsession.flush()
         order = 1
         for perm in permutations:
             di = DataItem(dataset_id=self.id, order=order)
             di.attributes.append(DataItemAttribute(key_id=self.attribute_keys[0].id, value=str(perm)))
-            di.attributes.append(DataItemAttribute(key_id=self.attribute_keys[1].id, value=qsheet.id))
-            di.attributes.append(DataItemAttribute(key_id=self.attribute_keys[2].id, value=''))
+            di.attributes.append(DataItemAttribute(key_id=self.attribute_keys[1].id, value=''))
             order = order + 1
             self.items.append(di)
+
 
     def perm_string_to_dataset(self, permstring):
         """ Creates a DataSet from the string representation of a permutation.
@@ -789,10 +833,11 @@ class PermutationSet(DataSet):
                 finished = True
             else:
                 li = t[2]
+        dbsession.flush()
         return ds
 
     def assign_next_permutation(self, participant):
-        """ Finds the next available permutation, assigns it to participant, creates a DataSet from it and attaches the DataSet to the relevant QSheet.
+        """ Finds the next available permutation, assigns it to participant and creates a DataSet from it.
         The value of an 'assigned_to' DataItemAttribute is a string. This starts out as '' and each time a participant is assigned to the corresponding
         permutation 'participant_id,' is added to the string. So In order to find the next permutation to assign we can go through all the assigned_to 
         values looking for the first one with no assignees, then if that fails the first one that has only one assignee and so on. 
@@ -806,41 +851,64 @@ class PermutationSet(DataSet):
         ds = None
         values = dbsession.query(DataItemAttribute, DataItem).filter(and_(DataItemAttribute.data_item_id==DataItem.id, 
                                                                        DataItem.dataset_id==self.id,
-                                                                       DataItemAttribute.key_id==self.attribute_keys[2].id)).all()
+                                                                       DataItemAttribute.key_id==self.attribute_keys[1].id)).all()
         so_far = 0
         while permstring == '':
             for attribute, item in values:
                 if len(attribute.value) == so_far:
                     dbsession.add(attribute)
                     attribute.value = attribute.value + str(participant_id) + ','
-                    applies_to = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==item.id, DataItemAttribute.key_id==self.attribute_keys[1].id)).first().value
                     permstring = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==item.id, DataItemAttribute.key_id==self.attribute_keys[0].id)).first().value
                     break
             so_far = so_far + 2
 
         ds = self.perm_string_to_dataset(permstring)
-        qs = dbsession.query(QSheet).filter(QSheet.id==applies_to).first()
-        dbsession.add(qs)
-        qs.dataset_id = ds.id
-        dbsession.add(ds)
-        dbsession.flush()
         participant.permutation_id = ds.id
+        participant.permutation_qsheet_id = self.applies_to
 
         return ds
 
-    def display(self):
-        """ Produces a list suitable for presentation.
-        :return a list with two items, item[0] is some information about the PermutationSet, item[1] is a list of the permutations as strings
-        """
-        dbsession = DBSession()
-        perms = []
-        values = dbsession.query(DataItemAttribute, DataItem).filter(and_(DataItemAttribute.data_item_id==DataItem.id, 
-                                                                       DataItem.dataset_id==self.id,
-                                                                       DataItemAttribute.key_id==self.attribute_keys[0].id)).all()
+    def get_params(self):
+        """ Transforms the paramstring field into a dictionary of values. The paramaters are stored in this way because they are properties 
+        of the PermutationSet. 
         
-        applies_to = dbsession.query(DataItemAttribute).filter(and_(DataItemAttribute.data_item_id==values[0][1].id, DataItemAttribute.key_id==self.attribute_keys[1].id)).first().value
+        :return a Python dict containing all the parameters
+        """
+        params = {}
+        bits = self.paramstring.split(',')
+        params['task_worb'] = bits[0]
+        params['interface_worb'] = bits[1]
+        params['tasks_dataset'] = bits[2]
+        params['interfaces_dataset'] = bits[3]
+        params['task_disallow'] = bits[4]
+        params['interface_disallow'] = bits[5]
+        params['task_order'] = bits[6]
+        params['interface_order'] = bits[7]
+        params['tasks'] = self.tasks
+        params['interfaces'] = self.interfaces
+        
+        return params
 
-        header = "Set of %d permutations applying to page %s" % (len(values), applies_to)
-        for i, value in enumerate(values):
-            perms.append((i+1, value[0].value))
-        return [header, perms]
+    def set_params(self, params):
+        dbsession = DBSession()
+        taskitems = dbsession.query(DataItem).filter(DataItem.dataset_id==params['tasks_dataset']).all()
+        tasks = ''
+        for ti in taskitems:
+            tasks = tasks + ti.attributes[0].value + ','
+        tasks = re.sub(',$', '', tasks)
+        interfaceitems = dbsession.query(DataItem).filter(DataItem.dataset_id==params['interfaces_dataset']).all()
+        interfaces = ''
+        for ii in interfaceitems:
+            interfaces = interfaces + ii.attributes[0].value + ','
+        interfaces = re.sub(',$', '', interfaces)
+        self.tasks = str(tasks)
+        self.interfaces = str(interfaces)
+        paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], params['tasks_dataset'], params['interfaces_dataset'], ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
+
+        permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], 
+                                                 self.tasks, self.interfaces, 
+                                                 params['task_disallow'], params['interface_disallow'], 
+                                                 params['task_order'], params['interface_order'], True)
+        self.set_permutations(permutations)
+        self.paramstring = paramstring
+

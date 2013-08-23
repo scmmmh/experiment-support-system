@@ -13,7 +13,7 @@ from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.helpers.results import fix_na
-from pyquest.models import (DBSession, Survey, Answer, AnswerValue, Question)
+from pyquest.models import (DBSession, Survey, Answer, AnswerValue)
 from pyquest.util import load_question_schema_params
 import re
 
@@ -21,6 +21,7 @@ import re
 class DataIdentifierSchema(Schema):
     qsheet = validators.UnicodeString(not_empty=True)
     column = validators.UnicodeString(not_empty=True)
+    
 class ByParticipantSchema(Schema):
     columns = foreach.ForEach(validators.UnicodeString(not_empty=True))
     data_identifier = foreach.ForEach(DataIdentifierSchema(), if_empty=[])
@@ -71,8 +72,8 @@ def by_question(request):
             except api.Invalid as e:
                 e.params = request.POST
                 return {'e' : e,
-                        'columns': columns,
-                        'rows': rows,
+                        'columns': [],
+                        'rows': [],
                         'na_value': na_value,
                         'spss_safe': spss_safe,
                         'survey': survey}
@@ -112,7 +113,7 @@ def by_question(request):
                                 if answer.data_item_id:
                                     row['data_id_'] = answer.data_item_id
                                     for attr in answer.data_item.attributes:
-                                        row['%s.%s' % (qsheet.name, attr.key)] = attr.value
+                                        row['%s.%s' % (qsheet.name, attr.key)] = attr.value.encode('utf-8')
                                 rows.append(row)
             if spss_safe:
                 columns, rows = make_spss_safe(columns, rows)
@@ -308,6 +309,8 @@ def participant(request):
                                     value = 1
                             if answer_value.answer.data_item:
                                 key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
+                            if isinstance(value, unicode):
+                                value = value.encode('utf-8')
                             row[key] = value
                 if 'completed_' in columns:
                     row['completed_'] = completed

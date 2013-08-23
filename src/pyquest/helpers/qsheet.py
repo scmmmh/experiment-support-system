@@ -225,6 +225,14 @@ def transition_destinations(qsheet):
     """
     return [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in qsheet.survey.qsheets if qs.id != qsheet.id]
 
+def qsheet_list(survey):
+    """ Returns a list of (id, title) tuples for all qsheets in the given survey. The list is in the form used by PyWebtools select items.
+
+    :param survey: the survey
+    :return a list of tuples
+    """
+    return [(str(qs.id), qs.title) for qs in survey.qsheets]
+
 def question_list(qsheet):
     """ Returns a list of (id, name) tuples for the questions available on the given sheet. The list is in the form
     used by PyWebtools select items. The actual items are specific to their use in the transitions section of qsheet
@@ -284,6 +292,7 @@ def generate_pairs(factors):
     :param factors: a list of the factors
     :return a list of strings representing the possible pairs
     """
+    factors = factors.split(',')
     combinations = itertools.combinations(factors, 2)
     pairs = [(' ', 'None')]
     for comb in combinations:
@@ -291,19 +300,19 @@ def generate_pairs(factors):
     return pairs
 
     
-def generate_task_pairs(count):
+def generate_task_pairs(tasks):
     """ Generates a list of tuples of task pair values and names for use in the exclusion and ordering menus. 
 
     :param count: the number of tasks
     :return a list of strings representing the possible pairs
     """
-    return generate_pairs(generate_task_list(count))
+    return generate_pairs(tasks)
 
-def generate_interface_pairs(count):
+def generate_interface_pairs(interfaces):
     """ Generates a list of tuples of interface pair values and names for use in the exclusion and ordering menus. 
 
     :param count: the number of interfaces
     :return a list of strings representing the possible pairs
     """
-    return generate_pairs(generate_interface_list(count))
+    return generate_pairs(interfaces)
 

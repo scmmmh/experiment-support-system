@@ -20,7 +20,7 @@ from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
                             Participant, QSheetAttribute, Question,
     QuestionAttributeGroup, QuestionAttribute, DataItem, DataItemAttribute,
-    DataItemControlAnswer, Notification)
+    DataItemControlAnswer, Notification, PermutationSet)
 from pyquest.validation import XmlValidator
 
 class NewSurveySchema(Schema):
@@ -240,7 +240,7 @@ def duplicate(request):
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.delete-all")', {'user': user, 'survey': survey}):
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 try:
                     check_csrf_token(request, request.POST)
@@ -254,7 +254,15 @@ def duplicate(request):
                                              scripts=survey.scripts)
                         dbsession.add(dupl_survey)
                         dupl_survey.owner = user
+                        new_dataset_id_for_old = {}
+                        for dataset in survey.data_sets:
+                            newds = dataset.duplicate()
+                            dbsession.flush()
+                            new_dataset_id_for_old[dataset.id] = newds.id
+                            user.data_sets.append(newds)
+                            dupl_survey.data_sets.append(newds)
                         qsheets = {}
+                        new_qsheet_id_for_old = {}
                         for qsheet in survey.qsheets:
                             dupl_qsheet = QSheet(name=qsheet.name,
                                                  title=qsheet.title,
@@ -283,23 +291,12 @@ def duplicate(request):
                                                           label=attr.label,
                                                           value=attr.value,
                                                           order=attr.order)
-                            if qsheet.data_set:
-                                for data_item in qsheet.data_set.items:
-                                    dupl_data_item = DataItem(qsheet=dupl_qsheet,
-                                                              order=data_item.order,
-                                                              control=data_item.control)
-                                    for attr in data_item.attributes:
-                                        DataItemAttribute(data_item=dupl_data_item,
-                                                          order=attr.order,
-                                                          key=attr.key,
-                                                          value=attr.value)
-                                    for control_answer in data_item.control_answers:
-                                        if control_answer.question and control_answer.question.name in questions:
-                                            DataItemControlAnswer(data_item=dupl_data_item,
-                                                                  question=questions[control_answer.question.name],
-                                                                  answer=control_answer.answer)
+                            if qsheet.dataset_id:
+                                dupl_qsheet.dataset_id = new_dataset_id_for_old[qsheet.dataset_id]
                             qsheets[dupl_qsheet.name] = dupl_qsheet
                             dupl_survey.qsheets.append(dupl_qsheet)
+                            dbsession.flush()
+                            new_qsheet_id_for_old[qsheet.id] = dupl_qsheet.id
                         for qsheet in survey.qsheets:
                             if qsheet.next and qsheet.next[0] and qsheet.next[0].target:
                                 if qsheet.name in qsheets and qsheet.next[0].target.name in qsheets:
@@ -307,6 +304,17 @@ def duplicate(request):
                                                                    target=qsheets[qsheet.next[0].target.name]))
                         if survey.start and survey.start.name in qsheets:
                             dupl_survey.start = qsheets[survey.start.name]
+                        for dataset in dupl_survey.data_sets:
+                            if isinstance(dataset, PermutationSet):
+                                params = dataset.get_params()
+                                params['tasks_dataset'] = new_dataset_id_for_old[int(params['tasks_dataset'])]
+                                params['interfaces_dataset'] = new_dataset_id_for_old[int(params['interfaces_dataset'])]
+                                dataset.set_params(params)
+                                old_ids = dataset.applies_to.split(',')
+                                new_ids = ''
+                                for old_id in old_ids:
+                                    new_ids = new_ids + str(new_qsheet_id_for_old[int(old_id)])
+                                dataset.applies_to = new_ids
                         dbsession.flush()
                         survey_id = dupl_survey.id
                     request.session.flash('Survey duplicated', 'info')

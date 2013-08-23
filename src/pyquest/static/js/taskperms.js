@@ -1,20 +1,34 @@
 function fix_multiple_selects()
 {
-    var bits = $('#task-disallow-repeater').text().split(',');
+    var text = $('#task-disallow-repeater').text();
+    var bits = text.replace(/[\[\]]/g, '').split(',')
     for (var i = 0; i < bits.length; i++)
-	$('[name="task_disallow"] option').filter(function() { return $(this).text() == bits[i];}).prop('selected', true);
-
+    {
+	$('[name="task_disallow"] option').filter(function() { 
+	    var rtrn = $(this).val() == bits[i];
+	    return rtrn;}).prop('selected', true);
+    }
     bits = $('#task-order-repeater').text().split(',');
     for (var i = 0; i < bits.length; i++)
-	$('[name="task_order"] option').filter(function() { return $(this).text() == bits[i];}).prop('selected', true);
-
+    {
+	$('[name="task_order"] option').filter(function() { return $(this).val() == bits[i];}).prop('selected', true);
+    }
     bits = $('#interface-disallow-repeater').text().split(',');
     for (var i = 0; i < bits.length; i++)
-	$('[name="interface_disallow"] option').filter(function() { return $(this).text() == bits[i];}).prop('selected', true);
-
+    {
+	$('[name="interface_disallow"] option').filter(function() { return $(this).val() == bits[i];}).prop('selected', true);
+    }
     bits = $('#interface-order-repeater').text().split(',');
     for (var i = 0; i < bits.length; i++)
-	$('[name="interface_order"] option').filter(function() { return $(this).text() == bits[i];}).prop('selected', true);
+    {
+	$('[name="interface_order"] option').filter(function() { return $(this).val() == bits[i];}).prop('selected', true);
+    }
+
+    bits = $('#applies-to-repeater').text().split(',');
+    for (var i = 0; i < bits.length; i++)
+    {
+	$('[name="qsheet"] option').filter(function() { return $(this).val() == bits[i];}).prop('selected', true);
+    }
 }
 
 function set_restriction_appearances()
@@ -40,39 +54,21 @@ function set_restriction_appearances()
 function display_participant_count(url)
 {
     var worb = $('[name="task_worb"]').val() + $('[name="interface_worb"]').val();
-    var tcount = parseInt($('[name="task_count"]').val());
-    var icount = parseInt($('[name="interface_count"]').val());
-    var tcon = ' '
-    var icon = ' '
-    var tord = ' '
-    var iord = ' '
-    var val = $('[name="task_disallow"]').val();
-    if (val)
-    {
-	tcon = val.join(',');
-    }
-    val = $('[name="interface_disallow"]').val();
-    if (val)
-    {
-	icon = val.join(',');
-    }
-    val = $('[name="task_order"]').val();
-    if (val)
-    {
-	tord = val.join(',');
-    }
-    val = $('[name="interface_order"]').val();
-    if (val)
-    {
-	iord = val.join(',');
-    }
+    var tasks = $('[name="tasks"]').val();
+    var tasks_dataset = $('[name="tasks_dataset"]').val();
+    var interfaces = $('[name="interfaces"]').val();
+    var interfaces_dataset = $('[name="interfaces_dataset"]').val();
+    var tcon = $('[name="task_disallow"]').val().join(','); 
+    var icon = $('[name="interface_disallow"]').val().join(',');
+    var tord = $('[name="task_order"]').val().join(',');
+    var iord = $('[name="interface_order"]').val().join(',');
     
 //    $.ajax('${r.route_url("survey.qsheet.pcount", sid=survey.id, qsid=qsheet.id)}', 
     $.ajax(url, 
 	   {
-	       data: {"worb" : worb, "tcount" : tcount, "icount": icount, "tcon":tcon, "icon":icon, "tord":tord, "iord":iord},
+	       data: {"worb" : worb, "tasks" : tasks, "tasks_dataset": tasks_dataset, "interfaces": interfaces, "interfaces_dataset": interfaces_dataset, "tcon":tcon, "icon":icon, "tord":tord, "iord":iord},
 	       success: function(response) {
-                   $('dd.task-spec').html(response);
+                   $('span.task-spec').html(response);
 		   set_task_buttons(url);
 		   set_restriction_appearances();
 		   fix_multiple_selects();
@@ -94,5 +90,5 @@ function task_init(url)
     set_task_buttons(url);
     set_restriction_appearances();
     fix_multiple_selects();
-    display_participant_count(url);
+//    display_participant_count(url);
 }

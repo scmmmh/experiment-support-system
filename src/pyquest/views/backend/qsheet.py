@@ -66,14 +66,6 @@ class QSheetVisualSchema(Schema):
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
     transitions = foreach.ForEach(TransitionSchema())
-    task_count = validators.Int(if_missing=0, if_empty=0)
-    interface_count = validators.Int(if_missing=0, if_empty=0)
-    task_worb = validators.UnicodeString()
-    interface_worb = validators.UnicodeString()
-    task_disallow = foreach.ForEach(validators.UnicodeString())
-    interface_disallow = foreach.ForEach(validators.UnicodeString())
-    task_order = foreach.ForEach(validators.UnicodeString())
-    interface_order = foreach.ForEach(validators.UnicodeString())
 
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -331,13 +323,6 @@ def preview(request):
     else:
         raise HTTPNotFound()
 
-def process_multiple_select_value(value):
-    new_value = ''
-    for element in value:
-        new_value = new_value + element + ','
-    new_value = re.sub(',$', '', new_value)
-
-    return new_value
 
 @view_config(route_name='survey.qsheet.edit')
 @render({'text/html': 'backend/qsheet/edit.html',
@@ -371,28 +356,6 @@ def edit(request):
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
-                        qsheet.set_attr_value('task-count', params['task_count'])
-                        qsheet.set_attr_value('interface-count', params['interface_count'])
-                        qsheet.set_attr_value('task-worb', params['task_worb'])
-                        qsheet.set_attr_value('interface-worb', params['interface_worb'])
-                        tdis = process_multiple_select_value(params['task_disallow'])
-                        qsheet.set_attr_value('task-disallow', tdis)
-                        idis = process_multiple_select_value(params['interface_disallow'])
-                        qsheet.set_attr_value('interface-disallow', idis)
-                        tord = process_multiple_select_value(params['task_order'])
-                        qsheet.set_attr_value('task-order', tord)
-                        iord = process_multiple_select_value(params['interface_order'])
-                        qsheet.set_attr_value('interface-order', iord)
-                        dbsession.add(survey)
-                        dbsession.add(user)
-                        for ds in survey.data_sets:
-                            if ds.type == 'permutationset':
-                                dbsession.delete(ds)
-                        
-                        permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], params['task_count'], params['interface_count'], tdis, idis, tord, iord, True)
-                        np = PermutationSet(owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet=qsheet)
-                        survey.data_sets.append(np)
-                        user.data_sets.append(np)
                             
                         for transition in qsheet.next:
                             t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
@@ -539,26 +502,6 @@ def edit_add_question(request):
                 return {'question': question,
                         'idx': 0}
 
-@view_config(route_name='survey.qsheet.pcount')
-@render({'text/html': 'backend/qsheet/taskperms.html'})
-def calculate_pcount(request):
-    dbsession = DBSession()
-    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                 QSheet.survey_id==request.matchdict['sid'])).first()
-
-    pcount = taskperms.getPermutations(request.params['worb'], request.params['tcount'], request.params['icount'], request.params['tcon'], request.params['icon'], request.params['tord'], request.params['iord'], False)
-    qsheet.set_attr_value('task-count', request.params['tcount'])
-    qsheet.set_attr_value('interface-count', request.params['icount'])
-    qsheet.set_attr_value('task-worb', request.params['worb'][0])
-    qsheet.set_attr_value('interface-worb', request.params['worb'][1])
-    qsheet.set_attr_value('task-disallow', request.params['tcon'])
-    qsheet.set_attr_value('interface-disallow', request.params['icon'])
-    qsheet.set_attr_value('task-order', request.params['tord'])
-    qsheet.set_attr_value('interface-order', request.params['iord'])
-    return {'h' : helpers,
-            'qsheet' : qsheet,
-            'pcount': str(pcount)}
-
 @view_config(route_name='survey.qsheet.edit.delete_question')
 @render({'application/json': ''})
 # TODO: CSRF Protection
@@ -609,14 +552,6 @@ def edit_source(request):
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
-                        qsheet.set_attr_value('task-count', params['task_count'])
-                        qsheet.set_attr_value('interface-count', params['interface_count'])
-                        qsheet.set_attr_value('task-worb', params['task_worb'])
-                        qsheet.set_attr_value('interface-worb', params['interface_worb'])
-                        qsheet.set_attr_value('task-disallow', params['task_disallow'])
-                        qsheet.set_attr_value('interface-disallow', params['interface_disallow'])
-                        qsheet.set_attr_value('task-order', params['task_order'])
-                        qsheet.set_attr_value('interface-order', params['interface_order'])
                         next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
                                                                           QSheet.survey_id==request.matchdict['sid'])).first()
 

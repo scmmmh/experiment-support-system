@@ -113,7 +113,7 @@ def generate_bb(tasks, interfaces, tDisallow, iDisallow):
     return combinations
 
 
-def generate_combinations(worb, task_count, interface_count, task_disallow, interface_disallow):
+def generate_combinations(worb, tasks, interfaces, task_disallow, interface_disallow):
     """ Generates the allowed combinations of task and interface. This function only prepares the
     task and interface lists and the combinations to be disallowed. The actual procedure differs
     according to the within-between values and so there is a separate function for each of the
@@ -126,23 +126,22 @@ def generate_combinations(worb, task_count, interface_count, task_disallow, inte
     :param interface_disallow: interface combinations to exclude
     :return a list of lists of the combinations which must be permuted
     """
-    tasks = [chr(i+65) for i in range(int(task_count))] 
-    interfaces = [chr(i+49) for i in range(int(interface_count))] 
+#    tasks = [chr(i+65) for i in range(int(task_count))] 
+#    interfaces = [chr(i+49) for i in range(int(interface_count))] 
 
-    tDisallow = [' ']
-    if worb[0] == 'w' and task_disallow:
-        tDisallow = [bit for bit in task_disallow.split(',')]
+#    tDisallow = [' ']
+#    if worb[0] == 'w' and task_disallow:
+#        tDisallow = [bit for bit in task_disallow.split(',')]
 
-    iDisallow = [' ']
-    if worb[1] == 'w' and interface_disallow:
-        iDisallow = [bit for bit in interface_disallow.split(',')]
+    # iDisallow = [' ']
+    # if worb[1] == 'w' and interface_disallow:
+    #     iDisallow = [bit for bit in interface_disallow.split(',')]
 
-
-    combinations = globals()['generate_' + worb](tasks, interfaces, tDisallow, iDisallow)
+    combinations = globals()['generate_' + worb](tasks, interfaces, task_disallow, interface_disallow)
 
     return combinations
 
-def generate_permutations(worb, task_order, interface_order, combinations):
+def generate_permutations(worb, tOrder, iOrder, combinations):
     """Generates the permutations for the given combinations. This is done by using itertools to generate the permutations
     for each subcombination and filtering through a function which determines whether the required ordering is maintained.
 
@@ -152,13 +151,14 @@ def generate_permutations(worb, task_order, interface_order, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    tOrder = [' ']
-    if worb[0] == 'w' and task_order:
-        tOrder = [bit for bit in task_order.split(',')]
+    
+    # tOrder = [' ']
+    # if worb[0] == 'w' and task_order:
+    #     tOrder = [bit for bit in task_order.split(',')]
 
-    iOrder = [' ']
-    if worb[1] == 'w' and interface_order:
-        iOrder = [bit for bit in interface_order.split(',')]
+    # iOrder = [' ']
+    # if worb[1] == 'w' and interface_order:
+    #     iOrder = [bit for bit in interface_order.split(',')]
 
 
     def orderFactors(factor, order):
@@ -198,7 +198,7 @@ def generate_permutations(worb, task_order, interface_order, combinations):
 
     return permutations
 
-def getPermutations(worb, task_count, interface_count, task_disallow, interface_disallow, task_order, interface_order, generate):
+def getPermutations(worb, tasks, interfaces, tExclude, iExclude, tOrder, iOrder, generate):
     """ Gets the actual permutations or counts how many permutations there will be for the given configuration. There are two
     stages. The first stage is to generate the allowed combinations of tasks and interfaces. The second stage is either to generate
     the actual permutations or to count how many there will be. 
@@ -213,13 +213,17 @@ def getPermutations(worb, task_count, interface_count, task_disallow, interface_
     :param generate: if True return permutations, else return number of permutation
     :return either a list of permutations or a count of how many permutations there will be
     """
-    
-    combinations = generate_combinations(worb, task_count, interface_count, task_disallow, interface_disallow)
+    combinations = []
+
+    if len(tasks) > 0 and len(interfaces) > 0:
+        tasks = tasks.split(',')
+        interfaces = interfaces.split(',')
+        combinations = generate_combinations(worb, tasks, interfaces, tExclude, iExclude)
 
     if generate:
-        permutations = generate_permutations(worb, task_order, interface_order, combinations)
+        permutations = generate_permutations(worb, tOrder, iOrder, combinations)
     else:
-        permutations = count_permutations(worb, task_order, interface_order, combinations)
+        permutations = count_permutations(worb, tOrder, iOrder, combinations)
 
     return permutations
 
@@ -273,7 +277,7 @@ def count_subcombination(combination, order):
         count = math.factorial(len(combination))
     return count
 
-def count_permutations(worb, task_order, interface_order, combinations):
+def count_permutations(worb, tOrder, iOrder, combinations):
     """ Counts how many permutations will be produced by the given combinations. This is actually more difficult than generating the 
     permutations but it takes much less time for large (> 3) values of task_count or interface_count. If there are no order constraints
     then the number of permutations is generated here as the total of the factorials of the lengths of all the subcombinations in 
@@ -286,13 +290,13 @@ def count_permutations(worb, task_order, interface_order, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    tOrder = [' ']
-    if worb[0] == 'w' and task_order:
-        tOrder = [bit for bit in task_order.split(',')]
+    # tOrder = [' ']
+    # if worb[0] == 'w' and task_order:
+    #     tOrder = [bit for bit in task_order.split(',')]
 
-    iOrder = [' ']
-    if worb[1] == 'w' and interface_order:
-        iOrder = [bit for bit in interface_order.split(',')]
+    # iOrder = [' ']
+    # if worb[1] == 'w' and interface_order:
+    #     iOrder = [bit for bit in interface_order.split(',')]
 
     permcount = 0
 
@@ -315,7 +319,7 @@ def count_permutations(worb, task_order, interface_order, combinations):
             # Halving for each two element ordering constraint is true for non-overlapping constraints. Overlapping
             # constraints will produce fewer permutations so this is an upper bound.
             rf = 1
-            for order in tOrder:
+            for order in orders:
                 if order != ' ' and (str(subc).find(order[0]) != -1) and (str(subc).find(order[1]) != -1):
                     rf = rf * 2
             permcount = permcount + math.factorial(len(subc)) / rf

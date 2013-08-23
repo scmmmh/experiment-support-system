@@ -95,7 +95,7 @@ class ParticipantManager(object):
         qsheet = self.current_qsheet()
         self.data_set_in_use = None
         pds = None
-        if self._participant.permutation_id and qsheet.dataset_id == self._participant.permutation_id:
+        if self._participant.permutation_id and str(qsheet.id) in self._participant.permutation_qsheet_id.split(','):
             pds = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation_id).first()
         if pds:
             self.data_set_in_use = pds

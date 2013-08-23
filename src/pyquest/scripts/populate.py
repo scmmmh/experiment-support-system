@@ -179,12 +179,68 @@ def load_test_data(args):
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
-        permutations = taskperms.getPermutations('ww', 2, 2, None, None, None, None, True)
-        np = PermutationSet(owned_by=user.id, survey_id=survey.id, permutations=permutations, qsheet=qsheet2)
+        tasksds = DataSet(name="test_tasks", owned_by=user.id, survey_id=survey.id)
+        tasksds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
+        survey.data_sets.append(tasksds)
+        dbsession.flush()
+        taskitem = DataItem(order=0)
+        ak = tasksds.attribute_keys[0]
+        taskitem.attributes.append(DataItemAttribute(value="task_A", key_id=ak.id))
+        tasksds.items.append(taskitem)
+        taskitem = DataItem(order=1)
+        ak = tasksds.attribute_keys[0]
+        taskitem.attributes.append(DataItemAttribute(value="task_B", key_id=ak.id))
+        tasksds.items.append(taskitem)
+
+        interfacesds = DataSet(name="test_interfaces", owned_by=user.id, survey_id=survey.id)
+        interfacesds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
+        survey.data_sets.append(interfacesds)
+        dbsession.flush()
+        interfaceitem = DataItem(order=0)
+        ak = interfacesds.attribute_keys[0]
+        interfaceitem.attributes.append(DataItemAttribute(value="interface_1", key_id=ak.id))
+        interfacesds.items.append(interfaceitem)
+        interfaceitem = DataItem(order=1)
+        ak = interfacesds.attribute_keys[0]
+        interfaceitem.attributes.append(DataItemAttribute(value="interface_2", key_id=ak.id))
+        interfacesds.items.append(interfaceitem)
+
+        params = {'task_worb':'w', 'interface_worb':'w', 'task_disallow':' ', 'interface_disallow':' ', 'task_order':' ', 'interface_order':' ', 'tasks_dataset': tasksds.id, 'interfaces_dataset': interfacesds.id}
+        np = PermutationSet(name="test permset", params=params, owned_by=user.id, survey_id=survey.id, qsheet_id=qsheet2.id)
         survey.data_sets.append(np)
         user.data_sets.append(np)
+        np.qsheets.append(qsheet2)
         survey.start = qsheet1
         QSheetTransition(source=qsheet1, target=qsheet2)
+        # PAGE 3
+        source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
+  <pq:styles></pq:styles>
+  <pq:scripts></pq:scripts>
+  <pq:questions>
+     <pq:question>
+     <pq:type>confirm</pq:type>
+     <pq:name>PermDone</pq:name>
+     <pq:title>Participant ${pid_} imagine that iframe with ${perm} again then tick the box</pq:title>
+     <pq:help></pq:help>
+     <pq:required>true</pq:required>
+     <pq:attribute name="further.value">done</pq:attribute>
+     <pq:attribute name="further.label">Re-imagined</pq:attribute>
+     </pq:question>
+  </pq:questions>
+</pq:qsheet>"""
+        qsheet3 = QSheet(name='another_task_interface_page', title='Some more tasks...', styles='', scripts='')
+        qsheet3.attributes.append(QSheetAttribute(key='repeat', value='repeat'))
+        qsheet3.attributes.append(QSheetAttribute(key='data-items', value='1'))
+        qsheet3.attributes.append(QSheetAttribute(key='control-items', value='0'))
+        qsheet3.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
+        qsheet3.attributes.append(QSheetAttribute(key='task-count', value='2'))
+        qsheet3.attributes.append(QSheetAttribute(key='interface-count', value='2'))
+        load_questions(qsheet3, etree.fromstring(source), DBSession)
+        survey.qsheets.append(qsheet3)
+        dbsession.flush()
+        survey.start = qsheet1
+        QSheetTransition(source=qsheet1, target=qsheet2)
+        QSheetTransition(source=qsheet2, target=qsheet3)
         notification = Notification(ntype='interval', value=60, recipient='paul@paulserver.paulsnetwork')
         survey.notifications.append(notification)
         notification = Notification(ntype='pcount', value=1, recipient='paul@paulserver.paulsnetwork')

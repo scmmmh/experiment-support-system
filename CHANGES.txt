@@ -10,6 +10,7 @@ DEV
 - UPDATE: Improved the frontend error messages
 - UPDATE: QSheet and Question names are now restricted to alpha-numeric and _
 - UPDATE: New PyQuestionnaire script for all console-based admin actions
+- UPDATE: Data item values can now be of arbitrary length
 
 0.9.1
 -----
