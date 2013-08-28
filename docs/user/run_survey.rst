@@ -2,9 +2,9 @@
 	
    The following chapter assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within PyQuestionnaire*, located at the bottom-half of the part :doc:`Access PyQuestionnaire<access_Questionnaire>`.
    
-.. _topSection:
+.. _runSurveySection:
 
-Running a survey
+Running a survey 
 ================
 
 .. manipulation buttons/navigation tabs
@@ -21,6 +21,7 @@ Running a survey
 .. |pause| image:: ../_static/user/pauseButton.png
 .. |finish| image:: ../_static/user/finishButton.png
 .. |restart| image:: ../_static/user/restartButton.png
+.. |nextPage| image:: ../_static/user/nextPageButton.png
 
 
 This chapter explains the following:
@@ -37,7 +38,7 @@ This chapter explains the following:
 
 Testing a survey
 ----------------
-Before you go live with your survey, it is a good idea to test it. The test run will allow answers to be validated and recorded as if the survey was live, but will be wiped automatically at the end of the test. You will also be able to complete the survey multiple times. 
+Before you go live with your survey, it is a good idea to test it. The test run will allow answers to be validated and recorded as if the survey was live, but will be wiped automatically at the end of the test. You will also be able to complete the survey multiple times.
 
 - Navigate to the **home page** (:doc:`ref<conceptsAndTerms>`) of the survey you want to test (see **Note** at the top of this section).
 
@@ -48,7 +49,7 @@ Before you go live with your survey, it is a good idea to test it. The test run 
 .. image:: ../_static/user/testSurvey.png
    :align: center
 
-- You will then be allowed to complete the survey, as if it was live. This will help you identify errors such as the survey allowing you to move to the next page although you have not answered a required question in a previous page, or typing information in a field that does not follow the proper syntax specified for that field.
+- You will then be allowed to complete the survey, as if it was live. The button |nextPage| will appear at the end of every page of the survey you are testing, allowing you to move to the next page, as if in the live survey. This functionality will help you identify whether a survey page is working as is supposed to.
 
 - Following completion of all the questions in the survey, you will be directed to the **Thank you** screen, advising you that the survey is now complete. Click on the |finishSurvey| button to end the survey.
 
@@ -57,28 +58,29 @@ Before you go live with your survey, it is a good idea to test it. The test run 
 .. image:: ../_static/user/testCompleteScreen.png
    :align: center
 	
-- This screen allows you to test the survey again by entering more data. Do this by clicking on the link |testAgain|.
+- This screen allows you to test the survey again by entering more data. Do this by clicking on the link |testAgain| and repeat testing for as many times as you deem appropriate.
 
-- Repeat for as many times as you deem appropriate.
+- When you are done testing your survey, hover over the red bug on the left top corner of your screen. This will make the following message appear next to the title of the survey page:
 
-- When you are done entering data in your survey, to navigate to its **home page** (:doc:`ref<conceptsAndTerms>`), click on its title. This is part of the **Breadcrumbs** located above the red-coloured box advising you that *"The survey is currently being tested..."*. 
+.. image:: ../_static/user/bugScreen.png
+   :align: center
 
-- By doing so, you will be led back to the survey's **home page** (:doc:`ref<conceptsAndTerms>`). 
+- Then click on the underlined survey title, next to the bug, and you will led back to the survey's **home page** (:doc:`ref<conceptsAndTerms>`). 
 
-- If you have decided that you want to add more data in the survey, at a later stage, click on the |testSurvButton| button, above the *Manipulation buttons* (:doc:`ref<survey_home_page_elements>`) of the **home page** screen (:doc:`ref<conceptsAndTerms>`). These buttons are located on the top half of the **home page** screen (:doc:`ref<conceptsAndTerms>`).
+- If you decided that you want to add more data in the survey by testing it again, at a later stage, click on the |testSurvButton| tab, above the *Manipulation buttons* (:doc:`ref<survey_home_page_elements>`).
 
 - This will direct you to the first page of the survey, where you can enter more data as described above.
 
-- Should you wish to have a look at how the results of the survey are recorded, click on the |results| button, included in the *Navigation tabs* (:doc:`ref<survey_home_page_elements>`) of the **home page** screen (:doc:`ref<conceptsAndTerms>`). These tabs are located on the top half of the **home page** screen (:doc:`ref<conceptsAndTerms>`).
+update(28th August) stopped here- Should you wish to have a look at how the results of the survey are recorded, click on the |results| tab, next to the the |testSurvButton| tab mentioned above.
 
-- You should have been directed to the screen demonstrated below. An explanation of the *Results* screen will be given in the *Downloading, uploading and clearing data* section of this manual (:doc:`ref<get_data>`):
-
+- By clicking on that tab, you should have been directed to the **Results** screen. An explanation of the *Results* screen will be given in :ref:`Downloading, creating, uploading and clearing data and datasets<get_data>`: 
+ 
 .. image:: ../_static/user/resultsScreen.png
    :align: center
 
 - To navigate back to the **home page** (:doc:`ref<conceptsAndTerms>`) of your survey, click on the |surveyButton| button, located next to the |results| button mentioned above. Otherwise, if you want to navigate your list of surveys, click on the link |allSurveys|, next to the |surveyButton| button. 
 
-:ref:`back to the top <topSection>`
+:ref:`back to the top <runSurvey>`
 
 .. _stopingTest:
 
@@ -92,7 +94,7 @@ There are two ways to stop a survey depending on where in the system you are.
  
 In any case, by clicking on the above mentioned button, you will be directed to the survey's **home page** (:doc:`ref<conceptsAndTerms>`), where you can carry on editing the survey or starting the survey as shown below.
 
-:ref:`back to the top <topSection>`
+:ref:`back to the top <runSurvey>`
 
 .. _startingSurvey: 
 
@@ -113,7 +115,7 @@ As with the previous section, there are two ways to start a survey depending on 
 
 - Distribute the live link to the experiment participants. Note that as more participants complete your survey, the **Participant** data in the *Stats* table on the right of the survey's **home page** (:doc:`ref<conceptsAndTerms>`) will change. The *Stats* table is indicated in the image above by a rectangular with dotted borders.
 
-:ref:`back to the top <topSection>`
+:ref:`back to the top <runSurvey>`
 
 .. _pausingSurvey: 
 
@@ -129,4 +131,4 @@ Note that the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) o
 
 - You can also pause or stop your survey from running, from the **main profile screen** (:doc:`ref<conceptsAndTerms>`), by finding the survey in the list provided and clicking the |pause| and the |finish| buttons available.
 
-:ref:`back to the top <topSection>`
+:ref:`back to the top <runSurvey>`

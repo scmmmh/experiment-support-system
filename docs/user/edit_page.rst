@@ -8,6 +8,8 @@
 .. |add| image:: ../_static/user/add.png
 .. |editSource| image:: ../_static/user/editSource.png
 .. |edit| image:: ../_static/user/editButton.png
+.. |delete| image:: ../_static/user/deleteButton.png
+.. |export| image:: ../_static/user/exportButton.png
 .. |Settings| image:: ../_static/user/settingsButton.png
 .. |Layout| image:: ../_static/user/layoutButton.png
 .. |editGraphically| image:: ../_static/user/editGraphicallyButton.png
@@ -17,11 +19,13 @@
 .. |updated| image:: ../_static/user/updatedButton.png
 .. |surveyButton| image:: ../_static/user/surveyButton.png
 .. |preview| image:: ../_static/user/previewButton.png
-.. |testValidation| image:: ../_static/user/testValidation.png
+.. |testValidation| image:: ../_static/user/testValidationButton.png
 .. |plusButton| image:: ../_static/user/plusButton.png
 .. |minusButton| image:: ../_static/user/minusButton.png
 .. |previewButton| image:: ../_static/user/previewButton.png
 .. |testValidationButton| image:: ../_static/user/testValidationButton.png
+.. |Settings| image:: ../_static/user/settingsTab.png
+.. |editGraphically| image:: ../_static/user/editGraphically.png
 
 .. _topSurveyPageSection:
    
@@ -54,7 +58,7 @@ Edit a page's layout
   
 .. _stepOne:: 
 
-**Option 1** 
+**Option 1**  
 $$$$$$$$$$$
 
 Let's assume that you have just created a new survey and have added a new page, as shown in the sub-section :doc:`Importing, adding, exporting and deleting a survey page <import_add_export_delete_page>`. By default, following the creation of a new survey page, you would be directed to the graphically **Edit** screen shown below:
@@ -153,7 +157,7 @@ Notice that on the screenshot shown above, the |Layout| button is dark blue, whe
 			   * **Hidden value**:
 			   * **Page timer**: which counts how much time a participant spends on a survey page.
 			   * **Automatic next page**: which automatically leads the participant to another survey page after a time period, that you have previously determined, has passed.
-			   * **JavaScript check**:
+			   * **JavaScript check**: which will prompt the survey to check whatever conditions you have added in the **JavaScript** box of the **Settings** screen. The functionality of the box is explained in more detail in paragraph (2.4) below.
 			   * **Confirmation checkbox**: as the name suggests, this is simply a checkbox that the participant will have to check so that they are able to progress with answering a survey. An example of using this element is when you need to ensure that the participant has understood the terms of the survey and provided their consent to you recording and using their replies.
 			   * **Ranking**: this allows you to rank a list of items by moving items up or down the list, through dragging and dropping them. An example of this is provided below:
 			    
@@ -341,89 +345,140 @@ You will then be directed to the **Edit** screen, an example of which is provide
 				   
 :ref:`back to the top <topSurveyPageSection>`
    
-----------------------------------------------------------------------------------------------------------------------------------------
-
 .. _settingsParagraph:
 
-Edit a page's settings
-""""""""""""""""""""""
+Edit the settings of a page
+"""""""""""""""""""""""""""
 **2.1)** Let's now assume that you have completed the graphical editing of your survey page. You can now click on the |Settings| tab, located below the survey page's title, as demonstrated in the screenshot below:
 
+          .. image:: ../_static/user/settingsButtonExample.png
+				  :align: center
+		 
 **2.2)** This will take you to the **Settings** screen:
 
-**2.3)** On this screen, you can change the *Name* and the *Title* of the survey page according to your experiment's needs. Note that the field *Name* refers to the name of the element, that is the specific survey page you are viewing at any given time, whereas the field *Title* refers to the actual question that appears on that page. An example of this is provided with the screenshot below, with the relevant fields enclosed in rectangular with dotted borders:
-   
-           .. image:: ../_static/user/nameTitleExample.png 
-                   :align: center  
-   
-      The element's name will be used to refer to the relevant question, when you export a survey's results, as shown in the sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data <get_data>`. For example, using the above screenshot, if you clicked on the |results| button, you would get the following screen:
-   
-           .. image:: ../_static/user/ nameTitleExampleResults.png 
-                   :align: center  
-   
-      For a more detailed explanation of the **Results** screen, refer to sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data <get_data>`.
-   
-  **1.14)** On the **Settings** screen, you can also:
-   
-	       - Choose the type of question asked, for example whether it would be a *single* or a *repeated* question.
-	       - Add data items.
-	       - Make the question a *Control Item* (see :doc:`here <conceptsAndTerms>` for a definition of this).			
-	       - Choose whether you would like the question numbers to be shown, by using the drop-down menu of the field *Show Question Numbers*.			
-	       - Which survey page should be the next from the one you are currently viewing, by using the drop-down menu of the field *Transition to*.			
-	       - Add your own CSS Styles by clicking on the link *CSS styles* below the *Transition to* menu and typing in the box that appears. Clicking on the link again will make the text box disappear, but keep the text you have just added.			
-	       - Add your own code in JavaScript by clicking on the link *Javascript* below the link *CSS styles* and typing in the box that appears. As with *CSS Styles*, clicking on the *Javascript* link again will make the text box disappear, but keep the text you have just added.
+		  .. image:: ../_static/user/settingsScreen.png
+		          :align: center
+				  
+		  .. hint:: You know that you are on the **Settings** screen because the background colour of the |Settings| tab has changed from light blue to dark blue.
 
-  **1.15)** Following any changes you carried out on a survey page, it is a good idea to validate these in order to make sure that everything will work fine when the survey is actually running. To do this, click on the |preview| button located above the survey page's title.
+**2.3)** On this screen, you can change the *Name* and the *Title* of the survey page according to your experiment's needs.
 	
-  **1.16)** By doing this, you will be directed to the **Preview** screen of that page, where you will be presented with an example of how the page will look like in the live survey.
-	
-  **1.17)** On the **Validation** screen, you can test questions by providing combinations of replies (checking boxes, typing free text etc.) in order to ensure that responses that do not follow the conditions you set for a specific question, are not permitted. 
-  
-  If, for example, you specify that a question must be answered, then clicking on the "Test Validation" button enables you to check that this is actually being applied. Similarly, if you select a date or time or number question and then try to answer the question with an invalid value, then the "Test Validation" button will show what happens if you provide an incorrect answer.
-	
-  **1.18)** When you are done completing a preview question, click on the |testValidation| button as indicated in the example screenshot below:
-	       .. image:: ../_static/user/testValidationScreen.png 
-                   :align: center
+**Note** that the field *Name* refers to the name of the specific survey page you are viewing at any given time, whereas the field *Title* refers to the actual question that appears on that page when your survey is live. 
+   
+The page's title will be used to refer to the relevant question, when you export a survey's results. For a more detailed explanation of the **Results** functionality, refer to sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data and datasets <get_data>`.
 
-  **1.19)** If you have completed the preview question appropriately, the following message will appear below the title of the survey page:
-  
-           .. image:: ../_static/user/successValidation.png 
-                   :align: center
-  
-       Otherwise, you will get an error message like the one below:
-	   
-	       .. image:: ../_static/user/failValidation.png 
-                   :align: center 
+.. Note:: The **Name** field of the **Settings** screen can be used to categorise all the variables included on a survey page, if you do decide that you want to create a data dictionary for your survey. For example, in the above screenshot that comes from an actual survey, the **Name** of the survey page is *experience*. In this example, *experience* is the name of a set of variables including *visit*, *visit reason*, *familiar* etc., examined by the main question of the survey page shown in the **Title** field, that is *Your experiences with culture and heritage*.
+   
+**2.4)** On the **Settings** screen, you can also:
+
+		1. Choose the type of questions added on a survey page, for example whether they would be *single* or a *repeated* questions. *Single* means that questions can only be answered once, whereas *Repeated* means that they can be answered repeatedly by a participant. 
 		
-  **1.20)** Once you have finished testing a survey page, in order to navigate away from it and back to the **home page** (:doc:`ref<conceptsAndTerms>`) screen, click on the |surveyButton| tab, one of the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`), located above the survey page's title.
+		   .. image:: ../_static/user/typeSurveyPage.png
+			       :align: center
+		   
+		   To choose the type of question that will go on your survey page, click on the downward arrow of the drop-down menu under the field title **Type**.
+		   
+		2. Add data items by typing a number in the relevant field. Here you specify how many data items should be selected from the "Data Set" that you attached to the page. The questions will be repeated for each selected data item. This makes it possible to have the same question(s) answered for different data items. 
+		   
+		   .. image:: ../_static/user/dataItems.png
+				   :align: center
+		
+		   As already mentioned above, this field is connected to the *Data Set*, the functionality of which is explained in the sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data and datasets <get_data>`
+		
+		3. Add a *Control Item* to the question by typing the number of *Data Items* you require for your survey in the relevant field.
+		
+		   .. image:: ../_static/user/dataItems.png
+				   :align: center
+				   
+		   The *Control Item* option allows you to use a question, for which you expect a particular answer to, as a safeguard showing you whether a participant is doing the survey properly. If the participant has not given the answer you expected in that particular question, you can discard their answers to avoid having skewed results.
+				   
+		4. Choose whether you would like the question numbers to be shown, by using the drop-down menu of the field *Show Question Numbers*. 
+		
+		   .. image:: ../_static/user/showQuestionNumbers.png
+				   :align: center
+		
+		5. Choose which survey page should be the next from the one you are currently viewing, by using the drop-down menu of the field *Transition*.
+		
+			.. image:: ../_static/user/transition.png
+				    :align: center
+		
+		   Note that the default value in the *Transition* field is the end of the survey. You can choose the default value, as I did in the screenshot right above, by clicking on the drop-down menu's arrow. 
+		   
+		   You can also add a condition by clicking on the relevant button, next to the default value. This will allow you to determine which page the survey should lead your participant to, should they give a specific answer. 
+		   
+		   An example screenshot is provided below: 
+		   
+		    .. image:: ../_static/user/addCondition.png
+		            :align: center
+					
+		   The screenshot above illustrates the sequence of steps taken to add a condition to a survey page. Here, I first clicked on the button **AddCondition** and then selected a variable, included in that particular survey page, by its *Name*. The field *Name* is included in the **Layout** tab and is explained in paragraph "Edit a page's layout", sub-paragraph 1.8.2/7.1 further above. 
+		   
+		   I then made that equal to 1, by typing the number in the relevant field, where 1 is included in the list of values I have previously specified for this variable, under the field *Value* of the **Layout** tab. Details for this field are in paragraph "Edit a page's layout", sub-paragraph 1.8.2/7.1 further above. 
+		   
+		   Essentially, the condition illustrated in the above screenshot means that should the participant choose the question reply that corresponds to value "1", they will then be led to page "Some things about you..." (shown in step (4) of the screenshot above) rather than the default page "Task" (shown in step (1) of the screenshot).
+		   
+		   Finally, to delete the condition you have just added, click on the **DeleteCondition** button, next to the **AddCondition** button.
+			
+		6. Add your own CSS Styles by clicking on the link *CSS styles* below the *Transition to* menu and typing in the box that appears. Clicking on the link again will make the text box disappear, but keep the text you have just added.
+		
+		7. Add your own code in JavaScript by clicking on the link *Javascript* below the link *CSS styles* and typing in the box that appears. As with *CSS Styles*, clicking on the *Javascript* link again will make the text box disappear, but keep the text you have just added. This box allows you to further customise your survey according to your experiment's needs.
+
+**2.5)** Following any changes you carried out on a survey page, make sure that you click on the |update| button at the bottom of your  screen.
+
+**2.6)** It is also a good idea to validate these in order to make sure that everything will work fine when the survey is actually running. To do this, click on the |preview| button located above the survey page's title.
+	
+**2.7)** By doing this, you will be directed to the **Preview** screen of that page, where you will be presented with an example of how the page will look like in the live survey.
+	
+**2.8)** On the **Preview** screen, you can test questions by providing combinations of replies (checking boxes, typing free text etc.) in order to ensure that responses that do not follow the conditions you set for a specific question, are not permitted. 
+  
+**2.9)** When you are done completing a preview question, click on the |testValidation| button, which you can find by scrolling to the bottom of the **Preview** screen. 
+
+**2.10)** If you have completed the preview question appropriately, the following message will appear below the title of the survey page:
+  
+           .. image:: ../_static/user/correctValidation.png 
+                   :align: center
+  
+  Otherwise, you will get an error message like the one below:
+	   
+	       .. image:: ../_static/user/wrongValidation.png 
+                   :align: center 
+			
+  Each part of the survey page that has an error, will be indicated to you within a rectangle with red borders and an appropriate message, as demonstrated in the screenshot below:
+	   
+	       .. image:: ../_static/user/failValidationMessage.png
+		           :align: center
+		
+**2.11)** Once you have finished testing a survey page, in order to navigate away from it and back to the **home page** (:doc:`ref<conceptsAndTerms>`) screen, click on the |surveyButton| tab, one of the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`), located above the survey page's title. 
+
+Otherwise, you can click on the |edit| button of the **Manipulation buttons** (:doc:`ref<survey_home_page_elements>`) above, to continue editing it, the |delete| button if you have decided that you want to start all over again or the |export| button to download the survey page in XML code.
    
 :ref:`back to the top <topSurveyPageSection>`
-
-------------------------------------------------------------------------------------------------------------------------------
-
+ 
 .. _sourceEditSub-subsection:
 
 Edit source
 ^^^^^^^^^^^
 The way to access this option depends on whether you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`) or the actual survey page you want to edit. 
 
-1. If you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`), follow the instructions provided in **paragraph 2** of the :ref:`Edit graphically<graphicEditSection>` sub-subsection above.
+a. If you are on the survey's **home page** (:doc:`ref<conceptsAndTerms>`), follow the instructions provided in **paragraph 2** of the :ref:`Edit graphically<graphicEditSection>` sub-subsection above.
 	
-2. If you are on the actual survey page you want to edit, that is on the **Edit** screen of the page (see screenshot in :ref:`Edit graphically<graphicEditSub-subsection>` sub-subsection), click on the |editSource| button, above the title of the survey page:
+b. If you are on the actual survey page you want to edit, that is on the **Edit** screen of the page (see screenshot in :ref:`Edit graphically<graphicEditSub-subsection>` sub-subsection), click on the |editSource| button, above the title of the survey page:
 
- **2.1)** You will now be directed to the **Edit Source** screen, as demonstrated below. This screen is the same as the **Settings** screen mentioned in the :ref:`Edit graphically<graphicEditSub-subsection>` sub-subsection above, except from the textbox *Content* that the **Settings** screen does not have. The first screenshot corresponds to the top part of the screen. Notice that some.
+ **b.1)** You will now be directed to the **Edit Source** screen, as demonstrated below.
+ 
+ This screen is the same as the **Settings** screen mentioned in paragraph :ref:`Edit the settings of a page<settingsParagraph>` above, except from the textbox *Content* that the **Settings** screen does not have. The first screenshot corresponds to the top part of the screen. Notice that some.
 	
           .. image:: ../_static/user/editSourceScreenOne.png 
                   :align: center
 	
-  The screenshot below corresponds to the bottom part of the **Edit Source** screen.
+ The screenshot below corresponds to the bottom part of the **Edit Source** screen.
 	
           .. image:: ../_static/user/editSourceScreenTwo.png 
                   :align: center  
 		  
-  **2.2)** To revert to the screen used in the sub-subsection :ref:`Edit graphically <graphicEditSub-subsection>`, simply click on the |editGraphically| button above the survey page's title.
+  **b.2)** To revert to the screen used in the sub-subsection :ref:`Edit graphically <graphicEditSub-subsection>`, simply click on the |editGraphically| button above the survey page's title.
    
-  **2.3)** The top part of the **Edit Source** screen, is the same as the **Settings** screen described in **sub-paragraph 1.4** of the sub-subsection :ref:`Edit graphically <graphicEditSub-subsection>`, except from the **Content** box.
+  **b.3)** The top part of the **Edit Source** screen, is the same as the **Settings** screen described above in the sub-subsection :ref:`Edit graphically <graphicEditSub-subsection>`, except from the **Content** box.
   
   
 :ref:`back to the top <topSurveyPageSection>`
