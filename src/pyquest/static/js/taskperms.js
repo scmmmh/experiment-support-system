@@ -63,7 +63,8 @@ function display_participant_count(url)
     var tord = $('[name="task_order"]').val().join(',');
     var iord = $('[name="interface_order"]').val().join(',');
     
-//    $.ajax('${r.route_url("survey.qsheet.pcount", sid=survey.id, qsid=qsheet.id)}', 
+    $('#please-wait').dialog('open');
+
     $.ajax(url, 
 	   {
 	       data: {"worb" : worb, "tasks" : tasks, "tasks_dataset": tasks_dataset, "interfaces": interfaces, "interfaces_dataset": interfaces_dataset, "tcon":tcon, "icon":icon, "tord":tord, "iord":iord},
@@ -72,6 +73,7 @@ function display_participant_count(url)
 		   set_task_buttons(url);
 		   set_restriction_appearances();
 		   fix_multiple_selects();
+		   $('#please-wait').dialog('close');
 	       },
                error: function(xhr, ts, et) {
                    var x = 100;

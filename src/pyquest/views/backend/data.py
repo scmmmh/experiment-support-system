@@ -7,6 +7,7 @@ Created on 24 Jan 2012
 import csv
 import math
 import transaction
+import threading
 
 from formencode import Schema, validators, api, variabledecode, foreach, FancyValidator
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
@@ -451,8 +452,6 @@ def permset_new(request):
                  permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
                  permset.name = params['name']
                  permset.set_params(params)
-  #                permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], , 
-  #                                                         params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
                  dbsession.add(survey)
                  survey.data_sets.append(permset)
                  dbsession.add(user)
@@ -519,15 +518,12 @@ def permset_edit(request):
                 dbsession.add(survey)
                 dbsession.add(user)
                 permset.name = params['name']
-#                permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], permset.tasks, permset.interfaces, 
-#                                                         params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
                 permset.set_params(params)
                 oldqs = dbsession.query(QSheet).filter(QSheet.dataset_id==permset.id).all()
                 for oq in oldqs:
                     dbsession.add(oq)
                     oq.dataset_id = None
                 dbsession.flush()
- #               permset.set_permutations(permutations)
                 permset.applies_to = ",".join(params['qsheet'])
                 for id in params['qsheet']:
                     newqs = dbsession.query(QSheet).filter(QSheet.id==id).first()
@@ -547,6 +543,19 @@ def permset_edit(request):
                 'params': params,
                 'pcount': pcount}
 
+pcount = 0
+
+class PermThread(threading.Thread):
+    def __init__(params=None, tasks=None, interfaces=None):
+        self.params = params
+        self.tasks = tasks
+        self.interfaces = interfaces
+
+    def run(self):
+        global pcount
+        permutations = taskperms.getPermutations(self.params['worb'], self.tasks, self.interfaces, self.params['tcon'].split(','), self.params['icon'].split(','), self.params['tord'].split(','), self.params['iord'].split(','), True)
+        pcount = str(len(permutations))
+        
 @view_config(route_name='data.pcount')
 @render({'text/html': 'backend/data/taskperms.html'})
 def calculate_pcount(request):
@@ -564,6 +573,24 @@ def calculate_pcount(request):
         interfaces = interfaces + ii.attributes[0].value + ','
     interfaces = re.sub(',$', '', interfaces)
     pcount = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
+    # If the estimated count is greater than 1500 we don't bother to calculate the actual permutations. The estimated count is usually 
+    # accurate but can go wrong when there are ordering constraints. The actual generation of permutations is accurate.
+    import pdb; pdb.set_trace()
+    if pcount > 1500:
+        pcount = '>1500'
+    else:
+        pthread = PermThread(params=request.params, tasks=tasks, interfaces=interfaces)
+        pthread.start()
+        count = 0
+        while pthread.isAlive() and count < 60:
+            count = count + 1
+
+        if pthread.isAlive():
+            taskperms.stop()
+            pcount = '>1500'
+
+#        permutations = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), True)
+#        pcount = str(len(permutations))
     params = {}
     params['task_worb'] = request.params['worb'][0]
     params['interface_worb'] = request.params['worb'][1]
@@ -578,5 +605,5 @@ def calculate_pcount(request):
     return {'survey': survey,
             'params': params,
             'permset': permset,
-            'pcount': str(pcount)}
+            'pcount': pcount}
 

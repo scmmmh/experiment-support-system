@@ -126,20 +126,16 @@ def generate_combinations(worb, tasks, interfaces, task_disallow, interface_disa
     :param interface_disallow: interface combinations to exclude
     :return a list of lists of the combinations which must be permuted
     """
-#    tasks = [chr(i+65) for i in range(int(task_count))] 
-#    interfaces = [chr(i+49) for i in range(int(interface_count))] 
-
-#    tDisallow = [' ']
-#    if worb[0] == 'w' and task_disallow:
-#        tDisallow = [bit for bit in task_disallow.split(',')]
-
-    # iDisallow = [' ']
-    # if worb[1] == 'w' and interface_disallow:
-    #     iDisallow = [bit for bit in interface_disallow.split(',')]
 
     combinations = globals()['generate_' + worb](tasks, interfaces, task_disallow, interface_disallow)
 
     return combinations
+
+carry_on = True
+
+def stop():
+    global carry_on
+    carry_on = False
 
 def generate_permutations(worb, tOrder, iOrder, combinations):
     """Generates the permutations for the given combinations. This is done by using itertools to generate the permutations
@@ -151,15 +147,7 @@ def generate_permutations(worb, tOrder, iOrder, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    
-    # tOrder = [' ']
-    # if worb[0] == 'w' and task_order:
-    #     tOrder = [bit for bit in task_order.split(',')]
-
-    # iOrder = [' ']
-    # if worb[1] == 'w' and interface_order:
-    #     iOrder = [bit for bit in interface_order.split(',')]
-
+    global carry_on
 
     def orderFactors(factor, order):
         """ Checks whether the given 'factor' contain the combination 'order' in the correct order. 
@@ -194,7 +182,9 @@ def generate_permutations(worb, tOrder, iOrder, combinations):
     
     permutations = [] 
     for subc in combinations:
-        permutations = permutations + [list(i) for i in itertools.ifilter(order_func, itertools.permutations(subc))]
+        for i in itertools.ifilter(order_func, itertools.permutations(subc)):
+            if carry_on:
+                permutations = permutations + list(i)
 
     return permutations
 
@@ -290,14 +280,6 @@ def count_permutations(worb, tOrder, iOrder, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    # tOrder = [' ']
-    # if worb[0] == 'w' and task_order:
-    #     tOrder = [bit for bit in task_order.split(',')]
-
-    # iOrder = [' ']
-    # if worb[1] == 'w' and interface_order:
-    #     iOrder = [bit for bit in interface_order.split(',')]
-
     permcount = 0
 
     if tOrder[0] == ' ':
@@ -311,6 +293,7 @@ def count_permutations(worb, tOrder, iOrder, combinations):
         if iOrder[0] == ' ':
             orders = tOrder
         else:
+            # Need an estimate here!!!
             orders = None
 
     if orders:
