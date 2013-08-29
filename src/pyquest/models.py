@@ -875,7 +875,7 @@ class PermutationSet(DataSet):
         :return a Python dict containing all the parameters
         """
         params = {}
-        bits = self.paramstring.split(',')
+        bits = self.paramstring.split(':')
         params['task_worb'] = bits[0]
         params['interface_worb'] = bits[1]
         params['tasks_dataset'] = bits[2]
@@ -903,7 +903,7 @@ class PermutationSet(DataSet):
         interfaces = re.sub(',$', '', interfaces)
         self.tasks = str(tasks)
         self.interfaces = str(interfaces)
-        paramstring = "%s,%s,%s,%s,%s,%s,%s,%s" % (params['task_worb'], params['interface_worb'], params['tasks_dataset'], params['interfaces_dataset'], ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
+        paramstring = "%s:%s:%s:%s:%s:%s:%s:%s" % (params['task_worb'], params['interface_worb'], params['tasks_dataset'], params['interfaces_dataset'], ",".join(params['task_disallow']), ",".join(params['interface_disallow']), ",".join(params['task_order']), ",".join(params['interface_order']))
 
         permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], 
                                                  self.tasks, self.interfaces, 

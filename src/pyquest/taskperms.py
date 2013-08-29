@@ -19,7 +19,6 @@ def generate_ww(tasks, interfaces, tDisallow, iDisallow):
 
     :return a list of the possible combinations of tasks and interfaces to be permuted
     """
-
     task_exclusion_combinations = itertools.product(*tDisallow)
 
     combinations = []
@@ -131,12 +130,6 @@ def generate_combinations(worb, tasks, interfaces, task_disallow, interface_disa
 
     return combinations
 
-carry_on = True
-
-def stop():
-    global carry_on
-    carry_on = False
-
 def generate_permutations(worb, tOrder, iOrder, combinations):
     """Generates the permutations for the given combinations. This is done by using itertools to generate the permutations
     for each subcombination and filtering through a function which determines whether the required ordering is maintained.
@@ -147,8 +140,6 @@ def generate_permutations(worb, tOrder, iOrder, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    global carry_on
-
     def orderFactors(factor, order):
         """ Checks whether the given 'factor' contain the combination 'order' in the correct order. 
         If the 'order' contains more than two elements it is ignored and the function returns True. 
@@ -182,9 +173,7 @@ def generate_permutations(worb, tOrder, iOrder, combinations):
     
     permutations = [] 
     for subc in combinations:
-        for i in itertools.ifilter(order_func, itertools.permutations(subc)):
-            if carry_on:
-                permutations = permutations + list(i)
+        permutations = permutations + [list(i) for i in itertools.ifilter(order_func, itertools.permutations(subc))]
 
     return permutations
 

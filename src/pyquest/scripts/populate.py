@@ -187,11 +187,11 @@ def load_test_data(args):
         dbsession.flush()
         taskitem = DataItem(order=0)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_A", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="A", key_id=ak.id))
         tasksds.items.append(taskitem)
         taskitem = DataItem(order=1)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_B", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="B", key_id=ak.id))
         tasksds.items.append(taskitem)
 
         interfacesds = DataSet(name="two_interfaces", owned_by=user.id, survey_id=survey.id)
@@ -200,13 +200,12 @@ def load_test_data(args):
         dbsession.flush()
         interfaceitem = DataItem(order=0)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_1", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="1", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
         interfaceitem = DataItem(order=1)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_2", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="2", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
-
 
         params = {'task_worb':'w', 'interface_worb':'w', 'task_disallow':' ', 'interface_disallow':' ', 'task_order':' ', 'interface_order':' ', 'tasks_dataset': tasksds.id, 'interfaces_dataset': interfacesds.id}
         np = PermutationSet(name="test permset", params=params, owned_by=user.id, survey_id=survey.id, qsheet_id=qsheet2.id)
@@ -220,15 +219,15 @@ def load_test_data(args):
         dbsession.flush()
         taskitem = DataItem(order=0)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_A", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="A", key_id=ak.id))
         tasksds.items.append(taskitem)
         taskitem = DataItem(order=1)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_B", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="B", key_id=ak.id))
         tasksds.items.append(taskitem)
         taskitem = DataItem(order=2)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_C", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="C", key_id=ak.id))
         tasksds.items.append(taskitem)
 
         interfacesds = DataSet(name="three_interfaces", owned_by=user.id, survey_id=survey.id)
@@ -237,15 +236,15 @@ def load_test_data(args):
         dbsession.flush()
         interfaceitem = DataItem(order=0)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_1", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="1", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
         interfaceitem = DataItem(order=1)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_2", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="2", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
         interfaceitem = DataItem(order=2)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_3", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="3", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
 
         tasksds = DataSet(name="four_tasks", owned_by=user.id, survey_id=survey.id)
@@ -254,19 +253,19 @@ def load_test_data(args):
         dbsession.flush()
         taskitem = DataItem(order=0)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_A", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="A", key_id=ak.id))
         tasksds.items.append(taskitem)
         taskitem = DataItem(order=1)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_B", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="B", key_id=ak.id))
         tasksds.items.append(taskitem)
         taskitem = DataItem(order=2)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_C", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="C", key_id=ak.id))
         tasksds.items.append(taskitem)
         taskitem = DataItem(order=3)
         ak = tasksds.attribute_keys[0]
-        taskitem.attributes.append(DataItemAttribute(value="task_D", key_id=ak.id))
+        taskitem.attributes.append(DataItemAttribute(value="D", key_id=ak.id))
         tasksds.items.append(taskitem)
 
         interfacesds = DataSet(name="four_interfaces", owned_by=user.id, survey_id=survey.id)
@@ -275,19 +274,19 @@ def load_test_data(args):
         dbsession.flush()
         interfaceitem = DataItem(order=0)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_1", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="1", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
         interfaceitem = DataItem(order=1)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_2", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="2", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
         interfaceitem = DataItem(order=2)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_3", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="3", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
         interfaceitem = DataItem(order=3)
         ak = interfacesds.attribute_keys[0]
-        interfaceitem.attributes.append(DataItemAttribute(value="interface_4", key_id=ak.id))
+        interfaceitem.attributes.append(DataItemAttribute(value="4", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
 
         survey.start = qsheet1
