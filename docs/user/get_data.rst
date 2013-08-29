@@ -23,7 +23,7 @@
 
    The following sub-section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within PyQuestionnaire*, located at the bottom-half of the chapter :doc:`Access PyQuestionnaire<access_Questionnaire>`.
 
-.. _topSection:
+.. _topDataSection:
    
 Downloading, creating, uploading and clearing data and datasets 
 ---------------------------------------------------------------
@@ -42,11 +42,11 @@ In this sub-section you will learn how to work with data gathered from your expe
 Downloading data
 ^^^^^^^^^^^^^^^^
 
-- **From a survey**
+- **From a survey that has finished or is still running**
 
-  a) First, navigate to the required survey, if you are not already there.
+  a) First, navigate to the **home page** (:doc:`ref<conceptsAndTerms>`) of the required survey, if you are not already there.
   
-  b) Click on the |results| button, included in the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`) of the survey's **home page** (:doc:`ref<conceptsAndTerms>`) screen. An example screenshot of this is shown below, where the above button is highlighted:
+  b) Click on the |results| tab, included in the **Navigation tabs** (:doc:`ref<survey_home_page_elements>`) of the survey's **home page** (:doc:`ref<conceptsAndTerms>`) screen. An example screenshot of this is shown below, where the above button is highlighted:
 	
   .. image:: ../_static/user/resultsHighlighted.png
    :align: center
@@ -56,7 +56,7 @@ Downloading data
   .. image:: ../_static/user/resultsScreen.png
    :align: center
 	
-  d) You will then have the choice to export results by participant, by clicking on the |participantButton| button, or by question, by clicking on the |questionButton| button.
+  d) You will then have the choice to export results by participant, by clicking on the |participantButton| button, or by question, by clicking on the |questionButton| button. As the screenshot above indicates, both buttons are located on the grey strip above the survey's title.
   
     d1.1) **If you choose to export results by participant**, then the following screen will appear: 
    
@@ -72,7 +72,7 @@ Downloading data
 		
 	   - Note that a list, entitled **Export Settings** is the main part of the above mentioned screen.
 	   
-	   - As the one-line instructions advise, below the list' title, you can select which questions to export and, where applicable, what data attribute to use to identify the original data-item. 
+	   - As the one-line instructions advise, below the list's title, you can select which questions to export and, where applicable, what data attribute to use to identify the original data-item. 
 	   
 	   - You can do this by ticking/unticking the boxes that appear next to the title of each question on the provided list.
 	   
@@ -97,13 +97,17 @@ Downloading data
 	   .. image:: ../_static/user/exportQuestion.png
 	      :align: center
 
-	   - The only setting you can change on this screen is the value that will appear in your data set when a field has not been answered. 
+	   - One of the settings you can change on this screen, is the value that will appear in your data set when a field has not been answered. 
 	   
 	   - As with the option to **Export by Participant**, discussed above, you can do this by typing an appropriate message in the field *Non-answered value*, located below the title **Export Settings** at the top of the screen.
 	   
-	   - When you are done with the above, click on |updateSettings| button, located on the right of your screen, just below the field *Non-answered value*.
+	   - When you are done with the above, click on the |updateSettings| button, located on the right of your screen, just below the field *Non-answered value*.
 	   
 	   - By clicking that button, the webpage will refresh and a sample of how your extracted will look like, will be provided under the title *Sample Data* at the bottom of the screen.
+	   
+	   - In addition to the above, you can tick in the box under the title **SPSS Safe Columns**, which will change the column titles of your data to a format recognisable by SPSS.
+	   
+	   - As mentioned above, remember to click on the |updateSettings| button for this change to be applied to your survey.
 	   
 	    .. Important:: 
 	   
@@ -113,9 +117,9 @@ Downloading data
 	   
 	   - Upon clicking that button, a prompt message will appear asking you to save the relevant .csv file on your computer.
 	   
-	   - To navigate back to your **Results** screen, click on the |results| button at the top of the screen.
+	   - To navigate back to your **Results** screen, click on the |results| tab at the top of the screen.
 
-:ref:`back to the top <topSection>`
+:ref:`back to the top <topDataSection>`
 	   
 - **From a survey question**
 
@@ -139,7 +143,7 @@ Downloading data
   
 .. Important:: *Downloading data from a survey question, works only after uploading data to it. The relevant process is explained in the sub-subsection below.*
       
-:ref:`back to the top <topSection>`
+:ref:`back to the top <topDataSection>`
 
 .. _uploadData:
 
@@ -168,7 +172,7 @@ Data can only be uploaded to a specific survey question.
 
   g) You will then be able to edit the uploaded data as shown in the relevant sub-subsection below.
 
-:ref:`back to the top <topSection>`
+:ref:`back to the top <topDataSection>`
 
 .. _editData:
 
@@ -202,7 +206,7 @@ Editing the uploaded data
   
   k) Whichever you click on, you will be directed back to the **Data** screen. The only difference will be that if you added a record manually, this will appear at the end of the list of records in the **Data** screen.
 
-:ref:`back to the top <topSection>`
+:ref:`back to the top <topDataSection>`
 
 .. _clearData:
 
@@ -224,4 +228,4 @@ Last, but not least, is the option to clear any data you have uploaded before.
      .. image:: ../_static/user/noDataMessage.png
 	    :align: center
   
-:ref:`back to the top <topSection>`
+:ref:`back to the top <topDataSection>`

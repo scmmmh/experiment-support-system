@@ -14,6 +14,6 @@ Concepts and Terms
 	 .. image:: ../_static/user/originalHomePageSurveyScreen.png	
 
   *Main Profile Screen*
-	 refers to the screen that automatically appears when you login the system. An example screenshot is provided below
+	 refers to the screen that automatically appears when you login the system. This is the list of surveys you are running, testing or developing. An example screenshot is provided below:
 	 
 	 .. image:: ../_static/user/profileScreen.png

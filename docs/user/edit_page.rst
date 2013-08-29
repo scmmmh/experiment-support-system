@@ -385,12 +385,10 @@ The page's title will be used to refer to the relevant question, when you export
 		
 		   As already mentioned above, this field is connected to the *Data Set*, the functionality of which is explained in the sub-subsection **Downloading data** of the sub-section :doc:`Downloading, uploading and clearing data and datasets <get_data>`
 		
-		3. Add a *Control Item* to the question by typing the number of *Data Items* you require for your survey in the relevant field.
+		3. Add a *Control Item* to the question by typing the number of *Data Items* you require for your survey in the relevant field. A definition of the *Control Item* is provided :doc:`here <conceptsAndTerms>`.
 		
 		   .. image:: ../_static/user/dataItems.png
 				   :align: center
-				   
-		   The *Control Item* option allows you to use a question, for which you expect a particular answer to, as a safeguard showing you whether a participant is doing the survey properly. If the participant has not given the answer you expected in that particular question, you can discard their answers to avoid having skewed results.
 				   
 		4. Choose whether you would like the question numbers to be shown, by using the drop-down menu of the field *Show Question Numbers*. 
 		
