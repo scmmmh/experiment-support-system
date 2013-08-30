@@ -559,12 +559,12 @@ def calculate_pcount(request):
         interfaces = interfaces + ii.attributes[0].value + ','
     interfaces = re.sub(',$', '', interfaces)
     pcount = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
-    # If the estimated count is greater than 1500 we don't bother to calculate the actual permutations. The estimated count is usually 
+    # If the estimated count is greater than 2000 we don't bother to calculate the actual permutations. The estimated count is usually 
     # accurate but can go wrong when there are ordering constraints. The actual generation of permutations is accurate.
     if pcount == 0:
         pcount = str(pcount)
-    elif pcount > 1500:
-        pcount = '>1500'
+    elif pcount > 2000:
+        pcount = '>2000'
     else:
         permutations = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), True)
         pcount = str(len(permutations))
