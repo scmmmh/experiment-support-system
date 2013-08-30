@@ -128,7 +128,7 @@ There are two ways to start a survey depending on where in the system you are.
 
  .. image:: ../_static/user/startSurveyHome.png
 		 :align: center
-
+		 
 **2.** If you are in the **main profile screen** (:doc:`ref<conceptsAndTerms>`), find the correct survey from your surveys list and click on the |start| button from the set of buttons available. An example of this is provided below:
 
  .. image:: ../_static/user/startSurvey.png

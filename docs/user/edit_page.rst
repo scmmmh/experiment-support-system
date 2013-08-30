@@ -378,7 +378,7 @@ The page's title will be used to refer to the relevant question, when you export
 		   
 		   To choose the type of question that will go on your survey page, click on the downward arrow of the drop-down menu under the field title **Type**.
 		   
-		2. Add data items by typing a number in the relevant field. Here you specify how many data items should be selected from the "Data Set" that you attached to the page. The questions will be repeated for each selected data item. This makes it possible to have the same question(s) answered for different data items. 
+		2. Add data items (:doc:`ref<conceptsAndTerms>`) by typing a number in the relevant field. Here you specify how many data items(:doc:`ref<conceptsAndTerms>`) should be selected from the "Data Set" that you attached to the page. The questions will be repeated for each selected data item (:doc:`ref<conceptsAndTerms>`). This makes it possible to have the same question(s) answered for different data items. 
 		   
 		   .. image:: ../_static/user/dataItems.png
 				   :align: center
