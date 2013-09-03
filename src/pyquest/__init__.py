@@ -12,6 +12,7 @@ from pyquest.notifier import Notifier
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    settings['genshi.template_path'] = 'pyquest:templates/'
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     check_database_version()
