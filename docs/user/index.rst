@@ -1,6 +1,6 @@
-******************
+##################
 User documentation
-******************
+##################
 
 .. admonition:: *A few words before we start ...*
 
