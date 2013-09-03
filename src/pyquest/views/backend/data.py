@@ -451,8 +451,6 @@ def permset_new(request):
                  permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
                  permset.name = params['name']
                  permset.set_params(params)
-  #                permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], , 
-  #                                                         params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
                  dbsession.add(survey)
                  survey.data_sets.append(permset)
                  dbsession.add(user)
@@ -519,15 +517,12 @@ def permset_edit(request):
                 dbsession.add(survey)
                 dbsession.add(user)
                 permset.name = params['name']
-#                permutations = taskperms.getPermutations(params['task_worb'] + params['interface_worb'], permset.tasks, permset.interfaces, 
-#                                                         params['task_disallow'], params['interface_disallow'], params['task_order'], params['interface_order'], True)
                 permset.set_params(params)
                 oldqs = dbsession.query(QSheet).filter(QSheet.dataset_id==permset.id).all()
                 for oq in oldqs:
                     dbsession.add(oq)
                     oq.dataset_id = None
                 dbsession.flush()
- #               permset.set_permutations(permutations)
                 permset.applies_to = ",".join(params['qsheet'])
                 for id in params['qsheet']:
                     newqs = dbsession.query(QSheet).filter(QSheet.id==id).first()
@@ -564,6 +559,15 @@ def calculate_pcount(request):
         interfaces = interfaces + ii.attributes[0].value + ','
     interfaces = re.sub(',$', '', interfaces)
     pcount = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
+    # If the estimated count is greater than 2000 we don't bother to calculate the actual permutations. The estimated count is usually 
+    # accurate but can go wrong when there are ordering constraints. The actual generation of permutations is accurate.
+    if pcount == 0:
+        pcount = str(pcount)
+    elif pcount > 2000:
+        pcount = '>2000'
+    else:
+        permutations = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), True)
+        pcount = str(len(permutations))
     params = {}
     params['task_worb'] = request.params['worb'][0]
     params['interface_worb'] = request.params['worb'][1]
@@ -578,5 +582,5 @@ def calculate_pcount(request):
     return {'survey': survey,
             'params': params,
             'permset': permset,
-            'pcount': str(pcount)}
+            'pcount': pcount}
 

@@ -7,6 +7,7 @@
     <script type="text/javascript">
      $(document).ready(function() {
         task_init('${r.route_url('data.pcount', sid=survey.id, dsid=permset.id)}');
+        $('#please-wait').dialog({width:200, height:50, modal:true, autoOpen:false});
      });
     </script>
   </head>
@@ -34,5 +35,6 @@
 	</ul>
       </form>
     </article>
+    <div id='please-wait'><p>Please Wait...</p></div>
   </body>
 </html>

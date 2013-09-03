@@ -19,7 +19,6 @@ def generate_ww(tasks, interfaces, tDisallow, iDisallow):
 
     :return a list of the possible combinations of tasks and interfaces to be permuted
     """
-
     task_exclusion_combinations = itertools.product(*tDisallow)
 
     combinations = []
@@ -126,16 +125,6 @@ def generate_combinations(worb, tasks, interfaces, task_disallow, interface_disa
     :param interface_disallow: interface combinations to exclude
     :return a list of lists of the combinations which must be permuted
     """
-#    tasks = [chr(i+65) for i in range(int(task_count))] 
-#    interfaces = [chr(i+49) for i in range(int(interface_count))] 
-
-#    tDisallow = [' ']
-#    if worb[0] == 'w' and task_disallow:
-#        tDisallow = [bit for bit in task_disallow.split(',')]
-
-    # iDisallow = [' ']
-    # if worb[1] == 'w' and interface_disallow:
-    #     iDisallow = [bit for bit in interface_disallow.split(',')]
 
     combinations = globals()['generate_' + worb](tasks, interfaces, task_disallow, interface_disallow)
 
@@ -151,16 +140,6 @@ def generate_permutations(worb, tOrder, iOrder, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    
-    # tOrder = [' ']
-    # if worb[0] == 'w' and task_order:
-    #     tOrder = [bit for bit in task_order.split(',')]
-
-    # iOrder = [' ']
-    # if worb[1] == 'w' and interface_order:
-    #     iOrder = [bit for bit in interface_order.split(',')]
-
-
     def orderFactors(factor, order):
         """ Checks whether the given 'factor' contain the combination 'order' in the correct order. 
         If the 'order' contains more than two elements it is ignored and the function returns True. 
@@ -290,14 +269,6 @@ def count_permutations(worb, tOrder, iOrder, combinations):
     :param combinations: the combinations which need to be permuted
     :return the number of permutations this configuration will generate
     """
-    # tOrder = [' ']
-    # if worb[0] == 'w' and task_order:
-    #     tOrder = [bit for bit in task_order.split(',')]
-
-    # iOrder = [' ']
-    # if worb[1] == 'w' and interface_order:
-    #     iOrder = [bit for bit in interface_order.split(',')]
-
     permcount = 0
 
     if tOrder[0] == ' ':
@@ -311,6 +282,7 @@ def count_permutations(worb, tOrder, iOrder, combinations):
         if iOrder[0] == ' ':
             orders = tOrder
         else:
+            # Need an estimate here!!!
             orders = None
 
     if orders:
