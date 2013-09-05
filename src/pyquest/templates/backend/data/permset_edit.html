@@ -5,10 +5,21 @@
     <title>Edit Permutation Set</title>
     <script type="text/javascript" src="${r.static_url('pyquest:static/js/taskperms.js')}"></script>
     <script type="text/javascript">
-     $(document).ready(function() {
-        task_init('${r.route_url('data.pcount', sid=survey.id, dsid=permset.id)}');
-        $('#please-wait').dialog({width:200, height:50, modal:true, autoOpen:false});
-     });
+    function update_counts() {
+    	$('#participants_count').html('Calculating...');
+    	$.ajax('${r.route_url('data.pcount', sid=survey.id)}', {
+    		data: $('form').serialize(),
+    		type: 'POST'
+    	}).success(function(data) {
+    		$('#participants_count').html(data.count);
+    	}).error(function(data) {
+    		$('#participants_count').html('Could not determine the required number of participants');
+    	});
+    }
+    $(document).ready(function() {
+        $('select').change(update_counts);
+        update_counts();
+    });
     </script>
   </head>
   <body>
@@ -21,20 +32,27 @@
       </hgroup>
       <form action="${r.route_url('data.edit.permset', sid=survey.id, dsid=permset.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
-	<dl>
-	  <dt>Name</dt>
-	  <dd>${h.form.text_field('name', permset.name, e, class_='span-12')}</dd>
-	  <dt></dt>
-	  <dd>
-	    <span class="task-spec"><xi:include href="taskperms.html"/></span>
-	  </dd>
-	</dl>
-	<ul class="buttons span-22">
+        <dl>
+          <dt>Name</dt>
+          <dd>${h.form.text_field('name', permset.name, e, class_='span-12')}</dd>
+          <dt>Tasks</dt>
+          <dd>
+            ${h.form.select('tasks_mode', permset.tasks.data['mode'], [('between', 'Between'), ('within', 'Within')], e)}
+            ${h.form.select('tasks', permset.tasks.object_id, [(d.id, d.name) for d in survey.data_sets], e)}
+          </dd>
+          <dt>Interfaces</dt>
+          <dd>
+            ${h.form.select('interfaces_mode', permset.interfaces.data['mode'], [('between', 'Between'), ('within', 'Within')], e)}
+            ${h.form.select('interfaces', permset.interfaces.object_id, [(d.id, d.name) for d in survey.data_sets], e)}
+          </dd>
+          <dt>Participants required</dt>
+          <dd id="participants_count"></dd>
+        </dl>
+        <ul class="buttons span-22">
           <li>${h.form.button("Don't Update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>
           <li>${h.form.submit("Update", class_='button')}</li>
-	</ul>
+        </ul>
       </form>
     </article>
-    <div id='please-wait'><p>Please Wait...</p></div>
   </body>
 </html>

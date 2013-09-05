@@ -26,7 +26,7 @@ def init(config):
     config.add_route('data.download', '/surveys/{sid}/data/{dsid}/download')
     config.add_route('data.detach', '/surveys/{sid}/data/{dsid}/detach/{qsid}')
     config.add_route('data.attach', '/surveys/{sid}/data/{dsid}/attach/{qsid}')
-    config.add_route('data.pcount', '/surveys/{sid}/pcount/{dsid}')
+    config.add_route('data.pcount', '/surveys/{sid}/pcount')
     config.add_route('data.new.permset', '/surveys/{sid}/data/{dsid}/new/permset')
     config.add_route('data.edit.permset', '/surveys/{sid}/data/{dsid}/edit/permset')
     config.add_route('survey.qsheet', '/surveys/{sid}/pages')

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import json
 import transaction
 
 from alembic import config, command
@@ -12,7 +12,8 @@ from sqlalchemy import engine_from_config
 from pyquest.models import (DBSession, Base, Survey, QSheet, DataItem,
                             DataItemAttribute, User, Group, Permission,
                             QSheetAttribute, QSheetTransition,
-                            DataSet, DataSetAttributeKey, Notification, PermutationSet)
+                            DataSet, DataSetAttributeKey, Notification, PermutationSet,
+                            DataSetRelation)
 from pyquest.validation import XmlValidator
 from pyquest.views.admin.question_types import load_q_types_from_xml
 from pyquest.views.backend.qsheet import load_questions_from_xml
@@ -206,7 +207,10 @@ def load_test_data(args):
         interfacesds.items.append(interfaceitem)
 
         params = {'task_worb':'w', 'interface_worb':'w', 'task_disallow':' ', 'interface_disallow':' ', 'task_order':' ', 'interface_order':' ', 'tasks_dataset': tasksds.id, 'interfaces_dataset': interfacesds.id}
-        np = PermutationSet(name="test permset", params=params, owned_by=user.id, survey_id=survey.id, qsheet_id=qsheet2.id)
+        np = PermutationSet(name="test permset", owned_by=user.id, survey_id=survey.id)
+        dbsession.add(DataSetRelation(subject=np, rel='tasks', object=tasksds, _data=json.dumps({'mode': 'within'})))
+        dbsession.add(DataSetRelation(subject=np, rel='interfaces', object=interfacesds, _data=json.dumps({'mode': 'within'})))
+        np.attribute_keys.append(DataSetAttributeKey(key='permutation', order=0))
         survey.data_sets.append(np)
         user.data_sets.append(np)
         np.qsheets.append(qsheet2)

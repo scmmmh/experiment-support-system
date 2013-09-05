@@ -5,21 +5,22 @@ Created on 24 Jan 2012
 @author: mhall
 '''
 import csv
-import math
+import itertools
+import json
 import transaction
 
-from formencode import Schema, validators, api, variabledecode, foreach, FancyValidator
-from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPFound
+from formencode import Schema, validators, api, variabledecode, foreach
+from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
-from sqlalchemy import and_, func, null
+from sqlalchemy import and_
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, DataItem,
                             DataItemAttribute, Question, DataItemControlAnswer,
-                            Participant, DataSet, DataSetAttributeKey, PermutationSet)
+                            DataSet, DataSetAttributeKey, PermutationSet)
 from pyquest import taskperms
 import re
 
@@ -44,20 +45,13 @@ class NewDataSetSchema(Schema):
 
     pre_validators = [variabledecode.NestedVariables()]
 
-class NewPermutationSetSchema(Schema):
+class PermutationSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString()
-    tasks = validators.UnicodeString()
-    tasks_dataset = validators.Int()
-    interfaces = validators.UnicodeString()
-    interfaces_dataset = validators.Int()
-    task_worb = validators.UnicodeString()
-    interface_worb = validators.UnicodeString()
-    task_disallow = foreach.ForEach(validators.UnicodeString())
-    interface_disallow = foreach.ForEach(validators.UnicodeString())
-    task_order = foreach.ForEach(validators.UnicodeString())
-    interface_order = foreach.ForEach(validators.UnicodeString())
-    qsheet = foreach.ForEach(validators.UnicodeString())
+    tasks = validators.Int()
+    tasks_mode = validators.UnicodeString()
+    interfaces = validators.Int()
+    interfaces_mode = validators.UnicodeString()
 
 @view_config(route_name='data.list')
 @render({'text/html': 'backend/data/set_list.html'})
@@ -194,7 +188,6 @@ def dataset_edit(request):
                 with transaction.manager:
                     dbsession.add(dis)
                     dis.name = params['name']
-                    sid = dis.survey_id
                     new_ids = []
                     for attribute_key_param in params['attribute_keys']:
                         new_ids.append(attribute_key_param['id'])
@@ -210,7 +203,7 @@ def dataset_edit(request):
                             dbsession.add(attribute_key)
                             dis.attribute_keys.append(attribute_key)
                             for item in dis.items:
-                                 item.attributes.append(DataItemAttribute(key_id=attribute_key.id))
+                                item.attributes.append(DataItemAttribute(key_id=attribute_key.id))
                         else:
                             attribute_key = dbsession.query(DataSetAttributeKey).filter(DataSetAttributeKey.id==attribute_key_param['id']).first()
                             attribute_key.key = attribute_key_param['key']
@@ -265,7 +258,6 @@ def dataset_upload(request):
                 except csv.Error:
                     raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
                 dbsession.flush()
-                did = dis.id
             request.session.flash('Data uploaded', 'info')
             raise HTTPFound(request.route_url('data.list', sid=request.matchdict['sid']))
         except api.Invalid as e:
@@ -443,42 +435,41 @@ def permset_new(request):
     user = current_user(request)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     if request.method == 'POST':
-         try:
-             check_csrf_token(request, request.POST)
-             validator = NewPermutationSetSchema()
-             params = validator.to_python(request.POST)
-             with transaction.manager:
-                 permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
-                 permset.name = params['name']
-                 permset.set_params(params)
-                 dbsession.add(survey)
-                 survey.data_sets.append(permset)
-                 dbsession.add(user)
-                 user.data_sets.append(permset)
-                 dsid = permset.id
-                 permset.applies_to = ",".join(params['qsheet'])
-                 for id in params['qsheet']:
-                     newqs = dbsession.query(QSheet).filter(QSheet.id==id).first()
-                     dbsession.add(newqs)
-                     newqs.dataset_id = permset.id
-             raise HTTPFound(request.route_url('data.list', sid=request.matchdict['sid']))
-         except api.Invalid as e:
-             e.params = request.POST
-             params = {}
-             params['tasks'] = ""
-             params['tasks_dataset'] = 0
-             params['interfaces_dataset'] = 0
-             params['interfaces'] = ""
-             params['task_worb'] = 'w'
-             params['interface_worb'] = 'w'
-             params['task_disallow'] = ' '
-             params['interface_disallow'] = ' '
-             params['task_order'] = ' '
-             params['interface_order'] = ' '
-             return {'survey': survey,
-                     'params': params,
-                     'permset': permset,
-                     'pcount': 0}
+        try:
+            check_csrf_token(request, request.POST)
+            validator = NewPermutationSetSchema()
+            params = validator.to_python(request.POST)
+            with transaction.manager:
+                permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
+                permset.name = params['name']
+                permset.set_params(params)
+                dbsession.add(survey)
+                survey.data_sets.append(permset)
+                dbsession.add(user)
+                user.data_sets.append(permset)
+                permset.applies_to = ",".join(params['qsheet'])
+                for id in params['qsheet']:
+                    newqs = dbsession.query(QSheet).filter(QSheet.id==id).first()
+                    dbsession.add(newqs)
+                    newqs.dataset_id = permset.id
+            raise HTTPFound(request.route_url('data.list', sid=request.matchdict['sid']))
+        except api.Invalid as e:
+            e.params = request.POST
+            params = {}
+            params['tasks'] = ""
+            params['tasks_dataset'] = 0
+            params['interfaces_dataset'] = 0
+            params['interfaces'] = ""
+            params['task_worb'] = 'w'
+            params['interface_worb'] = 'w'
+            params['task_disallow'] = ' '
+            params['interface_disallow'] = ' '
+            params['task_order'] = ' '
+            params['interface_order'] = ' '
+            return {'survey': survey,
+                    'params': params,
+                    'permset': permset,
+                    'pcount': 0}
     else:
         params = {}
         params['name'] = ""
@@ -506,81 +497,75 @@ def permset_edit(request):
     user = current_user(request)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
-    params = permset.get_params()
-    pcount = len(permset.items)
     if request.method == 'POST':
         try:
             check_csrf_token(request, request.POST)
-            validator = NewPermutationSetSchema()
+            validator = PermutationSetSchema()
             params = validator.to_python(request.POST)
             with transaction.manager:
-                dbsession.add(survey)
-                dbsession.add(user)
+                dbsession.add(permset)
+
                 permset.name = params['name']
-                permset.set_params(params)
-                oldqs = dbsession.query(QSheet).filter(QSheet.dataset_id==permset.id).all()
-                for oq in oldqs:
-                    dbsession.add(oq)
-                    oq.dataset_id = None
-                dbsession.flush()
-                permset.applies_to = ",".join(params['qsheet'])
-                for id in params['qsheet']:
-                    newqs = dbsession.query(QSheet).filter(QSheet.id==id).first()
-                    dbsession.add(newqs)
-                    newqs.dataset_id = permset.id
+                permset.items = []
+                permset.tasks.object_id = params['tasks']
+                permset.tasks.data = {'mode': params['tasks_mode']}
+                permset.interfaces.object_id = params['interfaces']
+                permset.interfaces.data = {'mode': params['interfaces_mode']}
+                
+                task_items = [d.attributes[0].value for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['tasks'])]
+                interface_items = [d.attributes[0].value for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['interfaces'])]
+                permutations = []
+                if params['tasks_mode'] == 'within':
+                    if params['interfaces_mode'] == 'within':
+                        permutations = itertools.permutations(itertools.product(task_items, interface_items))
+                    else:
+                        for interface in interface_items:
+                            permutations.extend(itertools.permutations(itertools.product(task_items, [interface])))
+                else:
+                    if params['interfaces_mode'] == 'within':
+                        for task in task_items:
+                            permutations.extend(itertools.permutations(itertools.product([task], interface_items)))
+                    else:
+                        permutations = itertools.product(task_items, interface_items)
+                for comb in permutations:
+                    di = DataItem()
+                    di.attributes.append(DataItemAttribute(key_id=permset.attribute_keys[0].id, value=json.dumps(comb)))
+                    permset.items.append(di)
+            dbsession.add(permset)
+            dbsession.add(survey)
             request.session.flash('PermutationSet updated', 'info')
             raise HTTPFound(request.route_url('data.list', sid=request.matchdict['sid']))
         except api.Invalid as e:
             e.params = request.POST
             return {'survey': survey,
-                    'permset': permset,
-                    'params': params,
-                    'pcount': pcount}
+                    'permset': permset}
     else:
         return {'survey': survey,
-                'permset': permset,
-                'params': params,
-                'pcount': pcount}
+                'permset': permset}
 
 @view_config(route_name='data.pcount')
-@render({'text/html': 'backend/data/taskperms.html'})
+@render({'application/json': True})
 def calculate_pcount(request):
-    dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
-    taskitems = dbsession.query(DataItem).filter(DataItem.dataset_id==request.params['tasks_dataset']).all()
-    tasks = ''
-    for ti in taskitems:
-        tasks = tasks + ti.attributes[0].value + ','
-    tasks = re.sub(',$', '', tasks)
-    interfaceitems = dbsession.query(DataItem).filter(DataItem.dataset_id==request.params['interfaces_dataset']).all()
-    interfaces = ''
-    for ii in interfaceitems:
-        interfaces = interfaces + ii.attributes[0].value + ','
-    interfaces = re.sub(',$', '', interfaces)
-    pcount = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), False)
-    # If the estimated count is greater than 2000 we don't bother to calculate the actual permutations. The estimated count is usually 
-    # accurate but can go wrong when there are ordering constraints. The actual generation of permutations is accurate.
-    if pcount == 0:
-        pcount = str(pcount)
-    elif pcount > 2000:
-        pcount = '>2000'
-    else:
-        permutations = taskperms.getPermutations(request.params['worb'], tasks, interfaces, request.params['tcon'].split(','), request.params['icon'].split(','), request.params['tord'].split(','), request.params['iord'].split(','), True)
-        pcount = str(len(permutations))
-    params = {}
-    params['task_worb'] = request.params['worb'][0]
-    params['interface_worb'] = request.params['worb'][1]
-    params['task_disallow'] = request.params['tcon']
-    params['interface_disallow'] = request.params['icon']
-    params['task_order'] = request.params['tord']
-    params['interface_order'] = request.params['iord']
-    params['tasks'] = tasks
-    params['tasks_dataset'] = request.params['tasks_dataset']
-    params['interfaces'] = interfaces
-    params['interfaces_dataset'] = request.params['interfaces_dataset']
-    return {'survey': survey,
-            'params': params,
-            'permset': permset,
-            'pcount': pcount}
-
+    try:
+        dbsession = DBSession()
+        validator = PermutationSetSchema()
+        params = validator.to_python(request.POST)
+        task_items = [d.attributes[0].value for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['tasks'])]
+        interface_items = [d.attributes[0].value for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['interfaces'])]
+        permutations = []
+        if params['tasks_mode'] == 'within':
+            if params['interfaces_mode'] == 'within':
+                permutations = itertools.permutations(itertools.product(task_items, interface_items))
+            else:
+                for interface in interface_items:
+                    permutations.extend(itertools.permutations(itertools.product(task_items, [interface])))
+        else:
+            if params['interfaces_mode'] == 'within':
+                for task in task_items:
+                    permutations.extend(itertools.permutations(itertools.product([task], interface_items)))
+            else:
+                permutations = itertools.product(task_items, interface_items)
+        return {'count': len(list(permutations))}
+    except api.Invalid:
+        return {'count': 'Could not determine the required number of participants'}
+    
