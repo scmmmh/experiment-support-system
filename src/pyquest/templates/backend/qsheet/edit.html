@@ -294,7 +294,7 @@
       <ul>
         <li><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" class="button">Preview</a></li>
         <li><a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}" class="button">Edit Source</a></li>
-        <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data', sid=survey.id, qsid=qsheet.id)}" class="button">Data</a></li>
+        <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.qsheet.data', sid=survey.id, qsid=qsheet.id)}" class="button">Data</a></li>
       </ul>
     </nav>
     <article>

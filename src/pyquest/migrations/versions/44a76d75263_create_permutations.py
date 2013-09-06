@@ -28,12 +28,13 @@ def upgrade():
     for dataset in op.get_bind().execute(ds.select()):
         op.get_bind().execute(ds.update().values({'type':'dataset'}))
 
-    op.add_column('participants', Column('permutation_id', Integer))
-    op.add_column('participants', Column('permutation_qsheet_id',Unicode(20)))
-
+    op.create_table('data_set_relations',
+                    sa.Column('id', sa.Integer, primary_key=True),
+                    sa.Column('subject_id', sa.ForeignKey('data_sets.id', name='data_set_relations_subject_id_fk')),
+                    sa.Column('object_id', sa.ForeignKey('data_sets.id', name='data_set_relations_object_id_fk')),
+                    sa.Column('rel', sa.Unicode(255)),
+                    sa.Column('_data', sa.UnicodeText()))
 
 def downgrade():
+    op.drop_table('data_set_relations')
     op.drop_column('data_sets', 'type')
-
-    op.drop_column('participants', 'permutation_id')
-    op.drop_column('participants', 'permutation_qsheet_id')

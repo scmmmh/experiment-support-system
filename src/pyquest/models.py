@@ -24,7 +24,6 @@ from uuid import uuid1
 
 from pyquest.helpers import as_data_type
 from pyquest.util import convert_type
-from pyquest import taskperms
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
@@ -199,10 +198,12 @@ class Survey(Base):
                           cascade='all, delete, delete-orphan')
     
     data_sets = relationship('DataSet', 
-                             backref='survey',
                              primaryjoin="and_(Survey.id==DataSet.survey_id, DataSet.type=='dataset')",
                              cascade='all, delete, delete-orphan')
 
+    permutation_sets = relationship('PermutationSet', 
+                                    primaryjoin="and_(Survey.id==PermutationSet.survey_id, PermutationSet.type=='permutationset')",
+                                    cascade='all, delete, delete-orphan')
 
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
@@ -584,11 +585,13 @@ class DataSet(Base):
     survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
     type = Column(Unicode(20))
 
+    survey = relationship('Survey')
     items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
     qsheets = relationship('QSheet', backref='data_set')
     owner = relationship('User', backref='data_sets')
     attribute_keys = relationship('DataSetAttributeKey', 
-                                  backref='dataset', order_by='DataSetAttributeKey.order',
+                                  backref='dataset',
+                                  order_by='DataSetAttributeKey.order',
                                   cascade='all, delete, delete-orphan')
 
     __mapper_args__ = {'polymorphic_on': type,
@@ -631,8 +634,8 @@ class DataSetRelation(Base):
     __tablename__ = 'data_set_relations'
     
     id = Column(Integer, primary_key=True)
-    subject_id = Column(ForeignKey(DataSet.id))
-    object_id = Column(ForeignKey(DataSet.id))
+    subject_id = Column(ForeignKey(DataSet.id, name='data_set_relations_subject_id_fk'))
+    object_id = Column(ForeignKey(DataSet.id, name='data_set_relations_object_id_fk'))
     rel = Column(Unicode(255))
     _data = Column(UnicodeText())
     
@@ -737,8 +740,6 @@ class Participant(Base):
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
-    permutation_id = Column(Integer)
-    permutation_qsheet_id = Column(Unicode(20))
 
     answers = relationship('Answer',
                            backref='participant',

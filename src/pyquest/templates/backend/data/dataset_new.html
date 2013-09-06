@@ -2,17 +2,17 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>New Permutation Set</title>
+    <title>New Data Set</title>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New Permutation Set', {'href':''})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}), ('New Data Set', {'href': r.current_route_url()})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
     <article>
       <hgroup>
-        <h1>New Permutation Set</h1>
+        <h1>New Data Set</h1>
       </hgroup>
-      <form action="${r.route_url('data.new.permset', sid=survey.id)}" method="post">
+      <form action="${r.route_url('data.new', sid=survey.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt>Name</dt>

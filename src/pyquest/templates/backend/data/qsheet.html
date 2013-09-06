@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${h.text.title(qsheet.name)} - Attached data</title>
+    <script type="text/javascript">
+      $(document).ready(function() {
+      });
+    </script>
+  </head>
+  <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}), (qsheet.title, {'href': r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}), ('Attached data', {'href': r.route_url('survey.qsheet.data', sid=survey.id, qsid=qsheet.id)})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('survey', survey, r)}
+    <nav class="toolbar">
+      <ul>
+        <li py:if="not qsheet.data_set"><a href="${r.route_url('survey.qsheet.data.attach', sid=survey.id, qsid=qsheet.id)}" class="button">Attach Data</a></li>
+        <li py:if="qsheet.data_set"><a href="${r.route_url('survey.qsheet.data.detach', sid=survey.id, qsid=qsheet.id)}" class="button post-submit" data-confirm="Please confirm that you wish to detach the data set &quot;${h.text.title(qsheet.data_set.name)}&quot;.">Detach Data</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>${h.text.title(qsheet.name)} - Attached data</h1>
+      </hgroup>
+      <p py:if="not qsheet.data_set">There is currently no data attached to this page. <a href="${r.route_url('survey.qsheet.data.attach', sid=survey.id, qsid=qsheet.id)}" class="button">Attach some data now</a></p>
+      <dl py:if="qsheet.data_set">
+        <py:if test="qsheet.data_set.type=='dataset'">
+          <dt>Attached Data-set</dt>
+          <dd><a href="${r.route_url('data.view', sid=survey.id, dsid=qsheet.data_set.id)}">${h.text.title(qsheet.data_set.name)}</a></dd>
+          <dt>Total number of data items</dt>
+          <dd>${len(qsheet.data_set.items)}</dd>
+        </py:if>
+        <py:if test="qsheet.data_set.type=='permutationset'">
+          <dt>Attached Permutation</dt>
+          <dd><a href="${r.route_url('data.view', sid=survey.id, dsid=qsheet.data_set.id)}">${h.text.title(qsheet.data_set.name)}</a></dd>
+          <dt>Total number of permutations</dt>
+          <dd>${len(qsheet.data_set.items)}</dd>
+        </py:if>
+      </dl>
+    </article>
+  </body>
+</html>

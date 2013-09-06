@@ -18,7 +18,6 @@ from pywebtools.renderer import render
 from sqlalchemy import and_, desc
 
 from pyquest import helpers
-from pyquest import taskperms
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,

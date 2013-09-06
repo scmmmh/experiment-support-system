@@ -18,7 +18,6 @@ from pyquest.validation import XmlValidator
 from pyquest.views.admin.question_types import load_q_types_from_xml
 from pyquest.views.backend.qsheet import load_questions_from_xml
 from pyquest.views.backend.survey import load_survey_from_xml
-from pyquest import taskperms
 
 def init(subparsers):
     parser = subparsers.add_parser('initialise-database', help='Initialise the database')
@@ -180,7 +179,7 @@ def load_test_data(args):
         qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
-        tasksds = DataSet(name="two_tasks", owned_by=user.id, survey_id=survey.id)
+        tasksds = DataSet(name="Two tasks", owned_by=user.id, survey_id=survey.id)
         tasksds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
         survey.data_sets.append(tasksds)
         dbsession.flush()
@@ -193,7 +192,7 @@ def load_test_data(args):
         taskitem.attributes.append(DataItemAttribute(value="B", key_id=ak.id))
         tasksds.items.append(taskitem)
 
-        interfacesds = DataSet(name="two_interfaces", owned_by=user.id, survey_id=survey.id)
+        interfacesds = DataSet(name="Two interfaces", owned_by=user.id, survey_id=survey.id)
         interfacesds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
         survey.data_sets.append(interfacesds)
         dbsession.flush()
@@ -206,8 +205,7 @@ def load_test_data(args):
         interfaceitem.attributes.append(DataItemAttribute(value="2", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
 
-        params = {'task_worb':'w', 'interface_worb':'w', 'task_disallow':' ', 'interface_disallow':' ', 'task_order':' ', 'interface_order':' ', 'tasks_dataset': tasksds.id, 'interfaces_dataset': interfacesds.id}
-        np = PermutationSet(name="test permset", owned_by=user.id, survey_id=survey.id)
+        np = PermutationSet(name="Permutation", owned_by=user.id, survey_id=survey.id)
         dbsession.add(DataSetRelation(subject=np, rel='tasks', object=tasksds, _data=json.dumps({'mode': 'within'})))
         dbsession.add(DataSetRelation(subject=np, rel='interfaces', object=interfacesds, _data=json.dumps({'mode': 'within'})))
         np.attribute_keys.append(DataSetAttributeKey(key='permutation', order=0))
@@ -215,7 +213,7 @@ def load_test_data(args):
         user.data_sets.append(np)
         np.qsheets.append(qsheet2)
 
-        tasksds = DataSet(name="three_tasks", owned_by=user.id, survey_id=survey.id)
+        tasksds = DataSet(name="Three tasks", owned_by=user.id, survey_id=survey.id)
         tasksds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
         survey.data_sets.append(tasksds)
         dbsession.flush()
@@ -232,7 +230,7 @@ def load_test_data(args):
         taskitem.attributes.append(DataItemAttribute(value="C", key_id=ak.id))
         tasksds.items.append(taskitem)
 
-        interfacesds = DataSet(name="three_interfaces", owned_by=user.id, survey_id=survey.id)
+        interfacesds = DataSet(name="Three interfaces", owned_by=user.id, survey_id=survey.id)
         interfacesds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
         survey.data_sets.append(interfacesds)
         dbsession.flush()
@@ -249,7 +247,7 @@ def load_test_data(args):
         interfaceitem.attributes.append(DataItemAttribute(value="3", key_id=ak.id))
         interfacesds.items.append(interfaceitem)
 
-        tasksds = DataSet(name="four_tasks", owned_by=user.id, survey_id=survey.id)
+        tasksds = DataSet(name="Four tasks", owned_by=user.id, survey_id=survey.id)
         tasksds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
         survey.data_sets.append(tasksds)
         dbsession.flush()
@@ -270,7 +268,7 @@ def load_test_data(args):
         taskitem.attributes.append(DataItemAttribute(value="D", key_id=ak.id))
         tasksds.items.append(taskitem)
 
-        interfacesds = DataSet(name="four_interfaces", owned_by=user.id, survey_id=survey.id)
+        interfacesds = DataSet(name="Four interfaces", owned_by=user.id, survey_id=survey.id)
         interfacesds.attribute_keys.append(DataSetAttributeKey(key='name', order=0))
         survey.data_sets.append(interfacesds)
         dbsession.flush()

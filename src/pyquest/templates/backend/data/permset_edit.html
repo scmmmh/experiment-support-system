@@ -3,11 +3,10 @@
   <xi:include href="../../layout/backend.html"/>
   <head>
     <title>Edit Permutation Set</title>
-    <script type="text/javascript" src="${r.static_url('pyquest:static/js/taskperms.js')}"></script>
     <script type="text/javascript">
     function update_counts() {
     	$('#participants_count').html('Calculating...');
-    	$.ajax('${r.route_url('data.pcount', sid=survey.id)}', {
+    	$.ajax('${r.route_url('data.edit.permset.count', sid=survey.id)}', {
     		data: $('form').serialize(),
     		type: 'POST'
     	}).success(function(data) {
@@ -23,7 +22,7 @@
     </script>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New Permutation Set', {'href':''})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}), (h.text.title(permset.name), {'href': r.route_url('data.view', sid=survey.id, dsid=permset.id)}), ('Edit', {'href': r.current_route_url()})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
     <article>
@@ -38,12 +37,12 @@
           <dt>Tasks</dt>
           <dd>
             ${h.form.select('tasks_mode', permset.tasks.data['mode'], [('between', 'Between'), ('within', 'Within')], e)}
-            ${h.form.select('tasks', permset.tasks.object_id, [(d.id, d.name) for d in survey.data_sets], e)}
+            ${h.form.select('tasks', permset.tasks.object_id, [(-1, '--- Please select a data set of tasks ---')] + [(d.id, d.name) for d in survey.data_sets], e)}
           </dd>
           <dt>Interfaces</dt>
           <dd>
             ${h.form.select('interfaces_mode', permset.interfaces.data['mode'], [('between', 'Between'), ('within', 'Within')], e)}
-            ${h.form.select('interfaces', permset.interfaces.object_id, [(d.id, d.name) for d in survey.data_sets], e)}
+            ${h.form.select('interfaces', permset.interfaces.object_id, [(-1, '--- Please select a data set of tasks ---')] + [(d.id, d.name) for d in survey.data_sets], e)}
           </dd>
           <dt>Participants required</dt>
           <dd id="participants_count"></dd>
