@@ -242,11 +242,12 @@ class QSheet(Base):
                               backref='qsheet',
                               cascade='all, delete, delete-orphan')
     next = relationship('QSheetTransition',
-                        backref='source',
+                        backref=backref('source', uselist=False),
                         primaryjoin='QSheet.id==QSheetTransition.source_id',
+                        order_by='QSheetTransition.order',
                         cascade='all, delete, delete-orphan')
     prev = relationship('QSheetTransition',
-                        backref='target',
+                        backref=backref('target', uselist=False),
                         primaryjoin='QSheet.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
     
@@ -534,6 +535,20 @@ class QSheetTransition(Base):
     id = Column(Integer, primary_key=True)
     source_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_source_fk'))
     target_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_target_fk'))
+    order = Column(Integer, default=0)
+    _conditions = Column(UnicodeText)
+    _action = Column(UnicodeText)
+    
+    def set_conditions(self, conditions):
+        self._conditions = json.dumps(conditions)
+    
+    def get_conditions(self):
+        if self._conditions:
+            return json.loads(self._conditions)
+        else:
+            return None
+    
+    conditions = property(get_conditions, set_conditions)
 
 class TransitionCondition(Base):
 
@@ -545,7 +560,9 @@ class TransitionCondition(Base):
     expected_answer = Column(Unicode(255))
     subquestion_name = Column(Unicode(255))
 
-    transition = relationship("QSheetTransition", backref=backref('condition', uselist=False, cascade='all,delete-orphan'))
+    transition = relationship("QSheetTransition",
+                              backref=backref('condition',
+                                              cascade='all,delete-orphan'))
 
     def evaluate(self, dbsession, participant):
         """ Checks whether this TransitionCondition has been fulfilled. If the question is a sub-question then it looks only for the 

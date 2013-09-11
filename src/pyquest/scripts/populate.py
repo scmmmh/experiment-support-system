@@ -108,6 +108,12 @@ def load_test_data(args):
         notification = Notification(ntype='pcount', value=10, recipient=user.email)
         survey.notifications.append(notification)
 
+        # Sample Survey 3
+        element = XmlValidator().to_python(resource_stream('pyquest', 'scripts/templates/sample_survey_3.xml').read())
+        survey = load_survey_from_xml(user, dbsession, element)
+        dbsession.add(survey)
+        
+
         # SURVEY 4
         survey = Survey(title='Multi-task test survey', status='develop', styles='', scripts='')
         # PAGE 1

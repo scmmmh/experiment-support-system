@@ -17,15 +17,6 @@
         <xs:attribute name="title" type="xs:string" use="required"/>
     </xs:complexType>
     
-    <xs:complexType name="QSheetTransition">
-        <xs:sequence/>
-        <xs:attribute name="from" type="xs:string" use="required"/>
-        <xs:attribute name="to" type="xs:string"/>
-        <xs:attribute name="question_id" type="xs:string"/>
-        <xs:attribute name="expected_answer" type="xs:string"/>
-        <xs:attribute name="subquestion_name" type="xs:string"/>
-    </xs:complexType>
-
     
     <xs:complexType name="QSheet">
         <xs:sequence>
@@ -96,5 +87,26 @@
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
         <xs:attribute name="title" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="QSheetTransition">
+        <xs:sequence>
+            <xs:element name="condition" type="qs:TransitionCondition" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="from" type="xs:string" use="required"/>
+        <xs:attribute name="to" type="xs:string"/>
+        <xs:attribute name="order" type="xs:integer"/>
+    </xs:complexType>
+    
+    <xs:complexType name="TransitionCondition">
+        <xs:sequence>
+            <xs:element name="answer" type="qs:ConditionAnswer" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="ConditionAnswer">
+        <xs:sequence></xs:sequence>
+        <xs:attribute name="question" type="xs:string" use="required"/>
+        <xs:attribute name="answer" type="xs:string" use="required"/>
     </xs:complexType>
 </xs:schema>

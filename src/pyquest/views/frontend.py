@@ -13,7 +13,7 @@ from formencode import api
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.renderer import render
-from random import sample, shuffle, random
+from random import sample, shuffle
 from sqlalchemy import and_
 from sqlalchemy.sql.expression import not_
 
@@ -22,7 +22,6 @@ from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
     DataItemCount, Answer, AnswerValue, Question, TransitionCondition, DataSet, DataSetAttributeKey, DataItemAttribute, PermutationSet)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
 from pyquest.helpers.qsheet import transition_sorter
-import json
 
 class ParticipantManager(object):
     
@@ -30,7 +29,7 @@ class ParticipantManager(object):
         session = SessionObject(request.environ, **coerce_session_params({'type':'cookie',
                                                                         'cookie_expires': 7776000,
                                                                         'key': 'survey.%s' % (survey.external_id),
-                                                                        'encrypt_key': 'thisisatest',
+                                                                        'encrypt_key': 'thisisatest', # TODO: Change
                                                                         'validate_key': 'testing123',
                                                                         'auto': True}))
         self._request = request
@@ -44,20 +43,21 @@ class ParticipantManager(object):
                 self._participant = Participant(survey_id=survey.id)
                 dbsession.add(self._participant)
                 dbsession.flush()
-                ps = dbsession.query(PermutationSet).filter(PermutationSet.survey_id==survey.id).first()
-                pds = ps.assign_next_permutation(self._participant)
+                #ps = dbsession.query(PermutationSet).filter(PermutationSet.survey_id==survey.id).first()
+                #pds = ps.assign_next_permutation(self._participant)
                 dbsession.flush()
             dbsession.add(self._participant)
             session['participant_id'] = self._participant.id
             session.persist()
             request.response.headerlist.append(('Set-Cookie', session.__dict__['_headers']['cookie_out']))
         else:
-            if request.url.endswith('finished') and self._participant.permutation_id:
-                with transaction.manager:
-                    pds = dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation_id).first()
-                    dbsession.delete(pds)
-                    self._participant.permutation_id = None
-                    dbsession.flush()
+            pass
+            #if request.url.endswith('finished') and self._participant.permutation_id:
+            #    with transaction.manager:
+            #        #pds = dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation_id).first()
+            #        #dbsession.delete(pds)
+            #        #self._participant.permutation_id = None
+            #        dbsession.flush()
 
     def state(self):
         self._dbsession.add(self._participant)
@@ -93,18 +93,18 @@ class ParticipantManager(object):
                 return (t[0], 0)
         state = self.state()
         qsheet = self.current_qsheet()
-        self.data_set_in_use = None
-        pds = None
-        if self._participant.permutation_id and str(qsheet.id) in self._participant.permutation_qsheet_id.split(','):
-            pds = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation_id).first()
-        if pds:
-            self.data_set_in_use = pds
-            do_sample = False
-        else:
-            self.data_set_in_use = qsheet.data_set
-            do_sample = True
-        if self.data_set_in_use:
-            dsid = unicode(self.data_set_in_use.id)
+        #self.data_set_in_use = None
+        #pds = None
+        #if self._participant.permutation_id and str(qsheet.id) in self._participant.permutation_qsheet_id.split(','):
+        #    pds = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation_id).first()
+        #if pds:
+        #    self.data_set_in_use = pds
+        #    do_sample = False
+        #else:
+        #    self.data_set_in_use = qsheet.data_set
+        #    do_sample = True
+        if qsheet.data_set:
+            dsid = unicode(qsheet.data_set.id)
             if dsid not in state['data-items']:
                 state['data-items'][dsid] = {'seen': []}
             if 'current' not in state['data-items'][dsid]:
@@ -112,7 +112,7 @@ class ParticipantManager(object):
                 control_count = int(qsheet.attr_value('control-items', default='0'))
                 source_items = map(data_item_transform,
                                    self._dbsession.query(DataItem, DataItemCount).\
-                                       outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==self.data_set_in_use.id,
+                                       outerjoin(DataItemCount).filter(and_(DataItem.dataset_id==qsheet.data_set.id,
                                                                             DataItem.control==False,
                                                                             not_(DataItem.id.in_(self._dbsession.query(Answer.data_item_id).join(Question, QSheet).filter(and_(Answer.participant_id==self._participant.id,
                                                                                                                                                                                QSheet.id==qsheet.id)))))
@@ -128,17 +128,17 @@ class ParticipantManager(object):
                         threshold_items = filter(lambda t: t[1] == threshold, source_items)
                         required_count = item_count - len(data_items)
                         if required_count < len(threshold_items):
-                            if do_sample:
-                                data_items.extend(map(lambda t: t[0].id, sample(threshold_items, required_count)))
-                            else:
-                                data_items.extend(map(lambda t: t[0].id, threshold_items[:required_count]))
+                            #if do_sample:
+                            data_items.extend(map(lambda t: t[0].id, sample(threshold_items, required_count)))
+                            #else:
+                            #    data_items.extend(map(lambda t: t[0].id, threshold_items[:required_count]))
                         else:
                             data_items.extend(map(lambda t: t[0].id, threshold_items))
                         threshold = threshold + 1
                 if len(source_items) < item_count:
                     return None
                 control_items = map(lambda d: d.id,
-                                    self._dbsession.query(DataItem).filter(and_(DataItem.dataset_id==self.data_set_in_use.id,
+                                    self._dbsession.query(DataItem).filter(and_(DataItem.dataset_id==qsheet.data_set.id,
                                                                           DataItem.control==True)).all())
                 if len(control_items) < control_count:
                     data_items.extend(control_items)
@@ -163,13 +163,15 @@ class ParticipantManager(object):
     def next_qsheet(self, params):
         next_qs = None
         transition = None
-        for transition in sorted(self.current_qsheet().next, key=transition_sorter, reverse=True):
-            condition = self._dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
-            if (condition == None or condition.evaluate(self._dbsession, self.participant()) == True):
-                transition = transition
-                if transition.target:
-                    next_qs = transition.target
-                    break
+        transition = self.current_qsheet().next[0]
+        next_qs = transition.target
+        #for transition in sorted(self.current_qsheet().next, key=transition_sorter, reverse=True):
+        #    condition = self._dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
+        #    if (condition == None or condition.evaluate(self._dbsession, self.participant()) == True):
+        #        transition = transition
+        #        if transition.target:
+        #            next_qs = transition.target
+        #            break
         action = 'next'
         if params['action_'] == 'More Questions':
             action = 'more'
@@ -191,8 +193,8 @@ class ParticipantManager(object):
             elif transition:
                 state['current-qsheet'] = '_finished'
         elif action == 'more':
-            if self.data_set_in_use:
-                dsid = unicode(self.data_set_in_use.id)
+            if self.current_qsheet().data_set:
+                dsid = unicode(self.current_qsheet().data_set.id)
                 if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
                     del state['data-items'][dsid]['current']
         self._participant.set_state(state)
@@ -219,8 +221,8 @@ class ParticipantManager(object):
         for answer in self.participant().answers:
             if (not qsheet or answer.question.qsheet_id == qsheet.id) and answer.data_item and answer.data_item.control:
                 total = total + 1
-                if answer.values[0].value == answer.data_item.control_answers[0].answer:
-                    correct = correct + 1
+                #if answer.values[0].value == answer.data_item.control_answers[0].answer: TODO: Fix control answers
+                #    correct = correct + 1
         if total == 0:
             return None
         else:

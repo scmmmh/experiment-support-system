@@ -204,8 +204,23 @@ def load_qsheet_from_xml(survey, doc, dbsession):
             load_questions_from_xml(qsheet, item, dbsession, cleanup=False)
     return qsheet
 
-def load_transition_from_xml(qsheets, transition, dbsession):
-    to_attr = None
+def load_transition_from_xml(qsheets, doc, dbsession):
+    if doc.attrib['from'] in qsheets:
+        transition = QSheetTransition(source=qsheets[doc.attrib['from']])
+        dbsession.add(transition)
+        if 'to' in doc.attrib and doc.attrib['to'] in qsheets:
+            transition.target = qsheets[doc.attrib['to']]
+        conditions = []
+        for child in doc:
+            if child.tag == '{http://paths.sheffield.ac.uk/pyquest}condition':
+                for condition in child:
+                    if condition.tag == '{http://paths.sheffield.ac.uk/pyquest}answer':
+                        conditions.append({'type': 'answer',
+                                           'question': condition.attrib['question'],
+                                           'answer': condition.attrib['answer']})
+        if conditions:
+            transition.conditions = conditions
+    """to_attr = None
     question_id = None
     expected_answer  = None
     subquestion_name = None
@@ -225,7 +240,7 @@ def load_transition_from_xml(qsheets, transition, dbsession):
         expected_answer = transition.attrib['expected_answer']
         new_transition.condition = TransitionCondition(transition_id=new_transition.id, question_id=question_id, expected_answer=expected_answer, subquestion_name=subquestion_name)
 
-    dbsession.add(new_transition)
+    dbsession.add(new_transition)"""
 
 @view_config(route_name='survey.qsheet.import')
 @render({'text/html': 'backend/qsheet/import.html'})

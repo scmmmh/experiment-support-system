@@ -328,10 +328,32 @@
             <dd>${h.form.number_field('control_items', qsheet.attr_value('control-items', default='0'), e, class_='role-qsheet-control-items')}</dd>
             <dt>Show Question Numbers</dt>
             <dd>${h.form.select('show_question_numbers', qsheet.attr_value('show-question-numbers', default='yes'), [('yes', 'Yes'), ('no', 'No')], e, class_='role-qsheet-show-question-numbers')}</dd>
-	    <dt>Transition</dt>
-	    <py:with vars="source=False">
-	    <dd class="transition"><xi:include href="transitions.html"/></dd>
-	    </py:with>
+            <dt>Transitions</dt>
+            <dd class="transition">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Next Page</th>
+                    <th>Condition</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr py:for="transition in qsheet.next">
+                    <td>${h.form.select('transition.%i.target' % (transition.id), transition.target.id if transition.target else -1, [(-1, '--- Finish ---')] + [(q.id, h.text.title(q.name)) for q in survey.qsheets], e)}</td>
+                    <td>
+                      <ul class="no-symbol no-margin">
+                        <li py:for="condition in transition.conditions">
+                          ${h.form.select('transition.%i.conditions' % (transition.id), condition['type'], [('none', 'No Condition'), ('answer', 'Participant answer')], e)}
+                          <span class="role-condition-answer">${h.form.select('transition)</span>
+                        </li>
+                      </ul>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>
             <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>
             <dt class="role-js-edit-toggle">Javascript</dt>
