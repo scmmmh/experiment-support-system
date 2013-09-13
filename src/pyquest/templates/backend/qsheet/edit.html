@@ -145,27 +145,24 @@
             return false;
         });
     }
-    function set_transition_buttons(){
-        $('.add-transition-condition').click(function() {
-            $.ajax('${r.route_url('survey.qsheet.edit.add_condition', sid=survey.id, qsid=qsheet.id)}', {
-        			success: function(response) {
-            $('dd.transition').html(response);
-            set_transition_buttons();
-}
-});
-        return false;
-        });
-        $('.delete-transition-condition').click(function() {
-            $.ajax('${r.route_url('survey.qsheet.edit.delete_condition', sid=survey.id, qsid=qsheet.id)}', {
-        			success: function(response) {
-            $('dd.transition').html(response);
-            set_transition_buttons();
-}
-});
-        return false;
-        });
+    function transition_condition_change() {
+        var select = $(this);
+        var value = select.val();
+        if(value == 'none') {
+        	select.parent().find('.role-condition-answer').hide();
+        } else if(value == 'answer') {
+        	select.parent().find('.role-condition-answer').show();
+        }
     }
-
+    function transition_remove() {
+    	var link = $(this);
+    	$.ajax(link.attr('href'), {
+    		type: 'POST'
+    	}).success(function() {
+    		link.parent().parent().remove();
+    	});
+    	return false;
+    }
 
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
@@ -282,7 +279,19 @@
         	fix_control_positions();
         });
         fix_control_positions();
-        set_transition_buttons();
+        $('.role-condition-type').change(transition_condition_change);
+        $('.action-add-transition').click(function() {
+        	$.ajax($(this).attr('href'), {
+        		'type': 'POST'
+        	}).success(function (data) {
+        		data = $(data);
+        		data.find('.action-remove-transition').click(transition_remove);
+                data.find('.role-condition-type').change(transition_condition_change);
+        		$('.transitions tbody').append(data);
+        	});
+        	return false;
+        });
+        $('.action-remove-transition').click(transition_remove);
     });
     </script>
   </head>
@@ -329,7 +338,7 @@
             <dt>Show Question Numbers</dt>
             <dd>${h.form.select('show_question_numbers', qsheet.attr_value('show-question-numbers', default='yes'), [('yes', 'Yes'), ('no', 'No')], e, class_='role-qsheet-show-question-numbers')}</dd>
             <dt>Transitions</dt>
-            <dd class="transition">
+            <dd class="transitions">
               <table>
                 <thead>
                   <tr>
@@ -339,19 +348,17 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr py:for="transition in qsheet.next">
-                    <td>${h.form.select('transition.%i.target' % (transition.id), transition.target.id if transition.target else -1, [(-1, '--- Finish ---')] + [(q.id, h.text.title(q.name)) for q in survey.qsheets], e)}</td>
-                    <td>
-                      <ul class="no-symbol no-margin">
-                        <li py:for="condition in transition.conditions">
-                          ${h.form.select('transition.%i.conditions' % (transition.id), condition['type'], [('none', 'No Condition'), ('answer', 'Participant answer')], e)}
-                          <span class="role-condition-answer">${h.form.select('transition)</span>
-                        </li>
-                      </ul>
-                    </td>
-                    <td></td>
-                  </tr>
+                  <py:for each="transition in qsheet.next">
+                    <xi:include href="transition.html"/>
+                  </py:for>
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td><a href="${r.route_url('survey.qsheet.edit.add_transition', sid=survey.id, qsid=qsheet.id)}" title="Add a row" class="button action-add-transition" ><span class="ui-icon ui-icon-plusthick"></span></a></td>
+                  </tr>
+                </tfoot>
               </table>
             </dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>

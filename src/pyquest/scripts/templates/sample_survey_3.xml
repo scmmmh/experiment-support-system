@@ -1,4 +1,4 @@
-<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest" title="A test survey">
+<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest" title="A survey with a choice point">
   <pq:summary/>
   <pq:language>en</pq:language>
   <pq:styles/>
@@ -28,11 +28,11 @@
         <pq:attribute name="further.subtype">table</pq:attribute>
         <pq:attribute_group name="answer">
           <pq:attribute>
-            <pq:value name="value">f</pq:value>
+            <pq:value name="value">female</pq:value>
             <pq:value name="label">Female</pq:value>
           </pq:attribute>
           <pq:attribute>
-            <pq:value name="value">m</pq:value>
+            <pq:value name="value">male</pq:value>
             <pq:value name="label">Male</pq:value>
           </pq:attribute>
         </pq:attribute_group>

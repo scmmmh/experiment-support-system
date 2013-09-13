@@ -5,13 +5,10 @@ Created on 24 Jan 2012
 @author: mhall
 '''
 import transaction
-import random
-import json
-import re
 
 from formencode import Schema, validators, api, variabledecode, foreach
 from lxml import etree
-from pyramid.httpexceptions import HTTPNotFound, HTTPFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPUnauthorized
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
@@ -22,9 +19,9 @@ from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
                             QuestionAttributeGroup, QSheetAttribute, QSheetTransition,
-                            Participant, QuestionType, QuestionTypeGroup, TransitionCondition, DataSet, DataSetAttributeKey, DataItem, DataItemAttribute, PermutationSet)
+                            Participant, QuestionType, QuestionTypeGroup)
 from pyquest.validation import (PageSchema, flatten_invalid, ValidationState,
-                                XmlValidator, QuestionTypeSchema)
+                                XmlValidator, QuestionTypeSchema, DynamicSchema)
 
 
 class QSheetNewSchema(Schema):
@@ -44,15 +41,11 @@ class QSheetSourceSchema(Schema):
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
 
-class ConditionSchema(Schema):
-    question_id = validators.String(if_missing=None)
-    expected_answer = validators.String()
-    subquestion_name = validators.String(if_missing=None)
-
 class TransitionSchema(Schema):
-    id = validators.Int(if_missing=0)
-    target_id = validators.Int(if_missing=0)
-    condition = ConditionSchema(if_missing={})
+    target = validators.Int()
+    condition = validators.UnicodeString()
+    question = validators.UnicodeString()
+    answer = validators.UnicodeString()
 
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -64,7 +57,6 @@ class QSheetVisualSchema(Schema):
     show_question_numbers = validators.UnicodeString(not_empty=True)
     data_items = validators.Int(if_missing=0, if_empty=0)
     control_items = validators.Int(if_missing=0, if_empty=0)
-    transitions = foreach.ForEach(TransitionSchema())
 
     pre_validators = [variabledecode.NestedVariables()]
     
@@ -210,37 +202,13 @@ def load_transition_from_xml(qsheets, doc, dbsession):
         dbsession.add(transition)
         if 'to' in doc.attrib and doc.attrib['to'] in qsheets:
             transition.target = qsheets[doc.attrib['to']]
-        conditions = []
         for child in doc:
             if child.tag == '{http://paths.sheffield.ac.uk/pyquest}condition':
                 for condition in child:
                     if condition.tag == '{http://paths.sheffield.ac.uk/pyquest}answer':
-                        conditions.append({'type': 'answer',
-                                           'question': condition.attrib['question'],
-                                           'answer': condition.attrib['answer']})
-        if conditions:
-            transition.conditions = conditions
-    """to_attr = None
-    question_id = None
-    expected_answer  = None
-    subquestion_name = None
-    target = None
-    from_attr = transition.attrib['from']
-    if transition.attrib.has_key('to'):
-        to_attr = transition.attrib['to']
-        if to_attr in qsheets:
-            target = qsheets[to_attr]
-
-    if from_attr in qsheets:
-        new_transition = QSheetTransition(source=qsheets[from_attr], target=target)
-
-    if transition.attrib.has_key('question_id'):
-        question_id = transition.attrib['question_id']
-    if transition.attrib.has_key('expected_answer'):
-        expected_answer = transition.attrib['expected_answer']
-        new_transition.condition = TransitionCondition(transition_id=new_transition.id, question_id=question_id, expected_answer=expected_answer, subquestion_name=subquestion_name)
-
-    dbsession.add(new_transition)"""
+                        transition.condition = {'type': 'answer',
+                                                'question': condition.attrib['question'],
+                                                'answer': condition.attrib['answer']}
 
 @view_config(route_name='survey.qsheet.import')
 @render({'text/html': 'backend/qsheet/import.html'})
@@ -358,6 +326,11 @@ def edit(request):
                         sub_schema.add_field('id', validators.Int(not_empty=True))
                         sub_schema.add_field('order', validators.Int(not_empty=True))
                         schema.add_field(unicode(question.id), sub_schema)
+                    if qsheet.next:
+                        sub_schema = DynamicSchema()
+                        schema.add_field('transition', sub_schema)
+                        for transition in qsheet.next:
+                            sub_schema.add_field(unicode(transition.id), TransitionSchema())
                     params = schema.to_python(request.POST)
                     with transaction.manager:
                         qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -372,15 +345,13 @@ def edit(request):
                         qsheet.set_attr_value('control-items', params['control_items'])
                             
                         for transition in qsheet.next:
-                            t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
-                            transition.target_id = t_param['target_id']
-                            if len(t_param['condition']) != 0:
-                                 transition.condition.expected_answer = t_param['condition']['expected_answer']
-                                 vals = t_param['condition']['question_id'].split('.')
-                                 transition.condition.question_id = int(vals[0])
-                                 if len(vals) == 2:
-                                     transition.condition.subquestion_name = vals[1]
-
+                            if params['transition'][unicode(transition.id)]['condition'] == 'answer':
+                                transition.condition = {'type': 'answer',
+                                                        'question': params['transition'][unicode(transition.id)]['question'],
+                                                        'answer': params['transition'][unicode(transition.id)]['answer']}
+                                dbsession.add(transition)
+                            else:
+                                transition.condition = None
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
                             for field in question.q_type.backend_schema():
@@ -416,6 +387,7 @@ def edit(request):
                                                           sid=request.matchdict['sid'],
                                                           qsid=request.matchdict['qsid']))
                 except api.Invalid as e:
+                    print e
                     e = flatten_invalid(e)
                     e.params = request.POST
                     if request.is_xhr:
@@ -425,59 +397,58 @@ def edit(request):
                                 'qsheet': qsheet,
                                 'question_type_groups': question_type_groups,
                                 'e': e}
-            else:
-                # This is for backwards compatibility. An old qsheet with a 'Finish' transition will have next=[]
-                if len(qsheet.next) == 0:
-                    new_transition = QSheetTransition(source_id=qsheet.id)
-                    qsheet.next = [new_transition]
-                    dbsession.add(new_transition)
-                return {'survey': survey,
-                        'qsheet': qsheet,
-                        'question_type_groups': question_type_groups}
+            return {'survey': survey,
+                    'qsheet': qsheet,
+                    'question_type_groups': question_type_groups}
         else:
             redirect_to_login(request)
     else:
         raise HTTPNotFound()
 
-def add_condition(dbsession, qsheet):
-    if len(helpers.qsheet.question_list(qsheet)) > 0:
-        new_transition = QSheetTransition(source_id = qsheet.id)
-        new_transition.condition = TransitionCondition(transition_id = new_transition.id, expected_answer = '')
-        qsheet.next.append(new_transition)
-        dbsession.add(new_transition)
-
-@view_config(route_name='survey.qsheet.edit.add_condition')
-@render({'text/html': 'backend/qsheet/transitions.html'})
-def edit_add_condition(request):
+@view_config(route_name='survey.qsheet.edit.add_transition')
+@render({'text/html': 'backend/qsheet/transition.html'})
+def edit_add_transition(request):
     dbsession = DBSession()
+    user = current_user(request)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
+    if survey and qsheet:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            transition = None
+            with transaction.manager:
+                transition = QSheetTransition(source_id=qsheet.id)
+                dbsession.add(transition)
+            dbsession.add(survey)
+            dbsession.add(qsheet)
+            dbsession.add(transition)
+            return {'survey': survey,
+                    'qsheet': qsheet,
+                    'transition': transition}
+        else:
+            raise HTTPUnauthorized()
+    else:
+        raise HTTPNotFound()
 
-    add_condition(dbsession, qsheet)
-
-    return {'qsheet': qsheet,
-            'h' : helpers,
-            'source' : False}
-
-def delete_condition(dbsession, qsheet):
-    to_delete = dbsession.query(QSheetTransition).filter(and_(QSheetTransition.source_id==qsheet.id, QSheetTransition.condition!=None)).order_by(desc(QSheetTransition.id)).first()
-    if to_delete:
-        qsheet.next.remove(to_delete)
-
-@view_config(route_name='survey.qsheet.edit.delete_condition')
-@render({'text/html': 'backend/qsheet/transitions.html'})
-def edit_delete_condition(request):
+@view_config(route_name='survey.qsheet.edit.delete_transition')
+@render({'application/json': True})
+def edit_delete_transition(request):
     dbsession = DBSession()
+    user = current_user(request)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
                                                  QSheet.survey_id==request.matchdict['sid'])).first()
-
-    delete_condition(dbsession, qsheet)
-
-    return {'qsheet': qsheet,
-            'h' : helpers,
-            'source' : False}
+    transition = dbsession.query(QSheetTransition).filter(QSheetTransition.id==request.matchdict['tid'],
+                                                    QSheetTransition.source_id==request.matchdict['qsid']).first()
+    if survey and qsheet and transition:
+        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
+            with transaction.manager:
+                dbsession.delete(transition)
+            return {'success': True}
+        else:
+            raise HTTPUnauthorized()
+    else:
+        raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.edit.add_question')
 @render({'text/html': 'backend/qsheet/edit_fragment.html'}, allow_cache=False)
@@ -566,19 +537,6 @@ def edit_source(request):
                         qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
                         qsheet.set_attr_value('data-items', params['data_items'])
                         qsheet.set_attr_value('control-items', params['control_items'])
-                        next_qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==params['transition'],
-                                                                          QSheet.survey_id==request.matchdict['sid'])).first()
-
-                        for transition in qsheet.next:
-                            t_param = next(t_param for t_param in params['transitions'] if t_param['id'] == transition.id)
-                            transition.target_id = t_param['target_id']
-                            if len(t_param['condition']) != 0:
-                                 transition.condition.expected_answer = t_param['condition']['expected_answer']
-                                 vals = t_param['condition']['question_id'].split('.')
-                                 transition.condition.question_id = int(vals[0])
-                                 if len(vals) == 2:
-                                     transition.condition.subquestion_name = vals[1]
-
                         for item in params['content']:
                             if item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
                                 load_questions_from_xml(qsheet, item, dbsession)

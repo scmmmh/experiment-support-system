@@ -19,9 +19,8 @@ from sqlalchemy.sql.expression import not_
 
 from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
-    DataItemCount, Answer, AnswerValue, Question, TransitionCondition, DataSet, DataSetAttributeKey, DataItemAttribute, PermutationSet)
+    DataItemCount, Answer, AnswerValue, Question)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
-from pyquest.helpers.qsheet import transition_sorter
 
 class ParticipantManager(object):
     
@@ -161,42 +160,36 @@ class ParticipantManager(object):
             return [{'did': 'none'}]
     
     def next_qsheet(self, params):
-        next_qs = None
-        transition = None
-        transition = self.current_qsheet().next[0]
-        next_qs = transition.target
-        #for transition in sorted(self.current_qsheet().next, key=transition_sorter, reverse=True):
-        #    condition = self._dbsession.query(TransitionCondition).filter(TransitionCondition.transition_id==transition.id).first()
-        #    if (condition == None or condition.evaluate(self._dbsession, self.participant()) == True):
-        #        transition = transition
-        #        if transition.target:
-        #            next_qs = transition.target
-        #            break
-        action = 'next'
-        if params['action_'] == 'More Questions':
-            action = 'more'
-        elif params['action_'] == 'Next Page':
-            action = 'next'
-        elif params['action_'] == 'Finish Survey':
-            action = 'finish'
+        next_transition = None
+        for transition in self.current_qsheet().next:
+            if transition.condition:
+                if transition.condition['type'] == 'answer':
+                    question = [q for qs in self._survey.qsheets for q in qs.questions if '%s.%s' % (qs.name, q.name) == transition.condition['question']]
+                    if question:
+                        answer = self._dbsession.query(Answer).filter(and_(Answer.participant_id==self.participant().id,
+                                                                            Answer.question_id==question[0].id)).first()
+                        if answer:
+                            for value in answer.values:
+                                if value.value == transition.condition['answer']:
+                                    next_transition = transition
+                                    break
+            else:
+                next_transition = transition
+                break
         state = self.state()
-        state['history'].append(self.current_qsheet().id)
-        if action == 'finish':
-            state['current-qsheet'] = '_finished'
-        elif action == 'next':
-            if next_qs:
-                if next_qs.id in state['history'] and next_qs.data_set:
-                    dsid = unicode(next_qs.data_set.id)
+        if next_transition and next_transition.target:
+            next_qs = next_transition.target
+            if params['action_'] == 'More Questions':
+                if self.current_qsheet().data_set:
+                    dsid = unicode(self.current_qsheet().data_set.id)
                     if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
                         del state['data-items'][dsid]['current']
+            else:
+                state['history'].append(self.current_qsheet().id)
                 state['current-qsheet'] = next_qs.id
-            elif transition:
-                state['current-qsheet'] = '_finished'
-        elif action == 'more':
-            if self.current_qsheet().data_set:
-                dsid = unicode(self.current_qsheet().data_set.id)
-                if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
-                    del state['data-items'][dsid]['current']
+        else:
+            state['history'].append(self.current_qsheet().id)
+            state['current-qsheet'] = '_finished'
         self._participant.set_state(state)
         return next
     

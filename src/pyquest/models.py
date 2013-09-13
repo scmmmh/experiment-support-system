@@ -28,7 +28,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '44a76d75263'
+DB_VERSION = '4c876b48f28b'
 """The currently required database version."""
 
 class DBUpgradeException(Exception):
@@ -536,62 +536,22 @@ class QSheetTransition(Base):
     source_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_source_fk'))
     target_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_target_fk'))
     order = Column(Integer, default=0)
-    _conditions = Column(UnicodeText)
+    _condition = Column(UnicodeText)
     _action = Column(UnicodeText)
     
-    def set_conditions(self, conditions):
-        self._conditions = json.dumps(conditions)
+    def set_condition(self, condition):
+        if condition:
+            self._condition = json.dumps(condition)
+        else:
+            self._condition = None
     
-    def get_conditions(self):
-        if self._conditions:
-            return json.loads(self._conditions)
+    def get_condition(self):
+        if self._condition:
+            return json.loads(self._condition)
         else:
             return None
     
-    conditions = property(get_conditions, set_conditions)
-
-class TransitionCondition(Base):
-
-    __tablename__ = 'transition_conditions'
-
-    id = Column(Integer, primary_key=True)
-    transition_id = Column(ForeignKey(QSheetTransition.id, name='transition_conditions_qsheet_transitions_fk'))
-    question_id = Column(ForeignKey(Question.id, name='transition_conditions_questions_fk'))
-    expected_answer = Column(Unicode(255))
-    subquestion_name = Column(Unicode(255))
-
-    transition = relationship("QSheetTransition",
-                              backref=backref('condition',
-                                              cascade='all,delete-orphan'))
-
-    def evaluate(self, dbsession, participant):
-        """ Checks whether this TransitionCondition has been fulfilled. If the question is a sub-question then it looks only for the 
-        relevant answer value. If the question has several answers but these are not specified as sub-questions (for example a multi-
-        choice question) these are joined together in a single string for testing. 
-        
-        :param self: the TranstionCondition
-        :param dbsession: a sqlalchemy data base session
-        :param participant: a participant 
-        :return True if the condition is fulfilled, False if not
-        """
-        question_id = self.question_id
-        answer = dbsession.query(Answer).filter(Answer.question_id==question_id).filter(Answer.participant_id==participant.id).first()
-        actual_answer = ''
-        if (answer):
-            query = dbsession.query(AnswerValue).filter(AnswerValue.answer_id==answer.id)
-            if self.subquestion_name:
-                answer_value = query.filter(AnswerValue.name==self.subquestion_name).first()
-                actual_answer = answer_value.value
-            else:
-                answer_values = query.all()
-                if len(answer_values) == 1:
-                    actual_answer = answer_values[0].value
-                else:
-                    for av in answer_values:
-                        actual_answer = actual_answer + av.value + ',' 
-                    actual_answer = actual_answer[:-1]
-
-        return actual_answer == self.expected_answer
+    condition = property(get_condition, set_condition)
 
 class DataSet(Base):
 
