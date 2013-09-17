@@ -11,10 +11,9 @@ import json
 import random
 import hashlib
 import time
-import re
 
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
-                        Table, DateTime, Boolean, func, and_)
+                        Table, DateTime, Boolean, func)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref,
