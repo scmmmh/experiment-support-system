@@ -297,6 +297,9 @@ def load_test_data(args):
 
         survey.start = qsheet1
         QSheetTransition(source=qsheet1, target=qsheet2)
+        QSheetTransition(source=qsheet2, target=qsheet2, _condition=json.dumps({'type': 'permutation',
+                                                                                'permutation': 'Permutation'}))
+        '''
         # PAGE 3
         source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
   <pq:styles></pq:styles>
@@ -330,5 +333,6 @@ def load_test_data(args):
         survey.notifications.append(notification)
         notification = Notification(ntype='pcount', value=1, recipient='paul@paulserver.paulsnetwork')
         survey.notifications.append(notification)
+        '''
         user.surveys.append(survey)
         DBSession.add(survey)

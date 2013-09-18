@@ -1,15 +1,24 @@
 <tr xmlns:py="http://genshi.edgewall.org/">
   <td>${h.form.select('transition.%i.target' % (transition.id), transition.target.id if transition.target else -1, [(-1, '--- Finish ---')] + [(q.id, h.text.title(q.name)) for q in survey.qsheets], e)}</td>
   <td>
-    ${h.form.select('transition.%i.condition' % (transition.id), transition.condition['type'] if transition.condition else 'none', [('none', 'No Condition'), ('answer', 'Participant answer')], e, class_='role-condition-type')}
+    ${h.form.select('transition.%i.condition' % (transition.id), transition.condition['type'] if transition.condition else 'none', [('none', 'No Condition'), ('answer', 'Participant answer'), ('permutation', 'More Tasks/Interfaces')], e, class_='role-condition-type')}
     <span class="role-condition-answer" py:if="transition.condition and transition.condition['type'] == 'answer'">
-      ${h.form.select('transition.%i.question' % (transition.id), transition.condition['type'], [('%s.%s' % (qs.name, q.name), '%s - %s' % (qs.name, q.name)) for qs in survey.qsheets for q in qs.questions if q.q_type.answer_schema()], e)}
+      ${h.form.select('transition.%i.question' % (transition.id), transition.condition['question'], [('%s.%s' % (qs.name, q.name), '%s - %s' % (qs.name, q.name)) for qs in survey.qsheets for q in qs.questions if q.q_type.answer_schema()], e)}
       ${h.form.text_field('transition.%i.answer' % (transition.id), transition.condition['answer'], e)}
     </span>
     <span class="role-condition-answer" py:if="not transition.condition or transition.condition['type'] != 'answer'" style="display:none;">
       ${h.form.select('transition.%i.question' % (transition.id), '', [('%s.%s' % (qs.name, q.name), '%s - %s' % (qs.name, q.name)) for qs in survey.qsheets for q in qs.questions if q.q_type.answer_schema()], e)}
       ${h.form.text_field('transition.%i.answer' % (transition.id), '', e)}
     </span>
+    <span class="role-condition-permutation" py:if="transition.condition and transition.condition['type'] == 'permutation'">
+      from permutation set
+      ${h.form.select('transition.%i.permutation' % (transition.id), transition.condition['permutation'], [(p.name, h.text.title(p.name)) for p in survey.permutation_sets], e)}
+    </span>
+    <span class="role-condition-permutation" py:if="not transition.condition or transition.condition['type'] != 'permutation'" style="display:none;">
+      from permutation set
+      ${h.form.select('transition.%i.permutation' % (transition.id), '', [('%s.%s' % (qs.name, q.name), '%s - %s' % (qs.name, q.name)) for qs in survey.qsheets for q in qs.questions if q.q_type.answer_schema()], e)}
+    </span>
   </td>
+  <td></td>
   <td><a href="${r.route_url('survey.qsheet.edit.delete_transition', sid=survey.id, qsid=qsheet.id, tid=transition.id)}" title="Remove this row" class="button action-remove-transition"><span class="ui-icon ui-icon-minusthick"></span></a></td>
 </tr>

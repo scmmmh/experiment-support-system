@@ -150,8 +150,13 @@
         var value = select.val();
         if(value == 'none') {
         	select.parent().find('.role-condition-answer').hide();
+            select.parent().find('.role-condition-permutation').hide();
         } else if(value == 'answer') {
         	select.parent().find('.role-condition-answer').show();
+            select.parent().find('.role-condition-permutation').hide();
+        } else if(value == 'permutation') {
+            select.parent().find('.role-condition-answer').hide();
+            select.parent().find('.role-condition-permutation').show();
         }
     }
     function transition_remove() {
@@ -345,6 +350,7 @@
                     <th>Next Page</th>
                     <th>Condition</th>
                     <th>Action</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -354,8 +360,7 @@
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td></td>
-                    <td></td>
+                    <td colspan="3"></td>
                     <td><a href="${r.route_url('survey.qsheet.edit.add_transition', sid=survey.id, qsid=qsheet.id)}" title="Add a row" class="button action-add-transition" ><span class="ui-icon ui-icon-plusthick"></span></a></td>
                   </tr>
                 </tfoot>

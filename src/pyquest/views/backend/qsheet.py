@@ -43,9 +43,10 @@ class QSheetSourceSchema(Schema):
 
 class TransitionSchema(Schema):
     target = validators.Int()
-    condition = validators.UnicodeString()
+    condition = validators.UnicodeString(not_empty=True)
     question = validators.UnicodeString()
     answer = validators.UnicodeString()
+    permutation = validators.UnicodeString()
 
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -350,6 +351,9 @@ def edit(request):
                                                         'question': params['transition'][unicode(transition.id)]['question'],
                                                         'answer': params['transition'][unicode(transition.id)]['answer']}
                                 dbsession.add(transition)
+                            if params['transition'][unicode(transition.id)]['condition'] == 'permutation':
+                                transition.condition = {'type': 'permutation',
+                                                        'permutation': params['transition'][unicode(transition.id)]['permutation']}
                             else:
                                 transition.condition = None
                         for question in qsheet.questions:
