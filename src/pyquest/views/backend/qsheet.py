@@ -346,6 +346,7 @@ def edit(request):
                         qsheet.set_attr_value('control-items', params['control_items'])
                             
                         for transition in qsheet.next:
+                            transition.target_id = params['transition'][unicode(transition.id)]['target']
                             if params['transition'][unicode(transition.id)]['condition'] == 'answer':
                                 transition.condition = {'type': 'answer',
                                                         'question': params['transition'][unicode(transition.id)]['question'],
