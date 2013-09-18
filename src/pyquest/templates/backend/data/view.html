@@ -35,6 +35,7 @@
       <table>
         <thead>
           <tr py:if="data_set.items">
+            <th>Identifier</th>
             <th py:if="data_set.type == 'dataset'">Control item</th>
             <th py:for="attribute in data_set.attribute_keys">${attribute.key}</th>
             <th py:if="data_set.type == 'dataset'">Action</th>
@@ -46,6 +47,7 @@
             <td class="placeholder" py:if="data_set.type == 'permutationset'">The permutations for this permutation set have not been calculated yet.</td>
           </tr>
           <tr py:for="item in data_set.items">
+            <td>${item.id}</td>
             <td py:if="data_set.type == 'dataset'"><py:if test="item.control">Yes</py:if></td>
             <td py:for="attribute in item.sorted_attributes()">${attribute.value}</td>
             <td py:if="data_set.type == 'dataset'">

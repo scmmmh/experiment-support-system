@@ -5,6 +5,7 @@ u"""
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
+import json
 import transaction
 
 from beaker.session import SessionObject
@@ -39,44 +40,79 @@ class ParticipantManager(object):
             self._participant = dbsession.query(Participant).filter(Participant.id==session['participant_id']).first()
         if not self._participant:
             with transaction.manager:
+                dbsession.add(self._survey)
                 self._participant = Participant(survey_id=survey.id)
+                permutation_items = {}
+                for qsheet in self._survey.qsheets:
+                    if qsheet.data_set and qsheet.data_set.type == 'permutationset':
+                        item = sample([item for item in qsheet.data_set.items], 1)[0]
+                        items = []
+                        for idx, data in enumerate(json.loads(item.attributes[0].value)):
+                            data['did'] = item.id
+                            data['_sub_did'] = idx
+                            items.append(data)
+                        permutation_items[unicode(qsheet.data_set.id)] = items    
+                        permutation_items[unicode(qsheet.data_set.id)].reverse()
+                pages = {}
+                start_id = self.build_pages(self._survey.start, pages, {'permutation-items': permutation_items})
+                self._participant.set_state({'pages': pages,
+                                             'current-page': start_id,
+                                             'history': [],
+                                             'data-items': {},
+                                             'permutation-items': permutation_items})
                 dbsession.add(self._participant)
-                dbsession.flush()
-                #ps = dbsession.query(PermutationSet).filter(PermutationSet.survey_id==survey.id).first()
-                #pds = ps.assign_next_permutation(self._participant)
                 dbsession.flush()
             dbsession.add(self._participant)
             session['participant_id'] = self._participant.id
             session.persist()
             request.response.headerlist.append(('Set-Cookie', session.__dict__['_headers']['cookie_out']))
-        else:
-            pass
-            #if request.url.endswith('finished') and self._participant.permutation_id:
-            #    with transaction.manager:
-            #        #pds = dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation_id).first()
-            #        #dbsession.delete(pds)
-            #        #self._participant.permutation_id = None
-            #        dbsession.flush()
 
+    def build_pages(self, qsheet, pages, params):
+        page_id = 0
+        while unicode(page_id) in pages:
+            page_id = page_id + 1
+        page_id = unicode(page_id)
+        page = {'qsheet': qsheet.id}
+        if qsheet.data_set:
+            if qsheet.data_set.type == 'dataset':
+                page['data-set'] = qsheet.data_set.id
+            elif qsheet.data_set.type == 'permutationset':
+                page['data-items'] = [params['permutation-items'][unicode(qsheet.data_set.id)][-1]]
+        pages[page_id] = page
+        if qsheet.next:
+            page['next'] = []
+            for transition in qsheet.next:
+                if transition.target:
+                    if transition.condition:
+                        if transition.condition['type'] == 'permutation':
+                            permutation = [perm for perm in qsheet.survey.permutation_sets if perm.name==transition.condition['permutation']]
+                            if permutation and unicode(permutation[0].id) in params['permutation-items'] and len(params['permutation-items'][unicode(permutation[0].id)]) > 1:
+                                params['permutation-items'][unicode(permutation[0].id)].pop()
+                                next_id = self.build_pages(transition.target, pages, params)
+                                page['next'].append({'page': next_id})
+                                pages[next_id]['prev'] = page_id
+                        else:
+                            # TODO: Detect and stop cycles
+                            next_id = self.build_pages(transition.target, pages, params)
+                            page['next'].append({'page': next_id,
+                                                 'condition': transition.condition})
+                            pages[next_id]['prev'] = page_id
+                    else:
+                        next_id = self.build_pages(transition.target, pages, params)
+                        page['next'].append({'page': next_id})
+                        pages[next_id]['prev'] = page_id
+        return page_id
+    
     def state(self):
         self._dbsession.add(self._participant)
         self._dbsession.add(self._survey)
         state = self._participant.get_state()
-        if not state:
-            state = {}
-        if 'current-qsheet' not in state:
-            state['current-qsheet'] = self._survey.start.id
-        if 'history' not in state:
-            state['history'] = []
-        if 'data-items' not in state:
-            state['data-items'] = {}
-        self._participant.set_state(state)
         return state
     
     def current_qsheet(self):
         state = self.state()
-        if state['current-qsheet'] != '_finished':
-            return self._dbsession.query(QSheet).filter(QSheet.id==state['current-qsheet']).first()
+        if state['current-page'] != '_finished':
+            return self._dbsession.query(QSheet).filter(QSheet.id==state['pages'][state['current-page']]['qsheet']).first()
         else:
             return None
     
@@ -92,18 +128,8 @@ class ParticipantManager(object):
                 return (t[0], 0)
         state = self.state()
         qsheet = self.current_qsheet()
-        #self.data_set_in_use = None
-        #pds = None
-        #if self._participant.permutation_id and str(qsheet.id) in self._participant.permutation_qsheet_id.split(','):
-        #    pds = self._dbsession.query(DataSet).filter(DataSet.id==self._participant.permutation_id).first()
-        #if pds:
-        #    self.data_set_in_use = pds
-        #    do_sample = False
-        #else:
-        #    self.data_set_in_use = qsheet.data_set
-        #    do_sample = True
-        if qsheet.data_set:
-            dsid = unicode(qsheet.data_set.id)
+        if 'data-set' in state['pages'][state['current-page']]:
+            dsid = unicode(state['pages'][state['current-page']]['data-set'])
             if dsid not in state['data-items']:
                 state['data-items'][dsid] = {'seen': []}
             if 'current' not in state['data-items'][dsid]:
@@ -127,10 +153,7 @@ class ParticipantManager(object):
                         threshold_items = filter(lambda t: t[1] == threshold, source_items)
                         required_count = item_count - len(data_items)
                         if required_count < len(threshold_items):
-                            #if do_sample:
                             data_items.extend(map(lambda t: t[0].id, sample(threshold_items, required_count)))
-                            #else:
-                            #    data_items.extend(map(lambda t: t[0].id, threshold_items[:required_count]))
                         else:
                             data_items.extend(map(lambda t: t[0].id, threshold_items))
                         threshold = threshold + 1
@@ -156,56 +179,63 @@ class ParticipantManager(object):
                     data_item_data[attr.key.key] = attr.value
                 current_items.append(data_item_data)
             return current_items
+        elif 'data-items' in state['pages'][state['current-page']]:
+            return state['pages'][state['current-page']]['data-items']
         else:
             return [{'did': 'none'}]
     
     def next_qsheet(self, params):
-        next_transition = None
-        for transition in self.current_qsheet().next:
-            if transition.condition:
-                if transition.condition['type'] == 'answer':
-                    question = [q for qs in self._survey.qsheets for q in qs.questions if '%s.%s' % (qs.name, q.name) == transition.condition['question']]
-                    if question:
-                        answer = self._dbsession.query(Answer).filter(and_(Answer.participant_id==self.participant().id,
-                                                                            Answer.question_id==question[0].id)).first()
-                        if answer:
-                            for value in answer.values:
-                                if value.value == transition.condition['answer']:
-                                    next_transition = transition
-                                    break
-            else:
-                next_transition = transition
-                break
         state = self.state()
-        if next_transition and next_transition.target:
-            next_qs = next_transition.target
-            if params['action_'] == 'More Questions':
-                if self.current_qsheet().data_set:
-                    dsid = unicode(self.current_qsheet().data_set.id)
-                    if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
-                        del state['data-items'][dsid]['current']
-            else:
-                state['history'].append(self.current_qsheet().id)
-                state['current-qsheet'] = next_qs.id
+        page = state['pages'][state['current-page']]
+        state['history'].append(page)
+        if params['action_'] == 'More Questions':
+            if self.current_qsheet().data_set:
+                dsid = unicode(self.current_qsheet().data_set.id)
+                if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
+                    del state['data-items'][dsid]['current']
         else:
-            state['history'].append(self.current_qsheet().id)
-            state['current-qsheet'] = '_finished'
-        self._participant.set_state(state)
-        return next
+            next_id = None
+            if 'next' in page:
+                for transition in page['next']:
+                    if 'condition' in transition:
+                        condition = transition['condition']
+                        if condition['type'] == 'answer':
+                            question = [q for qs in self._survey.qsheets for q in qs.questions if '%s.%s' % (qs.name, q.name) == condition['question']]
+                            if question:
+                                answer = self._dbsession.query(Answer).filter(and_(Answer.participant_id==self.participant().id,
+                                                                                   Answer.question_id==question[0].id)).first()
+                                if answer:
+                                    for value in answer.values:
+                                        if value.value == condition['answer']:
+                                            next_id = transition['page']
+                                            break
+                    else:
+                        next_id = transition['page']
+                        break
+            if next_id:
+                state['current-page'] = next_id
+            else:
+                state['current-page'] = '_finished'
+        self.participant().set_state(state)
     
     def progress(self):
-        def count_to_end(qsheet, seen = []): # TODO: Cycle detection
-            seen.append(qsheet.id)
-            if qsheet and qsheet.next:
-                followers = [count_to_end(t.target, seen) for t in qsheet.next if t.target and t.target.id not in seen]
-                if followers:
-                    return max(followers) + 1
+        def count_to_end(page_id, pages, seen=[]):
+            seen.append(page_id)
+            if 'next' in pages[page_id]:
+                counts = []
+                has_next = False
+                for transition in pages[page_id]['next']:
+                    if transition['page'] not in seen and transition['page'] != page_id:
+                        counts.append(count_to_end(transition['page'], pages, seen + [page_id]))
+                        has_next = True
+                if has_next:
+                    return max(counts) + 1
                 else:
-                    return 0
+                    return 1
             else:
-                return 0
+                return 1
         state = self.state()
-        return (len(state['history']) + 1, len(state['history']) + count_to_end(self.current_qsheet()))
+        return (len(state['history']) + 1, len(state['history']) + count_to_end(state['current-page'], state['pages']))
     
     def control_score(self):
         correct = 0
@@ -236,7 +266,7 @@ def run_survey(request):
         if survey.status not in ['running', 'testing']:
             raise HTTPFound(request.route_url('survey.run.inactive', seid=request.matchdict['seid']))
         part_manager = ParticipantManager(request, dbsession, survey)
-        if part_manager.state()['current-qsheet'] == '_finished':
+        if part_manager.state()['current-page'] == '_finished':
             raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
         with transaction.manager:
             qsheet = part_manager.current_qsheet()
@@ -265,24 +295,41 @@ def run_survey(request):
                     for question in qsheet.questions:
                         for data_item_src in data_items:
                             data_item = dbsession.query(DataItem).filter(DataItem.id==safe_int(data_item_src['did'])).first()
-                            if data_item:
-                                for answer in dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
-                                                                                  Answer.question_id==question.id,
-                                                                                  Answer.data_item_id==data_item.id)):
-                                    dbsession.delete(answer)
+                            if '_sub_did' in data_item_src and data_item:
+                                query = dbsession.query(AnswerValue).join(Answer).filter(and_(Answer.participant_id==participant.id,
+                                                                                                                        Answer.question_id==question.id,
+                                                                                                                        Answer.data_item_id==data_item.id,
+                                                                                                                        AnswerValue.name.startswith(unicode(data_item_src['_sub_did']))))
                             else:
-                                for answer in dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
-                                                                                  Answer.question_id==question.id)):
-                                    dbsession.delete(answer)
+                                query = dbsession.query(Answer)
+                                if data_item:
+                                    query = query.filter(and_(Answer.participant_id==participant.id,
+                                                              Answer.question_id==question.id,
+                                                              Answer.data_item_id==data_item.id))
+                                else:
+                                    query = query.filter(and_(Answer.participant_id==participant.id,
+                                                              Answer.question_id==question.id))
+                            for answer in query:
+                                print 'Deleting!'
+                                dbsession.delete(answer)
                 participant = part_manager.participant()
                 with transaction.manager:
                     for question in qsheet.questions:
                         for data_item_src in data_items:
                             data_item = dbsession.query(DataItem).filter(DataItem.id==safe_int(data_item_src['did'])).first()
-                            answer = Answer(participant_id=participant.id,
-                                            question_id=question.id)
-                            if data_item:
-                                answer.data_item_id = data_item.id
+                            if '_sub_did' in data_item_src:
+                                sub_data_item = data_item_src['_sub_did']
+                                answer = dbsession.query(Answer).filter(Answer.participant_id==participant.id,
+                                                                        Answer.question_id==question.id,
+                                                                        Answer.data_item_id==data_item.id).first()
+                            else:
+                                answer = None
+                                sub_data_item = None
+                            if not answer:
+                                answer = Answer(participant_id=participant.id,
+                                                question_id=question.id)
+                                if data_item:
+                                    answer.data_item_id = data_item.id
                             schema = question.q_type.answer_schema()
                             if schema:
                                 if schema['type'] in ['unicode', 'int', 'month', 'date', 'time', 'datetime', 'url', 'email', 'number']:
@@ -290,24 +337,24 @@ def run_survey(request):
                                         answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name]
                                         if isinstance(answer_list, list):
                                             for value in answer_list:
-                                                answer.values.append(AnswerValue(value=unicode(value)))
+                                                answer.values.append(AnswerValue(name=sub_data_item, value=unicode(value)))
                                         else:
-                                            answer.values.append(AnswerValue(value=unicode(answer_list)))
+                                            answer.values.append(AnswerValue(name=sub_data_item, value=unicode(answer_list)))
                                     else:
-                                        answer.values.append(AnswerValue(value=None))
+                                        answer.values.append(AnswerValue(name=sub_data_item, value=None))
                                 elif schema['type'] == 'choice':
                                     if schema['params']['allow_multiple']:
                                         answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name]
                                         if isinstance(answer_list, list):
                                             for value in answer_list:
-                                                answer.values.append(AnswerValue(value=value))
+                                                answer.values.append(AnswerValue(name=sub_data_item, value=value))
                                         else:
-                                            answer.values.append(AnswerValue(value=answer_list))
+                                            answer.values.append(AnswerValue(name=sub_data_item, value=answer_list))
                                     else:
                                         if qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
-                                            answer.values.append(AnswerValue(value=unicode(qsheet_answers['items'][unicode(data_item_src['did'])][question.name])))
+                                            answer.values.append(AnswerValue(name=sub_data_item, value=unicode(qsheet_answers['items'][unicode(data_item_src['did'])][question.name])))
                                         else:
-                                            answer.values.append(AnswerValue(value=None))
+                                            answer.values.append(AnswerValue(name=sub_data_item, value=None))
                                 elif schema['type'] == 'multiple':
                                     sub_schema = schema['schema']
                                     for attr in question.attr_value(schema['attr'], multi=True, default=[]):
@@ -316,22 +363,22 @@ def run_survey(request):
                                                 answer_list = qsheet_answers['items'][unicode(data_item_src['did'])][question.name][attr]
                                                 if isinstance(answer_list, list):
                                                     for value in answer_list:
-                                                        answer.values.append(AnswerValue(name=attr, value=value))
+                                                        answer.values.append(AnswerValue(name='%s.%s' % (sub_data_item, attr) if sub_data_item != None else attr, value=value))
                                                 else:
-                                                    answer.values.append(AnswerValue(name=attr, value=answer_list))
+                                                    answer.values.append(AnswerValue(name='%s.%s' % (sub_data_item, attr) if sub_data_item != None else attr, value=answer_list))
                                             else:
-                                                answer.values.append(AnswerValue(name=attr, value=None))
+                                                answer.values.append(AnswerValue(name='%s.%s' % (sub_data_item, attr) if sub_data_item != None else attr, value=None))
                                         else:
                                             if qsheet_answers['items'][unicode(data_item_src['did'])][question.name] and attr in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
-                                                answer.values.append(AnswerValue(name=attr, value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][attr]))
+                                                answer.values.append(AnswerValue(name='%s.%s' % (sub_data_item, attr) if sub_data_item != None else attr, value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][attr]))
                                             else:
-                                                answer.values.append(AnswerValue(name=attr, value=None))
+                                                answer.values.append(AnswerValue(name='%s.%s' % (sub_data_item, attr) if sub_data_item != None else attr, value=None))
                                 elif schema['type'] == 'ranking':
                                     for attr in question.attr_value(schema['attr'], multi=True, default=[]):
                                         if attr in qsheet_answers['items'][unicode(data_item_src['did'])][question.name]:
-                                            answer.values.append(AnswerValue(name=attr, value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][attr]))
+                                            answer.values.append(AnswerValue(name='%s.%s' % (sub_data_item, attr) if sub_data_item != None else attr, value=qsheet_answers['items'][unicode(data_item_src['did'])][question.name][attr]))
                                         else:
-                                            answer.values.append(AnswerValue(name=attr, value=None))
+                                            answer.values.append(AnswerValue(name='%s.%s' % (sub_data_item, attr) if sub_data_item != None else attr, value=None))
                                 dbsession.add(answer)
                     for did in [d['did'] for d in data_items]:
                         if did != 'none':

@@ -165,24 +165,29 @@ def load_test_data(args):
   <pq:styles></pq:styles>
   <pq:scripts></pq:scripts>
   <pq:questions>
+      <pq:question>
+        <pq:type>text</pq:type>
+        <pq:attribute name="text.text">
+          <p>
+    Please undertake task ${task} with interface ${interface}.</p>
+        </pq:attribute>
+      </pq:question>
      <pq:question>
      <pq:type>confirm</pq:type>
-     <pq:name>PermDone</pq:name>
-     <pq:title>Participant ${pid_} imagine an iframe containing permutation ${perm} then tick the box</pq:title>
+     <pq:name>task_done</pq:name>
+     <pq:title></pq:title>
      <pq:help></pq:help>
      <pq:required>true</pq:required>
      <pq:attribute name="further.value">done</pq:attribute>
-     <pq:attribute name="further.label">Imagined</pq:attribute>
+     <pq:attribute name="further.label">I have done this task</pq:attribute>
      </pq:question>
   </pq:questions>
 </pq:qsheet>"""
-        qsheet2 = QSheet(name='task_interface_page', title='Where the tasks are...', styles='', scripts='')
-        qsheet2.attributes.append(QSheetAttribute(key='repeat', value='repeat'))
-        qsheet2.attributes.append(QSheetAttribute(key='data-items', value='1'))
+        qsheet2 = QSheet(name='task_page', title='Task', styles='', scripts='')
+        qsheet2.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet2.attributes.append(QSheetAttribute(key='data-items', value='0'))
         qsheet2.attributes.append(QSheetAttribute(key='control-items', value='0'))
         qsheet2.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
-        qsheet2.attributes.append(QSheetAttribute(key='task-count', value='2'))
-        qsheet2.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet2, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet2)
         tasksds = DataSet(name="Two tasks", owned_by=user.id, survey_id=survey.id)
@@ -296,43 +301,71 @@ def load_test_data(args):
         interfacesds.items.append(interfaceitem)
 
         survey.start = qsheet1
-        QSheetTransition(source=qsheet1, target=qsheet2)
-        QSheetTransition(source=qsheet2, target=qsheet2, _condition=json.dumps({'type': 'permutation',
-                                                                                'permutation': 'Permutation'}))
-        '''
+
         # PAGE 3
         source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
   <pq:styles></pq:styles>
   <pq:scripts></pq:scripts>
   <pq:questions>
-     <pq:question>
-     <pq:type>confirm</pq:type>
-     <pq:name>PermDone</pq:name>
-     <pq:title>Participant ${pid_} imagine that iframe with ${perm} again then tick the box</pq:title>
-     <pq:help></pq:help>
-     <pq:required>true</pq:required>
-     <pq:attribute name="further.value">done</pq:attribute>
-     <pq:attribute name="further.label">Re-imagined</pq:attribute>
-     </pq:question>
+      <pq:question>
+        <pq:type>text</pq:type>
+        <pq:attribute name="text.text">
+          <p>
+    With respect to task ${task} and interface ${interface}, please answer:</p>
+        </pq:attribute>
+      </pq:question>
+      <pq:question>
+        <pq:type>single_choice</pq:type>
+        <pq:name>experience</pq:name>
+        <pq:title>I liked my experience</pq:title>
+        <pq:help/>
+        <pq:required>true</pq:required>
+        <pq:attribute name="further.subtype">table</pq:attribute>
+        <pq:attribute name="further.before_label">Very Bad</pq:attribute>
+        <pq:attribute name="further.after_label">Very Good</pq:attribute>
+        <pq:attribute_group name="answer">
+          <pq:attribute>
+            <pq:value name="value">0</pq:value>
+            <pq:value name="label"></pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">1</pq:value>
+            <pq:value name="label"></pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">2</pq:value>
+            <pq:value name="label"></pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">3</pq:value>
+            <pq:value name="label"></pq:value>
+          </pq:attribute>
+          <pq:attribute>
+            <pq:value name="value">4</pq:value>
+            <pq:value name="label"></pq:value>
+          </pq:attribute>
+        </pq:attribute_group>
+        <pq:attribute name="further.allow_other">no</pq:attribute>
+      </pq:question>
   </pq:questions>
 </pq:qsheet>"""
-        qsheet3 = QSheet(name='another_task_interface_page', title='Some more tasks...', styles='', scripts='')
-        qsheet3.attributes.append(QSheetAttribute(key='repeat', value='repeat'))
-        qsheet3.attributes.append(QSheetAttribute(key='data-items', value='1'))
+        qsheet3 = QSheet(name='post_task', title='Post Task', styles='', scripts='')
+        qsheet3.attributes.append(QSheetAttribute(key='repeat', value='single'))
+        qsheet3.attributes.append(QSheetAttribute(key='data-items', value='0'))
         qsheet3.attributes.append(QSheetAttribute(key='control-items', value='0'))
         qsheet3.attributes.append(QSheetAttribute(key='show-question-numbers', value='no'))
-        qsheet3.attributes.append(QSheetAttribute(key='task-count', value='2'))
-        qsheet3.attributes.append(QSheetAttribute(key='interface-count', value='2'))
         load_questions(qsheet3, etree.fromstring(source), DBSession)
         survey.qsheets.append(qsheet3)
+        np.qsheets.append(qsheet3)
         dbsession.flush()
         survey.start = qsheet1
+
         QSheetTransition(source=qsheet1, target=qsheet2)
         QSheetTransition(source=qsheet2, target=qsheet3)
-        notification = Notification(ntype='interval', value=60, recipient='paul@paulserver.paulsnetwork')
-        survey.notifications.append(notification)
-        notification = Notification(ntype='pcount', value=1, recipient='paul@paulserver.paulsnetwork')
-        survey.notifications.append(notification)
-        '''
+
+        QSheetTransition(source=qsheet3, target=qsheet2,
+                         _condition=json.dumps({'type': 'permutation',
+                                                'permutation': 'Permutation'}))
+
         user.surveys.append(survey)
         DBSession.add(survey)
