@@ -4,6 +4,7 @@ Created on 20 Jan 2012
 
 @author: mhall
 '''
+import itertools
 from random import shuffle
 
 from decorator import decorator
@@ -119,6 +120,11 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         return text
 
 def transition_as_text(transition):
+    """ Translates a transition into XML text for writing to file.
+
+    :param transition: the :py:class:`~pyquest.models.Transition` to be translated
+    :return the XML representation
+    """
     text = '<pq:transition from="%s"' % transition.source.name
 
     if transition.target:
@@ -219,6 +225,14 @@ def transition_destinations(qsheet):
     """
     return [('', '--- Finish ---')] + [(qs.id, qs.title) for qs in qsheet.survey.qsheets if qs.id != qsheet.id]
 
+def qsheet_list(survey):
+    """ Returns a list of (id, title) tuples for all qsheets in the given survey. The list is in the form used by PyWebtools select items.
+
+    :param survey: the survey
+    :return a list of tuples
+    """
+    return [(str(qs.id), qs.title) for qs in survey.qsheets]
+
 def question_list(qsheet):
     """ Returns a list of (id, name) tuples for the questions available on the given sheet. The list is in the form
     used by PyWebtools select items. The actual items are specific to their use in the transitions section of qsheet
@@ -240,3 +254,65 @@ def question_list(qsheet):
                 qlist.append((question.id, question.name))
 
     return qlist
+
+
+def generate_list(count, offset):
+    """ Generates a list of characters of length count starting with ASCII character offset
+
+    :param count: the number of characters to generate
+    :param offset: the ASCII number of the starting character
+    :return a list of characters
+    """
+    factors = []
+    if count:
+        factors = [chr(i+offset) for i in range(int(count))] 
+    return factors
+
+def generate_task_list(count):
+    """ Generates a list of task names ('A', 'B', etc.)
+
+    :param count: the number of tasks
+    :return a list of task names
+    """
+    return generate_list(count, 65)
+
+def generate_interface_list(count):
+    """ Genarates a list of inteface names ('1', '2', etc.)
+
+    :param count: the number of interfaces
+    :return a list of interface names
+    """
+    return generate_list(count, 49)
+
+def generate_pairs(factors):
+    """ Generates a list of (value, name-pair) tuples for the use in a PyWebTools select menu.  The tuple (' ', 'None'), 
+    no selection, is put at the start of the list. So, for example, the factor list ['A', 'B', 'C'] will generate:
+    [(' ', 'None'), ('AB', 'AB'), ('BC', 'BC'), ('AC', 'AC')]
+
+    :param factors: a list of the factors
+    :return a list of strings representing the possible pairs
+    """
+    factors = factors.split(',')
+    combinations = itertools.combinations(factors, 2)
+    pairs = [(' ', 'None')]
+    for comb in combinations:
+        pairs.append(("".join(comb), "".join(comb)))
+    return pairs
+
+    
+def generate_task_pairs(tasks):
+    """ Generates a list of tuples of task pair values and names for use in the exclusion and ordering menus. 
+
+    :param count: the number of tasks
+    :return a list of strings representing the possible pairs
+    """
+    return generate_pairs(tasks)
+
+def generate_interface_pairs(interfaces):
+    """ Generates a list of tuples of interface pair values and names for use in the exclusion and ordering menus. 
+
+    :param count: the number of interfaces
+    :return a list of strings representing the possible pairs
+    """
+    return generate_pairs(interfaces)
+

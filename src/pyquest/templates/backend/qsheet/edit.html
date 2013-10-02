@@ -145,26 +145,30 @@
             return false;
         });
     }
-    function set_transition_buttons(){
-        $('.add-transition-condition').click(function() {
-            $.ajax('${r.route_url('survey.qsheet.edit.add_condition', sid=survey.id, qsid=qsheet.id)}', {
-        			success: function(response) {
-            $('dd.transition').html(response);
-            set_transition_buttons();
-}
-});
-        return false;
-        });
-        $('.delete-transition-condition').click(function() {
-            $.ajax('${r.route_url('survey.qsheet.edit.delete_condition', sid=survey.id, qsid=qsheet.id)}', {
-        			success: function(response) {
-            $('dd.transition').html(response);
-            set_transition_buttons();
-}
-});
-        return false;
-        });
+    function transition_condition_change() {
+        var select = $(this);
+        var value = select.val();
+        if(value == 'none') {
+        	select.parent().find('.role-condition-answer').hide();
+            select.parent().find('.role-condition-permutation').hide();
+        } else if(value == 'answer') {
+        	select.parent().find('.role-condition-answer').show();
+            select.parent().find('.role-condition-permutation').hide();
+        } else if(value == 'permutation') {
+            select.parent().find('.role-condition-answer').hide();
+            select.parent().find('.role-condition-permutation').show();
+        }
     }
+    function transition_remove() {
+    	var link = $(this);
+    	$.ajax(link.attr('href'), {
+    		type: 'POST'
+    	}).success(function() {
+    		link.parent().parent().remove();
+    	});
+    	return false;
+    }
+
     $(document).ready(function() {
         make_toggle_link('role-css-edit');
         make_toggle_link('role-js-edit');
@@ -280,7 +284,19 @@
         	fix_control_positions();
         });
         fix_control_positions();
-        set_transition_buttons();
+        $('.role-condition-type').change(transition_condition_change);
+        $('.action-add-transition').click(function() {
+        	$.ajax($(this).attr('href'), {
+        		'type': 'POST'
+        	}).success(function (data) {
+        		data = $(data);
+        		data.find('.action-remove-transition').click(transition_remove);
+                data.find('.role-condition-type').change(transition_condition_change);
+        		$('.transitions tbody').append(data);
+        	});
+        	return false;
+        });
+        $('.action-remove-transition').click(transition_remove);
     });
     </script>
   </head>
@@ -292,7 +308,7 @@
       <ul>
         <li><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" class="button">Preview</a></li>
         <li><a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}" class="button">Edit Source</a></li>
-        <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.data', sid=survey.id, qsid=qsheet.id)}" class="button">Data</a></li>
+        <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.qsheet.data', sid=survey.id, qsid=qsheet.id)}" class="button">Data</a></li>
       </ul>
     </nav>
     <article>
@@ -326,10 +342,30 @@
             <dd>${h.form.number_field('control_items', qsheet.attr_value('control-items', default='0'), e, class_='role-qsheet-control-items')}</dd>
             <dt>Show Question Numbers</dt>
             <dd>${h.form.select('show_question_numbers', qsheet.attr_value('show-question-numbers', default='yes'), [('yes', 'Yes'), ('no', 'No')], e, class_='role-qsheet-show-question-numbers')}</dd>
-	    <dt>Transition</dt>
-	    <py:with vars="source=False">
-	    <dd class="transition"><xi:include href="transitions.html"/></dd>
-	    </py:with>
+            <dt>Transitions</dt>
+            <dd class="transitions">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Next Page</th>
+                    <th>Condition</th>
+                    <th>Action</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <py:for each="transition in qsheet.next">
+                    <xi:include href="transition.html"/>
+                  </py:for>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3"></td>
+                    <td><a href="${r.route_url('survey.qsheet.edit.add_transition', sid=survey.id, qsid=qsheet.id)}" title="Add a row" class="button action-add-transition" ><span class="ui-icon ui-icon-plusthick"></span></a></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </dd>
             <dt class="role-css-edit-toggle">CSS styles</dt>
             <dd>${h.form.textarea('styles', qsheet.styles, e, class_='span-22 role-css-edit')}</dd>
             <dt class="role-js-edit-toggle">Javascript</dt>
@@ -339,13 +375,6 @@
         <section class="role-edit-layout clearfix">
             <aside id="tools" class="right role-accordion-0" style="width:200px;position:relative;">
               ${h.qsheet.question_type_list(question_type_groups)}
-              <!-- 
-              <py:for each="q_type_group in question_type_groups">
-                <h3><a href="#">${q_type_group.title}</a></h3>
-                <ol py:if="q_type_group.q_types">
-                  <li py:for="q_type in q_type_group.q_types" data-pyquest-name="${q_type.name}">${q_type.title}</li>
-                </ol>
-              </py:for> -->
             </aside>
             <ol id="qsheet-content" style="width:700px;">
               <li class="placeholder">Drag elements from the right to construct the questionnaire sheet.</li>

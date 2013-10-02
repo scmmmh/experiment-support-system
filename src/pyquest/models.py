@@ -27,7 +27,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '384006772f60'
+DB_VERSION = '4c876b48f28b'
 """The currently required database version."""
 
 class DBUpgradeException(Exception):
@@ -196,6 +196,14 @@ class Survey(Base):
                           backref='survey',
                           cascade='all, delete, delete-orphan')
     
+    data_sets = relationship('DataSet', 
+                             primaryjoin="and_(Survey.id==DataSet.survey_id, DataSet.type=='dataset')",
+                             cascade='all, delete, delete-orphan')
+
+    permutation_sets = relationship('PermutationSet', 
+                                    primaryjoin="and_(Survey.id==PermutationSet.survey_id, PermutationSet.type=='permutationset')",
+                                    cascade='all, delete, delete-orphan')
+
     def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
         self.title = title
         self.summary = summary
@@ -233,11 +241,12 @@ class QSheet(Base):
                               backref='qsheet',
                               cascade='all, delete, delete-orphan')
     next = relationship('QSheetTransition',
-                        backref='source',
+                        backref=backref('source', uselist=False),
                         primaryjoin='QSheet.id==QSheetTransition.source_id',
+                        order_by='QSheetTransition.order',
                         cascade='all, delete, delete-orphan')
     prev = relationship('QSheetTransition',
-                        backref='target',
+                        backref=backref('target', uselist=False),
                         primaryjoin='QSheet.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
     
@@ -329,7 +338,10 @@ class QuestionType(Base):
     enabled = Column(Boolean, default=True)
     order = Column(Integer)
     
-    q_type_group = relationship(QuestionTypeGroup, backref=backref('q_types', order_by='QuestionType.order', cascade='all, delete-orphan'))
+    q_type_group = relationship(QuestionTypeGroup,
+                                backref=backref('q_types',
+                                                order_by='QuestionType.order',
+                                                cascade='all, delete-orphan'))
     parent = relationship('QuestionType', backref='children', remote_side=[id])
     
     def backend_schema(self):
@@ -522,47 +534,23 @@ class QSheetTransition(Base):
     id = Column(Integer, primary_key=True)
     source_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_source_fk'))
     target_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_target_fk'))
-
-class TransitionCondition(Base):
-
-    __tablename__ = 'transition_conditions'
-
-    id = Column(Integer, primary_key=True)
-    transition_id = Column(ForeignKey(QSheetTransition.id, name='transition_conditions_qsheet_transitions_fk'))
-    question_id = Column(ForeignKey(Question.id, name='transition_conditions_questions_fk'))
-    expected_answer = Column(Unicode(255))
-    subquestion_name = Column(Unicode(255))
-
-    transition = relationship("QSheetTransition", backref=backref('condition', uselist=False, cascade='all,delete-orphan'))
-
-    def evaluate(self, dbsession, participant):
-        """ Checks whether this TransitionCondition has been fulfilled. If the question is a sub-question then it looks only for the 
-        relevant answer value. If the question has several answers but these are not specified as sub-questions (for example a multi-
-        choice question) these are joined together in a single string for testing. 
-        
-        :param self: the TranstionCondition
-        :param dbsession: a sqlalchemy data base session
-        :param participant: a participant 
-        :return True if the condition is fulfilled, False if not
-        """
-        question_id = self.question_id
-        answer = dbsession.query(Answer).filter(Answer.question_id==question_id).filter(Answer.participant_id==participant.id).first()
-        actual_answer = ''
-        if (answer):
-            query = dbsession.query(AnswerValue).filter(AnswerValue.answer_id==answer.id)
-            if self.subquestion_name:
-                answer_value = query.filter(AnswerValue.name==self.subquestion_name).first()
-                actual_answer = answer_value.value
-            else:
-                answer_values = query.all()
-                if len(answer_values) == 1:
-                    actual_answer = answer_values[0].value
-                else:
-                    for av in answer_values:
-                        actual_answer = actual_answer + av.value + ',' 
-                    actual_answer = actual_answer[:-1]
-
-        return actual_answer == self.expected_answer
+    order = Column(Integer, default=0)
+    _condition = Column(UnicodeText)
+    _action = Column(UnicodeText)
+    
+    def set_condition(self, condition):
+        if condition:
+            self._condition = json.dumps(condition)
+        else:
+            self._condition = None
+    
+    def get_condition(self):
+        if self._condition:
+            return json.loads(self._condition)
+        else:
+            return None
+    
+    condition = property(get_condition, set_condition)
 
 class DataSet(Base):
 
@@ -571,21 +559,77 @@ class DataSet(Base):
     name = Column(Unicode(255))
     owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
     survey_id = Column(ForeignKey(Survey.id, name="data_sets_survey_id_fk"))
+    type = Column(Unicode(20))
 
+    survey = relationship('Survey')
     items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
     qsheets = relationship('QSheet', backref='data_set')
     owner = relationship('User', backref='data_sets')
-    survey = relationship('Survey', backref='data_sets')
     attribute_keys = relationship('DataSetAttributeKey', 
-                                  backref='dataset', order_by='DataSetAttributeKey.order',
+                                  backref='dataset',
+                                  order_by='DataSetAttributeKey.order',
                                   cascade='all, delete, delete-orphan')
-                                 
+
+    __mapper_args__ = {'polymorphic_on': type,
+                       'polymorphic_identity': 'dataset'}
+
     def is_owned_by(self, user):
         if user:
             return self.owned_by == user.id
         else:
             return False
 
+    def copy_data(self, newds):
+        # TODO: Needs to be moved into the view
+        dbsession = DBSession()
+        new_keys_for_old = {}
+        for ak in self.attribute_keys:
+            new_ak = DataSetAttributeKey(key=ak.key, order=ak.order)
+            dbsession.add(new_ak)
+            newds.attribute_keys.append(new_ak)
+            dbsession.flush()
+            new_keys_for_old[ak.id] = new_ak.id
+        for item in self.items:
+            new_item = DataItem(order=item.order, control=item.control)
+            for attribute in item.attributes:
+                new_attribute = DataItemAttribute(value=attribute.value, key_id=new_keys_for_old[attribute.key_id])
+                new_item.attributes.append(new_attribute)
+            newds.items.append(new_item)
+
+    def duplicate(self):
+        """ Creates and returns a new DataSet which is a copy of this one. The owned_by and survey_id fields are
+        left unfilled.
+        """
+        dbsession = DBSession()
+        newds = DataSet(name=self.name, show_in_list=self.show_in_list)
+        self.copy_data(newds)
+        return newds
+
+class DataSetRelation(Base):
+    
+    __tablename__ = 'data_set_relations'
+    
+    id = Column(Integer, primary_key=True)
+    subject_id = Column(ForeignKey(DataSet.id, name='data_set_relations_subject_id_fk'))
+    object_id = Column(ForeignKey(DataSet.id, name='data_set_relations_object_id_fk'))
+    rel = Column(Unicode(255))
+    _data = Column(UnicodeText())
+    
+    subject = relationship('DataSet',
+                           backref='subject_of',
+                           primaryjoin='DataSet.id==DataSetRelation.subject_id')
+    object = relationship('DataSet',
+                           backref='object_of',
+                           primaryjoin='DataSet.id==DataSetRelation.object_id')
+
+    def get_data(self):
+        return json.loads(self._data)
+    
+    def set_data(self, data):
+        self._data = json.dumps(data)
+    
+    data = property(get_data, set_data)
+    
 class DataSetAttributeKey(Base):
 
     __tablename__ = 'data_set_attribute_keys'
@@ -650,6 +694,21 @@ class DataItemControlAnswer(Base):
     question_id = Column(ForeignKey(Question.id, name='data_item_control_answers_questions_fk'))
     answer = Column(Unicode(4096))
 
+class PermutationSet(DataSet):
+    """ PermutationSet extends DataSet. A PermutationSet is created when a QSheet has tasks and interfaces to permute.
+    The DataItems in a PermutationSet are strings representing the individual permutations. A DataSet containing the parts
+    of the actual permutation is created when a Participant actually starts the survey. 
+    """
+
+    tasks = relationship('DataSetRelation',
+                         primaryjoin="and_(PermutationSet.id==DataSetRelation.subject_id, DataSetRelation.rel=='tasks')",
+                         uselist=False)
+    interfaces = relationship('DataSetRelation',
+                              primaryjoin="and_(PermutationSet.id==DataSetRelation.subject_id, DataSetRelation.rel=='interfaces')",
+                              uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'permutationset'}
+
 class Participant(Base):
     
     __tablename__ = 'participants'
@@ -657,7 +716,7 @@ class Participant(Base):
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
-    
+
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
@@ -716,4 +775,3 @@ class Notification(Base):
                 response['message'] = 'Survey "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.value)
                 
         return response
-

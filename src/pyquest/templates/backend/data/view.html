@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>${data_set.name}</title>
+    <script type="text/javascript">
+      $(document).ready(function() {
+    	  $('#data-filter-form input[type=submit]').hide();
+    	  $('#data-filter-form select').change(function(ev, ui) {
+    		 $('#data-filter-form').submit(); 
+    	  });
+      });
+    </script>
+  </head>
+  <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}), (h.text.title(data_set.name), {'href': r.route_url('data.view', sid=survey.id, dsid=data_set.id)})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
+	<nav class="toolbar">
+	  <ul>
+        <py:if test="h.auth.is_authorised(':data_set.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'data_set': data_set})">
+          <li py:if="data_set.type == 'dataset'"><a href="${r.route_url('data.edit', sid=data_set.survey_id, dsid=data_set.id)}" class="button">Edit</a></li>
+          <li py:if="data_set.type == 'permutationset'"><a href="${r.route_url('data.edit.permset', sid=data_set.survey_id, dsid=data_set.id)}" class="button">Edit</a></li>
+          <li><a href="${r.route_url('data.download', sid=data_set.survey_id, dsid=data_set.id)}" class="button">Download</a></li>
+          <li py:if="data_set.type == 'dataset'"><a href="${r.route_url('data.delete', sid=data_set.survey_id, dsid=data_set.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the data set &quot;${h.text.title(data_set.name)}&quot;.">Delete</a></li>
+          <li py:if="data_set.type == 'permutationset'"><a href="${r.route_url('data.delete', sid=data_set.survey_id, dsid=data_set.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the permutation set &quot;${h.text.title(data_set.name)}&quot;.">Delete</a></li>
+          <li py:if="data_set.type == 'dataset'"><a href="${r.route_url('data.item.new', sid=data_set.survey_id, dsid=data_set.id)}" class="button">Add Item</a></li>
+        </py:if>
+	  </ul>
+	</nav>
+    <article>
+      <hgroup>
+        <h1>${data_set.name}</h1>
+      </hgroup>
+      <table>
+        <thead>
+          <tr py:if="data_set.items">
+            <th>Identifier</th>
+            <th py:if="data_set.type == 'dataset'">Control item</th>
+            <th py:for="attribute in data_set.attribute_keys">${attribute.key}</th>
+            <th py:if="data_set.type == 'dataset'">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr py:if="not data_set.items">
+            <td class="placeholder" py:if="data_set.type == 'dataset'">This dataset contains no data items. Use the "Add Item" button to add data.</td>
+            <td class="placeholder" py:if="data_set.type == 'permutationset'">The permutations for this permutation set have not been calculated yet.</td>
+          </tr>
+          <tr py:for="item in data_set.items">
+            <td>${item.id}</td>
+            <td py:if="data_set.type == 'dataset'"><py:if test="item.control">Yes</py:if></td>
+            <td py:for="attribute in item.sorted_attributes()">${attribute.value}</td>
+            <td py:if="data_set.type == 'dataset'">
+              <ul class="inline no-symbol no-margin">
+                <li><a href="${r.route_url('data.item.edit', sid=data_set.survey_id, dsid=data_set.id, did=item.id)}" class="button">Edit</a></li>
+                <li><a href="${r.route_url('data.item.delete', sid=data_set.survey_id, dsid=data_set.id, did=item.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this data item.">Delete</a></li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+	</article>
+  </body>
+</html>
