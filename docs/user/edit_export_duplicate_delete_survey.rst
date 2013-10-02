@@ -2,7 +2,7 @@
 
 .. note::
 	
-   The following sub-section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within PyQuestionnaire*, located at the bottom-half of the chapter :doc:`Access PyQuestionnaire<access_Questionnaire>`.
+   The following sub-section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within the Experiment Support System*, located at the bottom-half of the chapter :doc:`Access the Experiment Support System<access_Questionnaire>`.
 
 Editing, exporting, duplicating and deleting an existing survey
 --------------------------------------------------------------------------
@@ -64,7 +64,7 @@ Depending on where you are in the system, there are three ways to do the above, 
 	  .. image:: ../_static/user/notificationsExampleOne.png
 	     :align: center
 	   
-	  8. A notification will then be added, auto-populating the e-mail address field with the e-mail address you specified when you setup your account on PyQuestionnaire. An example is shown in the screenshot below:
+	  8. A notification will then be added, auto-populating the e-mail address field with the e-mail address you specified when you setup your account on the Experiment Support System. An example is shown in the screenshot below:
 	
 	  .. image:: ../_static/user/addedNotificationExample.png
 	     :align: center
@@ -112,7 +112,7 @@ You can export a survey by downloading its XML code in your files. To do this, y
 
 Duplicating a survey
 ^^^^^^^^^^^^^^^^^^^^
-If you have a survey that is a good basis for further surveys to be developed on or if you want to test ideas you might have regarding the possible development paths you could follow without messing up the original survey, PyQuestionnaire allows you to duplicate it.
+If you have a survey that is a good basis for further surveys to be developed on or if you want to test ideas you might have regarding the possible development paths you could follow without messing up the original survey, the Experiment Support System allows you to duplicate it.
 
 In order to action the above, follow the steps below:
   

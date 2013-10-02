@@ -8,8 +8,10 @@ Created on 9 Feb 2012
 from genshi.builder import Markup
 from pywebtools import ui
 
+from pyquest.util import get_config_setting
+
 def breadcrumbs(items, request):
-    items.insert(0, ('PyQuestionnaire', {'href': request.route_url('root')}))
+    items.insert(0, (get_config_setting(request, 'app.title', default='Experiment Support System'), {'href': request.route_url('root')}))
     return ui.breadcrumbs(items)
     
 def survey_breadcrumbs(items, request):
@@ -17,7 +19,7 @@ def survey_breadcrumbs(items, request):
     return breadcrumbs(items, request)
 
 def main_menu(current, survey, request):
-    menu_items = [('back', [Markup('&larr;'),  ' All my surveys'], {'href': request.route_url('survey'), 'class': 'no-tab', 'style': 'font-weight:normal;'}),
+    menu_items = [('back', [Markup('&larr;'),  ' All my experiments'], {'href': request.route_url('survey'), 'class': 'no-tab', 'style': 'font-weight:normal;'}),
                   ('survey', 'Survey', {'href': request.route_url('survey.view', sid=survey.id)}),
                   ('data', 'Data', {'href': request.route_url('data.list', sid=survey.id)}),
                   ('preview', 'Preview', {'href': request.route_url('survey.preview', sid=survey.id)}),

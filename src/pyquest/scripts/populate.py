@@ -21,11 +21,11 @@ from pyquest.views.backend.survey import load_survey_from_xml
 
 def init(subparsers):
     parser = subparsers.add_parser('initialise-database', help='Initialise the database')
-    parser.add_argument('configuration', help='PyQuestionnaire configuration file')
+    parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.add_argument('--drop-existing', action='store_true', default=False, help='Drop any existing tables')
     parser.set_defaults(func=initialise_database)
     parser = subparsers.add_parser('load-sample-data', help='Loads the sample data')
-    parser.add_argument('configuration', help='PyQuestionnaire configuration file')
+    parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.set_defaults(func=load_test_data)
 
 def initialise_database(args):
@@ -115,7 +115,7 @@ def load_test_data(args):
         
 
         # SURVEY 4
-        survey = Survey(title='Multi-task test survey', status='develop', styles='', scripts='')
+        survey = Survey(title='Multi-task test experiment', status='develop', styles='', scripts='')
         # PAGE 1
         source="""<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="consent" title="Welcome">
   <pq:styles></pq:styles>

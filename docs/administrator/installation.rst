@@ -1,10 +1,10 @@
 Installation
 ============
 
-``pip install pyquestionnaire-x.y.z.tar.gz``
+``pip install ExperimentSupportSystem-x.y.z.tar.gz``
 
-It is recommended that you install PyQuestionnaire into a virtual
-environment.
+It is recommended that you install the Experiment Support System into a
+virtual environment.
 
 You then need to install either *pycryptopp* or *PyCrypto* packages to enable
 the use of session cookies:
@@ -21,6 +21,4 @@ to use. For PostgreSQL ``pip install psycopg2``, for MySQL ``pip install mysql-p
 SQLite is not supported, because it does not provide all required features for
 smoothly migrating the database.
 
-After the installation has completed, run ``populate_PyQuestionnaire pyquest.ini``.
-
-You can then start the application by running ``pserve pyquest.ini``.
+After the installation has completed, move on to the :doc:`setup`.

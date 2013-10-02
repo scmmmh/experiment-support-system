@@ -4,6 +4,11 @@
 
 [app:main]
 
+# ********************
+# Application settings
+# ********************
+app.title = Experiment Support System
+
 # *************************************
 # SQLAlchemy database connection string
 # *************************************
@@ -36,10 +41,6 @@ pyramid.includes = pyramid_tm
 
 # DON'T CHANGE THIS
 use = egg:PyQuestionnaire
-
-# ************************
-# Database update settings
-# ************************
 
 # ############################
 # Default server configuration

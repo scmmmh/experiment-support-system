@@ -1,4 +1,4 @@
-<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest" title="A survey with a choice point">
+<pq:survey xmlns:pq="http://paths.sheffield.ac.uk/pyquest" title="An experiment with a choice point">
   <pq:summary/>
   <pq:language>en</pq:language>
   <pq:styles/>

@@ -1,12 +1,12 @@
 .. _topAccessSection:
 
-**********************
-Access PyQuestionnaire
-**********************
+************************************
+Access the Experiment Support System
+************************************
 
-This chapter will demonstrate to you how to access PyQuestionnaire and how to navigate it. The next chapter of this manual (*Working with PyQuestionnaire*) and that chapter's sections assume that you have read this part first and refer you here as a reminder.
+This chapter will demonstrate to you how to access the Experiment Support System and how to navigate it. The next chapter of this manual (*Working with the Experiment Support System*) and that chapter's sections assume that you have read this part first and refer you here as a reminder.
 
-**If you only want to find out how to navigate within PyQuestionnaire**, please click :ref:`here<navigating>` to be directed to the relevant section.
+**If you only want to find out how to navigate within the Experiment Support System**, please click :ref:`here<navigating>` to be directed to the relevant section.
 
 .. Navigation tab
 .. |allSurveys| image:: ../_static/user/allMySurveysLink.png
@@ -16,10 +16,10 @@ This chapter will demonstrate to you how to access PyQuestionnaire and how to na
 .. |forgottenPasswordScreen| image:: ../_static/user/forgottenPasswordScreen.png
 
 
-How to login to PyQuestionnaire
-===============================
+How to login to the Experiment Support System
+=============================================
 
-- Access PyQuestionnaire by typing the following address in a web browser of your choice:
+- Access the Experiment Support System by typing the following address in a web browser of your choice:
 
   https://promise.sheffield.ac.uk/pyquest/ 
  
@@ -51,10 +51,10 @@ How to login to PyQuestionnaire
    
 .. _navigating:
 
-Navigating within PyQuestionnaire
-=================================
+Navigating within the Experiment Support System
+===============================================
    
-As mentioned above, the **main profile screen** (:doc:`ref<conceptsAndTerms>`) automatically appears each time you login in PyQuestionnaire. 
+As mentioned above, the **main profile screen** (:doc:`ref<conceptsAndTerms>`) automatically appears each time you login in the Experiment Support System. 
   
 However, if you already are in a survey that you are developing, there are two ways to reach the **profile** screen (:doc:`ref<conceptsAndTerms>`):
   

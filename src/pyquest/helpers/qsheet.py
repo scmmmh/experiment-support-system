@@ -41,7 +41,7 @@ def load_db_template(filename):
     (component, q_type_name) = filename.split('/')
     q_type = dbsession.query(QuestionType).filter(QuestionType.name==q_type_name).first()
     if not q_type:
-        raise TemplateNotFound(filename, 'PyQuestionnaire Question Database')
+        raise TemplateNotFound(filename, 'Experiment Support System Question Database')
     if component == 'frontend':
         tmpl = '<html xmlns:py="http://genshi.edgewall.org/" py:strip="True">%s</html>' % (q_type.frontend_doc())
     return (filename, q_type_name, StringIO(tmpl), None)

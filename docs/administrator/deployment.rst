@@ -9,8 +9,8 @@ either directly or behind a reverse proxy.
 Deploying with Apache2 & mod_wsgi
 =================================
 
-To deploy PyQuestionnaire via `Apache2`_ and `mod_wsgi`_ add the following
-settings to the VirtualHost configuration::
+To deploy the Experiment Support System via `Apache2`_ and `mod_wsgi`_ add the
+following settings to the VirtualHost configuration::
 
     WSGIDaemonProcess pyquest user=www-data group=www-data processes=1 threads=10 python-path=/path/to/virtualenv/lib/python2.7/site-packages
     WSGIScriptAlias /pyquest /path/to/the/application.wsgi
@@ -21,8 +21,9 @@ settings to the VirtualHost configuration::
 **Note**: Leave the ``processes`` value at 1. Use the ``threads`` option to
 specify how many parallel requests to support. 
 
-Then create the following script to to run the application via `WSGI`_. Adapt it
-by replacing the paths with the paths to where PyQuestionnaire is installed::
+Then create the following script to to run the application via `WSGI`_. Adapt
+it by replacing the paths with the paths to where the Experiment Support System
+is installed::
 
     import os
     os.chdir(os.path.dirname(__file__))
