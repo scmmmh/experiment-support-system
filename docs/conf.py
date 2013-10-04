@@ -183,7 +183,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Experiment Support System.tex', u'Experiment Support System Documentation',
+  ('index', 'ExperimentSupportSystem.tex', u'Experiment Support System Documentation',
    u'Mark Hall', 'manual'),
 ]
 
@@ -213,7 +213,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'Experiment Support System', u'Experiment Support System Documentation',
+    ('index', 'Experimen SupportSystem', u'Experiment Support System Documentation',
      [u'Mark Hall', 'Spyros Katsaris'], 1)
 ]
 
@@ -227,7 +227,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Experiment Support System', u'Experiment Support System Documentation',
+  ('index', 'ExperimentSupportSystem', u'Experiment Support System Documentation',
    u'Mark Hall', 'Experiment Support System', 'One line description of project.',
    'Miscellaneous'),
 ]
