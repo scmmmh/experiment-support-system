@@ -1,24 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:qs="http://paths.sheffield.ac.uk/pyquest" targetNamespace="http://paths.sheffield.ac.uk/pyquest" elementFormDefault="qualified">
-    <xs:element name="survey" type="qs:Survey"/>
-    <xs:element name="qsheet" type="qs:QSheet"/>
+    <xs:element name="experiment" type="qs:Experiment"/>
+    <xs:element name="page" type="qs:Page"/>
     <xs:element name="question_type_group" type="qs:QuestionTypeGroup"/>
     
-    <xs:complexType name="Survey">
+    <xs:complexType name="Experiment">
         <xs:sequence>
             <xs:element name="summary" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="language" type="xs:string"/>
             <xs:element name="styles" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="scripts" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="first_page" type="xs:string"/>
-            <xs:element name="qsheet" type="qs:QSheet" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element name="transition" type="qs:QSheetTransition" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="pages" type="qs:Pages" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="transitions" type="qs:Transitions" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="data" type="qs:Data" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
         <xs:attribute name="title" type="xs:string" use="required"/>
     </xs:complexType>
     
+    <xs:complexType name="Pages">
+      <xs:sequence>
+        <xs:element name="page" type="qs:Page" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
     
-    <xs:complexType name="QSheet">
+    <xs:complexType name="Page">
         <xs:sequence>
             <xs:element name="styles" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="scripts" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -89,7 +95,13 @@
         <xs:attribute name="title" type="xs:string" use="required"/>
     </xs:complexType>
 
-    <xs:complexType name="QSheetTransition">
+    <xs:complexType name="Transitions">
+      <xs:sequence>
+        <xs:element name="transition" type="qs:Transition" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Transition">
         <xs:sequence>
             <xs:element name="condition" type="qs:TransitionCondition" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
@@ -99,9 +111,10 @@
     </xs:complexType>
     
     <xs:complexType name="TransitionCondition">
-        <xs:sequence>
-            <xs:element name="answer" type="qs:ConditionAnswer" minOccurs="0" maxOccurs="1"/>
-        </xs:sequence>
+        <xs:choice>
+            <xs:element name="answer" type="qs:ConditionAnswer"/>
+            <xs:element name="permutation" type="qs:ConditionPermutation"/>
+        </xs:choice>
     </xs:complexType>
     
     <xs:complexType name="ConditionAnswer">
@@ -109,4 +122,24 @@
         <xs:attribute name="question" type="xs:string" use="required"/>
         <xs:attribute name="answer" type="xs:string" use="required"/>
     </xs:complexType>
+
+    <xs:complexType name="ConditionPermutation">
+        <xs:sequence></xs:sequence>
+        <xs:attribute name="permutation" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="Data">
+        <xs:sequence>
+            <xs:element name="data_set" type="qs:DataSet" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="permutation_set" type="qs:DataSet" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="DataSet">
+        <xs:sequence>
+            <xs:element name="attached_to" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+    
 </xs:schema>
