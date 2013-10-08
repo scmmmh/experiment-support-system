@@ -519,66 +519,6 @@ def edit_delete_question(request):
                     dbsession.delete(question)
                 return {'status': 'ok'}
 
-@view_config(route_name='survey.qsheet.edit.source')
-@render({'text/html': 'backend/qsheet/edit_source.html'})
-def edit_source(request):
-    dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                 QSheet.survey_id==request.matchdict['sid'])).first()
-    user = current_user(request)
-    if survey and qsheet:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            if request.method == 'POST':
-                if request.POST.has_key('sbutton'):
-                    if request.POST['sbutton'] == 'AddCondition':
-                        add_condition(dbsession, qsheet)
-                    else:
-                        delete_condition(dbsession, qsheet)
-                validator = QSheetSourceSchema()
-                try:
-                    params = validator.to_python(request.POST)
-                    check_csrf_token(request, params)
-                    with transaction.manager:
-                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-                        qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                                     QSheet.survey_id==request.matchdict['sid'])).first()
-                        qsheet.name = params['name']
-                        qsheet.title = params['title']
-                        qsheet.styles = params['styles']
-                        qsheet.scripts = params['scripts']
-                        qsheet.set_attr_value('repeat', params['repeat'])
-                        qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
-                        qsheet.set_attr_value('data-items', params['data_items'])
-                        qsheet.set_attr_value('control-items', params['control_items'])
-                        for item in params['content']:
-                            if item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
-                                load_questions_from_xml(qsheet, item, dbsession)
-                    request.session.flash('Experiment page updated', 'info')
-                    raise HTTPFound(request.route_url('survey.qsheet.edit.source',
-                                                      sid=request.matchdict['sid'],
-                                                      qsid=request.matchdict['qsid']))
-                except api.Invalid as e:
-                    e.params = request.POST
-                    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-                    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                                 QSheet.survey_id==request.matchdict['sid'])).first()
-                    return {'survey': survey,
-                            'qsheet': qsheet,
-                            'e': e}
-            else:
-                # This is for backwards compatibility. An old qsheet with a 'Finish' transition will have next=[]
-                if len(qsheet.next) == 0:
-                    new_transition = QSheetTransition(source_id=qsheet.id)
-                    qsheet.next = [new_transition]
-                    dbsession.add(new_transition)
-                return {'survey': survey,
-                        'qsheet': qsheet}
-        else:
-            redirect_to_login(request)
-    else:
-        raise HTTPNotFound()
-
 @view_config(route_name='survey.qsheet.delete')
 @render({'text/html': 'backend/qsheet/delete.html'})
 def delete_qsheet(request):

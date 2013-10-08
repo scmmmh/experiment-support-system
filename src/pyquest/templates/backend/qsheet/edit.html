@@ -315,7 +315,6 @@
     <nav class="toolbar">
       <ul>
         <li><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}" class="button">Preview</a></li>
-        <li><a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}" class="button">Edit Source</a></li>
         <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.qsheet.data', sid=survey.id, qsid=qsheet.id)}" class="button">Data</a></li>
       </ul>
     </nav>
@@ -325,8 +324,7 @@
       <hgroup>
         <h1>${qsheet.title} - Edit</h1>
       </hgroup>
-      <noscript class="error clearfix">JavaScript is required to use all the functionality provided by this page. If you cannot use
-        JavaScript, it is recommended that you use the <a href="${r.route_url('survey.qsheet.edit.source', sid=survey.id, qsid=qsheet.id)}">source-editing page</a> instead.</noscript>
+      <noscript class="error clearfix">JavaScript is required to use all the functionality provided by this page.</noscript>
       <form id="qsheet-form" action="${r.route_url('survey.qsheet.edit', sid=survey.id, qsid=qsheet.id)}" method="post">
         <div class="error" py:if="e">${repr(e.error_dict)}</div>
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
