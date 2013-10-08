@@ -103,7 +103,7 @@ def new(request):
                     dbsession.add(survey)
                     dbsession.flush()
                     sid = survey.id
-                request.session.flash('Survey created', 'info')
+                request.session.flash('Experiment created', 'info')
                 raise HTTPFound(request.route_url('survey.view', sid=sid))
             except api.Invalid as e:
                 e.params = request.POST
@@ -156,7 +156,7 @@ def import_survey(request):
                     dbsession.add(survey)
                     dbsession.flush()
                     survey_id = survey.id
-                request.session.flash('Survey imported', 'info')
+                request.session.flash('Experiment imported', 'info')
                 raise HTTPFound(request.route_url('survey.view', sid=survey_id))
             except api.Invalid as e:
                 e.params = request.POST
@@ -196,7 +196,7 @@ def edit(request):
                             notification.recipient = n_param['recipient']
 
                         dbsession.add(survey)
-                    request.session.flash('Survey updated', 'info')
+                    request.session.flash('Experiment updated', 'info')
                     raise HTTPFound(request.route_url('survey.view',
                                                       sid=request.matchdict['sid']))
                 except api.Invalid as e:
@@ -317,7 +317,7 @@ def duplicate(request):
                                 dataset.applies_to = new_ids
                         dbsession.flush()
                         survey_id = dupl_survey.id
-                    request.session.flash('Survey duplicated', 'info')
+                    request.session.flash('Experiment duplicated', 'info')
                     raise HTTPFound(request.route_url('survey.view', sid=survey_id))
                 except api.Invalid as e:
                     e.params = request.POST
@@ -343,7 +343,7 @@ def delete(request):
                     check_csrf_token(request, request.POST)
                     with transaction.manager:
                         dbsession.delete(survey)
-                    request.session.flash('Survey deleted', 'info')
+                    request.session.flash('Experiment deleted', 'info')
                     raise HTTPFound(request.route_url('survey'))
                 except api.Invalid as e:
                     e.params = request.POST
@@ -407,7 +407,7 @@ def status(request):
                                 dbsession.add(notification)
                                 notification.timestamp = 0
                         survey.status = params['status']
-                    request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
+                    request.session.flash('Experiment now %s' % helpers.survey.status(params['status'], True), 'info')
                     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                                   
                     if params['status'] == 'testing':

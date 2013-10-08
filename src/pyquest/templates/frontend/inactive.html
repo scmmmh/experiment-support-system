@@ -8,7 +8,7 @@
     <hgroup>
       <h1>${survey.title} - ${h.survey.status(survey.status)}</h1>
     </hgroup>
-    <p i18n:msg="status">Unfortunately this survey is currently not accessible because it is ${h.survey.status(survey.status, True)}.</p>
+    <p i18n:msg="status">Unfortunately this experiment is currently not accessible because it is ${h.survey.status(survey.status, True)}.</p>
     <p py:if="survey.status == 'paused'">Please check again later to see whether it has been re-started.</p>
   </body>
 </html>

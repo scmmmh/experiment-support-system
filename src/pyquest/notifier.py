@@ -56,7 +56,7 @@ class Notifier(Thread):
         message = response['message']
         for address in response['addresses']:
             email = MIMEText(message)
-            email['Subject'] = 'Notification of survey status'
+            email['Subject'] = 'Notification of experiment status'
             email['From'] = self.from_field
             email['To'] = address
             smtp = smtplib.SMTP(self.smtp_host)

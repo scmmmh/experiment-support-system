@@ -2,17 +2,17 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>Import a survey</title>
+    <title>Import an experiment</title>
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([('Import a survey', {'href': r.route_url('survey.import')})], r)}
     <article>
       <hgroup>
-        <h1>Import a survey</h1>
+        <h1>Import an experiment</h1>
       </hgroup>
       <form action="${r.route_url('survey.import')}" method="post" enctype="multipart/form-data">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
-        <p>Please select the XML file that contains the survey you wish to import:</p>
+        <p>Please select the XML file that contains the experiment you wish to import:</p>
         <dl>
           <dt>File</dt>
           <dd>${h.form.file_input_field('source_file', e)}</dd>

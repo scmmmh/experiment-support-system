@@ -101,7 +101,7 @@ def new_qsheet(request):
                         dbsession.add(qsheet)
                         dbsession.flush()
                         qsid = qsheet.id
-                    request.session.flash('Survey page added', 'info')
+                    request.session.flash('Experiment page added', 'info')
                     raise HTTPFound(request.route_url('survey.qsheet.edit',
                                                       sid=request.matchdict['sid'],
                                                       qsid=qsid))
@@ -230,7 +230,7 @@ def import_qsheet(request):
                             dbsession.add(qsheet)
                             dbsession.flush()
                             qsid = qsheet.id
-                        request.session.flash('Survey page imported', 'info')
+                        request.session.flash('Experiment page imported', 'info')
                         raise HTTPFound(request.route_url('survey.qsheet.edit',
                                                           sid=request.matchdict['sid'],
                                                           qsid=qsid))
@@ -385,9 +385,9 @@ def edit(request):
                                         dbsession.delete(attr_group)
                         dbsession.add(qsheet)
                     if request.is_xhr:
-                        return {'flash': 'Survey page updated'}
+                        return {'flash': 'Experiment page updated'}
                     else:
-                        request.session.flash('Survey page updated', 'info')
+                        request.session.flash('Experiment page updated', 'info')
                         raise HTTPFound(request.route_url('survey.qsheet.edit',
                                                           sid=request.matchdict['sid'],
                                                           qsid=request.matchdict['qsid']))
@@ -545,7 +545,7 @@ def edit_source(request):
                         for item in params['content']:
                             if item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
                                 load_questions_from_xml(qsheet, item, dbsession)
-                    request.session.flash('Survey page updated', 'info')
+                    request.session.flash('Experiment page updated', 'info')
                     raise HTTPFound(request.route_url('survey.qsheet.edit.source',
                                                       sid=request.matchdict['sid'],
                                                       qsid=request.matchdict['qsid']))
@@ -595,7 +595,7 @@ def delete_qsheet(request):
                         with transaction.manager:
                             survey.start_id = survey.qsheets[0].id
                             dbsession.add(survey)
-                request.session.flash('Survey page deleted', 'info')
+                request.session.flash('Experiment page deleted', 'info')
                 raise HTTPFound(request.route_url('survey.view',
                                                   sid=request.matchdict['sid']))
             else:
