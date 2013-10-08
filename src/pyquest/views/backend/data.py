@@ -109,7 +109,7 @@ def dataset_new(request):
                     params = NewDataSetSchema().to_python(request.POST)
                     check_csrf_token(request, params)
                     with transaction.manager:
-                        data_set = DataSet(name=params['name'], owned_by=user.id, survey_id=user.id)
+                        data_set = DataSet(name=params['name'], owned_by=user.id, survey_id=survey.id)
                         dbsession.add(data_set)
                         dbsession.flush()
                         dsid = data_set.id
@@ -439,12 +439,8 @@ def permset_edit(request):
                 permset.interfaces.object_id = params['interfaces']
                 permset.interfaces.data = {'mode': params['interfaces_mode']}
                 
-                task_items = [d.attributes[0].value for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['tasks'])]
-                if not task_items:
-                    raise api.Invalid('Please select a tasks data set', {}, None, error_dict={'tasks': 'Please select a tasks data set'})
-                interface_items = [d.attributes[0].value for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['interfaces'])]
-                if not task_items:
-                    raise api.Invalid('Please select an interfaces data set', {}, None, error_dict={'interfaces': 'Please select an interfaces data set'})
+                task_items = [dict([(attr.key.key, attr.value) for attr in d.attributes]) for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['tasks'])]
+                interface_items = [dict([(attr.key.key, attr.value) for attr in d.attributes]) for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['interfaces'])]
                 permutations = []
                 if params['tasks_mode'] == 'within':
                     if params['interfaces_mode'] == 'within':
@@ -460,9 +456,14 @@ def permset_edit(request):
                         permutations = itertools.product(task_items, interface_items)
                 for comb in permutations:
                     di = DataItem()
+                    value = []
+                    for pair in comb:
+                        data = {}
+                        data.update(pair[0])
+                        data.update(pair[1])
+                        value.append(data)
                     di.attributes.append(DataItemAttribute(key_id=permset.attribute_keys[0].id,
-                                                           value=json.dumps([{'task': pair[0],
-                                                                              'interface': pair[1]} for pair in comb])))
+                                                           value=json.dumps(value)))
                     permset.items.append(di)
             request.session.flash('PermutationSet updated', 'info')
             raise HTTPFound(request.route_url('data.view', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
@@ -535,7 +536,7 @@ def qsheet(request):
         raise HTTPNotFound()
     
 @view_config(route_name='survey.qsheet.data.attach')
-@render({'text/html': 'backend/data/attach.html'})
+@render({'text/html': 'backend/data/qsheet_attach.html'})
 def attach(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -571,7 +572,7 @@ def attach(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.data.detach')
-@render({'text/html': 'backend/data/detach.html'})
+@render({'text/html': 'backend/data/qsheet_detach.html'})
 def detach(request):
     dbsession = DBSession()
     user = current_user(request)

@@ -208,7 +208,7 @@
         		});
         	},
         	update: function(ev, ui) {
-        		$('input.role-order').each(function(idx) {
+        		$('#qsheet-content').find('input.role-order').each(function(idx) {
         			$(this).val(idx);
         		});
         	},
@@ -297,6 +297,14 @@
         	return false;
         });
         $('.action-remove-transition').click(transition_remove);
+        $('dd.transitions tbody').sortable({
+            update: function(ev, ui) {
+                $('dd.transitions').find('input.role-order').each(function(idx) {
+                    $(this).val(idx);
+                });
+            },
+            placeholder: 'droppable'
+        });
     });
     </script>
   </head>

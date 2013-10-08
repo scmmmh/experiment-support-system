@@ -43,6 +43,7 @@ class QSheetSourceSchema(Schema):
 
 class TransitionSchema(Schema):
     target = validators.Int()
+    order = validators.Int()
     condition = validators.UnicodeString(not_empty=True)
     question = validators.UnicodeString()
     answer = validators.UnicodeString()
@@ -346,19 +347,22 @@ def edit(request):
                         qsheet.set_attr_value('control-items', params['control_items'])
                             
                         for transition in qsheet.next:
-                            transition.target_id = params['transition'][unicode(transition.id)]['target']
-                            if params['transition'][unicode(transition.id)]['condition'] == 'answer':
+                            t_params = params['transition'][unicode(transition.id)]
+                            transition.target_id = t_params['target']
+                            transition.order = t_params['order']
+                            if t_params['condition'] == 'answer':
                                 transition.condition = {'type': 'answer',
-                                                        'question': params['transition'][unicode(transition.id)]['question'],
-                                                        'answer': params['transition'][unicode(transition.id)]['answer']}
+                                                        'question': t_params['question'],
+                                                        'answer': t_params['answer']}
                                 dbsession.add(transition)
-                            if params['transition'][unicode(transition.id)]['condition'] == 'permutation':
+                            if t_params['condition'] == 'permutation':
                                 transition.condition = {'type': 'permutation',
-                                                        'permutation': params['transition'][unicode(transition.id)]['permutation']}
+                                                        'permutation': t_params['permutation']}
                             else:
                                 transition.condition = None
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
+                            question.order = q_params['order']
                             for field in question.q_type.backend_schema():
                                 if field['type'] == 'question-name':
                                     question.name = q_params['name']
@@ -421,8 +425,13 @@ def edit_add_transition(request):
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             transition = None
+            next_order = [t.order for t in qsheet.next]
+            if next_order:
+                next_order = next_order[0] +  1
+            else:
+                next_order = 0
             with transaction.manager:
-                transition = QSheetTransition(source_id=qsheet.id)
+                transition = QSheetTransition(source_id=qsheet.id, order=next_order)
                 dbsession.add(transition)
             dbsession.add(survey)
             dbsession.add(qsheet)
