@@ -348,14 +348,14 @@ def edit(request):
                             
                         for transition in qsheet.next:
                             t_params = params['transition'][unicode(transition.id)]
-                            transition.target_id = t_params['target']
+                            transition.target_id = t_params['target'] if t_params['target'] >= 0 else None
                             transition.order = t_params['order']
                             if t_params['condition'] == 'answer':
                                 transition.condition = {'type': 'answer',
                                                         'question': t_params['question'],
                                                         'answer': t_params['answer']}
                                 dbsession.add(transition)
-                            if t_params['condition'] == 'permutation':
+                            elif t_params['condition'] == 'permutation':
                                 transition.condition = {'type': 'permutation',
                                                         'permutation': t_params['permutation']}
                             else:
