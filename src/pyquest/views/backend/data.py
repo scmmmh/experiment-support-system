@@ -14,7 +14,6 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
-from sqlalchemy import and_
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
@@ -421,7 +420,6 @@ def permset_new(request):
 @render({'text/html': 'backend/data/permset_edit.html'}) # TODO: Fix permutation generation
 def permset_edit(request):
     dbsession = DBSession()
-    user = current_user(request)
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     permset = dbsession.query(PermutationSet).filter(PermutationSet.id==request.matchdict['dsid']).first()
     if request.method == 'POST':
