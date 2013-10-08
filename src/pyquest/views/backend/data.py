@@ -442,18 +442,19 @@ def permset_edit(request):
                 task_items = [dict([(attr.key.key, attr.value) for attr in d.attributes]) for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['tasks'])]
                 interface_items = [dict([(attr.key.key, attr.value) for attr in d.attributes]) for d in dbsession.query(DataItem).filter(DataItem.dataset_id==params['interfaces'])]
                 permutations = []
-                if params['tasks_mode'] == 'within':
-                    if params['interfaces_mode'] == 'within':
-                        permutations = itertools.permutations(itertools.product(task_items, interface_items))
+                if task_items and interface_items:
+                    if params['tasks_mode'] == 'within':
+                        if params['interfaces_mode'] == 'within':
+                            permutations = itertools.permutations(itertools.product(task_items, interface_items))
+                        else:
+                            for interface in interface_items:
+                                permutations.extend(itertools.permutations(itertools.product(task_items, [interface])))
                     else:
-                        for interface in interface_items:
-                            permutations.extend(itertools.permutations(itertools.product(task_items, [interface])))
-                else:
-                    if params['interfaces_mode'] == 'within':
-                        for task in task_items:
-                            permutations.extend(itertools.permutations(itertools.product([task], interface_items)))
-                    else:
-                        permutations = itertools.product(task_items, interface_items)
+                        if params['interfaces_mode'] == 'within':
+                            for task in task_items:
+                                permutations.extend(itertools.permutations(itertools.product([task], interface_items)))
+                        else:
+                            permutations = itertools.product(task_items, interface_items)
                 for comb in permutations:
                     di = DataItem()
                     value = []
@@ -515,7 +516,7 @@ def permset_count(request):
                 count = '&gt; 20000'
             return {'count': count}
         else:
-            return {'count': 'Please select task and interface data sets'}
+            return {'count': 0}
     except api.Invalid:
         return {'count': 'Could not determine the required number of participants'}
 
