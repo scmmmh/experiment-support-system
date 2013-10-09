@@ -6,15 +6,15 @@ Created on 24 Jan 2012
 '''
 import transaction
 
-from formencode import Schema, validators, api, variabledecode, foreach
+from formencode import Schema, validators, api, variabledecode
 from lxml import etree
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPUnauthorized
+from pyramid.response import Response
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
-from sqlalchemy import and_, desc
+from sqlalchemy import and_
 
-from pyquest import helpers
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
@@ -279,7 +279,7 @@ def preview(request):
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             example = [{'did': 0}]
-            if qsheet.data_set:
+            if qsheet.data_set and len(qsheet.data_set.items) > 0:
                 example[0]['did'] = qsheet.data_set.items[0].id
                 for attr in qsheet.data_set.items[0].attributes:
                     example[0][attr.key.key] = attr.value
@@ -560,8 +560,11 @@ def delete_qsheet(request):
 
 @view_config(route_name='survey.qsheet.export')
 @view_config(route_name='survey.qsheet.export.ext')
-@render({'application/xml': 'backend/qsheet/export.xml'})
 def export(request):
+    @render({'application/xml': 'backend/qsheet/export.xml'})
+    def page_xml_file(request, survey, qsheet):
+        return {'survey': survey,
+                'qsheet': qsheet}
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -569,8 +572,9 @@ def export(request):
     user = current_user(request)
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            return {'survey': survey,
-                    'qsheet': qsheet}
+            return Response(page_xml_file(request, survey, qsheet).body,
+                            headers={'Content-Type': 'application/xml',
+                                     'Content-Disposition': 'attachment; filename=%s.xml' % (qsheet.name.encode('utf-8'))})
         else:
             redirect_to_login(request)
     else:
