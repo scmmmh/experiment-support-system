@@ -8,8 +8,8 @@
     ${h.ui.survey_breadcrumbs([], r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.new')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})" py:attrs="h.user.tooltips(r, 'Create a new survey', ('survey.new', 'Click here to create a new survey'))">New Survey</a></li>
-        <li><a href="${r.route_url('survey.import')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})" py:attrs="h.user.tooltips(r, 'Import a survey', ('survey.new', 'Click here to import a survey'))">Import Survey</a></li>
+        <li><a href="${r.route_url('survey.new')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})" py:attrs="h.user.tooltips(r, 'Create a new survey', ('survey.new', 'Click here to create a new survey'))">New Experiment</a></li>
+        <li><a href="${r.route_url('survey.import')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})" py:attrs="h.user.tooltips(r, 'Import a survey', ('survey.new', 'Click here to import a survey'))">Import Experiment</a></li>
       </ul>
     </nav>
     <article>
