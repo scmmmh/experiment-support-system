@@ -85,31 +85,31 @@ def question():
     return decorator(wrapper)
 
 def question_as_text(question, no_ids=False):
-    text = ['  <pq:type>%s</pq:type>' % (question.q_type.name)]
+    text = ['  <ess:type>%s</ess:type>' % (question.q_type.name)]
     for schema in question.q_type.backend_schema():
         if schema['type'] == 'question-name':
-            text.append('  <pq:name>%s</pq:name>' % (question.name))
+            text.append('  <ess:name>%s</ess:name>' % (question.name))
         elif schema['type'] == 'question-title':
-            text.append('  <pq:title>%s</pq:title>' % (question.title))
+            text.append('  <ess:title>%s</ess:title>' % (question.title))
         elif schema['type'] == 'question-required':
-            text.append('  <pq:required>%s</pq:required>' % ('true' if question.required else 'false'))
+            text.append('  <ess:required>%s</ess:required>' % ('true' if question.required else 'false'))
         elif schema['type'] == 'question-help':
-            text.append('  <pq:help>%s</pq:help>' % (question.help))
+            text.append('  <ess:help>%s</ess:help>' % (question.help))
         elif schema['type'] in ['unicode', 'richtext', 'int', 'select']:
             if question.attr_value(schema['attr']):
-                text.append('  <pq:attribute name="%s">%s</pq:attribute>' % (schema['attr'], question.attr_value(schema['attr'], default='')))
+                text.append('  <ess:attribute name="%s">%s</ess:attribute>' % (schema['attr'], question.attr_value(schema['attr'], default='')))
         elif schema['type'] == 'table':
-            text.append('  <pq:attribute_group name="%s">' % (schema['attr']))
+            text.append('  <ess:attribute_group name="%s">' % (schema['attr']))
             for attr_group in question.attr_group(schema['attr'], default=[], multi=True):
-                text.append('    <pq:attribute>')
+                text.append('    <ess:attribute>')
                 for column in schema['columns']:
-                    text.append('      <pq:value name="%s">%s</pq:value>' % (column['attr'], attr_group.attr_value(column['attr'], default='')))
-                text.append('    </pq:attribute>')
-            text.append('  </pq:attribute_group>')
+                    text.append('      <ess:value name="%s">%s</ess:value>' % (column['attr'], attr_group.attr_value(column['attr'], default='')))
+                text.append('    </ess:attribute>')
+            text.append('  </ess:attribute_group>')
     if no_ids:
-        text = '<pq:question>\n%s\n</pq:question>' % ('\n'.join(text))
+        text = '<ess:question>\n%s\n</ess:question>' % ('\n'.join(text))
     else:
-        text = '<pq:question id="%i">\n%s\n</pq:question>' % (question.id, '\n'.join(text))
+        text = '<ess:question id="%i">\n%s\n</ess:question>' % (question.id, '\n'.join(text))
     return text
 
 def as_text(qsheet, as_markup=False, no_ids=False):
@@ -118,26 +118,6 @@ def as_text(qsheet, as_markup=False, no_ids=False):
         return Markup(text)
     else:
         return text
-
-def transition_as_text(transition):
-    """ Translates a transition into XML text for writing to file.
-
-    :param transition: the :py:class:`~pyquest.models.Transition` to be translated
-    :return the XML representation
-    """
-    text = '<pq:transition from="%s"' % transition.source.name
-
-    if transition.target:
-        text = text + (' to="%s"' % transition.target.name)
-    if transition.condition:
-        text = text + (' question_id="%s"' % transition.condition.question_id)
-        text = text + (' expected_answer="%s"' % transition.condition.expected_answer)
-        if transition.condition.subquestion_name:
-            text = text + (' subquestion_name="%s"' % transition.condition.subquestion_name)
-
-    text = text + '/>'
-
-    return Markup(text)
 
 def render_questions(qsheet, item, p, error=None):
     """ Constructs all the question sections for :py:class:`~pyquest.models.QSheet` qsheet. If the attribute 'show-question-numbers' is set to 'yes' then questions which are answerable are given a number. 

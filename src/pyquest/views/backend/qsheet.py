@@ -33,7 +33,7 @@ class QSheetSourceSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="dummy"><pq:questions>%s</pq:questions></pq:qsheet>', strip_wrapper=False)
+    content = XmlValidator('<ess:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="dummy"><ess:questions>%s</ess:questions></ess:qsheet>', strip_wrapper=False)
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
     repeat = validators.UnicodeString(not_empty=True)
@@ -66,7 +66,7 @@ class QSheetAddQuestionSchema(Schema):
     q_type = validators.UnicodeString(not_empty=True)
     order = validators.Int()
 
-NAMESPACES = {'pq': 'http://paths.sheffield.ac.uk/pyquest'}
+NAMESPACES = {'ess': XmlValidator.namespace}
     
 @view_config(route_name='survey.qsheet')
 @render({'text/html': True})
@@ -137,7 +137,7 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
         if not question:
             question = Question()
             qsheet.questions.append(question)
-        q_type = dbsession.query(QuestionType).filter(QuestionType.name==single_xpath_value(item, 'pq:type/text()', default=None)).first()
+        q_type = dbsession.query(QuestionType).filter(QuestionType.name==single_xpath_value(item, 'ess:type/text()', default=None)).first()
         if q_type:
             question.q_type = q_type
         else:
@@ -145,15 +145,15 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
         question.order = idx
         for schema in question.q_type.backend_schema():
             if schema['type'] == 'question-name':
-                question.name = single_xpath_value(item, 'pq:name/text()', default='unnamed')
+                question.name = single_xpath_value(item, 'ess:name/text()', default='unnamed')
             elif schema['type'] == 'question-title':
-                question.title = single_xpath_value(item, 'pq:title/text()', default='Missing title')
+                question.title = single_xpath_value(item, 'ess:title/text()', default='Missing title')
             elif schema['type'] == 'question-required':
-                question.required = True if single_xpath_value(item, 'pq:required/text()', default='false').lower() == 'true' else False
+                question.required = True if single_xpath_value(item, 'ess:required/text()', default='false').lower() == 'true' else False
             elif schema['type'] == 'question-help':
-                question.help = single_xpath_value(item, 'pq:help/text()', default='')
+                question.help = single_xpath_value(item, 'ess:help/text()', default='')
             elif schema['type'] in ['unicode', 'richtext', 'int', 'select']:
-                value = single_xpath_value(item, "pq:attribute[@name='%s']" % (schema['attr']))
+                value = single_xpath_value(item, "ess:attribute[@name='%s']" % (schema['attr']))
                 if value is not None:
                     value = etree.tostring(value)
                     value = value[value.find('>') + 1:value.rfind('<')]
@@ -165,18 +165,18 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                     question.set_attr_value(schema['attr'], '')
             elif schema['type'] == 'table':
                 attr_groups = question.attr_group(schema['attr'], default=[], multi=True)
-                doc_groups = item.xpath("pq:attribute_group[@name='%s']/pq:attribute" % (schema['attr']), namespaces=NAMESPACES)
+                doc_groups = item.xpath("ess:attribute_group[@name='%s']/ess:attribute" % (schema['attr']), namespaces=NAMESPACES)
                 for idx2 in range(0, max(len(attr_groups), len(doc_groups))):
                     if idx2 < len(attr_groups) and idx2 < len(doc_groups):
                         for column in schema['columns']:
-                            attr_groups[idx2].set_attr_value(column['attr'], single_xpath_value(doc_groups[idx2], "pq:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''))
+                            attr_groups[idx2].set_attr_value(column['attr'], single_xpath_value(doc_groups[idx2], "ess:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''))
                     elif idx2 < len(attr_groups):
                         dbsession.delete(attr_groups[idx2])
                     elif idx2 < len(doc_groups):
                         qag = QuestionAttributeGroup(key=schema['attr'], order=idx2)
                         for idx3, column in enumerate(schema['columns']):
                             qag.attributes.append(QuestionAttribute(key=column['attr'],
-                                                                    value=single_xpath_value(doc_groups[idx2], "pq:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''),
+                                                                    value=single_xpath_value(doc_groups[idx2], "ess:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''),
                                                                     order=idx3))
                         question.attributes.append(qag)
     if cleanup:
@@ -188,13 +188,13 @@ def load_qsheet_from_xml(survey, doc, dbsession):
     if 'title' in doc.attrib:
         qsheet.title = doc.attrib['title']
     for item in doc:
-        if item.tag == '{http://paths.sheffield.ac.uk/pyquest}styles':
+        if item.tag == '{%s}styles' % (XmlValidator.namespace):
             qsheet.styles = item.text
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}scripts':
+        elif item.tag == '{%s}scripts' % (XmlValidator.namespace):
             qsheet.scripts = item.text
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}attribute':
+        elif item.tag == '{%s}attribute' % (XmlValidator.namespace):
             qsheet.set_attr_value(item.attrib['name'], item.text)
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
+        elif item.tag == '{%s}questions' % (XmlValidator.namespace):
             load_questions_from_xml(qsheet, item, dbsession, cleanup=False)
     return qsheet
 
@@ -205,12 +205,15 @@ def load_transition_from_xml(qsheets, doc, dbsession):
         if 'to' in doc.attrib and doc.attrib['to'] in qsheets:
             transition.target = qsheets[doc.attrib['to']]
         for child in doc:
-            if child.tag == '{http://paths.sheffield.ac.uk/pyquest}condition':
+            if child.tag == '{%s}condition' % (XmlValidator.namespace):
                 for condition in child:
-                    if condition.tag == '{http://paths.sheffield.ac.uk/pyquest}answer':
+                    if condition.tag == '{%s}answer' % (XmlValidator.namespace):
                         transition.condition = {'type': 'answer',
                                                 'question': condition.attrib['question'],
                                                 'answer': condition.attrib['answer']}
+                    elif condition.tag == '{%s}permutation' % (XmlValidator.namespace):
+                        transition.condition = {'type': 'permutation',
+                                                'permutation': condition.attrib['permutation']}
 
 @view_config(route_name='survey.qsheet.import')
 @render({'text/html': 'backend/qsheet/import.html'})
@@ -225,7 +228,7 @@ def import_qsheet(request):
                     if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                         raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
                     doc = XmlValidator('%s').to_python(''.join(request.POST['source_file'].file))
-                    if doc.tag == '{http://paths.sheffield.ac.uk/pyquest}qsheet':
+                    if doc.tag == '{%s}page' % (XmlValidator.namespace):
                         with transaction.manager:
                             qsheet = load_qsheet_from_xml(survey, doc, dbsession)
                             dbsession.add(qsheet)
@@ -236,7 +239,7 @@ def import_qsheet(request):
                                                           sid=request.matchdict['sid'],
                                                           qsid=qsid))
                     else:
-                        raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Only individual questions can be imported here.'})
+                        raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Only individual pages can be imported here.'})
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
@@ -557,8 +560,7 @@ def delete_qsheet(request):
 
 @view_config(route_name='survey.qsheet.export')
 @view_config(route_name='survey.qsheet.export.ext')
-@render({'text/html': 'backend/qsheet/export.html',
-         'application/xml': 'backend/qsheet/export.xml'})
+@render({'application/xml': 'backend/qsheet/export.xml'})
 def export(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()

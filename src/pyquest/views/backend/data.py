@@ -125,6 +125,35 @@ def dataset_new(request):
     else:
         raise HTTPNotFound()
 
+def load_csv_file(file_data, file_name, survey, dbsession):
+    reader = csv.DictReader(file_data)
+    count = 1
+    offset = 0
+    data_set = DataSet(name = file_name, survey_id=survey.id)
+    dbsession.add(data_set)
+    try:
+        for item in reader:
+            data_item = DataItem(order=count)
+            if 'control_' in item:
+                data_item.control = validators.StringBool().to_python(item['control_'])
+                offset = 1
+            order = 1
+            for idx, (key, value) in enumerate(item.items()):
+                if key != 'control_':
+                    if count == 1:
+                        attribute_key = DataSetAttributeKey(key=key.decode('utf-8'), order=order)
+                        order = order + 1
+                        data_set.attribute_keys.append(attribute_key)
+                        dbsession.flush()
+                    else:
+                        attribute_key = data_set.attribute_keys[idx - offset]
+                    data_item.attributes.append(DataItemAttribute(value=value.decode('utf-8') if value else u'', key_id=attribute_key.id))
+                    data_set.items.append(data_item)
+            count = count + 1
+    except csv.Error:
+        raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
+    return data_set
+
 @view_config(route_name='data.upload')
 @render({'text/html': 'backend/data/dataset_upload.html'})
 def dataset_upload(request):
@@ -138,33 +167,8 @@ def dataset_upload(request):
                 try:
                     if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                         raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
-                    reader = csv.DictReader(request.POST['source_file'].file)
-                    count = 1
-                    offset = 0
                     with transaction.manager:
-                        data_set = DataSet(name = request.POST['source_file'].filename, owned_by=user.id, survey_id=survey.id)
-                        dbsession.add(data_set)
-                        try:
-                            for item in reader:
-                                data_item = DataItem(order=count)
-                                if 'control_' in item:
-                                    data_item.control = validators.StringBool().to_python(item['control_'])
-                                    offset = 1
-                                order = 1
-                                for idx, (key, value) in enumerate(item.items()):
-                                    if key != 'control_':
-                                        if count == 1:
-                                            attribute_key = DataSetAttributeKey(key=key.decode('utf-8'), order=order)
-                                            order = order + 1
-                                            data_set.attribute_keys.append(attribute_key)
-                                            dbsession.flush()
-                                        else:
-                                            attribute_key = data_set.attribute_keys[idx - offset]
-                                        data_item.attributes.append(DataItemAttribute(value=value.decode('utf-8') if value else u'', key_id=attribute_key.id))
-                                        data_set.items.append(data_item)
-                                count = count + 1
-                        except csv.Error:
-                            raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'The file you selected is not a valid CSV file'})
+                        data_set = load_csv_file(request.POST['source_file'].file, request.POST['source_file'].filename, survey, dbsession).id
                         dbsession.flush()
                         dsid = data_set.id
                     request.session.flash('Data uploaded', 'info')

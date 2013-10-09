@@ -45,14 +45,16 @@ class ParticipantManager(object):
                 permutation_items = {}
                 for qsheet in self._survey.qsheets:
                     if qsheet.data_set and qsheet.data_set.type == 'permutationset':
-                        item = sample([item for item in qsheet.data_set.items], 1)[0]
-                        items = []
-                        for idx, data in enumerate(json.loads(item.attributes[0].value)):
-                            data['did'] = item.id
-                            data['_sub_did'] = idx
-                            items.append(data)
-                        permutation_items[unicode(qsheet.data_set.id)] = items    
-                        permutation_items[unicode(qsheet.data_set.id)].reverse()
+                        items = [item for item in qsheet.data_set.items]
+                        if items:
+                            item = sample(items, 1)[0]
+                            items = []
+                            for idx, data in enumerate(json.loads(item.attributes[0].value)):
+                                data['did'] = item.id
+                                data['_sub_did'] = idx
+                                items.append(data)
+                            permutation_items[unicode(qsheet.data_set.id)] = items    
+                            permutation_items[unicode(qsheet.data_set.id)].reverse()
                 pages = {}
                 start_id = self.build_pages(self._survey.start, pages, {'permutation-items': permutation_items})
                 self._participant.set_state({'pages': pages,
@@ -76,7 +78,7 @@ class ParticipantManager(object):
         if qsheet.data_set:
             if qsheet.data_set.type == 'dataset':
                 page['data-set'] = qsheet.data_set.id
-            elif qsheet.data_set.type == 'permutationset':
+            elif qsheet.data_set.type == 'permutationset' and unicode(qsheet.data_set.id) in params['permutation-items']:
                 page['data-items'] = [params['permutation-items'][unicode(qsheet.data_set.id)][-1]]
         pages[page_id] = page
         if qsheet.next:

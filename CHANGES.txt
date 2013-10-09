@@ -16,6 +16,8 @@ DEV
 - UPDATE: New ESS script for all console-based admin actions
 - UPDATE: Data item values can now be of arbitrary length
 - UPDATE: Removed the source editing functionality
+- UPDATE: Exporting an experiment now also exports all data sets in the
+  experiment
 
 0.9.1
 -----
