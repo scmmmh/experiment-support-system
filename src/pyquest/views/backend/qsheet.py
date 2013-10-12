@@ -45,9 +45,9 @@ class TransitionSchema(Schema):
     target = validators.Int()
     order = validators.Int()
     condition = validators.UnicodeString(not_empty=True)
-    question = validators.UnicodeString()
-    answer = validators.UnicodeString()
-    permutation = validators.UnicodeString()
+    question = validators.UnicodeString(if_missing='')
+    answer = validators.UnicodeString(if_missing='')
+    permutation = validators.UnicodeString(if_missing='')
 
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
