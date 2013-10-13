@@ -64,10 +64,6 @@ def load_test_data(args):
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
-    def load_questions(qsheet, doc, DBSession):
-        for item in doc:
-            if item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
-                load_questions_from_xml(qsheet, item, DBSession, cleanup=False)
     dbsession = DBSession()
     with transaction.manager:
         user = dbsession.query(User).first()
