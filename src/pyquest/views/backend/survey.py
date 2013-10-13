@@ -175,6 +175,18 @@ def load_survey_from_xml(owner, dbsession, doc, zip_file):
                 load_transition_from_xml(qsheets, transition, dbsession)
     return survey
 
+def load_survey_from_stream(stream, owner, dbsession):
+    zip_file = ZipFile(stream)
+    try:
+        doc = XmlValidator('%s').to_python(zip_file.read('experiment.xml'))
+        if doc.tag != '{%s}experiment' % (XmlValidator.namespace):
+            raise api.Invalid('Not an experiment file', {}, None, error_dict={'source_file': 'Only complete experiments can be imported here.'})
+        survey = load_survey_from_xml(owner, dbsession, doc, zip_file)
+        dbsession.add(survey)
+        return survey
+    except Exception as e:
+        raise api.Invalid(str(e), {}, None, error_dict={'source_file': str(e)})
+
 @view_config(route_name='survey.import')
 @render({'text/html': 'backend/survey/import.html'})
 def import_survey(request):
@@ -184,21 +196,12 @@ def import_survey(request):
             try:
                 if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                     raise api.Invalid('Invalid experiment file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
-                zip_file = ZipFile(request.POST['source_file'].file)
-                try:
-                    doc = XmlValidator('%s').to_python(zip_file.read('experiment.xml'))
-                    if doc.tag != '{%s}experiment' % (XmlValidator.namespace):
-                        raise api.Invalid('Not an experiment file', {}, None, error_dict={'source_file': 'Only complete experiments can be imported here.'})
-                    dbsession = DBSession()
-                    with transaction.manager:
-                        survey = load_survey_from_xml(user, dbsession, doc, zip_file)
-                        dbsession.add(survey)
-                        dbsession.flush()
-                        survey_id = survey.id
-                except Exception as e:
-                    raise api.Invalid(str(e), {}, None, error_dict={'source_file': str(e)})
+                dbsession = DBSession()
+                with transaction.manager:
+                    survey = load_survey_from_stream(request.POST['source_file'].file, user, dbsession)
+                dbsession.add(survey)
                 request.session.flash('Experiment imported', 'info')
-                raise HTTPFound(request.route_url('survey.view', sid=survey_id))
+                raise HTTPFound(request.route_url('survey.view', sid=survey.id))
                 return {}
             except api.Invalid as e:
                 e.params = request.POST
