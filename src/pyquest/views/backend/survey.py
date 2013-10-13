@@ -11,7 +11,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.response import Response
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
-from pywebtools.renderer import render
+from pywebtools.renderer import render, handle_xml_response
 from sqlalchemy import desc
 from StringIO import StringIO
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -479,10 +479,7 @@ def status(request):
     else:
         raise HTTPNotFound()
 
-
-@view_config(route_name='survey.export')
-@view_config(route_name='survey.export.ext')
-def export(request):
+def export_experiment(request, survey):
     @render({'application/xml': 'backend/survey/export.xml'})
     def experiment_xml_file(request, survey):
         return {'survey': survey}
@@ -498,20 +495,26 @@ def export(request):
                 rows.append(row)
         return {'columns': columns,
                 'rows': rows}
-        
+
+    experiment = StringIO()
+    zip_file = ZipFile(experiment, mode='w')
+    zip_file.writestr('experiment.xml', experiment_xml_file(request, survey).body, compress_type=ZIP_DEFLATED)
+    for data_set in survey.data_sets:
+        zip_file.writestr('%s.csv' % (data_set.name), data_set_file(request, data_set).body, compress_type=ZIP_DEFLATED)
+    for data_set in survey.permutation_sets:
+        zip_file.writestr('%s.csv' % (data_set.name), data_set_file(request, data_set).body, compress_type=ZIP_DEFLATED)
+    zip_file.close()
+    return experiment
+    
+@view_config(route_name='survey.export')
+@view_config(route_name='survey.export.ext')
+def export(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            experiment = StringIO()
-            zip_file = ZipFile(experiment, mode='w')
-            zip_file.writestr('experiment.xml', experiment_xml_file(request, survey).body, compress_type=ZIP_DEFLATED)
-            for data_set in survey.data_sets:
-                zip_file.writestr('%s.csv' % (data_set.name), data_set_file(request, data_set).body, compress_type=ZIP_DEFLATED)
-            for data_set in survey.permutation_sets:
-                zip_file.writestr('%s.csv' % (data_set.name), data_set_file(request, data_set).body, compress_type=ZIP_DEFLATED)
-            zip_file.close()
+            experiment = export_experiment(request, survey)
             return Response(experiment.getvalue(),
                             headers={'Content-Type': 'application/x-experiment',
                                      'Content-Disposition': 'attachment; filename=%s.exp' % (survey.title.replace(' ', '_').encode('utf-8'))})
