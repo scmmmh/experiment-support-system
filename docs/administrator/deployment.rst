@@ -3,8 +3,8 @@ Deployment
 **********
 
 In-production deployment has been tested using `Apache2`_ and `mod_wsgi`_.
-However, you can also use the :ref:`internal default server <configuration_default_server>`,
-either directly or behind a reverse proxy.
+For other deployment scenarios, please consult the `pyramid deployment`_
+documentation.
 
 Deploying with Apache2 & mod_wsgi
 =================================
@@ -52,3 +52,4 @@ is installed::
 .. _WSGI: http://wsgi.readthedocs.org/en/latest/
 .. _mod_wsgi: http://code.google.com/p/modwsgi/
 .. _Apache2: http://httpd.apache.org/
+.. _`pyramid deployment`: http://docs.pylonsproject.org/projects/pyramid_cookbook/en/latest/deployment/index.html
