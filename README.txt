@@ -1,8 +1,9 @@
-PyQuestionnaire README
-======================
+Experiment Support System README
+================================
 
-PyQuestionnaire is a online survey and questionnaire system.
+The Experiment Support System is an online interactive user experiment support
+system. It is built on the Pyramid webframework and lives at
+https://bitbucket.org/mhall/experiment-support-system/overview.
 
-It is built on the Pyramid webframework and lives at https://bitbucket.org/mhall/pyquestionnaire/overview.
-
-Documentation can be found at http://pyquestionnaire.readthedocs.org/.
+Detailed installation and setup instructions, as well as general documentation,
+can be found at https://experiment-support-system.readthedocs.org/.

@@ -26,9 +26,9 @@ requires = [
     'pywebtools>=0.4'
     ]
 
-setup(name='PyQuestionnaire',
-      version='0.10',
-      description='PyQuestionnaire',
+setup(name='ExperimentSupportSystem',
+      version='0.10.99',
+      description='Experiment Support System',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
         "Programming Language :: Python",
@@ -50,6 +50,6 @@ setup(name='PyQuestionnaire',
       [paste.app_factory]
       main = pyquest:main
       [console_scripts]
-      PyQuestionnaire = pyquest.scripts.main:main
+      ESS = pyquest.scripts.main:main
       """,
       )

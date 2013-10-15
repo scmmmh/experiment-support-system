@@ -4,7 +4,7 @@ import json
 
 from pywebtools import form, text
 
-from pyquest.util import template_as_text
+from pyquest.util import template_as_text, get_config_setting
 
 def as_data_type(value, data_type=None):
     if data_type:

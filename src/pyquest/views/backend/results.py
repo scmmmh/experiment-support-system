@@ -4,6 +4,9 @@ Created on 8 Feb 2012
 
 @author: mhall
 '''
+import json
+import re
+
 from formencode import Schema, validators, foreach, api, variabledecode
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
@@ -13,14 +16,14 @@ from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.helpers.results import fix_na
-from pyquest.models import (DBSession, Survey, Answer, AnswerValue, Question)
+from pyquest.models import (DBSession, Survey, Answer, AnswerValue)
 from pyquest.util import load_question_schema_params
-import re
 
 
 class DataIdentifierSchema(Schema):
     qsheet = validators.UnicodeString(not_empty=True)
     column = validators.UnicodeString(not_empty=True)
+    
 class ByParticipantSchema(Schema):
     columns = foreach.ForEach(validators.UnicodeString(not_empty=True))
     data_identifier = foreach.ForEach(DataIdentifierSchema(), if_empty=[])
@@ -71,8 +74,8 @@ def by_question(request):
             except api.Invalid as e:
                 e.params = request.POST
                 return {'e' : e,
-                        'columns': columns,
-                        'rows': rows,
+                        'columns': [],
+                        'rows': [],
                         'na_value': na_value,
                         'spss_safe': spss_safe,
                         'survey': survey}
@@ -82,14 +85,16 @@ def by_question(request):
 
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             rows = []
-            columns = ['page_', 'participant_id_']
+            columns = ['page', 'participant_id']
             data_item_columns = []
             for qsheet in survey.qsheets:
                 if qsheet.data_set:
                     for attr in qsheet.data_set.items[0].attributes:
-                        data_item_columns.append('%s.%s' % (qsheet.name, attr.key))
+                        column_name = '%s.%s' % (qsheet.data_set.name, attr.key.key)
+                        if column_name not in data_item_columns:
+                            data_item_columns.append(column_name)
             if data_item_columns:
-                columns.append('data_id_')
+                columns.append('data_id')
                 columns.extend(data_item_columns)
             columns.append('question')
             columns.append('answer')
@@ -100,19 +105,36 @@ def by_question(request):
                             for answer_value in answer.values:
                                 row = {}
                                 if answer_value.name:
-                                    row = {'page_': qsheet.name,
-                                           'participant_id_': answer.participant_id,
-                                           'question': '%s.%s' % (question.name, answer_value.name),
-                                           'answer': fix_na(answer_value.value, na_value)}
+                                    if qsheet.data_set and qsheet.data_set.type == 'permutationset':
+                                        sub_answer = answer_value.name.split('.')
+                                        if len(sub_answer) > 1:
+                                            row = {'page': qsheet.name,
+                                                   'participant_id': answer.participant_id,
+                                                   'question': '%s.%s' % (question.name, sub_answer[1]),
+                                                   'answer': fix_na(answer_value.value, na_value)}
+                                        else:
+                                            row = {'page': qsheet.name,
+                                                   'participant_id': answer.participant_id,
+                                                   'question': question.name,
+                                                   'answer': fix_na(answer_value.value, na_value)}
+                                    else:
+                                        row = {'page': qsheet.name,
+                                               'participant_id': answer.participant_id,
+                                               'question': '%s.%s' % (question.name, answer_value.name),
+                                               'answer': fix_na(answer_value.value, na_value)}
                                 else:
-                                    row = {'page_': qsheet.name,
-                                           'participant_id_': answer.participant_id,
+                                    row = {'page': qsheet.name,
+                                           'participant_id': answer.participant_id,
                                            'question': question.name,
                                            'answer': fix_na(answer_value.value, na_value)}
                                 if answer.data_item_id:
-                                    row['data_id_'] = answer.data_item_id
+                                    row['data_id'] = answer.data_item_id
                                     for attr in answer.data_item.attributes:
-                                        row['%s.%s' % (qsheet.name, attr.key)] = attr.value
+                                        if qsheet.data_set and qsheet.data_set.type == 'permutationset' and answer_value.name:
+                                            print answer_value.name
+                                            row['%s.%s' % (qsheet.data_set.name, attr.key.key)] = json.dumps(json.loads(attr.value)[int(answer_value.name.split('.')[0])]).encode('utf-8')
+                                        else:
+                                            row['%s.%s' % (qsheet.data_set.name, attr.key.key)] = attr.value.encode('utf-8')
                                 rows.append(row)
             if spss_safe:
                 columns, rows = make_spss_safe(columns, rows)
@@ -144,50 +166,34 @@ def generate_question_columns(base_name, question, q_schema, data_items, data_id
     if q_schema['type'] == 'choice':
         if 'allow_multiple' in v_params and v_params['allow_multiple']:
             for sub_answer in question.attr_value(q_schema['attr'], multi=True):
-                if data_items:
-                    for data_item in data_items:
-                        columns.append('%s.%s.%s' % (base_name, sub_answer, get_data_identifier(data_item, data_identifier)))
-                else:
-                    columns.append('%s.%s' % (base_name, sub_answer))
+                columns.append('%s.%s' % (base_name, sub_answer))
             if question.attr_value('further.allow_other', default='no') == 'single':
-                if data_items:
-                    for data_item in data_items:
-                        columns.append('%s.other_.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
-                else:
-                    columns.append('%s.other_' % (base_name))
+                columns.append('%s.other_' % (base_name))
         else:
-            if data_items:
-                for data_item in data_items:
-                    columns.append('%s.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
-            else:
-                columns.append(base_name)
+            columns.append(base_name)
     elif q_schema['type'] == 'multiple':
         for sub_question in question.attr_value(q_schema['attr'], multi=True):
             columns.extend(generate_question_columns('%s.%s' % (base_name, sub_question), question, q_schema['schema'], data_items, data_identifier, dbsession))
     elif q_schema['type'] == 'ranking':
         for sub_answer in question.attr_value(q_schema['attr'], multi=True):
-            if data_items:
-                for data_item in data_items:
-                    columns.append('%s.%s.%s' % (base_name, sub_answer, get_data_identifier(data_item, data_identifier)))
-            else:
-                columns.append('%s.%s' % (base_name, sub_answer))
+            columns.append('%s.%s' % (base_name, sub_answer))
     else:
-        if data_items:
-            if 'allow_multiple' in v_params and v_params['allow_multiple']:
-                for data_item in data_items:
-                    for (value,) in dbsession.query(AnswerValue.value.distinct()).join(Answer).filter(Answer.question_id==question.id):
-                        if value:
-                            columns.append('%s.%s.%s' % (base_name, value, get_data_identifier(data_item, data_identifier)))
-            else:
-                for data_item in data_items:
-                    columns.append('%s.%s' % (base_name, get_data_identifier(data_item, data_identifier)))
+        if 'allow_multiple' in v_params and v_params['allow_multiple']:
+            for (value,) in dbsession.query(AnswerValue.value.distinct()).join(Answer).filter(Answer.question_id==question.id):
+                if value:
+                    columns.append('%s.%s' % (base_name, value))
         else:
-            if 'allow_multiple' in v_params and v_params['allow_multiple']:
-                for (value,) in dbsession.query(AnswerValue.value.distinct()).join(Answer).filter(Answer.question_id==question.id):
-                    if value:
-                        columns.append('%s.%s' % (base_name, value))
-            else:
-                columns.append(base_name)
+            columns.append(base_name)
+    if data_items and q_schema['type'] != 'multiple':
+        base_columns = columns
+        columns = []
+        for data_item in data_items:
+            for column in base_columns:
+                if data_item.data_set.type == 'permutationset':
+                    for idx in range(0, len(json.loads(data_item.attributes[0].value))):
+                        columns.append('%s.%s.%s' % (column, get_data_identifier(data_item, data_identifier), idx))
+                else:
+                    columns.append('%s.%s' % (column, get_data_identifier(data_item, data_identifier)))
     return columns
 
 def generate_columns(survey, selected_columns, data_identifiers, dbsession):
@@ -211,7 +217,7 @@ def generate_columns(survey, selected_columns, data_identifiers, dbsession):
 @view_config(route_name='survey.results.by_participant')
 @view_config(route_name='survey.results.by_participant.ext')
 @render({'text/html': 'backend/results/by_participant.html', 'text/csv': ''})
-def participant(request):
+def by_participant(request):
     def safe_int(value):
         try:
             return int(value)
@@ -292,22 +298,36 @@ def participant(request):
                                     else:
                                         key = '%s.%s.other_' % (qsheet.name, question.name)
                             elif q_schema['type'] == 'multiple':
+                                if answer_value.answer.data_item and answer_value.answer.data_item.data_set and answer_value.answer.data_item.data_set.type == 'permutationset':
+                                    answer_name = answer_value.name.split('.')[1]
+                                else:
+                                    answer_name = answer_value.name
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
                                     if answer_value.value:
-                                        key = '%s.%s.%s.%s' % (qsheet.name, question.name, answer_value.name, answer_value.value)
+                                        key = '%s.%s.%s.%s' % (qsheet.name, question.name, answer_name, answer_value.value)
                                         value = 1
                                     else:
                                         continue
                                 else:
-                                    key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.name)
+                                    key = '%s.%s.%s' % (qsheet.name, question.name, answer_name)
                             elif q_schema['type'] == 'ranking':
-                                key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.name)
+                                if answer_value.answer.data_item and answer_value.answer.data_item.data_set and answer_value.answer.data_item.data_set.type == 'permutationset':
+                                    answer_name = answer_value.name.split('.')[1]
+                                else:
+                                    answer_name = answer_value.name
+                                key = '%s.%s.%s' % (qsheet.name, question.name, answer_name)
                             else:
                                 if 'allow_multiple' in v_params and v_params['allow_multiple']:
                                     key = '%s.%s.%s' % (qsheet.name, question.name, answer_value.value)
                                     value = 1
                             if answer_value.answer.data_item:
-                                key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
+                                if answer_value.answer.data_item.data_set.type == 'permutationset':
+                                    key = '%s.%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]), answer_value.name.split('.')[0])
+                                else:
+                                    key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
+                            if isinstance(value, unicode):
+                                value = value.encode('utf-8')
+                            print key
                             row[key] = value
                 if 'completed_' in columns:
                     row['completed_'] = completed

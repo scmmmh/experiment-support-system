@@ -10,7 +10,7 @@
       <ul>
         <li><a href="${r.route_url('user.edit', uid=user.id)}" class="button">Edit</a></li>
         <li><a href="${r.route_url('user.permissions', uid=user.id)}" class="button">Permissions</a></li>
-        <li><a href="${r.route_url('user.delete', uid=user.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this user and all their surveys and data.">Delete</a></li>
+        <li><a href="${r.route_url('user.delete', uid=user.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete this user and all their experiments and data.">Delete</a></li>
       </ul>
     </nav>
     <hgroup>
@@ -24,12 +24,12 @@
     </dl>
     <section>
       <hgroup>
-        <h2><a href="${r.route_url('survey')}">Surveys</a></h2>
+        <h2><a href="${r.route_url('survey')}">Experiments</a></h2>
       </hgroup>
       <table>
         <thead>
           <tr>
-            <th>Survey</th>
+            <th>Experiment</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>

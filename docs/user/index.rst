@@ -5,7 +5,7 @@ User documentation
 .. admonition:: *A few words before we start ...*
 
 	
-	PyQuestionnaire is a survey system that allows you (*the User*) to build a survey from scratch or import one that you have previously developed using XML. 
+	The Experiment Support System is a survey system that allows you (*the User*) to build a survey from scratch or import one that you have previously developed using XML. 
 	   
 	If you do decide that you want to use the system's functions to build a survey, the system provides you with basic tools to:
 		

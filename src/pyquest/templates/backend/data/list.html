@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="../../layout/backend.html"/>
+  <head>
+    <title>Data</title>
+  </head>
+  <body>
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href':''})], r)}
+    ${h.survey.fancy_status(r, survey, class_='survey-status right')}
+    ${h.ui.main_menu('data', survey, r)}
+    <nav class="toolbar">
+      <ul>
+        <li><a href="${r.route_url('data.upload', sid=survey.id)}" class="button">Upload Data Set</a></li>
+        <li><a href="${r.route_url('data.new', sid=survey.id)}" class="button">New Data Set</a></li>
+        <li><a href="${r.route_url('data.new.permset', sid=survey.id, dsid=None)}" class="button">New Permutation Set</a></li>
+      </ul>
+    </nav>
+    <article>
+      <hgroup>
+        <h1>Data Sets</h1>
+      </hgroup>
+      <div>
+        <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Attached to</th>
+            <th>Action</th>
+          </tr>
+	    </thead>
+        <tbody>
+          <tr py:if="len(survey.data_sets) == 0"><td colspan="3" class="placeholder">This experiment does not have any data sets.</td></tr>
+	      <tr py:for="data_set in survey.data_sets">
+	        <td><a href="${r.route_url('data.view', sid=survey.id, dsid=data_set.id)}">${data_set.name}</a></td>
+            <td>
+              <ul class="inline no-symbol no-margin">
+                <li py:for="qsheet in data_set.qsheets"><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.name}</a></li>
+              </ul>
+            </td>
+            <td>
+                <ul class="inline no-symbol no-margin">
+                  <li><a href="${r.route_url('data.edit', sid=survey.id, dsid=data_set.id)}" class="button">Edit</a></li>
+                  <li><a href="${r.route_url('data.download', sid=survey.id, dsid=data_set.id)}" class="button">Download</a></li>
+                  <li><a href="${r.route_url('data.delete', sid=survey.id, dsid=data_set.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the data set &quot;${h.text.title(data_set.name)}&quot;.">Delete</a></li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+	    </table>
+      </div>
+      <hgroup>
+        <h1>Permutations</h1>
+      </hgroup>
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Attached to</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr py:if="len(survey.permutation_sets) == 0"><td colspan="3" class="placeholder">This experiment does not have any permutations.</td></tr>
+            <tr py:for="perm_set in survey.permutation_sets">
+              <td><a href="${r.route_url('data.view', sid=survey.id, dsid=perm_set.id)}">${perm_set.name}</a></td>
+              <td>
+                <ul class="inline no-symbol no-margin">
+                  <li py:for="qsheet in perm_set.qsheets"><a href="${r.route_url('survey.qsheet.view', sid=survey.id, qsid=qsheet.id)}">${qsheet.name}</a></li>
+                </ul>
+              </td>
+              <td>
+                <ul class="inline no-symbol no-margin">
+                  <li><a href="${r.route_url('data.edit.permset', sid=survey.id, dsid=perm_set.id)}" class="button">Edit</a></li>
+                  <li><a href="${r.route_url('data.delete', sid=survey.id, dsid=perm_set.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the permutation set &quot;${h.text.title(perm_set.name)}&quot;.">Delete</a></li>
+                  <li><a href="${r.route_url('data.download', sid=survey.id, dsid=perm_set.id)}" class="button">Download</a></li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+	   </table>
+      </div>
+    </article>
+  </body>
+</html>

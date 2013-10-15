@@ -2,9 +2,13 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>New Data Set</title>
+    <title>Edit Data Set</title>
     <script type="text/javascript">
-    $(document).ready(function() {
+      $(document).ready(function() {
+    	  $('#data-filter-form input[type=submit]').hide();
+    	  $('#data-filter-form select').change(function(ev, ui) {
+    		 $('#data-filter-form').submit(); 
+    	  });
 
         function removeRow() {
             var link = $(this);
@@ -27,10 +31,10 @@
             var row = $('<tr></tr>');
             var input_field = '${h.form.text_field('attribute_keys-nrows.key', '', None)}';
             input_field = input_field.replace(/nrows/, '' + nrows)
-            row.append('<td>' + input_field + '</td>');
-            var id_field = '${h.form.text_field('attribute_keys-nrows.id', '', e)}';
+            var id_field = '${h.form.hidden_field('attribute_keys-nrows.id', '')}';
             id_field = id_field.replace(/nrows/, '' + nrows)
-            row.append('<td>' + id_field + '</td>');
+            id_field = id_field.replace(/new_order/, '' + (nrows + 1))
+            row.append('<td>' + id_field + input_field + '</td>');
             var remove_link = $('<a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a>');
             remove_link.click(removeRow);
             col = $('<td></td>');
@@ -40,59 +44,52 @@
             tbody.sortable('reload');
             return false;
         });
-
-    });
+        
+      });
     </script>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),('New Data Set', {'href':''})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),(h.text.title(data_set.name), {'href': r.route_url('data.view', sid=survey.id, dsid=data_set.id)}), ('Edit', {'href':''})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
+    <nav class="toolbar">
+    </nav>
     <article>
       <hgroup>
-        <h1>New Data Set</h1>
+        <h1>Edit Data Set</h1>
       </hgroup>
-      <form action="${r.route_url('data.new', sid=survey.id)}" method="post">
+      <form action="${r.route_url('data.edit', sid=data_set.survey_id, dsid=data_set.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt>Name</dt>
-          <dd>${h.form.text_field('name', dis.name, e, class_='span-12')}</dd>
-	  <dt>Item Attributes</dt>
-	  <dd>
+          <dd>${h.form.text_field('name', data_set.name, e, class_='span-12')}</dd>
+          <dt>Item Attributes</dt>
+          <dd>
             <table>
               <thead>
                 <tr>
-                  <th>Name</th>
-		  <th></th>
-		  <th></th>
+                  <th>Key</th>
+                  <th>Action</th>
                 </tr>
               </thead>
+              <tbody class="role-sortable">
+                <tr py:for="idx, ak in enumerate(data_set.attribute_keys)">
+                  <td>${h.form.hidden_field('attribute_keys-%d.id' % idx, ak.id)}${h.form.text_field('attribute_keys-%d.key' % idx, ak.key , e)}</td>
+                  <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
+                </tr>
+              </tbody>
               <tfoot>
                 <tr>
-                  <td></td>
                   <td></td>
                   <td><a href="#" title="Add a row" class="button action-add-row" ><span class="ui-icon ui-icon-plusthick"></span></a></td>
                 </tr>
               </tfoot>
-              <tbody class="role-sortable">
-                <tr>
-		  <td>${h.form.text_field('attribute_keys-0.key', '' , e)}</td>
-		  <td>${h.form.hidden_field('attribute_keys-0.id', '')}</td>
-		  <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
-                </tr>
-                <tr>
-		  <td>${h.form.text_field('attribute_keys-1.key', '' , e)}</td>
-		  <td>${h.form.hidden_field('attribute_keys-1.id', '')}</td>
-		  <td><a href="#" title="Remove this row" class="button action-remove-row"><span class="ui-icon ui-icon-minusthick"></span></a></td>
-                </tr>
-              </tbody>
             </table>
-
-	  </dd>
+          </dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't create", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=survey.id))}</li>
-          <li>${h.form.submit('Create', class_='button')}</li>
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('data.list', sid=data_set.survey_id))}</li>
+          <li>${h.form.submit('Update', class_='button')}</li>
         </ul>
       </form>
     </article>

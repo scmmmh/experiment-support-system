@@ -12,9 +12,9 @@
     <div py:if="survey.status == 'testing'" class="role-testing shadow"> 
       <div class="float-left"><img src="${r.static_url('pyquest:static/img/testing.png')}" alt="testing"/></div>
       <a href="${r.route_url('survey.view', sid=survey.id)}" title="${survey.title}" class="ellipsis font-bold">${survey.title}</a>
-      <p>This survey is currently being tested and is not live yet. Answers will be validated and recored as if
-        the survey were live, but will be wiped automatically at the end of the test. Testers will also be able
-        to complete the survey multiple times.</p>
+      <p>This experiment is currently being tested and is not live yet. Answers will be validated and recored as if
+        the experiment were live, but will be wiped automatically at the end of the test. Testers will also be able
+        to complete the experiment multiple times.</p>
     </div>
     <aside class="clearfix role-status">
       <div class="font-small float-left" py:if="control">You have so far answered ${control[0]} of ${control[1]} control questions correctly</div>

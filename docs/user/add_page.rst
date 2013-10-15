@@ -1,6 +1,6 @@
 .. note::
 	
-   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within PyQuestionnaire*, located at the bottom-half of the section :doc:`Access PyQuestionnaire<access_Questionnaire>`.
+   The following section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the sub-section *Navigating within the Experiment Support System*, located at the bottom-half of the section :doc:`Access the Experiment Support System<access_Questionnaire>`.
 
 Adding a new survey page
 ==========================

@@ -13,7 +13,7 @@
       ${h.form.csrf_token_field(r.session.get_csrf_token())}
       <dl>
         <dt>Display Name</dt>
-        <dd>${h.form.text_field('display_name', user.display_name, e, title='This is the name that is shown for surveys that are owned by you')}</dd>
+        <dd>${h.form.text_field('display_name', user.display_name, e, title='This is the name that is shown for experiments that are owned by you')}</dd>
         <dt>E-Mail</dt>
         <dd>${h.form.email_field('email', user.email, e, title='This e-mail address is used by the system to contact you')}</dd>
         <dt>Settings</dt>

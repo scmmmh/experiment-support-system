@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>Add Data</title>
+    <title>Add Data Item</title>
     <script type="text/javascript">
     $(document).ready(function() {
         $('#add-control-answer-btn').click(function() {
@@ -12,33 +12,33 @@
         $('#control_item').change(function() {
             var checked = !($('#control_item:checked').length == 0);
             if(checked) {
-                $('#add-control-answer-btn, input[name=control_answer]').removeAttr('disabled');
+                $('#add-control-answer-btn, input[name=control_answer]').removeAttr('data_setabled');
             } else {
-                $('#add-control-answer-btn, input[name=control_answer]').attr('disabled', 'disabled');
+                $('#add-control-answer-btn, input[name=control_answer]').attr('data_setabled', 'data_setabled');
             }
         });
         if($('#control_item:checked').length == 0) {
-            $('#add-control-answer-btn, input[name=control_answer]').attr('disabled', 'disabled');
+            $('#add-control-answer-btn, input[name=control_answer]').attr('data_setabled', 'data_setabled');
         }
     });
     </script>
   </head>
   <body>
-    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),(dis.name, {'href': r.route_url('data.edit', sid=survey.id, dsid=dis.id)}), ('New Data Item', {'href':''})], r)}
+    ${h.ui.survey_breadcrumbs([(survey.title, {'href': r.route_url('survey.view', sid=survey.id)}),('Data', {'href': r.route_url('data.list', sid=survey.id)}),(data_set.name, {'href': r.route_url('data.view', sid=survey.id, dsid=data_set.id)}), ('New Data Item', {'href': r.current_route_url()})], r)}
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
     <article>
-      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
+      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The experiment is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div> 
       <hgroup>
-        <h1>Add Data</h1>
+        <h1>Add Data Item</h1>
       </hgroup>
-      <form action="${r.route_url('data.item.new', sid=dis.survey_id, dsid=dis.id)}" method="post">
+      <form action="${r.route_url('data.item.new', sid=data_set.survey_id, dsid=data_set.id)}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}
         <dl>
           <dt><label for="control_item">Control item</label></dt>
           <dd>${h.form.checkbox('control_', 'True', e, checked=False, label='Yes', id='control_item')}</dd>
-          <py:for each="attribute in dis.attribute_keys">
+          <py:for each="attribute in data_set.attribute_keys">
             <dt>${h.text.title(attribute.key)}</dt>
             <dd>${h.form.text_field(attribute.key, '', e, class_='span-12')}</dd>
           </py:for>
@@ -50,7 +50,7 @@
           </dd>
         </dl>
         <ul class="buttons span-12">
-          <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('data.edit', sid=dis.survey_id, dsid=dis.id))}</li>
+          <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('data.view', sid=data_set.survey_id, dsid=data_set.id))}</li>
           <li>${h.form.submit('Add', class_='button')}</li>
         </ul>
       </form>

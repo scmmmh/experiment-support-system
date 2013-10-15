@@ -29,7 +29,7 @@ def redirect_to_login(request):
 def menu(request):
     user = current_user(request)
     if user:
-        return tag.nav(tag.ul(tag.li(tag.a(tag.strong('Surveys'), href=request.route_url('survey'))),
+        return tag.nav(tag.ul(tag.li(tag.a(tag.strong('Experiments'), href=request.route_url('survey'))),
                               tag.li(tag.a('Preferences', href=request.route_url('user.edit', uid=user.id))),
                               tag.li(tag.a('Change Password', href=request.route_url('user.password', uid=user.id))),
                               tag.li(tag.a('Logout', href=request.route_url('user.logout'), class_='post-submit', data_confirm='no-confirm'))),

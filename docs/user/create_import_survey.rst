@@ -1,6 +1,6 @@
 .. note::
 	
-   The following sub-section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within PyQuestionnaire*, located at the bottom-half of the chapter :doc:`Access PyQuestionnaire<access_Questionnaire>`.
+   The following sub-section assumes that you now know how to navigate to a specific survey on the relevant list or to a specific question in that survey. If you are not sure how to do this, please refer to the section *Navigating within the Experiment Support System*, located at the bottom-half of the chapter :doc:`Access the Experiment Support System<access_Questionnaire>`.
 
 .. |dontCreate| image:: ../_static/user/dontCreateButton.png
 .. |create| image:: ../_static/user/createButton.png
@@ -63,7 +63,7 @@ How to create a survey
 
 How to import a survey
 ----------------------
-The system allows you to write a survey in XML code and upload it on your PyQuestionnaire profile, instead of using the system's GUI to develop it. You can import a survey by carrying out the following steps:
+The system allows you to write a survey in XML code and upload it on your the Experiment Support System profile, instead of using the system's GUI to develop it. You can import a survey by carrying out the following steps:
 
 - If you are not already there, navigate to the **main profile screen** (:doc:`ref<conceptsAndTerms>`) and then follow the instructions below - see **Note** at the top of this section.
 
@@ -82,6 +82,6 @@ The system allows you to write a survey in XML code and upload it on your PyQues
 	
   e) The survey you have just imported will now appear in the list of surveys of your **main profile screen** (:doc:`ref<conceptsAndTerms>`).
 	
-  f) You can then manipulate the imported survey in the same way that you do with surveys setup with the use of the PyQuestionnaire.
+  f) You can then manipulate the imported survey in the same way that you do with surveys setup with the use of the the Experiment Support System.
 
 :ref:`back to the top <topCreateSurveySection>`

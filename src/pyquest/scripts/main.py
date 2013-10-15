@@ -19,7 +19,7 @@ def get_user_parameter(prompt, default=''):
 def main():
     from . import configuration, populate, update
 
-    parser = ArgumentParser(description='PyQuestionnaire administration application')
+    parser = ArgumentParser(description='Experiment Support System administration application')
     subparsers = parser.add_subparsers()
     
     configuration.init(subparsers)

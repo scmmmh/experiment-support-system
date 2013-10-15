@@ -15,7 +15,7 @@ from lxml import etree
 
 from pyquest.util import convert_type, load_question_schema_params
 
-schema = etree.XMLSchema(etree.parse(resource_stream('pyquest', 'static/survey.xsd')))
+schema = etree.XMLSchema(etree.parse(resource_stream('pyquest', 'static/experiment.xsd')))
 
 class DateTimeValidator(FancyValidator):
     
@@ -191,6 +191,8 @@ class CsrfTokenValidator(FancyValidator):
             raise Invalid('Missing CSRF token.', value, state)
 
 class XmlValidator(FancyValidator):
+    
+    namespace = u'https://bitbucket.org/mhall/experiment-support-system'
     
     def __init__(self, wrapper='%s', **kwargs):
         FancyValidator.__init__(self, **kwargs)

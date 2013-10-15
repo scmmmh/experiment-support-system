@@ -2,17 +2,17 @@
 Setup
 #####
 
-The next step is to set up PyQuestionnaire so that it is ready to run. For this
-you need to:
+The next step is to set up the Experiment Support System so that it is ready
+to run. For this you need to:
 
 1. Generate a configuratipn file
 2. Initialise the database
 
-Both tasks are done using the configuration application included in
-PyQuestionnaire. To see all options provided by the configuration application
+Both tasks are done using the configuration application included in the
+Experiment Support System. To see all options provided by the configuration application
 run:
 
-``PyQuestionnaire -h``
+``ESS -h``
 
 **************************
 Generate the Configuration
@@ -20,7 +20,7 @@ Generate the Configuration
 
 To generate a configuration file run:
 
-``PyQuestionnaire generate-config``
+``ESS generate-config``
 
 You will be asked to provide the `SQLAlchemy connection string`_ for your
 database. If you don't know it yet, you can accept the default test database
