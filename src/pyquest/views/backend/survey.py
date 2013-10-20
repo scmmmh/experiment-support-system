@@ -11,20 +11,19 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.response import Response
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
-from pywebtools.renderer import render, handle_xml_response
+from pywebtools.renderer import render
 from sqlalchemy import desc
 from StringIO import StringIO
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from pyquest import helpers
 from pyquest.views.backend.data import load_csv_file
-from pyquest.views.backend.qsheet import load_qsheet_from_xml, load_transition_from_xml
+from pyquest.views.backend.qsheet import (load_qsheet_from_xml,
+                                          load_transition_from_xml)
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
-                            Participant, QSheetAttribute, Question,
-                            QuestionAttributeGroup, QuestionAttribute,
-                            Notification, PermutationSet, DataSetRelation)
+from pyquest.models import (DBSession, Survey, QSheet, Participant,
+                            Notification, DataSetRelation)
 from pyquest.validation import XmlValidator
 
 class NewSurveySchema(Schema):
@@ -290,80 +289,14 @@ def duplicate(request):
                 try:
                     check_csrf_token(request, request.POST)
                     params = SurveyDuplicateSchema().to_python(request.POST)
+                    exported_survey = export_experiment(request, survey)
                     with transaction.manager:
-                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-                        dupl_survey = Survey(title=params['title'],
-                                             status='develop',
-                                             summary=survey.summary,
-                                             styles=survey.styles,
-                                             scripts=survey.scripts)
-                        dbsession.add(dupl_survey)
-                        dupl_survey.owner = user
-                        new_dataset_id_for_old = {}
-                        for dataset in survey.data_sets:
-                            newds = dataset.duplicate()
-                            dbsession.flush()
-                            new_dataset_id_for_old[dataset.id] = newds.id
-                            user.data_sets.append(newds)
-                            dupl_survey.data_sets.append(newds)
-                        qsheets = {}
-                        new_qsheet_id_for_old = {}
-                        for qsheet in survey.qsheets:
-                            dupl_qsheet = QSheet(name=qsheet.name,
-                                                 title=qsheet.title,
-                                                 styles=qsheet.styles,
-                                                 scripts=qsheet.scripts)
-                            for attr in qsheet.attributes:
-                                dupl_qsheet.attributes.append(QSheetAttribute(key=attr.key, value=attr.value))
-                            questions = {}
-                            for question in qsheet.questions:
-                                dupl_question = Question(q_type=question.q_type,
-                                                         name=question.name,
-                                                         title=question.title,
-                                                         required=question.required,
-                                                         help=question.help,
-                                                         order=question.order)
-                                questions[dupl_question.name] = dupl_question
-                                dupl_qsheet.questions.append(dupl_question)
-                                for attr_group in question.attributes:
-                                    dupl_attr_group = QuestionAttributeGroup(question=dupl_question,
-                                                                             key=attr_group.key,
-                                                                             label=attr_group.label,
-                                                                             order=attr_group.order)
-                                    for attr in attr_group.attributes:
-                                        QuestionAttribute(attribute_group=dupl_attr_group,
-                                                          key=attr.key,
-                                                          label=attr.label,
-                                                          value=attr.value,
-                                                          order=attr.order)
-                            if qsheet.dataset_id:
-                                dupl_qsheet.dataset_id = new_dataset_id_for_old[qsheet.dataset_id]
-                            qsheets[dupl_qsheet.name] = dupl_qsheet
-                            dupl_survey.qsheets.append(dupl_qsheet)
-                            dbsession.flush()
-                            new_qsheet_id_for_old[qsheet.id] = dupl_qsheet.id
-                        for qsheet in survey.qsheets:
-                            if qsheet.next and qsheet.next[0] and qsheet.next[0].target:
-                                if qsheet.name in qsheets and qsheet.next[0].target.name in qsheets:
-                                    dbsession.add(QSheetTransition(source=qsheets[qsheet.name],
-                                                                   target=qsheets[qsheet.next[0].target.name]))
-                        if survey.start and survey.start.name in qsheets:
-                            dupl_survey.start = qsheets[survey.start.name]
-                        for dataset in dupl_survey.data_sets:
-                            if isinstance(dataset, PermutationSet):
-                                params = dataset.get_params()
-                                params['tasks_dataset'] = new_dataset_id_for_old[int(params['tasks_dataset'])]
-                                params['interfaces_dataset'] = new_dataset_id_for_old[int(params['interfaces_dataset'])]
-                                dataset.set_params(params)
-                                old_ids = dataset.applies_to.split(',')
-                                new_ids = ''
-                                for old_id in old_ids:
-                                    new_ids = new_ids + str(new_qsheet_id_for_old[int(old_id)])
-                                dataset.applies_to = new_ids
-                        dbsession.flush()
-                        survey_id = dupl_survey.id
+                        dupl_survey = load_survey_from_stream(exported_survey, user, dbsession)
+                        dupl_survey.title = params['title']
+                        dupl_survey.status = 'develop'
+                    dbsession.add(dupl_survey)
                     request.session.flash('Experiment duplicated', 'info')
-                    raise HTTPFound(request.route_url('survey.view', sid=survey_id))
+                    raise HTTPFound(request.route_url('survey.view', sid=dupl_survey.id))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
