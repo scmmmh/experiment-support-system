@@ -158,11 +158,11 @@ def load_survey_from_xml(owner, dbsession, doc, zip_file):
                             if child.tag == '{%s}attached_to' % (XmlValidator.namespace):
                                 if child.text in qsheets:
                                     qsheets[child.text].data_set = data_set
-                                elif child.tag == '{%s}relation' % (XmlValidator.namespace):
-                                    dbsession.add(DataSetRelation(subject=data_set,
-                                                                  relation=child.attrib['ref'],
-                                                                  object=data_sets[child.attrib['object']],
-                                                                  _data=child.text.strip()))
+                            elif child.tag == '{%s}relation' % (XmlValidator.namespace):
+                                dbsession.add(DataSetRelation(subject=data_set,
+                                                              rel=child.attrib['rel'],
+                                                              object=data_sets[child.attrib['object']],
+                                                              _data=child.text.strip()))
                     else:
                         raise Exception('Permutation set must have exactly two relations')
     for item in doc:
