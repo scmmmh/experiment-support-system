@@ -73,7 +73,7 @@ def index(request):
         redirect_to_login(request)
 
 def load_q_types_from_xml(dbsession, element, order):
-    if element.tag == '{http://paths.sheffield.ac.uk/pyquest}question_type_group':
+    if element.tag == '{https://bitbucket.org/mhall/experiment-support-system}question_type_group':
         question_type_group = QuestionTypeGroup(name=element.attrib['name'], title=element.attrib['title'], order=order)
         for idx, child in enumerate(element):
             child_data = load_q_types_from_xml(dbsession, child, idx)
@@ -82,18 +82,18 @@ def load_q_types_from_xml(dbsession, element, order):
             elif isinstance(child_data, QuestionType):
                 question_type_group.q_types.append(child_data)
         return question_type_group
-    elif element.tag == '{http://paths.sheffield.ac.uk/pyquest}question_type':
+    elif element.tag == '{https://bitbucket.org/mhall/experiment-support-system}question_type':
         question_type = QuestionType(name=element.attrib['name'], title=element.attrib['title'], order=order)
         for idx, child in enumerate(element):
-            if child.tag == '{http://paths.sheffield.ac.uk/pyquest}dbschema':
+            if child.tag == '{https://bitbucket.org/mhall/experiment-support-system}dbschema':
                 question_type.dbschema = child.text
-            elif child.tag == '{http://paths.sheffield.ac.uk/pyquest}answer_validation':
+            elif child.tag == '{https://bitbucket.org/mhall/experiment-support-system}answer_validation':
                 question_type.answer_validation = child.text
-            elif child.tag == '{http://paths.sheffield.ac.uk/pyquest}backend':
+            elif child.tag == '{https://bitbucket.org/mhall/experiment-support-system}backend':
                 question_type.backend = child.text
-            elif child.tag == '{http://paths.sheffield.ac.uk/pyquest}frontend':
+            elif child.tag == '{https://bitbucket.org/mhall/experiment-support-system}frontend':
                 question_type.frontend = child.text
-            elif child.tag == '{http://paths.sheffield.ac.uk/pyquest}inherit_from':
+            elif child.tag == '{https://bitbucket.org/mhall/experiment-support-system}inherit_from':
                 parent_type = dbsession.query(QuestionType).filter(QuestionType.name==child.text).first()
                 question_type.parent = parent_type
         return question_type

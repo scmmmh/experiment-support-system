@@ -40,7 +40,7 @@ pyramid.default_locale_name = en
 pyramid.includes = pyramid_tm
 
 # DON'T CHANGE THIS
-use = egg:PyQuestionnaire
+use = egg:ExperimentSupportSystem
 
 # ############################
 # Default server configuration

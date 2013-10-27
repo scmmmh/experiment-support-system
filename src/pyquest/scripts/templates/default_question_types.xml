@@ -1,74 +1,74 @@
 <?xml version="1.0"?>
-<pq:question_type_group xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="core" title="Core Questions">
-  <pq:question_type_group name="text" title="Text">
-    <pq:question_type name="text" title="Text">
-      <pq:dbschema>[{"default": "Double-click to edit this text.", "type": "attr", "attr": "text.text"}]</pq:dbschema>
-      <pq:answer_validation>null</pq:answer_validation>
-      <pq:backend>[{"validator": {"not_empty": false}, "type": "richtext", "attr": "text.text", "name": "text"}]</pq:backend>
-      <pq:frontend>${Markup(sub(q.attr_value('text.text'), i, p))}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="short_text" title="Single-line text input">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "unicode"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]
-      </pq:backend>
-      <pq:frontend>${f.text_field(name, '', e)}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="long_text" title="Multi-line text input">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "unicode"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</pq:backend>
-      <pq:frontend>${f.textarea(name, '', e)}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="number" title="Number input">
-      <pq:dbschema>[{"default": null, "type": "attr", "attr": "further.min"}, {"default": null, "type": "attr", "attr": "further.max"}]</pq:dbschema>
-      <pq:answer_validation>{"params": {"max": {"type": "attr", "attr": "further.max", "data_type": "int"}, "min": {"type": "attr", "attr": "further.min", "data_type": "int"}}, "type": "number"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.min", "title": "Minimum value", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "int", "name": "min"}, {"attr": "further.max", "title": "Maximum value", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "int", "name": "max"}]</pq:backend>
-      <pq:frontend>${f.number_field(name, '', e, min=q.attr_value('further.min'), max=q.attr_value('further.max'))}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="email" title="E-Mail input">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "email"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</pq:backend>
-      <pq:frontend>${f.email_field(name, '', e)}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="url" title="URL input">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "url"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</pq:backend>
-      <pq:frontend>${f.url_field(name, '', e)}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="date" title="Date input">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "date"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</pq:backend>
-      <pq:frontend>${f.date_field(name, '', e)}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="time" title="Time input">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "time"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</pq:backend>
-      <pq:frontend>${f.time_field(name, '', e)}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="datetime" title="Date &amp; Time input">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "datetime"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</pq:backend>
-      <pq:frontend>${f.datetime_field(name, '', e)}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="month" title="Month input">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "month"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</pq:backend>
-      <pq:frontend>${f.month_field(name, '', e)}</pq:frontend>
-    </pq:question_type>
-  </pq:question_type_group>
-  <pq:question_type_group name="choice" title="Choice">
-    <pq:question_type name="single_choice" title="Single choice">
-      <pq:dbschema>[{"default": "table", "type": "attr", "attr": "further.subtype", "group_order": 0}, {"default": null, "type": "attr", "attr": "further.before_label", "group_order": 1}, {"default": null, "type": "attr", "attr": "further.after_label", "group_order": 1}]</pq:dbschema>
-      <pq:answer_validation>{"params": {"allow_other": {"default": "no", "type": "attr", "attr": "further.allow_other"}, "allow_multiple": {"type": "value", "value": false}}, "type": "choice", "attr": "answer.value"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.subtype", "title": "Display as", "default": "table", "validator": {}, "values": [["table", "Horizontal table"], ["list", "Vertical list"], ["select", "Select box"]], "type": "select", "name": "display"}, {"attr": "further.before_label", "title": "Before label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "before_label"}, {"attr": "further.after_label", "title": "After label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "after_label"}, {"attr": "answer", "title": "Answers", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}, {"attr": "further.allow_other", "title": "Allow other answers", "default": "no", "validator": {}, "values": [["no", "No"], ["single", "Yes"]], "type": "select", "name": "other"}]</pq:backend>
-      <pq:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
+<ess:question_type_group xmlns:ess="https://bitbucket.org/mhall/experiment-support-system" name="core" title="Core Questions">
+  <ess:question_type_group name="text" title="Text">
+    <ess:question_type name="text" title="Text">
+      <ess:dbschema>[{"default": "Double-click to edit this text.", "type": "attr", "attr": "text.text"}]</ess:dbschema>
+      <ess:answer_validation>null</ess:answer_validation>
+      <ess:backend>[{"validator": {"not_empty": false}, "type": "richtext", "attr": "text.text", "name": "text"}]</ess:backend>
+      <ess:frontend>${Markup(sub(q.attr_value('text.text'), i, p))}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="short_text" title="Single-line text input">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "unicode"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]
+      </ess:backend>
+      <ess:frontend>${f.text_field(name, '', e)}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="long_text" title="Multi-line text input">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "unicode"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</ess:backend>
+      <ess:frontend>${f.textarea(name, '', e)}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="number" title="Number input">
+      <ess:dbschema>[{"default": null, "type": "attr", "attr": "further.min"}, {"default": null, "type": "attr", "attr": "further.max"}]</ess:dbschema>
+      <ess:answer_validation>{"params": {"max": {"type": "attr", "attr": "further.max", "data_type": "int"}, "min": {"type": "attr", "attr": "further.min", "data_type": "int"}}, "type": "number"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.min", "title": "Minimum value", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "int", "name": "min"}, {"attr": "further.max", "title": "Maximum value", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "int", "name": "max"}]</ess:backend>
+      <ess:frontend>${f.number_field(name, '', e, min=q.attr_value('further.min'), max=q.attr_value('further.max'))}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="email" title="E-Mail input">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "email"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</ess:backend>
+      <ess:frontend>${f.email_field(name, '', e)}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="url" title="URL input">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "url"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</ess:backend>
+      <ess:frontend>${f.url_field(name, '', e)}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="date" title="Date input">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "date"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</ess:backend>
+      <ess:frontend>${f.date_field(name, '', e)}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="time" title="Time input">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "time"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</ess:backend>
+      <ess:frontend>${f.time_field(name, '', e)}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="datetime" title="Date &amp; Time input">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "datetime"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</ess:backend>
+      <ess:frontend>${f.datetime_field(name, '', e)}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="month" title="Month input">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "month"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}]</ess:backend>
+      <ess:frontend>${f.month_field(name, '', e)}</ess:frontend>
+    </ess:question_type>
+  </ess:question_type_group>
+  <ess:question_type_group name="choice" title="Choice">
+    <ess:question_type name="single_choice" title="Single choice">
+      <ess:dbschema>[{"default": "table", "type": "attr", "attr": "further.subtype", "group_order": 0}, {"default": null, "type": "attr", "attr": "further.before_label", "group_order": 1}, {"default": null, "type": "attr", "attr": "further.after_label", "group_order": 1}]</ess:dbschema>
+      <ess:answer_validation>{"params": {"allow_other": {"default": "no", "type": "attr", "attr": "further.allow_other"}, "allow_multiple": {"type": "value", "value": false}}, "type": "choice", "attr": "answer.value"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.subtype", "title": "Display as", "default": "table", "validator": {}, "values": [["table", "Horizontal table"], ["list", "Vertical list"], ["select", "Select box"]], "type": "select", "name": "display"}, {"attr": "further.before_label", "title": "Before label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "before_label"}, {"attr": "further.after_label", "title": "After label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "after_label"}, {"attr": "answer", "title": "Answers", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}, {"attr": "further.allow_other", "title": "Allow other answers", "default": "no", "validator": {}, "values": [["no", "No"], ["single", "Yes"]], "type": "select", "name": "other"}]</ess:backend>
+      <ess:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
   &lt;table py:if="q.attr_value('further.subtype', 'table') == 'table'"&gt;
     &lt;thead&gt;
       &lt;tr&gt;
@@ -102,13 +102,13 @@
     &lt;py:if test="q.attr_value('further.allow_other', 'no') == 'single'"&gt;${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}&lt;/py:if&gt;
   &lt;/div&gt;
   &lt;p py:if="error_text" class="error-explanation"&gt;${error_text}&lt;/p&gt;
-&lt;/div&gt;</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="multi_choice" title="Multiple choice">
-      <pq:dbschema>[{"default": "table", "type": "attr", "attr": "further.subtype", "group_order": 0}, {"default": null, "type": "attr", "attr": "further.before_label", "group_order": 1}, {"default": null, "type": "attr", "attr": "further.after_label", "group_order": 1}]</pq:dbschema>
-      <pq:answer_validation>{"params": {"allow_other": {"default": "no", "type": "attr", "attr": "further.allow_other"}, "allow_multiple": {"type": "value", "value": true}}, "type": "choice", "attr": "answer.value"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.subtype", "title": "Display as", "default": "table", "validator": {}, "values": [["table", "Horizontal table"], ["list", "Vertical list"], ["select", "Select box"]], "type": "select", "name": "display"}, {"attr": "further.before_label", "title": "Before label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "before_label"}, {"attr": "further.after_label", "title": "After label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "after_label"}, {"attr": "answer", "title": "Answers", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}, {"attr": "further.allow_other", "title": "Allow other answers", "default": "no", "validator": {}, "values": [["no", "No"], ["single", "Yes"]], "type": "select", "name": "other"}]</pq:backend>
-      <pq:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
+&lt;/div&gt;</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="multi_choice" title="Multiple choice">
+      <ess:dbschema>[{"default": "table", "type": "attr", "attr": "further.subtype", "group_order": 0}, {"default": null, "type": "attr", "attr": "further.before_label", "group_order": 1}, {"default": null, "type": "attr", "attr": "further.after_label", "group_order": 1}]</ess:dbschema>
+      <ess:answer_validation>{"params": {"allow_other": {"default": "no", "type": "attr", "attr": "further.allow_other"}, "allow_multiple": {"type": "value", "value": true}}, "type": "choice", "attr": "answer.value"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.subtype", "title": "Display as", "default": "table", "validator": {}, "values": [["table", "Horizontal table"], ["list", "Vertical list"], ["select", "Select box"]], "type": "select", "name": "display"}, {"attr": "further.before_label", "title": "Before label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "before_label"}, {"attr": "further.after_label", "title": "After label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "after_label"}, {"attr": "answer", "title": "Answers", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}, {"attr": "further.allow_other", "title": "Allow other answers", "default": "no", "validator": {}, "values": [["no", "No"], ["single", "Yes"]], "type": "select", "name": "other"}]</ess:backend>
+      <ess:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
   &lt;table py:if="q.attr_value('further.subtype', 'table') == 'table'"&gt;
     &lt;thead&gt;
       &lt;tr&gt;
@@ -140,13 +140,13 @@
     &lt;p py:if="q.attr_value('further.allow_other', 'no') == 'single'"&gt;Other: ${f.text_field('%s.other' % (name), '', None, class_='role-other-text')}&lt;/p&gt;
   &lt;/div&gt;
   &lt;p py:if="error_text" class="error-explanation"&gt;${error_text}&lt;/p&gt;
-&lt;/div&gt;</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="single_choice_grid" title="Single choice grid">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "multiple", "attr": "subquestion.name", "schema": {"params": {"allow_other": {"default": "no", "type": "attr", "attr": "further.allow_other"}, "allow_multiple": {"type": "value", "value": false}}, "type": "choice", "attr": "answer.value"}}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.before_label", "title": "Before label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "before_label"}, {"attr": "further.after_label", "title": "After label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "after_label"}, {"attr": "answer", "title": "Answers", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}, {"attr": "subquestion", "title": "Sub-questions", "validator": {}, "type": "table", "columns": [{"attr": "name", "title": "Name", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "name"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "subquestion"}]</pq:backend>
-      <pq:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
+&lt;/div&gt;</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="single_choice_grid" title="Single choice grid">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "multiple", "attr": "subquestion.name", "schema": {"params": {"allow_other": {"default": "no", "type": "attr", "attr": "further.allow_other"}, "allow_multiple": {"type": "value", "value": false}}, "type": "choice", "attr": "answer.value"}}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.before_label", "title": "Before label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "before_label"}, {"attr": "further.after_label", "title": "After label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "after_label"}, {"attr": "answer", "title": "Answers", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}, {"attr": "subquestion", "title": "Sub-questions", "validator": {}, "type": "table", "columns": [{"attr": "name", "title": "Name", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "name"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "subquestion"}]</ess:backend>
+      <ess:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
   &lt;table&gt;
     &lt;thead&gt;
       &lt;tr&gt;
@@ -166,13 +166,13 @@
     &lt;/tbody&gt;
   &lt;/table&gt;
   &lt;p py:if="error_text" class="error-explanation"&gt;${error_text}&lt;/p&gt;
-&lt;/div&gt;</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="multi_choice_grid" title="Multiple choice grid">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "multiple", "attr": "subquestion.name", "schema": {"params": {"allow_other": {"default": "no", "type": "attr", "attr": "further.allow_other"}, "allow_multiple": {"type": "value", "value": true}}, "type": "choice", "attr": "answer.value"}}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.before_label", "title": "Before label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "before_label"}, {"attr": "further.after_label", "title": "After label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "after_label"}, {"attr": "answer", "title": "Answers", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}, {"attr": "subquestion", "title": "Sub-questions", "validator": {}, "type": "table", "columns": [{"attr": "name", "title": "Name", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "name"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "subquestion"}]</pq:backend>
-      <pq:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
+&lt;/div&gt;</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="multi_choice_grid" title="Multiple choice grid">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "multiple", "attr": "subquestion.name", "schema": {"params": {"allow_other": {"default": "no", "type": "attr", "attr": "further.allow_other"}, "allow_multiple": {"type": "value", "value": true}}, "type": "choice", "attr": "answer.value"}}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.before_label", "title": "Before label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "before_label"}, {"attr": "further.after_label", "title": "After label", "default": null, "validator": {"if_empty": null, "not_empty": false}, "type": "unicode", "name": "after_label"}, {"attr": "answer", "title": "Answers", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}, {"attr": "subquestion", "title": "Sub-questions", "validator": {}, "type": "table", "columns": [{"attr": "name", "title": "Name", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "name"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "subquestion"}]</ess:backend>
+      <ess:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
   &lt;table&gt;
     &lt;thead&gt;
       &lt;tr&gt;
@@ -192,13 +192,13 @@
     &lt;/tbody&gt;
   &lt;/table&gt;
   &lt;p py:if="error_text" class="error-explanation"&gt;${error_text}&lt;/p&gt;
-&lt;/div&gt;</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="country" title="Country selection">
-      <pq:dbschema>[{"default": "", "type": "attr", "attr": "further.priority", "group_order": 0}, {"default": "no", "type": "attr", "attr": "further.allow_multiple", "group_order": 1}]</pq:dbschema>
-      <pq:answer_validation>{"params": {"allow_multiple": {"default": false, "type": "attr", "attr": "further.allow_multiple", "data_type": "boolean"}}, "type": "unicode"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.priority", "title": "Prioritise these countries", "default": "", "validator": {"if_empty": "", "not_empty": false}, "type": "unicode", "name": "priority"}, {"attr": "further.allow_multiple", "title": "Allow multiple selection", "default": "False", "validator": {}, "values": [["False", "No"], ["True", "Yes"]], "type": "select", "name": "multiple"}]</pq:backend>
-      <pq:frontend>&lt;?python
+&lt;/div&gt;</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="country" title="Country selection">
+      <ess:dbschema>[{"default": "", "type": "attr", "attr": "further.priority", "group_order": 0}, {"default": "no", "type": "attr", "attr": "further.allow_multiple", "group_order": 1}]</ess:dbschema>
+      <ess:answer_validation>{"params": {"allow_multiple": {"default": false, "type": "attr", "attr": "further.allow_multiple", "data_type": "boolean"}}, "type": "unicode"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.priority", "title": "Prioritise these countries", "default": "", "validator": {"if_empty": "", "not_empty": false}, "type": "unicode", "name": "priority"}, {"attr": "further.allow_multiple", "title": "Allow multiple selection", "default": "False", "validator": {}, "values": [["False", "No"], ["True", "Yes"]], "type": "select", "name": "multiple"}]</ess:backend>
+      <ess:frontend>&lt;?python
     from babel import Locale
     locale = Locale('en')
     territories = locale.territories.items()
@@ -211,13 +211,13 @@
     &lt;option value="" disabled="disabled"&gt;--------------------&lt;/option&gt;
   &lt;/py:if&gt;
   &lt;option py:for="territory in territories" value="${territory[0]}" py:if="territory[0] not in priority"&gt;${territory[1]}&lt;/option&gt;
-&lt;/select&gt;</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="language" title="Language selection">
-      <pq:dbschema>[{"default": "", "type": "attr", "attr": "further.priority", "group_order": 0}, {"default": "no", "type": "attr", "attr": "further.allow_multiple", "group_order": 1}]</pq:dbschema>
-      <pq:answer_validation>{"params": {"allow_multiple": {"default": false, "type": "attr", "attr": "further.allow_multiple", "data_type": "boolean"}}, "type": "unicode"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.priority", "title": "Prioritise these countries", "default": "", "validator": {"if_empty": "", "not_empty": false}, "type": "unicode", "name": "priority"}, {"attr": "further.allow_multiple", "title": "Allow multiple selection", "default": "False", "validator": {}, "values": [["False", "No"], ["True", "Yes"]], "type": "select", "name": "multiple"}]</pq:backend>
-      <pq:frontend>&lt;?python
+&lt;/select&gt;</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="language" title="Language selection">
+      <ess:dbschema>[{"default": "", "type": "attr", "attr": "further.priority", "group_order": 0}, {"default": "no", "type": "attr", "attr": "further.allow_multiple", "group_order": 1}]</ess:dbschema>
+      <ess:answer_validation>{"params": {"allow_multiple": {"default": false, "type": "attr", "attr": "further.allow_multiple", "data_type": "boolean"}}, "type": "unicode"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.priority", "title": "Prioritise these countries", "default": "", "validator": {"if_empty": "", "not_empty": false}, "type": "unicode", "name": "priority"}, {"attr": "further.allow_multiple", "title": "Allow multiple selection", "default": "False", "validator": {}, "values": [["False", "No"], ["True", "Yes"]], "type": "select", "name": "multiple"}]</ess:backend>
+      <ess:frontend>&lt;?python
     from babel import Locale
     locale = Locale('en')
     languages = locale.languages.items()
@@ -230,41 +230,41 @@
     &lt;option value="" disabled="disabled"&gt;--------------------&lt;/option&gt;
   &lt;/py:if&gt;
   &lt;option py:for="language in languages" value="${language[0]}" py:if="language[0] not in priority"&gt;${language[1]}&lt;/option&gt;
-&lt;/select&gt;</pq:frontend>
-    </pq:question_type>
-  </pq:question_type_group>
-  <pq:question_type_group name="hidden" title="Hidden">
-    <pq:question_type name="page_timer" title="Page Timer">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "int"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}]</pq:backend>
-      <pq:frontend>${f.hidden_field(name, '0', class_='role-timer')}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="hidden_value" title="Hidden value">
-      <pq:dbschema>[{"default": "", "type": "attr", "attr": "further.value"}]</pq:dbschema>
-      <pq:answer_validation>{"type": "unicode"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"attr": "further.value", "title": "Value", "default": "", "validator": {"not_empty": true}, "type": "unicode", "name": "value"}]</pq:backend>
-      <pq:frontend>${f.hidden_field(name, sub(q.attr_value('further.value'), i, p), None)}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="auto_commit" title="Automatic Next Page">
-      <pq:dbschema>[{"default": "60", "type": "attr", "attr": "further.timeout"}]</pq:dbschema>
-      <pq:answer_validation>null</pq:answer_validation>
-      <pq:backend>[{"attr": "further.timeout", "title": "Timeout (seconds)", "default": "0", "validator": {"not_empty": true}, "type": "int", "name": "timeout"}]</pq:backend>
-      <pq:frontend>&lt;script type="text/javascript"&gt;$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('&lt;input type="hidden" name="action_" value="Next Page"/&gt;'); frm.submit();}, ${q.attr_value('further.timeout') * 1000})});&lt;/script&gt;</pq:frontend>
-    </pq:question_type>
-  </pq:question_type_group>
-  <pq:question_type_group name="other" title="Other">
-    <pq:question_type name="confirm" title="Confirmation checkbox">
-      <pq:dbschema>[{"default": "", "type": "attr", "attr": "further.value"}, {"default": "", "type": "attr", "attr": "further.label"}]</pq:dbschema>
-      <pq:answer_validation>{"type": "unicode"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.value", "validator": {"not_empty": true}, "type": "unicode", "name": "value", "title": "Value"}, {"attr": "further.label", "validator": {"not_empty": true}, "type": "unicode", "name": "label", "title": "Label"}]</pq:backend>
-      <pq:frontend>${f.checkbox(name, q.attr_value('further.value'), e, label=q.attr_value('further.label', default=q.title))}</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="ranking" title="Ranking">
-      <pq:dbschema>[{"type": "attr_group", "name": "answer"}]</pq:dbschema>
-      <pq:answer_validation>{"type": "ranking", "attr": "answer.value"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "answer", "title": "Items", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}]</pq:backend>
-      <pq:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
+&lt;/select&gt;</ess:frontend>
+    </ess:question_type>
+  </ess:question_type_group>
+  <ess:question_type_group name="hidden" title="Hidden">
+    <ess:question_type name="page_timer" title="Page Timer">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "int"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}]</ess:backend>
+      <ess:frontend>${f.hidden_field(name, '0', class_='role-timer')}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="hidden_value" title="Hidden value">
+      <ess:dbschema>[{"default": "", "type": "attr", "attr": "further.value"}]</ess:dbschema>
+      <ess:answer_validation>{"type": "unicode"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"attr": "further.value", "title": "Value", "default": "", "validator": {"not_empty": true}, "type": "unicode", "name": "value"}]</ess:backend>
+      <ess:frontend>${f.hidden_field(name, sub(q.attr_value('further.value'), i, p), None)}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="auto_commit" title="Automatic Next Page">
+      <ess:dbschema>[{"default": "60", "type": "attr", "attr": "further.timeout"}]</ess:dbschema>
+      <ess:answer_validation>null</ess:answer_validation>
+      <ess:backend>[{"attr": "further.timeout", "title": "Timeout (seconds)", "default": "0", "validator": {"not_empty": true}, "type": "int", "name": "timeout"}]</ess:backend>
+      <ess:frontend>&lt;script type="text/javascript"&gt;$(document).ready(function() {setTimeout(function() {var frm = $('form.role-survey-form'); frm.append('&lt;input type="hidden" name="action_" value="Next Page"/&gt;'); frm.submit();}, ${q.attr_value('further.timeout') * 1000})});&lt;/script&gt;</ess:frontend>
+    </ess:question_type>
+  </ess:question_type_group>
+  <ess:question_type_group name="other" title="Other">
+    <ess:question_type name="confirm" title="Confirmation checkbox">
+      <ess:dbschema>[{"default": "", "type": "attr", "attr": "further.value"}, {"default": "", "type": "attr", "attr": "further.label"}]</ess:dbschema>
+      <ess:answer_validation>{"type": "unicode"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "further.value", "validator": {"not_empty": true}, "type": "unicode", "name": "value", "title": "Value"}, {"attr": "further.label", "validator": {"not_empty": true}, "type": "unicode", "name": "label", "title": "Label"}]</ess:backend>
+      <ess:frontend>${f.checkbox(name, q.attr_value('further.value'), e, label=q.attr_value('further.label', default=q.title))}</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="ranking" title="Ranking">
+      <ess:dbschema>[{"type": "attr_group", "name": "answer"}]</ess:dbschema>
+      <ess:answer_validation>{"type": "ranking", "attr": "answer.value"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-help"}, {"type": "question-required"}, {"attr": "answer", "title": "Items", "validator": {}, "type": "table", "columns": [{"attr": "value", "title": "Value", "default": null, "validator": {"not_empty": true}, "type": "unicode", "name": "value"}, {"attr": "label", "title": "Label", "default": null, "validator": {"not_empty": false}, "type": "unicode", "name": "label"}], "name": "answer"}]</ess:backend>
+      <ess:frontend>&lt;div py:attrs="{'class':error_class}"&gt;
   &lt;ul&gt;
     &lt;li py:if="q.attr_value('further.before_label')" class="role-label" style="display:none;"&gt;${q.attr_value('further.before_label')}&lt;/li&gt;
     &lt;li id="${name}.${value}" py:for="(value, label) in shuffle(zip(q.attr_value('answer.value', default=[], multi=True), q.attr_value('answer.label', default=[], multi=True)))"&gt;
@@ -278,14 +278,14 @@
     &lt;li py:if="q.attr_value('further.after_label')" class="role-label" style="display:none;"&gt;${q.attr_value('further.after_label')}&lt;/li&gt;
   &lt;/ul&gt;
   &lt;p py:if="error_text"&gt;${error_text}&lt;/p&gt;
-&lt;/div&gt;</pq:frontend>
-    </pq:question_type>
-    <pq:question_type name="js_check" title="JavaScript Check">
-      <pq:dbschema>[]</pq:dbschema>
-      <pq:answer_validation>{"type": "unicode"}</pq:answer_validation>
-      <pq:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-required"}]</pq:backend>
-      <pq:frontend>&lt;noscript&gt;&lt;p py:if="q.required"&gt;JavaScript is required&lt;/p&gt;&lt;p py:if="not q.required"&gt;JavaScript is recommended&lt;/p&gt;&lt;/noscript&gt;
-&lt;script&gt;document.write('${f.hidden_field(name, 'yes', None)');&lt;/script&gt;</pq:frontend>
-    </pq:question_type>
-  </pq:question_type_group>
-</pq:question_type_group>
+&lt;/div&gt;</ess:frontend>
+    </ess:question_type>
+    <ess:question_type name="js_check" title="JavaScript Check">
+      <ess:dbschema>[]</ess:dbschema>
+      <ess:answer_validation>{"type": "unicode"}</ess:answer_validation>
+      <ess:backend>[{"type": "question-name"}, {"type": "question-title"}, {"type": "question-required"}]</ess:backend>
+      <ess:frontend>&lt;noscript&gt;&lt;p py:if="q.required"&gt;JavaScript is required&lt;/p&gt;&lt;p py:if="not q.required"&gt;JavaScript is recommended&lt;/p&gt;&lt;/noscript&gt;
+&lt;script&gt;document.write('${f.hidden_field(name, 'yes', None)');&lt;/script&gt;</ess:frontend>
+    </ess:question_type>
+  </ess:question_type_group>
+</ess:question_type_group>
