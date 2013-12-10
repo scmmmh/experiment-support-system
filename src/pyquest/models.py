@@ -716,7 +716,7 @@ class Participant(Base):
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
-    completed = Column(Boolean)
+    completed = Column(Boolean, default=False)
 
     answers = relationship('Answer',
                            backref='participant',
