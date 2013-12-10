@@ -421,10 +421,10 @@ def export_experiment(request, survey):
         columns = []
         rows = []
         if len(data_set.items) > 0:
-            columns = ['control_'] + [a.key.key.encode('utf-8') for a in data_set.items[0].attributes]
+            columns = ['id_', 'control_'] + [a.key.key.encode('utf-8') for a in data_set.items[0].attributes]
             for item in data_set.items:
                 row = dict([(a.key.key.encode('utf-8'), a.value.encode('utf-8')) for a in item.attributes])
-                row.update(dict([('control_', item.control)]))
+                row.update(dict([('control_', item.control), ('id_', item.id)]))
                 rows.append(row)
         return {'columns': columns,
                 'rows': rows}
