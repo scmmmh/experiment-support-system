@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+from genshi import Markup
 
 from pywebtools import form, text
 
@@ -25,3 +26,15 @@ def as_data_type(value, data_type=None):
                 return None
     else:
         return value
+
+def gt():
+    return Markup('>')
+
+def gte():
+    return Markup('>=')
+
+def lt():
+    return Markup('<')
+
+def lte():
+    return Markup('<=')

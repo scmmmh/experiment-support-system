@@ -246,8 +246,14 @@ class ParticipantManager(object):
         for answer in self.participant().answers:
             if (not qsheet or answer.question.qsheet_id == qsheet.id) and answer.data_item and answer.data_item.control:
                 total = total + 1
-                #if answer.values[0].value == answer.data_item.control_answers[0].answer: TODO: Fix control answers
-                #    correct = correct + 1
+                matches = False
+                for answer_value in answer.values:
+                    for control_answer in answer.data_item.control_answers:
+                        if answer_value.value == control_answer.answer:
+                            matches = True
+                            break
+                if matches:
+                    correct = correct + 1
         if total == 0:
             return None
         else:

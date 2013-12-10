@@ -4,7 +4,40 @@
   <head>
     <title>${h.text.title(qsheet.name)} - Attached data</title>
     <script type="text/javascript">
+      function remove_control() {
+    	  var row = $(this).parents('tr');
+    	  var answers = row.parent();
+    	  row.remove();
+    	  if(answers.children().length == 1) {
+    		  answers.find('.placeholder').parent().show(); 
+    	  }
+    	  return false;
+      }
+      
       $(document).ready(function() {
+    	  <py:if test="qsheet.data_set and qsheet.data_set.type=='dataset'">
+    	  $('.action-add-control').click(function() {
+    		  var answers = $('#control-answers tbody');
+              answers.find('.placeholder').parent().hide();
+    		  var html = '<tr data-index="IDX_"><td>${h.form.select('control-IDX_.question', '', [(q.id, q.name) for q in qsheet.questions if q.q_type.answer_schema()], e)}</td>' +
+    				  '<td>${h.form.select('control-IDX_.data_item', '', [(di.id, di.id) for di in qsheet.data_set.items if di.control], e)}</td>' +
+    				  '<td>${h.form.text_field('control-IDX_.answer', '', e)}</td>' +
+    				  '<td><a href="#" class="button action-remove-control"><span class="ui-icon ui-icon-minusthick"></span></a></td></tr>';
+    		  var idx = -1;
+    		  answers.find('tr').each(function() {
+    			  if(parseInt($(this).data('index')) ${h.gt()} idx) {
+    				  idx = parseInt($(this).data('index'));
+    			  }
+    		  });
+    		  idx = idx + 1;
+    		  html = html.replace(/IDX_/g, idx);
+    		  html = $(html);
+    		  html.find('.action-remove-control').click(remove_control);
+    		  answers.append(html);
+    		  return false;
+    	  });
+    	  $('.action-remove-control').click(remove_control);
+    	  </py:if>
       });
     </script>
   </head>
@@ -29,6 +62,42 @@
           <dd><a href="${r.route_url('data.view', sid=survey.id, dsid=qsheet.data_set.id)}">${h.text.title(qsheet.data_set.name)}</a></dd>
           <dt>Total number of data items</dt>
           <dd>${len(qsheet.data_set.items)}</dd>
+          <dt>Control answers</dt>
+          <dd>
+            <form action="${r.current_route_url()}" method="post">
+              ${h.form.csrf_token_field(r.session.get_csrf_token())}
+              <table id="control-answers">
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th>Data item</th>
+                    <th>Answer</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="${'hidden' if control_answers else ''}">
+                    <td colspan="4" class="placeholder">No control answers have been specified.</td>
+                  </tr>
+                  <tr py:for="idx, answer in enumerate(control_answers)" data-index="${idx}">
+                    <td>${h.form.select('control-%i.question' % (idx), answer.question.name, [(q.id, q.name) for q in qsheet.questions if q.q_type.answer_schema()], e)}</td>
+                    <td>${h.form.select('control-%i.data_item' % (idx), answer.data_item.id, [(di.id, di.id) for di in qsheet.data_set.items if di.control], e)}</td>
+                    <td>${h.form.text_field('control-%i.answer' % (idx), answer.answer, e)}</td>
+                    <td><a href="#" class="button action-remove-control"><span class="ui-icon ui-icon-minusthick"></span></a></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="4" class="text-right"><a href="#" class="button action-add-control"><span class="ui-icon ui-icon-plusthick"></span></a></td>
+                  </tr>
+                </tfoot>
+              </table>
+              <ul class="buttons">
+                <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.current_route_url(), title='Discard any changes to the control answers')}</li>
+                <li>${h.form.submit('Update', class_='button', title='Update the control answers')}</li>
+              </ul>
+            </form>
+          </dd>
         </py:if>
         <py:if test="qsheet.data_set.type=='permutationset'">
           <dt>Attached Permutation</dt>

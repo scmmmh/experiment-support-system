@@ -1,6 +1,6 @@
-# #############################
-# PyQuestionnaire configuration
-# #############################
+# #######################################
+# Experiment Support System configuration
+# #######################################
 
 [app:main]
 
@@ -24,7 +24,7 @@ email.smtp_host =
 # ******************************
 beaker.session.lock_dir = %(here)s/tmp
 beaker.session.type = cookie
-beaker.session.key = pyquest
+beaker.session.key = ess
 beaker.session.encrypt_key = ${encrypt_key}
 beaker.session.validate_key = ${validate_key}
 
@@ -40,7 +40,7 @@ pyramid.default_locale_name = en
 pyramid.includes = pyramid_tm
 
 # DON'T CHANGE THIS
-use = egg:PyQuestionnaire
+use = egg:ExperimentSupportSystem
 
 # ############################
 # Default server configuration
