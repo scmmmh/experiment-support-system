@@ -420,6 +420,8 @@ def finished_survey(request):
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         part_manager = ParticipantManager(request, dbsession, survey)
+        with transaction.manager:
+            part_manager.participant().completed = True
         dbsession.add(survey)
         if survey.status == 'testing':
             request.response.delete_cookie('survey.%s' % request.matchdict['seid'])

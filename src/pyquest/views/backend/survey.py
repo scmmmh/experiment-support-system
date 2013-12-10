@@ -12,7 +12,7 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
-from sqlalchemy import desc
+from sqlalchemy import desc, and_
 from StringIO import StringIO
 from zipfile import ZipFile, ZIP_DEFLATED
 
@@ -77,7 +77,10 @@ def view(request):
     user = current_user(request)
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
-            return {'survey': survey}
+            stats = {'completed': dbsession.query(Participant).filter(and_(Participant.survey_id==survey.id,
+                                                                           Participant.completed==True)).count()}
+            return {'survey': survey,
+                    'stats': stats}
         else:
             redirect_to_login(request)
     else:
