@@ -8,6 +8,6 @@ the Experiment Support System to set up an on-line, human-subject experiment.
 .. toctree::
    :maxdepth: 2
    
+   core_concepts
    access_ess
-   work_Questionnaire
-   conceptsAndTerms
+   working_ess

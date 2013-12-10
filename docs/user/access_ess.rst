@@ -60,7 +60,7 @@ if you get lost.
 
 Next, the gray bar, is the action bar. This contains the main actions that
 are available to you on the current page. Here they are functions to create a
-"New Experiment" and to "Import an Experiment".
+"New Experiment" and to "Import an Experiment" (see :doc:`create_experiment`).
 
 The area below the action bar contains the page's main content, in this case
 the list of experiments you have created.
