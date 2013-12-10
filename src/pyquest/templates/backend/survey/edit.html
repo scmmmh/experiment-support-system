@@ -66,7 +66,7 @@
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('survey', survey, r)}
     <article>
-      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
+      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The experiment is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
       <hgroup>
         <h1>${survey.title} - Edit</h1>
@@ -81,18 +81,18 @@
           <dt>Display Language</dt>
           <dd>${h.form.select('language', survey.language, [('en', 'English')], e, title='This is the language that the standard interface elements are shown in')}</dd>
           <dt class="role-css-edit-toggle">CSS styles</dt>
-          <dd>${h.form.textarea('styles', survey.styles, e, class_='span-22 role-css-edit', title='Specify any additional CSS styles that you wish to have applied on all survey pages')}</dd>
+          <dd>${h.form.textarea('styles', survey.styles, e, class_='span-22 role-css-edit', title='Specify any additional CSS styles that you wish to have applied on all experiment pages')}</dd>
           <dt class="role-js-edit-toggle">Javascript</dt>
-          <dd>${h.form.textarea('scripts', survey.scripts, e, class_='span-22 role-js-edit', title='Specify any additional JavaScript code that you wish to have added to all survey pages')}</dd>
+          <dd>${h.form.textarea('scripts', survey.scripts, e, class_='span-22 role-js-edit', title='Specify any additional JavaScript code that you wish to have added to all experiment pages')}</dd>
           <dt>First page</dt>
-          <dd>${h.form.select('start', survey.start_id, [(qs.id, qs.title) for qs in survey.qsheets], e, title='Select the first survey page to show to the participants')}</dd>
+          <dd>${h.form.select('start', survey.start_id, [(qs.id, qs.title) for qs in survey.qsheets], e, title='Select the first page to show to the participants')}</dd>
 	  <dt>Notifications</dt>
 	  <dd class="notification"><xi:include href="notifications.html"/></dd>
 	  <dt>Public</dt>
-          <dd> ${h.form.checkbox('public', survey.public, e, checked=survey.public, label="Tick for a public survey")}</dd>
+          <dd> ${h.form.checkbox('public', survey.public, e, checked=survey.public, label="Tick for a public experiment")}</dd>
         </dl>
         <ul class="buttons span-22">
-          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id), title='Go back to the survey overview and without updating the survey')}</li>
+          <li>${h.form.button("Don't update", class_='button', onclick="document.location='%s'" % r.route_url('survey.view', sid=survey.id), title='Go back to the experiment overview and without updating the experiment')}</li>
           <li>${h.form.submit('Update', class_='button', title='Update the survey and then go back to the survey overview')}</li>
         </ul>
       </form>

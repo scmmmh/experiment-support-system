@@ -3,14 +3,14 @@ Deployment
 **********
 
 In-production deployment has been tested using `Apache2`_ and `mod_wsgi`_.
-However, you can also use the :ref:`internal default server <configuration_default_server>`,
-either directly or behind a reverse proxy.
+For other deployment scenarios, please consult the `pyramid deployment`_
+documentation.
 
 Deploying with Apache2 & mod_wsgi
 =================================
 
-To deploy PyQuestionnaire via `Apache2`_ and `mod_wsgi`_ add the following
-settings to the VirtualHost configuration::
+To deploy the Experiment Support System via `Apache2`_ and `mod_wsgi`_ add the
+following settings to the VirtualHost configuration::
 
     WSGIDaemonProcess pyquest user=www-data group=www-data processes=1 threads=10 python-path=/path/to/virtualenv/lib/python2.7/site-packages
     WSGIScriptAlias /pyquest /path/to/the/application.wsgi
@@ -21,8 +21,9 @@ settings to the VirtualHost configuration::
 **Note**: Leave the ``processes`` value at 1. Use the ``threads`` option to
 specify how many parallel requests to support. 
 
-Then create the following script to to run the application via `WSGI`_. Adapt it
-by replacing the paths with the paths to where PyQuestionnaire is installed::
+Then create the following script to to run the application via `WSGI`_. Adapt
+it by replacing the paths with the paths to where the Experiment Support System
+is installed::
 
     import os
     os.chdir(os.path.dirname(__file__))
@@ -51,3 +52,4 @@ by replacing the paths with the paths to where PyQuestionnaire is installed::
 .. _WSGI: http://wsgi.readthedocs.org/en/latest/
 .. _mod_wsgi: http://code.google.com/p/modwsgi/
 .. _Apache2: http://httpd.apache.org/
+.. _`pyramid deployment`: http://docs.pylonsproject.org/projects/pyramid_cookbook/en/latest/deployment/index.html

@@ -1,6 +1,6 @@
-****************************
-Working with PyQuestionnaire
-****************************
+******************************************
+Working with the Experiment Support System
+******************************************
 .. toctree::
    :maxdepth: 4 
    

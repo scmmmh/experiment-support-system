@@ -106,7 +106,7 @@ def forgotten_password(request):
 
 After logging in, please immediately change the password.
 
-PyQuestionnaire Auto-Admin""" % (request.route_url('root'), password))
+Experiment Support System Auto-Admin""" % (request.route_url('root'), password))
                 email['Subject'] = 'New password for %s' % (request.route_url('root'))
                 email['From'] = 'noreply@paths.sheffield.ac.uk'
                 email['To'] = user.email

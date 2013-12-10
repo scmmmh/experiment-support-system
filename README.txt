@@ -1,8 +1,6 @@
 PyQuestionnaire README
 ======================
 
-PyQuestionnaire is a online survey and questionnaire system.
-
-It is built on the Pyramid webframework and lives at https://bitbucket.org/mhall/pyquestionnaire/overview.
-
-Documentation can be found at http://pyquestionnaire.readthedocs.org/.
+PyQuestionnaire is now the Experiment Support System and lives at
+https://bitbucket.org/mhall/experiment-support-system/overview. This repository
+is retained only for archival purposes.

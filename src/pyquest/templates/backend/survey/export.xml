@@ -1,14 +1,27 @@
-<pq:survey title="${survey.title}" xmlns:pq="http://paths.sheffield.ac.uk/pyquest" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
-  <pq:summary>${survey.summary}</pq:summary>
-  <pq:language>${survey.language}</pq:language>
-  <pq:styles>${survey.styles}</pq:styles>
-  <pq:scripts>${survey.scripts}</pq:scripts>
-  <pq:first_page>${survey.start.name if survey.start else ''}</pq:first_page>
-  <xi:include href="../qsheet/export.xml" py:for="qsheet in survey.qsheets"/>
-  <py:for each="qsheet in survey.qsheets">
-    <pq:transition from="${qsheet.name}" py:if="len(qsheet.next)==0"/>
-    <py:for each="transition in qsheet.next">
-      ${h.qsheet.transition_as_text(transition)}
-    </py:for>
-  </py:for>
-</pq:survey>
+<ess:experiment title="${survey.title}" xmlns:ess="https://bitbucket.org/mhall/experiment-support-system" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <ess:summary>${survey.summary}</ess:summary>
+  <ess:language>${survey.language}</ess:language>
+  <ess:styles>${survey.styles}</ess:styles>
+  <ess:scripts>${survey.scripts}</ess:scripts>
+  <ess:first_page>${survey.start.name if survey.start else ''}</ess:first_page>
+  <ess:pages>
+    <xi:include href="../qsheet/export.xml" py:for="qsheet in survey.qsheets"/>
+  </ess:pages>
+  <ess:transitions>
+    <ess:transition py:for="transition in [t for qs in survey.qsheets for t in qs.next]" from="${transition.source.name}" order="${transition.order}" py:attrs="{'to': transition.target.name if transition.target else None}">
+      <ess:condition py:if="transition.condition">
+        <ess:answer py:if="transition.condition['type'] == 'answer'" question="${transition.condition['question']}" answer="${transition.condition['answer']}"/>
+        <ess:permutation py:if="transition.condition['type'] == 'permutation'" permutation="${transition.condition['permutation']}"/>
+      </ess:condition>
+    </ess:transition>
+  </ess:transitions>
+  <ess:data>
+    <ess:data_set py:for="data_set in survey.data_sets" name="${data_set.name}">
+      <ess:attached_to py:for="qsheet in data_set.qsheets">${qsheet.name}</ess:attached_to>
+    </ess:data_set>
+    <ess:permutation_set py:for="perm_set in survey.permutation_sets" name="${perm_set.name}">
+      <ess:relation rel="${relation.rel}" object="${relation.object.name}" py:for="relation in perm_set.subject_of">${relation._data}</ess:relation>
+      <ess:attached_to py:for="qsheet in perm_set.qsheets">${qsheet.name}</ess:attached_to>
+    </ess:permutation_set>
+  </ess:data>
+</ess:experiment>

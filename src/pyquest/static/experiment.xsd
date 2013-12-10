@@ -1,29 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:qs="http://paths.sheffield.ac.uk/pyquest" targetNamespace="http://paths.sheffield.ac.uk/pyquest" elementFormDefault="qualified">
-    <xs:element name="survey" type="qs:Survey"/>
-    <xs:element name="qsheet" type="qs:QSheet"/>
-    <xs:element name="question_type_group" type="qs:QuestionTypeGroup"/>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ess="https://bitbucket.org/mhall/experiment-support-system" targetNamespace="https://bitbucket.org/mhall/experiment-support-system" elementFormDefault="qualified">
+
+    <xs:element name="experiment" type="ess:Experiment"/>
+    <xs:element name="page" type="ess:Page"/>
+    <xs:element name="question_type_group" type="ess:QuestionTypeGroup"/>
     
-    <xs:complexType name="Survey">
+    <xs:complexType name="Experiment">
         <xs:sequence>
             <xs:element name="summary" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="language" type="xs:string"/>
             <xs:element name="styles" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="scripts" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="first_page" type="xs:string"/>
-            <xs:element name="qsheet" type="qs:QSheet" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element name="transition" type="qs:QSheetTransition" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="pages" type="ess:Pages" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="transitions" type="ess:Transitions" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="data" type="ess:Data" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
         <xs:attribute name="title" type="xs:string" use="required"/>
     </xs:complexType>
     
+    <xs:complexType name="Pages">
+      <xs:sequence>
+        <xs:element name="page" type="ess:Page" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
     
-    <xs:complexType name="QSheet">
+    <xs:complexType name="Page">
         <xs:sequence>
             <xs:element name="styles" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="scripts" type="xs:string" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="attribute" type="qs:QuestionAttributeValue" minOccurs="1" maxOccurs="unbounded"/>
-            <xs:element name="questions" type="qs:QuestionSequence"/>
+            <xs:element name="attribute" type="ess:QuestionAttributeValue" minOccurs="1" maxOccurs="unbounded"/>
+            <xs:element name="questions" type="ess:QuestionSequence"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
         <xs:attribute name="title" type="xs:string"/>
@@ -31,7 +38,7 @@
     
     <xs:complexType name="QuestionSequence">
         <xs:sequence>
-           <xs:element name="question" type="qs:Question" minOccurs="0" maxOccurs="unbounded"/>
+           <xs:element name="question" type="ess:Question" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -42,22 +49,22 @@
           <xs:element name="title" type="xs:string"/>
           <xs:element name="required" type="xs:boolean"/>
           <xs:element name="help" type="xs:string"/>
-          <xs:element name="attribute" type="qs:QuestionAttributeValue"/>
-          <xs:element name="attribute_group" type="qs:QuestionAttributeGroup"/>
+          <xs:element name="attribute" type="ess:QuestionAttributeValue"/>
+          <xs:element name="attribute_group" type="ess:QuestionAttributeGroup"/>
         </xs:choice>
         <xs:attribute name="id" type="xs:int"/>
     </xs:complexType>
     
     <xs:complexType name="QuestionAttributeGroup">
         <xs:sequence>
-          <xs:element name="attribute" type="qs:QuestionAttribute" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="attribute" type="ess:QuestionAttribute" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
     </xs:complexType>
     
     <xs:complexType name="QuestionAttribute" mixed="true">
         <xs:sequence>
-          <xs:element name="value" type="qs:QuestionAttributeValue" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="value" type="ess:QuestionAttributeValue" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
     
@@ -70,8 +77,8 @@
     
     <xs:complexType name="QuestionTypeGroup">
         <xs:choice>
-            <xs:element name="question_type_group" type="qs:QuestionTypeGroup" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element name="question_type" type="qs:QuestionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="question_type_group" type="ess:QuestionTypeGroup" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="question_type" type="ess:QuestionType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:choice>
         <xs:attribute name="name" type="xs:string" use="required"/>
         <xs:attribute name="title" type="xs:string" use="required"/>
@@ -89,9 +96,15 @@
         <xs:attribute name="title" type="xs:string" use="required"/>
     </xs:complexType>
 
-    <xs:complexType name="QSheetTransition">
+    <xs:complexType name="Transitions">
+      <xs:sequence>
+        <xs:element name="transition" type="ess:Transition" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Transition">
         <xs:sequence>
-            <xs:element name="condition" type="qs:TransitionCondition" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="condition" type="ess:TransitionCondition" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
         <xs:attribute name="from" type="xs:string" use="required"/>
         <xs:attribute name="to" type="xs:string"/>
@@ -99,14 +112,44 @@
     </xs:complexType>
     
     <xs:complexType name="TransitionCondition">
-        <xs:sequence>
-            <xs:element name="answer" type="qs:ConditionAnswer" minOccurs="0" maxOccurs="1"/>
-        </xs:sequence>
+        <xs:choice>
+            <xs:element name="answer" type="ess:ConditionAnswer"/>
+            <xs:element name="permutation" type="ess:ConditionPermutation"/>
+        </xs:choice>
     </xs:complexType>
     
     <xs:complexType name="ConditionAnswer">
         <xs:sequence></xs:sequence>
         <xs:attribute name="question" type="xs:string" use="required"/>
         <xs:attribute name="answer" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="ConditionPermutation">
+        <xs:sequence></xs:sequence>
+        <xs:attribute name="permutation" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="Data">
+        <xs:sequence>
+            <xs:element name="data_set" type="ess:DataSet" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="permutation_set" type="ess:DataSet" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="DataSet">
+        <xs:sequence>
+            <xs:element name="relation" type="ess:DataSetRelation" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="attached_to" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="DataSetRelation">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="rel" type="xs:string" use="required"/>
+                <xs:attribute name="object" type="xs:string" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
     </xs:complexType>
 </xs:schema>

@@ -2,18 +2,18 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title>New Survey</title>
+    <title>New Experiment</title>
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([('New Survey', {'href': r.route_url('survey.new')})], r)}
     <nav class="level-1">
       <ul>
-        <li><a href="${r.route_url('survey')}" class="no-tab" style="font-weight:normal;">&larr; All my surveys</a></li>
+        <li><a href="${r.route_url('survey')}" class="no-tab" style="font-weight:normal;">&larr; All my experiment</a></li>
       </ul>
     </nav>
     <article>
       <hgroup>
-        <h1>New Survey</h1>
+        <h1>New Experiment</h1>
       </hgroup>
       <form action="${r.route_url('survey.new')}" method="post">
         ${h.form.csrf_token_field(r.session.get_csrf_token())}

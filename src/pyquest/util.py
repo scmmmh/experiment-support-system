@@ -18,7 +18,10 @@ def convert_type(value, target_type, default=None):
             return True
         else:
             return False
-    return value
+    if value:
+        return value
+    else:
+        return default
 
 def load_question_schema_params(params, question):
     v_params = {}
@@ -39,3 +42,19 @@ def template_as_text(request, template, params, fmt, fancy_xml=False):
     if fmt == 'xml' and fancy_xml:
         text = etree.tostring(etree.parse(StringIO(text), parser=etree.XMLParser(remove_blank_text=True)), pretty_print=True)
     return text
+
+CACHED_SETTINGS = {}
+def get_config_setting(request, key, target_type=None, default=None):
+    global CACHED_SETTINGS
+    if key in CACHED_SETTINGS:
+        return CACHED_SETTINGS[key]
+    else:
+        if key in request.registry.settings:
+            if target_type:
+                CACHED_SETTINGS[key] = convert_type(request.registry.settings[key], target_type, default=default)
+            else:
+                CACHED_SETTINGS[key] = request.registry.settings[key]
+        else:
+            CACHED_SETTINGS[key] = default
+        return get_config_setting(request, key, target_type=target_type, default=default)
+    

@@ -1,16 +1,23 @@
 DEV
 ---
 
+- NEW: Re-branded as the Experiment Support System
 - NEW: QuestionTypes can now be derived from parent QuestionTypes
 - NEW: QuestionTypeGroups and their QuestionTypes can now be imported and
   administered
 - NEW: The Survey now has an external id that hides the internal id and makes
   it harder to just scan for surveys
+- NEW: Support for transition conditions
+- NEW: Support for complex two-factor experiments with full latin square
+  implementation
 - UPDATE: Re-styled the frontend
 - UPDATE: Improved the frontend error messages
 - UPDATE: QSheet and Question names are now restricted to alpha-numeric and _
-- UPDATE: New PyQuestionnaire script for all console-based admin actions
+- UPDATE: New ESS script for all console-based admin actions
 - UPDATE: Data item values can now be of arbitrary length
+- UPDATE: Removed the source editing functionality
+- UPDATE: Exporting an experiment now also exports all data sets in the
+  experiment
 
 0.9.1
 -----

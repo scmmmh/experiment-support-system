@@ -4,22 +4,6 @@
   <head>
     <title>Add Data Item</title>
     <script type="text/javascript">
-    $(document).ready(function() {
-        $('#add-control-answer-btn').click(function() {
-            $('#control-answers').append('<li>${h.form.select('control_answer_question', '', [], None)}${h.form.text_field('control_answer_answer', '', None)}</li>');
-            return false;
-        });
-        $('#control_item').change(function() {
-            var checked = !($('#control_item:checked').length == 0);
-            if(checked) {
-                $('#add-control-answer-btn, input[name=control_answer]').removeAttr('data_setabled');
-            } else {
-                $('#add-control-answer-btn, input[name=control_answer]').attr('data_setabled', 'data_setabled');
-            }
-        });
-        if($('#control_item:checked').length == 0) {
-            $('#add-control-answer-btn, input[name=control_answer]').attr('data_setabled', 'data_setabled');
-        }
     });
     </script>
   </head>
@@ -28,7 +12,7 @@
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
     <article>
-      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
+      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The experiment is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div> 
       <hgroup>
         <h1>Add Data Item</h1>
@@ -42,12 +26,6 @@
             <dt>${h.text.title(attribute.key)}</dt>
             <dd>${h.form.text_field(attribute.key, '', e, class_='span-12')}</dd>
           </py:for>
-          <dt>Control Answers</dt>
-          <dd>
-            <ul id="control-answers" class="no-symbol no-margin">
-            </ul>
-            <button id="add-control-answer-btn" class="button">Add an answer</button>
-          </dd>
         </dl>
         <ul class="buttons span-12">
           <li>${h.form.button("Don't add", class_='button', onclick="document.location='%s'" % r.route_url('data.view', sid=data_set.survey_id, dsid=data_set.id))}</li>

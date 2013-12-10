@@ -9,11 +9,11 @@ from alembic import config, command
 from pyquest.models import DB_VERSION
 
 def init(subparsers):
-    parser = subparsers.add_parser('update-database', help='Update the PyQuestionnaire database')
-    parser.add_argument('configuration', help='PyQuestionnaire configuration file')
+    parser = subparsers.add_parser('update-database', help='Update the Experiment Support System database')
+    parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.set_defaults(func=update_database)
-    parser = subparsers.add_parser('downgrade-database', help='Downgrade the PyQuestionnaire database')
-    parser.add_argument('configuration', help='PyQuestionnaire configuration file')
+    parser = subparsers.add_parser('downgrade-database', help='Downgrade the Experiment Support System database')
+    parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.set_defaults(func=downgrade_database)
     
 def update_database(args):

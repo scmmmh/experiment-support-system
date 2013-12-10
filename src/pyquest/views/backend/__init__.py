@@ -34,7 +34,6 @@ def init(config):
     config.add_route('survey.qsheet.edit.delete_question', '/surveys/{sid}/pages/{qsid}/question/{qid}/delete')
     config.add_route('survey.qsheet.edit.add_transition', '/surveys/{sid}/pages/{qsid}/transition/add')
     config.add_route('survey.qsheet.edit.delete_transition', '/surveys/{sid}/pages/{qsid}/transition/{tid}/delete')
-    config.add_route('survey.qsheet.edit.source', '/surveys/{sid}/pages/{qsid}/edit/source')
     config.add_route('survey.qsheet.delete', '/surveys/{sid}/pages/{qsid}/delete')
     config.add_route('survey.qsheet.view', '/surveys/{sid}/pages/{qsid}/view')
     config.add_route('survey.qsheet.data', '/surveys/{sid}/pages/{qsid}/data')

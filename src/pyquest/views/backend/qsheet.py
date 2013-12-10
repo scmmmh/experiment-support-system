@@ -6,15 +6,15 @@ Created on 24 Jan 2012
 '''
 import transaction
 
-from formencode import Schema, validators, api, variabledecode, foreach
+from formencode import Schema, validators, api, variabledecode
 from lxml import etree
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPUnauthorized
+from pyramid.response import Response
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
-from sqlalchemy import and_, desc
+from sqlalchemy import and_
 
-from pyquest import helpers
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.models import (DBSession, Survey, QSheet, Question, QuestionAttribute,
@@ -33,7 +33,7 @@ class QSheetSourceSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     name = validators.UnicodeString(not_empty=True)
     title = validators.UnicodeString(not_empty=True)
-    content = XmlValidator('<pq:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="dummy"><pq:questions>%s</pq:questions></pq:qsheet>', strip_wrapper=False)
+    content = XmlValidator('<ess:qsheet xmlns:pq="http://paths.sheffield.ac.uk/pyquest" name="dummy"><ess:questions>%s</ess:questions></ess:qsheet>', strip_wrapper=False)
     styles = validators.UnicodeString()
     scripts = validators.UnicodeString()
     repeat = validators.UnicodeString(not_empty=True)
@@ -43,10 +43,11 @@ class QSheetSourceSchema(Schema):
 
 class TransitionSchema(Schema):
     target = validators.Int()
+    order = validators.Int()
     condition = validators.UnicodeString(not_empty=True)
-    question = validators.UnicodeString()
-    answer = validators.UnicodeString()
-    permutation = validators.UnicodeString()
+    question = validators.UnicodeString(if_missing='')
+    answer = validators.UnicodeString(if_missing='')
+    permutation = validators.UnicodeString(if_missing='')
 
 class QSheetVisualSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -65,7 +66,7 @@ class QSheetAddQuestionSchema(Schema):
     q_type = validators.UnicodeString(not_empty=True)
     order = validators.Int()
 
-NAMESPACES = {'pq': 'http://paths.sheffield.ac.uk/pyquest'}
+NAMESPACES = {'ess': XmlValidator.namespace}
     
 @view_config(route_name='survey.qsheet')
 @render({'text/html': True})
@@ -101,7 +102,7 @@ def new_qsheet(request):
                         dbsession.add(qsheet)
                         dbsession.flush()
                         qsid = qsheet.id
-                    request.session.flash('Survey page added', 'info')
+                    request.session.flash('Experiment page added', 'info')
                     raise HTTPFound(request.route_url('survey.qsheet.edit',
                                                       sid=request.matchdict['sid'],
                                                       qsid=qsid))
@@ -136,7 +137,7 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
         if not question:
             question = Question()
             qsheet.questions.append(question)
-        q_type = dbsession.query(QuestionType).filter(QuestionType.name==single_xpath_value(item, 'pq:type/text()', default=None)).first()
+        q_type = dbsession.query(QuestionType).filter(QuestionType.name==single_xpath_value(item, 'ess:type/text()', default=None)).first()
         if q_type:
             question.q_type = q_type
         else:
@@ -144,15 +145,15 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
         question.order = idx
         for schema in question.q_type.backend_schema():
             if schema['type'] == 'question-name':
-                question.name = single_xpath_value(item, 'pq:name/text()', default='unnamed')
+                question.name = single_xpath_value(item, 'ess:name/text()', default='unnamed')
             elif schema['type'] == 'question-title':
-                question.title = single_xpath_value(item, 'pq:title/text()', default='Missing title')
+                question.title = single_xpath_value(item, 'ess:title/text()', default='Missing title')
             elif schema['type'] == 'question-required':
-                question.required = True if single_xpath_value(item, 'pq:required/text()', default='false').lower() == 'true' else False
+                question.required = True if single_xpath_value(item, 'ess:required/text()', default='false').lower() == 'true' else False
             elif schema['type'] == 'question-help':
-                question.help = single_xpath_value(item, 'pq:help/text()', default='')
+                question.help = single_xpath_value(item, 'ess:help/text()', default='')
             elif schema['type'] in ['unicode', 'richtext', 'int', 'select']:
-                value = single_xpath_value(item, "pq:attribute[@name='%s']" % (schema['attr']))
+                value = single_xpath_value(item, "ess:attribute[@name='%s']" % (schema['attr']))
                 if value is not None:
                     value = etree.tostring(value)
                     value = value[value.find('>') + 1:value.rfind('<')]
@@ -164,18 +165,18 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                     question.set_attr_value(schema['attr'], '')
             elif schema['type'] == 'table':
                 attr_groups = question.attr_group(schema['attr'], default=[], multi=True)
-                doc_groups = item.xpath("pq:attribute_group[@name='%s']/pq:attribute" % (schema['attr']), namespaces=NAMESPACES)
+                doc_groups = item.xpath("ess:attribute_group[@name='%s']/ess:attribute" % (schema['attr']), namespaces=NAMESPACES)
                 for idx2 in range(0, max(len(attr_groups), len(doc_groups))):
                     if idx2 < len(attr_groups) and idx2 < len(doc_groups):
                         for column in schema['columns']:
-                            attr_groups[idx2].set_attr_value(column['attr'], single_xpath_value(doc_groups[idx2], "pq:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''))
+                            attr_groups[idx2].set_attr_value(column['attr'], single_xpath_value(doc_groups[idx2], "ess:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''))
                     elif idx2 < len(attr_groups):
                         dbsession.delete(attr_groups[idx2])
                     elif idx2 < len(doc_groups):
                         qag = QuestionAttributeGroup(key=schema['attr'], order=idx2)
                         for idx3, column in enumerate(schema['columns']):
                             qag.attributes.append(QuestionAttribute(key=column['attr'],
-                                                                    value=single_xpath_value(doc_groups[idx2], "pq:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''),
+                                                                    value=single_xpath_value(doc_groups[idx2], "ess:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''),
                                                                     order=idx3))
                         question.attributes.append(qag)
     if cleanup:
@@ -187,13 +188,13 @@ def load_qsheet_from_xml(survey, doc, dbsession):
     if 'title' in doc.attrib:
         qsheet.title = doc.attrib['title']
     for item in doc:
-        if item.tag == '{http://paths.sheffield.ac.uk/pyquest}styles':
+        if item.tag == '{%s}styles' % (XmlValidator.namespace):
             qsheet.styles = item.text
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}scripts':
+        elif item.tag == '{%s}scripts' % (XmlValidator.namespace):
             qsheet.scripts = item.text
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}attribute':
+        elif item.tag == '{%s}attribute' % (XmlValidator.namespace):
             qsheet.set_attr_value(item.attrib['name'], item.text)
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
+        elif item.tag == '{%s}questions' % (XmlValidator.namespace):
             load_questions_from_xml(qsheet, item, dbsession, cleanup=False)
     return qsheet
 
@@ -204,12 +205,15 @@ def load_transition_from_xml(qsheets, doc, dbsession):
         if 'to' in doc.attrib and doc.attrib['to'] in qsheets:
             transition.target = qsheets[doc.attrib['to']]
         for child in doc:
-            if child.tag == '{http://paths.sheffield.ac.uk/pyquest}condition':
+            if child.tag == '{%s}condition' % (XmlValidator.namespace):
                 for condition in child:
-                    if condition.tag == '{http://paths.sheffield.ac.uk/pyquest}answer':
+                    if condition.tag == '{%s}answer' % (XmlValidator.namespace):
                         transition.condition = {'type': 'answer',
                                                 'question': condition.attrib['question'],
                                                 'answer': condition.attrib['answer']}
+                    elif condition.tag == '{%s}permutation' % (XmlValidator.namespace):
+                        transition.condition = {'type': 'permutation',
+                                                'permutation': condition.attrib['permutation']}
 
 @view_config(route_name='survey.qsheet.import')
 @render({'text/html': 'backend/qsheet/import.html'})
@@ -224,18 +228,18 @@ def import_qsheet(request):
                     if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                         raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
                     doc = XmlValidator('%s').to_python(''.join(request.POST['source_file'].file))
-                    if doc.tag == '{http://paths.sheffield.ac.uk/pyquest}qsheet':
+                    if doc.tag == '{%s}page' % (XmlValidator.namespace):
                         with transaction.manager:
                             qsheet = load_qsheet_from_xml(survey, doc, dbsession)
                             dbsession.add(qsheet)
                             dbsession.flush()
                             qsid = qsheet.id
-                        request.session.flash('Survey page imported', 'info')
+                        request.session.flash('Experiment page imported', 'info')
                         raise HTTPFound(request.route_url('survey.qsheet.edit',
                                                           sid=request.matchdict['sid'],
                                                           qsid=qsid))
                     else:
-                        raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Only individual questions can be imported here.'})
+                        raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Only individual pages can be imported here.'})
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
@@ -275,7 +279,7 @@ def preview(request):
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
             example = [{'did': 0}]
-            if qsheet.data_set:
+            if qsheet.data_set and len(qsheet.data_set.items) > 0:
                 example[0]['did'] = qsheet.data_set.items[0].id
                 for attr in qsheet.data_set.items[0].attributes:
                     example[0][attr.key.key] = attr.value
@@ -346,19 +350,22 @@ def edit(request):
                         qsheet.set_attr_value('control-items', params['control_items'])
                             
                         for transition in qsheet.next:
-                            transition.target_id = params['transition'][unicode(transition.id)]['target']
-                            if params['transition'][unicode(transition.id)]['condition'] == 'answer':
+                            t_params = params['transition'][unicode(transition.id)]
+                            transition.target_id = t_params['target'] if t_params['target'] >= 0 else None
+                            transition.order = t_params['order']
+                            if t_params['condition'] == 'answer':
                                 transition.condition = {'type': 'answer',
-                                                        'question': params['transition'][unicode(transition.id)]['question'],
-                                                        'answer': params['transition'][unicode(transition.id)]['answer']}
+                                                        'question': t_params['question'],
+                                                        'answer': t_params['answer']}
                                 dbsession.add(transition)
-                            if params['transition'][unicode(transition.id)]['condition'] == 'permutation':
+                            elif t_params['condition'] == 'permutation':
                                 transition.condition = {'type': 'permutation',
-                                                        'permutation': params['transition'][unicode(transition.id)]['permutation']}
+                                                        'permutation': t_params['permutation']}
                             else:
                                 transition.condition = None
                         for question in qsheet.questions:
                             q_params = params[unicode(question.id)]
+                            question.order = q_params['order']
                             for field in question.q_type.backend_schema():
                                 if field['type'] == 'question-name':
                                     question.name = q_params['name']
@@ -385,9 +392,9 @@ def edit(request):
                                         dbsession.delete(attr_group)
                         dbsession.add(qsheet)
                     if request.is_xhr:
-                        return {'flash': 'Survey page updated'}
+                        return {'flash': 'Experiment page updated'}
                     else:
-                        request.session.flash('Survey page updated', 'info')
+                        request.session.flash('Experiment page updated', 'info')
                         raise HTTPFound(request.route_url('survey.qsheet.edit',
                                                           sid=request.matchdict['sid'],
                                                           qsid=request.matchdict['qsid']))
@@ -421,8 +428,13 @@ def edit_add_transition(request):
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             transition = None
+            next_order = [t.order for t in qsheet.next]
+            if next_order:
+                next_order = next_order[0] +  1
+            else:
+                next_order = 0
             with transaction.manager:
-                transition = QSheetTransition(source_id=qsheet.id)
+                transition = QSheetTransition(source_id=qsheet.id, order=next_order)
                 dbsession.add(transition)
             dbsession.add(survey)
             dbsession.add(qsheet)
@@ -510,66 +522,6 @@ def edit_delete_question(request):
                     dbsession.delete(question)
                 return {'status': 'ok'}
 
-@view_config(route_name='survey.qsheet.edit.source')
-@render({'text/html': 'backend/qsheet/edit_source.html'})
-def edit_source(request):
-    dbsession = DBSession()
-    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                 QSheet.survey_id==request.matchdict['sid'])).first()
-    user = current_user(request)
-    if survey and qsheet:
-        if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            if request.method == 'POST':
-                if request.POST.has_key('sbutton'):
-                    if request.POST['sbutton'] == 'AddCondition':
-                        add_condition(dbsession, qsheet)
-                    else:
-                        delete_condition(dbsession, qsheet)
-                validator = QSheetSourceSchema()
-                try:
-                    params = validator.to_python(request.POST)
-                    check_csrf_token(request, params)
-                    with transaction.manager:
-                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-                        qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                                     QSheet.survey_id==request.matchdict['sid'])).first()
-                        qsheet.name = params['name']
-                        qsheet.title = params['title']
-                        qsheet.styles = params['styles']
-                        qsheet.scripts = params['scripts']
-                        qsheet.set_attr_value('repeat', params['repeat'])
-                        qsheet.set_attr_value('show-question-numbers', params['show_question_numbers'])
-                        qsheet.set_attr_value('data-items', params['data_items'])
-                        qsheet.set_attr_value('control-items', params['control_items'])
-                        for item in params['content']:
-                            if item.tag == '{http://paths.sheffield.ac.uk/pyquest}questions':
-                                load_questions_from_xml(qsheet, item, dbsession)
-                    request.session.flash('Survey page updated', 'info')
-                    raise HTTPFound(request.route_url('survey.qsheet.edit.source',
-                                                      sid=request.matchdict['sid'],
-                                                      qsid=request.matchdict['qsid']))
-                except api.Invalid as e:
-                    e.params = request.POST
-                    survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-                    qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
-                                                                 QSheet.survey_id==request.matchdict['sid'])).first()
-                    return {'survey': survey,
-                            'qsheet': qsheet,
-                            'e': e}
-            else:
-                # This is for backwards compatibility. An old qsheet with a 'Finish' transition will have next=[]
-                if len(qsheet.next) == 0:
-                    new_transition = QSheetTransition(source_id=qsheet.id)
-                    qsheet.next = [new_transition]
-                    dbsession.add(new_transition)
-                return {'survey': survey,
-                        'qsheet': qsheet}
-        else:
-            redirect_to_login(request)
-    else:
-        raise HTTPNotFound()
-
 @view_config(route_name='survey.qsheet.delete')
 @render({'text/html': 'backend/qsheet/delete.html'})
 def delete_qsheet(request):
@@ -595,7 +547,7 @@ def delete_qsheet(request):
                         with transaction.manager:
                             survey.start_id = survey.qsheets[0].id
                             dbsession.add(survey)
-                request.session.flash('Survey page deleted', 'info')
+                request.session.flash('Experiment page deleted', 'info')
                 raise HTTPFound(request.route_url('survey.view',
                                                   sid=request.matchdict['sid']))
             else:
@@ -608,9 +560,11 @@ def delete_qsheet(request):
 
 @view_config(route_name='survey.qsheet.export')
 @view_config(route_name='survey.qsheet.export.ext')
-@render({'text/html': 'backend/qsheet/export.html',
-         'application/xml': 'backend/qsheet/export.xml'})
 def export(request):
+    @render({'application/xml': 'backend/qsheet/export.xml'})
+    def page_xml_file(request, survey, qsheet):
+        return {'survey': survey,
+                'qsheet': qsheet}
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     qsheet = dbsession.query(QSheet).filter(and_(QSheet.id==request.matchdict['qsid'],
@@ -618,8 +572,9 @@ def export(request):
     user = current_user(request)
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            return {'survey': survey,
-                    'qsheet': qsheet}
+            return Response(page_xml_file(request, survey, qsheet).body,
+                            headers={'Content-Type': 'application/xml',
+                                     'Content-Disposition': 'attachment; filename=%s.xml' % (qsheet.name.encode('utf-8'))})
         else:
             redirect_to_login(request)
     else:

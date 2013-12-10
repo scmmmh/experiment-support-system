@@ -13,7 +13,7 @@ div.survey-status ul.status-changer li {list-style-type:none;padding:0;margin:0;
 div.survey-status ul.status-changer li a {display:block;padding: 5px 8px;}
 nav ul {padding:0;margin:0;}
 nav ul li {list-style-type:none;display:inline-block;}
-nav ul li.spacer {width:50px;}
+nav ul li.spacer {width:30px;}
 nav ul li a {text-decoration:none;display:inline-block;padding:0.3em 0.8em;}
 nav.level-1 ul {padding:0.5em 1em 0 2em;border-bottom:2px solid #0066cc;}
 nav.level-1 ul li {margin:0 1em 0 0;}

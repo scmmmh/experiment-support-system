@@ -8,19 +8,22 @@ import transaction
 
 from formencode import Schema, validators, api, variabledecode, foreach
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
+from pyramid.response import Response
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 from sqlalchemy import desc
+from StringIO import StringIO
+from zipfile import ZipFile, ZIP_DEFLATED
 
 from pyquest import helpers
-from pyquest.views.backend.qsheet import load_qsheet_from_xml, load_transition_from_xml
+from pyquest.views.backend.data import load_csv_file
+from pyquest.views.backend.qsheet import (load_qsheet_from_xml,
+                                          load_transition_from_xml)
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
-from pyquest.models import (DBSession, Survey, QSheetTransition, QSheet,
-                            Participant, QSheetAttribute, Question,
-    QuestionAttributeGroup, QuestionAttribute, DataItem, DataItemAttribute,
-    DataItemControlAnswer, Notification, PermutationSet)
+from pyquest.models import (DBSession, Survey, QSheet, Participant,
+                            Notification, DataSetRelation)
 from pyquest.validation import XmlValidator
 
 class NewSurveySchema(Schema):
@@ -103,7 +106,7 @@ def new(request):
                     dbsession.add(survey)
                     dbsession.flush()
                     sid = survey.id
-                request.session.flash('Survey created', 'info')
+                request.session.flash('Experiment created', 'info')
                 raise HTTPFound(request.route_url('survey.view', sid=sid))
             except api.Invalid as e:
                 e.params = request.POST
@@ -114,29 +117,74 @@ def new(request):
     else:
         redirect_to_login(request)
 
-def load_survey_from_xml(owner, dbsession, doc):
+def load_survey_from_xml(owner, dbsession, doc, zip_file):
     survey = Survey(title=doc.attrib['title'], status='develop')
     survey.owner = owner
     qsheets = {}
     for item in doc:
-        if item.tag == '{http://paths.sheffield.ac.uk/pyquest}summary':
+        if item.tag == '{%s}summary' % (XmlValidator.namespace):
             survey.summary = item.text
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}language':
+        elif item.tag == '{%s}language' % (XmlValidator.namespace):
             survey.language = item.text
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}styles':
+        elif item.tag == '{%s}styles' % (XmlValidator.namespace):
             survey.styles = item.text
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}scripts':
+        elif item.tag == '{%s}scripts' % (XmlValidator.namespace):
             survey.scripts = item.text
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}qsheet':
-            qsheet = load_qsheet_from_xml(survey, item, dbsession)
-            qsheets[qsheet.name] = qsheet
+        elif item.tag == '{%s}pages' % (XmlValidator.namespace):
+            for page in item:
+                qsheet = load_qsheet_from_xml(survey, page, dbsession)
+                qsheets[qsheet.name] = qsheet
+        elif item.tag == '{%s}data' % (XmlValidator.namespace):
+            data_sets = {}
+            for data in item:
+                if data.tag == '{%s}data_set' % (XmlValidator.namespace):
+                    data_set = load_csv_file(StringIO(zip_file.read('%s.csv' % (data.attrib['name']))), data.attrib['name'], survey, dbsession)
+                    data_sets[data_set.name] = data_set
+                    for attach in data:
+                        if attach.tag == '{%s}attached_to' % (XmlValidator.namespace):
+                            if attach.text in qsheets:
+                                qsheets[attach.text].data_set = data_set
+            for data in item:
+                if data.tag == '{%s}permutation_set' % (XmlValidator.namespace):
+                    relations = 0
+                    for relation in data:
+                        if relation.tag == '{%s}relation' % (XmlValidator.namespace):
+                            if relation.attrib['object'] in data_sets:
+                                relations = relations + 1
+                    if relations == 2:
+                        data_set = load_csv_file(StringIO(zip_file.read('%s.csv' % (data.attrib['name']))), data.attrib['name'], survey, dbsession)
+                        data_set.type = 'permutationset'
+                        for child in data:
+                            if child.tag == '{%s}attached_to' % (XmlValidator.namespace):
+                                if child.text in qsheets:
+                                    qsheets[child.text].data_set = data_set
+                            elif child.tag == '{%s}relation' % (XmlValidator.namespace):
+                                dbsession.add(DataSetRelation(subject=data_set,
+                                                              rel=child.attrib['rel'],
+                                                              object=data_sets[child.attrib['object']],
+                                                              _data=child.text.strip()))
+                    else:
+                        raise Exception('Permutation set must have exactly two relations')
     for item in doc:
-        if item.tag == '{http://paths.sheffield.ac.uk/pyquest}first_page':
+        if item.tag == '{%s}first_page' % (XmlValidator.namespace):
             if item.text in qsheets:
                 survey.start = qsheets[item.text]
-        elif item.tag == '{http://paths.sheffield.ac.uk/pyquest}transition':
-            load_transition_from_xml(qsheets, item, dbsession)
+        elif item.tag == '{%s}transitions' % (XmlValidator.namespace):
+            for transition in item:
+                load_transition_from_xml(qsheets, transition, dbsession)
     return survey
+
+def load_survey_from_stream(stream, owner, dbsession):
+    zip_file = ZipFile(stream)
+    try:
+        doc = XmlValidator('%s').to_python(zip_file.read('experiment.xml'))
+        if doc.tag != '{%s}experiment' % (XmlValidator.namespace):
+            raise api.Invalid('Not an experiment file', {}, None, error_dict={'source_file': 'Only complete experiments can be imported here.'})
+        survey = load_survey_from_xml(owner, dbsession, doc, zip_file)
+        dbsession.add(survey)
+        return survey
+    except Exception as e:
+        raise api.Invalid(str(e), {}, None, error_dict={'source_file': str(e)})
 
 @view_config(route_name='survey.import')
 @render({'text/html': 'backend/survey/import.html'})
@@ -146,18 +194,14 @@ def import_survey(request):
         if request.method == 'POST':
             try:
                 if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
-                    raise api.Invalid('Invalid XML file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
-                doc = XmlValidator('%s').to_python(''.join(request.POST['source_file'].file))
-                if doc.tag != '{http://paths.sheffield.ac.uk/pyquest}survey':
-                    raise api.Invalid('Not a survey file', {}, None, error_dict={'source_file': 'Only complete surveys can be imported here.'})
+                    raise api.Invalid('Invalid experiment file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
                 dbsession = DBSession()
                 with transaction.manager:
-                    survey = load_survey_from_xml(user, dbsession, doc)
-                    dbsession.add(survey)
-                    dbsession.flush()
-                    survey_id = survey.id
-                request.session.flash('Survey imported', 'info')
-                raise HTTPFound(request.route_url('survey.view', sid=survey_id))
+                    survey = load_survey_from_stream(request.POST['source_file'].file, user, dbsession)
+                dbsession.add(survey)
+                request.session.flash('Experiment imported', 'info')
+                raise HTTPFound(request.route_url('survey.view', sid=survey.id))
+                return {}
             except api.Invalid as e:
                 e.params = request.POST
                 return {'e': e}
@@ -196,7 +240,7 @@ def edit(request):
                             notification.recipient = n_param['recipient']
 
                         dbsession.add(survey)
-                    request.session.flash('Survey updated', 'info')
+                    request.session.flash('Experiment updated', 'info')
                     raise HTTPFound(request.route_url('survey.view',
                                                       sid=request.matchdict['sid']))
                 except api.Invalid as e:
@@ -245,80 +289,14 @@ def duplicate(request):
                 try:
                     check_csrf_token(request, request.POST)
                     params = SurveyDuplicateSchema().to_python(request.POST)
+                    exported_survey = export_experiment(request, survey)
                     with transaction.manager:
-                        survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
-                        dupl_survey = Survey(title=params['title'],
-                                             status='develop',
-                                             summary=survey.summary,
-                                             styles=survey.styles,
-                                             scripts=survey.scripts)
-                        dbsession.add(dupl_survey)
-                        dupl_survey.owner = user
-                        new_dataset_id_for_old = {}
-                        for dataset in survey.data_sets:
-                            newds = dataset.duplicate()
-                            dbsession.flush()
-                            new_dataset_id_for_old[dataset.id] = newds.id
-                            user.data_sets.append(newds)
-                            dupl_survey.data_sets.append(newds)
-                        qsheets = {}
-                        new_qsheet_id_for_old = {}
-                        for qsheet in survey.qsheets:
-                            dupl_qsheet = QSheet(name=qsheet.name,
-                                                 title=qsheet.title,
-                                                 styles=qsheet.styles,
-                                                 scripts=qsheet.scripts)
-                            for attr in qsheet.attributes:
-                                dupl_qsheet.attributes.append(QSheetAttribute(key=attr.key, value=attr.value))
-                            questions = {}
-                            for question in qsheet.questions:
-                                dupl_question = Question(q_type=question.q_type,
-                                                         name=question.name,
-                                                         title=question.title,
-                                                         required=question.required,
-                                                         help=question.help,
-                                                         order=question.order)
-                                questions[dupl_question.name] = dupl_question
-                                dupl_qsheet.questions.append(dupl_question)
-                                for attr_group in question.attributes:
-                                    dupl_attr_group = QuestionAttributeGroup(question=dupl_question,
-                                                                             key=attr_group.key,
-                                                                             label=attr_group.label,
-                                                                             order=attr_group.order)
-                                    for attr in attr_group.attributes:
-                                        QuestionAttribute(attribute_group=dupl_attr_group,
-                                                          key=attr.key,
-                                                          label=attr.label,
-                                                          value=attr.value,
-                                                          order=attr.order)
-                            if qsheet.dataset_id:
-                                dupl_qsheet.dataset_id = new_dataset_id_for_old[qsheet.dataset_id]
-                            qsheets[dupl_qsheet.name] = dupl_qsheet
-                            dupl_survey.qsheets.append(dupl_qsheet)
-                            dbsession.flush()
-                            new_qsheet_id_for_old[qsheet.id] = dupl_qsheet.id
-                        for qsheet in survey.qsheets:
-                            if qsheet.next and qsheet.next[0] and qsheet.next[0].target:
-                                if qsheet.name in qsheets and qsheet.next[0].target.name in qsheets:
-                                    dbsession.add(QSheetTransition(source=qsheets[qsheet.name],
-                                                                   target=qsheets[qsheet.next[0].target.name]))
-                        if survey.start and survey.start.name in qsheets:
-                            dupl_survey.start = qsheets[survey.start.name]
-                        for dataset in dupl_survey.data_sets:
-                            if isinstance(dataset, PermutationSet):
-                                params = dataset.get_params()
-                                params['tasks_dataset'] = new_dataset_id_for_old[int(params['tasks_dataset'])]
-                                params['interfaces_dataset'] = new_dataset_id_for_old[int(params['interfaces_dataset'])]
-                                dataset.set_params(params)
-                                old_ids = dataset.applies_to.split(',')
-                                new_ids = ''
-                                for old_id in old_ids:
-                                    new_ids = new_ids + str(new_qsheet_id_for_old[int(old_id)])
-                                dataset.applies_to = new_ids
-                        dbsession.flush()
-                        survey_id = dupl_survey.id
-                    request.session.flash('Survey duplicated', 'info')
-                    raise HTTPFound(request.route_url('survey.view', sid=survey_id))
+                        dupl_survey = load_survey_from_stream(exported_survey, user, dbsession)
+                        dupl_survey.title = params['title']
+                        dupl_survey.status = 'develop'
+                    dbsession.add(dupl_survey)
+                    request.session.flash('Experiment duplicated', 'info')
+                    raise HTTPFound(request.route_url('survey.view', sid=dupl_survey.id))
                 except api.Invalid as e:
                     e.params = request.POST
                     return {'survey': survey,
@@ -343,7 +321,7 @@ def delete(request):
                     check_csrf_token(request, request.POST)
                     with transaction.manager:
                         dbsession.delete(survey)
-                    request.session.flash('Survey deleted', 'info')
+                    request.session.flash('Experiment deleted', 'info')
                     raise HTTPFound(request.route_url('survey'))
                 except api.Invalid as e:
                     e.params = request.POST
@@ -407,7 +385,7 @@ def status(request):
                                 dbsession.add(notification)
                                 notification.timestamp = 0
                         survey.status = params['status']
-                    request.session.flash('Survey now %s' % helpers.survey.status(params['status'], True), 'info')
+                    request.session.flash('Experiment now %s' % helpers.survey.status(params['status'], True), 'info')
                     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
                                   
                     if params['status'] == 'testing':
@@ -434,18 +412,45 @@ def status(request):
     else:
         raise HTTPNotFound()
 
+def export_experiment(request, survey):
+    @render({'application/xml': 'backend/survey/export.xml'})
+    def experiment_xml_file(request, survey):
+        return {'survey': survey}
+    @render({'text/csv': True})
+    def data_set_file(request, data_set):
+        columns = []
+        rows = []
+        if len(data_set.items) > 0:
+            columns = ['id_', 'control_'] + [a.key.key.encode('utf-8') for a in data_set.items[0].attributes]
+            for item in data_set.items:
+                row = dict([(a.key.key.encode('utf-8'), a.value.encode('utf-8')) for a in item.attributes])
+                row.update(dict([('control_', item.control), ('id_', item.id)]))
+                rows.append(row)
+        return {'columns': columns,
+                'rows': rows}
 
+    experiment = StringIO()
+    zip_file = ZipFile(experiment, mode='w')
+    zip_file.writestr('experiment.xml', experiment_xml_file(request, survey).body, compress_type=ZIP_DEFLATED)
+    for data_set in survey.data_sets:
+        zip_file.writestr('%s.csv' % (data_set.name), data_set_file(request, data_set).body, compress_type=ZIP_DEFLATED)
+    for data_set in survey.permutation_sets:
+        zip_file.writestr('%s.csv' % (data_set.name), data_set_file(request, data_set).body, compress_type=ZIP_DEFLATED)
+    zip_file.close()
+    return experiment
+    
 @view_config(route_name='survey.export')
 @view_config(route_name='survey.export.ext')
-@render({'text/html': 'backend/survey/export.html',
-         'application/xml': 'backend/survey/export.xml'})
 def export(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
     user = current_user(request)
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            return {'survey': survey}
+            experiment = export_experiment(request, survey)
+            return Response(experiment.getvalue(),
+                            headers={'Content-Type': 'application/x-experiment',
+                                     'Content-Disposition': 'attachment; filename=%s.exp' % (survey.title.replace(' ', '_').encode('utf-8'))})
         else:
             redirect_to_login(request)
     else:

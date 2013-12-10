@@ -2,21 +2,39 @@
 Updating
 ********
 
-Updating PyQuestionnaire is very simple:
+Preparation
+===========
 
-1. Stop the PyQuestionnaire application
-2. Create a backup of your database
-3. Activate PyQuestionnaire's virtualenv
-4. Run
+Before updating the Experiment Support System, perform the following three
+steps to put the Experiment Support System into a state that is ready for the
+update:
 
-   ``pip install --upgrade pyquestionnaire``
-   
-   to install the latest version of PyQuestionnaire. Alternatively you can
-   download another release from https://bitbucket.org/mhall/pyquestionnaire/downloads
-   and install that via
-   
-   ``pip install pyquestionnaire-x.y.z.tar.gz``
-5. Finally, update the database schema by running
-   
-   ``PyQuestionnaire update-database <Configuration File>``
-6. Re-start the PyQuestionnaire application
+1. The first step is to download the latest Experiment Support System release
+   from https://bitbucket.org/mhall/experiment-support-system.
+2. Next stop the Experiment Support System application. How to do this depends
+   on how you have deployed it (see :doc:`deployment`).
+3. Finally, make a backup of the database. This will allow you to roll-back the
+   application in case of there being any issues that arise during or after the
+   update.
+
+Core update
+===========
+
+To perform the actual update of the Experiment Support System, first activate
+the `virtual environment`_ you previously installed the Experiment Support
+System into. To install the new version you downloaded, run the following
+command:: 
+
+  pip install ExperimentSupportSystem-x.y.z.tar.gz
+
+This will install the downloaded version and also automatically install and
+update any libraries the Experiment Support System depends on.
+
+Next update the database to the latest schema by running::
+
+  ESS update-database <configuration.ini>
+
+You can then re-start the Experiment Support System and test that the update
+has installed successfully.
+
+.. _`virtual environment`: https://pypi.python.org/pypi/virtualenv

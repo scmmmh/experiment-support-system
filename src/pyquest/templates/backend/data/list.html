@@ -29,7 +29,7 @@
           </tr>
 	    </thead>
         <tbody>
-          <tr py:if="len(survey.data_sets) == 0"><td colspan="3" class="placeholder">This survey does not have any data sets.</td></tr>
+          <tr py:if="len(survey.data_sets) == 0"><td colspan="3" class="placeholder">This experiment does not have any data sets.</td></tr>
 	      <tr py:for="data_set in survey.data_sets">
 	        <td><a href="${r.route_url('data.view', sid=survey.id, dsid=data_set.id)}">${data_set.name}</a></td>
             <td>
@@ -61,7 +61,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr py:if="len(survey.permutation_sets) == 0"><td colspan="3" class="placeholder">This survey does not have any permutations.</td></tr>
+            <tr py:if="len(survey.permutation_sets) == 0"><td colspan="3" class="placeholder">This experiment does not have any permutations.</td></tr>
             <tr py:for="perm_set in survey.permutation_sets">
               <td><a href="${r.route_url('data.view', sid=survey.id, dsid=perm_set.id)}">${perm_set.name}</a></td>
               <td>

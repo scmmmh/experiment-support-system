@@ -9,7 +9,7 @@
     ${h.survey.fancy_status(r, survey, class_='survey-status right')}
     ${h.ui.main_menu('data', survey, r)}
     <article>
-      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The survey is currently ${h.survey.status(survey.status, True)}
+      <div py:if="survey.status in ['running', 'paused', 'finished'] and len(survey.participants) > 0" class="error">The experiment is currently ${h.survey.status(survey.status, True)}
         and any changes you make here will not be reflected in the answers that have already been provided by the participants.</div>
       <hgroup>
         <h1>Upload Data Set</h1>

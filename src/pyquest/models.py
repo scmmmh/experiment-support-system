@@ -32,8 +32,8 @@ DB_VERSION = '4c876b48f28b'
 
 class DBUpgradeException(Exception):
     """The :class:`~pyquest.models.DBUpgradeException` is used to indicate that
-    the database requires an upgrade before the PyQuestionnaire system can be
-    used.
+    the database requires an upgrade before the Experiment Support System system
+    can be used.
     """
     def __init__(self, current, required):
         self.current = current

@@ -2,31 +2,31 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="../../layout/backend.html"/>
   <head>
-    <title></title>
+    <title>Experiments</title>
   </head>
   <body>
     ${h.ui.survey_breadcrumbs([], r)}
     <nav class="toolbar">
       <ul>
-        <li><a href="${r.route_url('survey.new')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})" py:attrs="h.user.tooltips(r, 'Create a new survey', ('survey.new', 'Click here to create a new survey'))">New Survey</a></li>
-        <li><a href="${r.route_url('survey.import')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})" py:attrs="h.user.tooltips(r, 'Import a survey', ('survey.new', 'Click here to import a survey'))">Import Survey</a></li>
+        <li><a href="${r.route_url('survey.new')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})" py:attrs="h.user.tooltips(r, 'Create a new survey', ('survey.new', 'Click here to create a new survey'))">New Experiment</a></li>
+        <li><a href="${r.route_url('survey.import')}" class="button" py:if="h.auth.is_authorised(':user.has-permission(\'survey.new\')', {'user': h.user.current_user(r)})" py:attrs="h.user.tooltips(r, 'Import a survey', ('survey.new', 'Click here to import a survey'))">Import Experiment</a></li>
       </ul>
     </nav>
     <article>
       <hgroup>
-        <h1>Surveys</h1>
+        <h1>Experiments</h1>
       </hgroup>
       <table>
         <thead>
           <tr>
-            <th>Survey</th>
+            <th>Experiment</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr py:if="not surveys">
-            <td colspan="3" class="placeholder">You currently have no surveys. <a href="${r.route_url('survey.new')}">Create one now</a></td>
+            <td colspan="3" class="placeholder">You currently have no experiments. <a href="${r.route_url('survey.new')}">Create one now</a></td>
           </tr>
           <tr py:for="survey in surveys">
             <td><a href="${r.route_url('survey.view', sid=survey.id)}">${survey.title}</a></td>
@@ -34,19 +34,11 @@
             <td>
               <ul class="inline no-symbol no-margin">
                 <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
-                  <li><a href="${r.route_url('survey.qsheet.new', sid=survey.id)}" class="button" py:attrs="h.user.tooltips(r, 'Add a page to this survey')">Add page</a></li>
+                  <li><a href="${r.route_url('survey.view', sid=survey.id)}" class="button" py:attrs="h.user.tooltips(r, 'View this survey')">View</a></li>
                   <li><a href="${r.route_url('survey.edit', sid=survey.id)}" class="button" py:attrs="h.user.tooltips(r, 'Edit the general settings of this survey')">Edit</a></li>
-                  <li py:if="h.auth.is_authorised(':user.has_permission(\'survey.new\')', {'user': h.user.current_user(r)})"><a href="${r.route_url('survey.duplicate', sid=survey.id)}" class="button">Duplicate</a></li>
+                  <li py:if="h.auth.is_authorised(':user.has_permission(\'survey.new\')', {'user': h.user.current_user(r)})"><a href="${r.route_url('survey.duplicate', sid=survey.id)}" class="button" py:attrs="h.user.tooltips(r, 'Duplicate this survey')">Duplicate</a></li>
                 </py:if>
-                <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the survey &quot;${survey.title}&quot; including its pages, data, and results." py:attrs="h.user.tooltips(r, 'Delete this survey and all its pages, data, and results')">Delete</a></li>
-                <py:if test="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.edit-all\')', {'user': h.user.current_user(r), 'survey': survey})">
-                  <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'testing'})}" class="button post-submit" data-confirm="no-confirm" py:attrs="h.user.tooltips(r, 'Set the survey into test mode where you can repeatedly answer it')">Test</a></li>
-                  <li py:if="survey.status == 'testing'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'develop'})}" class="button post-submit" data-confirm="no-confirm" py:attrs="h.user.tooltips(r, 'Set the survey back into development mode and remove all test results')">Stop Test</a></li>
-                  <li py:if="survey.status == 'develop'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'running'})}" class="button post-submit" data-confirm="no-confirm" py:attrs="h.user.tooltips(r, 'Start the survey')">Start</a></li>
-                  <li py:if="survey.status in ['paused', 'finished']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'running'})}" class="button post-submit" data-confirm="no-confirm" py:attrs="h.user.tooltips(r, 'Re-start the survey')">Restart</a></li>
-                  <li py:if="survey.status == 'running'"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'paused'})}" class="button post-submit" data-confirm="no-confirm" py:attrs="h.user.tooltips(r, 'Pause the survey. All current participants will be shown a page indicating that the survey is paused')">Pause</a></li>
-                  <li py:if="survey.status in ['running', 'paused']"><a href="${r.route_url('survey.status', sid=survey.id, _query={'status': 'finished'})}" class="button post-submit" data-confirm="no-confirm" py:attrs="h.user.tooltips(r, 'Finish the survey. All current participants will be shown a page indicating that the survey has finished')">Finish</a></li>
-                </py:if>
+                <li py:if="h.auth.is_authorised(':survey.is-owned-by(:user) or :user.has_permission(\'survey.delete-all\')', {'user': h.user.current_user(r), 'survey': survey})"><a href="${r.route_url('survey.delete', sid=survey.id)}" class="button post-submit" data-confirm="Please confirm that you wish to delete the experiment &quot;${survey.title}&quot; including its pages, data, and results." py:attrs="h.user.tooltips(r, 'Delete this experiment and all its pages, data, and results')">Delete</a></li>
               </ul>
             </td>
           </tr>

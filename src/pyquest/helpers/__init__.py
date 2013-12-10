@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import json
+from genshi import Markup
 
 from pywebtools import form, text
 
-from pyquest.util import template_as_text
+from pyquest.util import template_as_text, get_config_setting
 
 def as_data_type(value, data_type=None):
     if data_type:
@@ -25,3 +26,15 @@ def as_data_type(value, data_type=None):
                 return None
     else:
         return value
+
+def gt():
+    return Markup('>')
+
+def gte():
+    return Markup('>=')
+
+def lt():
+    return Markup('<')
+
+def lte():
+    return Markup('<=')
