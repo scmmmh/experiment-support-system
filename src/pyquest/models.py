@@ -27,7 +27,7 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '5008e04b83bb'
+DB_VERSION = '6a2436d1eed'
 """The currently required database version."""
 
 class DBUpgradeException(Exception):
@@ -717,10 +717,13 @@ class Participant(Base):
     survey_id = Column(ForeignKey(Survey.id, name='participants_surveys_fk'))
     state = Column(UnicodeText)
     completed = Column(Boolean, default=False)
+    permutation_item_id = Column(ForeignKey(DataItem.id, name='participants_data_set_item_id_perm_fk'))
 
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
+    permutation_item = relationship('DataItem',
+                                    backref='participants')
     
     def get_state(self):
         if self.state:

@@ -48,6 +48,7 @@ class ParticipantManager(object):
                         items = [item for item in qsheet.data_set.items]
                         if items:
                             item = sample(items, 1)[0]
+                            self._participant.permutation_item = item
                             items = []
                             for idx, data in enumerate(json.loads(item.attributes[0].value)):
                                 data['did'] = item.id
