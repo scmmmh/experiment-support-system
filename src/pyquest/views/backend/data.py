@@ -446,8 +446,9 @@ def permset_edit(request):
                             for task in task_items:
                                 permutations.extend(itertools.permutations(itertools.product([task], interface_items)))
                         else:
-                            permutations = itertools.product(task_items, interface_items)
+                            permutations = [(prod,) for prod in itertools.product(task_items, interface_items)]
                 for comb in permutations:
+                    print comb
                     di = DataItem()
                     value = []
                     for pair in comb:
