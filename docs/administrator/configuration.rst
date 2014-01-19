@@ -112,7 +112,7 @@ not be changed in a production environment.
 **pyramid.includes**
   Any additional components to load on application startup. By default the
   Pyramid Transaction Management component is loaded. For debugging add
-  ``pyramid_debugtoolbar` to this setting. **This will allow arbitrary
+  ``pyramid_debugtoolbar`` to this setting. **This will allow arbitrary
   access to everything in the application. Do not include on a production
   system.**
   
