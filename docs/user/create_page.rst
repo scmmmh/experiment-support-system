@@ -40,9 +40,7 @@ interface (:num:`figure #fig-import-page`).
 
 .. _fig-import-page:
 
-.. _fig-new-page:
-
-.. figure:: ../_static/user/new_page.png
+.. figure:: ../_static/user/import_page.png
    :alt: New page
    
    To import an existing page, simply select the page's file and add it to

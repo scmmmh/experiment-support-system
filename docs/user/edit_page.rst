@@ -44,7 +44,7 @@ Previewing the page
 To see what the :term:`page` looks like after adding, removing, or changing
 :term:`questions`, click on the "Preview" button in the toolbar. This will
 show a preview of how the :term:`page` will look to the :term:`experiment`'s
-:term:`participants`.
+:term:`participants` (see :doc:`preview_page`).
 
 Editing the page's settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,14 +76,35 @@ following settings:
   types the :term:`page` is. Use this setting to specify which of the two
   modes you want for this :term:`page`.
 **Data Items**
+  The number of :term:`data items` to show to each :term:`participant`. This
+  only has an effect if the :term:`page` is linked to a :term:`data set`.
+  See :doc:`edit_data` for details.
 **Control Items**
+  The number of :term:`control items` to show to each :term:`participant`. This
+  only has an effect if the :term:`page` is linked to a :term:`data set`.
+  See :doc:`edit_data` for details.
 **Show Question Numbers**
   Use this setting to specify whether :term:`questions` should automatically
   be numbered, when they are shown to the :term:`participants`.
 **Transitions**
   Using the transitions you specify which :term:`pages` to transition to,
   after the :term:`participant` has answered all :term:`questions` on this
-  :term:`page`.
+  :term:`page`. You can specify multiple transitions. The first transition
+  for which the conditions hold will be used. Use the "+" button to add
+  further transitions and the "-" next to a transition to delete that
+  transition.
+    
+  The following three types of transitions are supported:
+  
+  **Unconditional**
+    This will always transition to the specified :term:`page`.
+  **Participant answer**
+    If the answer the participant provided to a question equals the given
+    value, then transition to the specified :term:`page`.
+  **Permutation**
+    If there are more items in the :term:`permutation set` to work through for
+    the user, then transition to the specified :term:`page`.
+  
 **CSS Styles**
   Clicking on the "CSS Styles" link shows a text area where you can specify
   additional CSS rules that are added to the :term:`page` when it is shown to

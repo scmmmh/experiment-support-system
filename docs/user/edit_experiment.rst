@@ -2,8 +2,8 @@ Editing an Experiment
 =====================
 
 After creating a new, importing an existing, or selecting to edit a previously
-created experiment, you are taken to the experiment overview page
-(:num:`figure #fig-experiment-overview`).
+created experiment, you are taken to the experiment overview page.
+
 
 .. _fig-experiment-overview:
 
@@ -14,8 +14,8 @@ created experiment, you are taken to the experiment overview page
    previously created experiment, you are shown the experiment overview
    page.
 
-From here you can access and modify all of the experiment's aspects. The four
-main tabs are:
+From here (:num:`figure #fig-experiment-overview`) you can access and modify
+all of the experiment's aspects. The four main tabs are:
 
 **Experiment**
   In this tab you find all the functions for editing the :term:`experiment`'s
