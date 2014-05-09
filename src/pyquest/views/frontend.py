@@ -114,15 +114,31 @@ class ParticipantManager(object):
                                 page['next'].append({'page': next_id})
                                 pages[next_id]['prev'] = page_id
                         else:
-                            # TODO: Detect and stop cycles
-                            next_id = self.build_pages(transition.target, pages, params)
-                            page['next'].append({'page': next_id,
-                                                 'condition': transition.condition})
-                            pages[next_id]['prev'] = page_id
+                            next_id = None
+                            for existing_id, existing_data in pages.items():
+                                if transition.target.id == existing_data['qsheet']:
+                                    next_id = existing_id
+                                    break
+                            if not next_id:
+                                next_id = self.build_pages(transition.target, pages, params)
+                                page['next'].append({'page': next_id,
+                                                     'condition': transition.condition})
+                                pages[next_id]['prev'] = page_id
+                            else:
+                                page['next'].append({'page': next_id,
+                                                     'condition': transition.condition})
                     else:
-                        next_id = self.build_pages(transition.target, pages, params)
-                        page['next'].append({'page': next_id})
-                        pages[next_id]['prev'] = page_id
+                        next_id = None
+                        for existing_id, existing_data in pages.items():
+                            if transition.target.id == existing_data['qsheet']:
+                                next_id = existing_id
+                                break
+                        if not next_id:
+                            next_id = self.build_pages(transition.target, pages, params)
+                            page['next'].append({'page': next_id})
+                            pages[next_id]['prev'] = page_id
+                        else:
+                            page['next'].append({'page': next_id})
         return page_id
     
     def state(self):
@@ -230,7 +246,16 @@ class ParticipantManager(object):
                                     for value in answer.values:
                                         if value.value == condition['answer']:
                                             next_id = transition['page']
+                                            if 'data-set' in state['pages'][next_id]: # TODO: Implement actual manual control of re-loading data-set items.
+                                                for page in state['history']:
+                                                    if state['pages'][next_id]['qsheet'] == page['qsheet']:
+                                                        dsid = unicode(state['pages'][next_id]['data-set'])
+                                                        if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
+                                                            del state['data-items'][dsid]['current']
+                                                            break
                                             break
+                                    if next_id:
+                                        break
                     else:
                         next_id = transition['page']
                         break
@@ -338,7 +363,6 @@ def run_survey(request):
                                     query = query.filter(and_(Answer.participant_id==participant.id,
                                                               Answer.question_id==question.id))
                             for answer in query:
-                                print 'Deleting!'
                                 dbsession.delete(answer)
                 participant = part_manager.participant()
                 with transaction.manager:
