@@ -14,7 +14,7 @@ from formencode import api
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.renderer import render
-from random import sample, shuffle
+from random import sample, choice, shuffle
 from sqlalchemy import and_
 from sqlalchemy.sql.expression import not_
 
@@ -22,15 +22,17 @@ from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
     DataItemCount, Answer, AnswerValue, Question)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
+from pyquest.util import get_config_setting
 
 class ParticipantManager(object):
     
     def __init__(self, request, dbsession, survey):
+        
         session = SessionObject(request.environ, **coerce_session_params({'type':'cookie',
                                                                         'cookie_expires': 7776000,
                                                                         'key': 'survey.%s' % (survey.external_id),
-                                                                        'encrypt_key': 'thisisatest', # TODO: Change
-                                                                        'validate_key': 'testing123',
+                                                                        'encrypt_key': get_config_setting(request, 'beaker.session.encrypt_key'),
+                                                                        'validate_key': get_config_setting(request, 'beaker.session.validate_key'),
                                                                         'auto': True}))
         self._request = request
         self._dbsession = dbsession
@@ -45,9 +47,27 @@ class ParticipantManager(object):
                 permutation_items = {}
                 for qsheet in self._survey.qsheets:
                     if qsheet.data_set and qsheet.data_set.type == 'permutationset':
-                        items = [item for item in qsheet.data_set.items]
-                        if items:
-                            item = sample(items, 1)[0]
+                        pairs = dbsession.query(DataItem, Participant).outerjoin(Participant, DataItem.id==Participant.permutation_item_id).filter(DataItem.dataset_id==qsheet.data_set.id)
+                        if pairs.count() > 0:
+                            items = {}
+                            # Weighted random sampling, but only using those participants who have completed 
+                            for pair in pairs:
+                                if pair[1] and pair[1].completed:
+                                    if pair[0].id in items:
+                                        items[pair[0].id] = (pair[0], items[pair[0].id][1] + 1)
+                                    else:
+                                        items[pair[0].id] = (pair[0], 1)
+                                else:
+                                    items[pair[0].id] = (pair[0], 0)
+                            items = items.values()
+                            max_count = max([item[1] for item in items]) + 1
+                            weighted_items = []
+                            for item, cnt in items:
+                                weighted_items.extend([item for _ in range(0, max_count - cnt)])
+                            item = choice(weighted_items)
+                            
+                            # Load chosen permutation data
+                            self._participant.permutation_item = item
                             items = []
                             for idx, data in enumerate(json.loads(item.attributes[0].value)):
                                 data['did'] = item.id
@@ -420,6 +440,8 @@ def finished_survey(request):
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         part_manager = ParticipantManager(request, dbsession, survey)
+        with transaction.manager:
+            part_manager.participant().completed = True
         dbsession.add(survey)
         if survey.status == 'testing':
             request.response.delete_cookie('survey.%s' % request.matchdict['seid'])

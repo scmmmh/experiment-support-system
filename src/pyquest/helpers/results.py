@@ -34,13 +34,6 @@ def sample_answer(question, sub_quest=None):
     else:
         return None
 
-def completed_count(survey):
-    participants = [len(set([a.participant_id for a in question.answers])) for qsheet in survey.qsheets for question in qsheet.questions if question.q_type.answer_schema() and question.required]
-    if participants:
-        return min(participants)
-    else:
-        return 0
-
 def has_data_questions(qsheet):
     for question in qsheet.questions:
         if question.q_type.answer_schema():

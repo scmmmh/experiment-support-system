@@ -16,7 +16,7 @@ from sqlalchemy import and_
 
 from pyquest.helpers.user import current_user, redirect_to_login
 from pyquest.helpers.results import fix_na
-from pyquest.models import (DBSession, Survey, Answer, AnswerValue)
+from pyquest.models import (DBSession, Survey, Answer, AnswerValue, Participant)
 from pyquest.util import load_question_schema_params
 
 
@@ -40,7 +40,10 @@ def index(request):
     user = current_user(request)
     if survey:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.view-all")', {'user': user, 'survey': survey}):
-            return {'survey': survey}
+            stats = {'completed': dbsession.query(Participant).filter(and_(Participant.survey_id==survey.id,
+                                                                           Participant.completed==True)).count()}
+            return {'survey': survey,
+                    'stats': stats}
         else:
             redirect_to_login(request)
     else:
@@ -267,13 +270,10 @@ def by_participant(request):
                 row = dict([(c, na_value) for c in columns])
                 if 'participant_id_' in columns:
                     row['participant_id_'] = participant.id
-                completed = True
+                if 'completed_' in columns:
+                    row['completed_'] = participant.completed
                 for qsheet in survey.qsheets:
                     for question in qsheet.questions:
-                        if question.required:
-                            if not dbsession.query(Answer).filter(and_(Answer.participant_id==participant.id,
-                                                                       Answer.question_id==question.id)).first():
-                                completed = False
                         if '%s.%s' % (qsheet.name, question.name) not in selected_columns:
                             continue
                         q_schema = question.q_type.answer_schema()
@@ -327,10 +327,7 @@ def by_participant(request):
                                     key = '%s.%s' % (key, get_data_identifier(answer_value.answer.data_item, data_identifiers[qsheet.name]))
                             if isinstance(value, unicode):
                                 value = value.encode('utf-8')
-                            print key
                             row[key] = value
-                if 'completed_' in columns:
-                    row['completed_'] = completed
                 rows.append(row)
                 count = count + 1
             if spss_safe:

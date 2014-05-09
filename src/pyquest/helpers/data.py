@@ -26,9 +26,9 @@ def generate_summary(qsheet):
     counts = []
     for data_item in qsheet.data_set.items:
         if data_questions > 0:
-            counts.append(len(data_item.answers) / data_questions)
+            counts.append(len([a for a in data_item.answers if a.participant.completed]) / data_questions)
         else:
-            counts.append(len(data_item.answers))
+            counts.append(len([a for a in data_item.answers if a.participant.completed]))
     return (len(qsheet.data_set.items), int(min(counts)), sum(counts) / float(len(counts)), int(max(counts)))
 
 def dataset_list(survey):

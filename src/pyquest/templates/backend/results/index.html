@@ -25,15 +25,15 @@
             <tr>
               <th class="text-center">Pages</th>
               <th class="text-center">Questions</th>
-              <th class="text-center">Participants (Completed) *</th>
-              <th class="text-center">Participants (Total)</th>
+              <th class="text-center">Completed participants</th>
+              <th class="text-center">Total participants</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.qsheets)}</td>
               <td class="text-center" style="font-size:28pt;font-weight:bold;">${len([q for qsheet in survey.qsheets for q in qsheet.questions])}</td>
-              <td class="text-center" style="font-size:28pt;font-weight:bold;">${h.results.completed_count(survey)} <py:if test="len(survey.participants) > 0">(${100.0 * h.results.completed_count(survey) / len(survey.participants)}%)</py:if></td>
+              <td class="text-center" style="font-size:28pt;font-weight:bold;">${stats['completed']} <py:if test="len(survey.participants) > 0">(${'%.2f' % (100.0 * stats['completed'] / len(survey.participants))}%)</py:if></td>
               <td class="text-center" style="font-size:28pt;font-weight:bold;">${len(survey.participants)}</td>
             </tr>
           </tbody>
