@@ -167,7 +167,7 @@ def dataset_upload(request):
                     if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                         raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
                     with transaction.manager:
-                        data_set = load_csv_file(request.POST['source_file'].file, request.POST['source_file'].filename, survey, dbsession).id
+                        data_set = load_csv_file(request.POST['source_file'].file, request.POST['source_file'].filename, survey, dbsession)
                         dbsession.flush()
                         dsid = data_set.id
                     request.session.flash('Data uploaded', 'info')
