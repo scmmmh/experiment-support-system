@@ -5,21 +5,6 @@
     <title>Edit Data Item</title>
     <script type="text/javascript">
     $(document).ready(function() {
-    	$('#add-control-answer-btn').click(function() {
-    		$('#control-answers').append('<li>${h.form.select('control_answer_question', '', [], None)}${h.form.text_field('control_answer_answer', '', None)}</li>');
-    		return false;
-    	});
-    	$('#control_item').change(function() {
-    		var checked = !($('#control_item:checked').length == 0);
-    		if(checked) {
-    			$('#add-control-answer-btn, input[name=control_answer]').removeAttr('data_setabled');
-    		} else {
-                $('#add-control-answer-btn, input[name=control_answer]').attr('data_setabled', 'data_setabled');
-    		}
-    	});
-    	if($('#control_item:checked').length == 0) {
-    		$('#add-control-answer-btn, input[name=control_answer]').attr('data_setabled', 'data_setabled');
-    	}
     });
     </script>
   </head>

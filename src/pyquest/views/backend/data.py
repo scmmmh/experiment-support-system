@@ -14,6 +14,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
+from sqlalchemy import and_
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
@@ -25,8 +26,6 @@ from pyquest.models import (DBSession, Survey, QSheet, DataItem,
 class DataItemSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
     control_ = validators.StringBool(if_missing=False)
-    control_answer_question = foreach.ForEach(validators.Int())
-    control_answer_answer = foreach.ForEach(validators.UnicodeString())
 
 class DataSetSchema(Schema):
     csrf_token = validators.UnicodeString(not_empty=True)
@@ -168,7 +167,7 @@ def dataset_upload(request):
                     if 'source_file' not in request.POST or not hasattr(request.POST['source_file'], 'file'):
                         raise api.Invalid('Invalid CSV file', {}, None, error_dict={'source_file': 'Please select a file to upload'})
                     with transaction.manager:
-                        data_set = load_csv_file(request.POST['source_file'].file, request.POST['source_file'].filename, survey, dbsession).id
+                        data_set = load_csv_file(request.POST['source_file'].file, request.POST['source_file'].filename, survey, dbsession)
                         dbsession.flush()
                         dsid = data_set.id
                     request.session.flash('Data uploaded', 'info')
@@ -295,10 +294,6 @@ def item_new(request):
                         for attribute_key in data_set.attribute_keys:
                             new_data_item.attributes.append(DataItemAttribute(value=params[attribute_key.key],
                                                                               key_id=attribute_key.id))
-                        for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
-                            question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
-                            if question and params['control_answer_answer'][idx].strip() != '':
-                                new_data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(new_data_item)
                     request.session.flash('Data added', 'info')
                     raise HTTPFound(request.route_url('data.view', sid=request.matchdict['sid'], dsid=request.matchdict['dsid']))
@@ -336,11 +331,6 @@ def edit(request):
                         data_item.control = params['control_']
                         for attribute in data_item.attributes:
                             attribute.value = params[attribute.key.key]
-                        data_item.control_answers = []
-                        for idx in range(0, min(len(params['control_answer_question']), len(params['control_answer_answer']))):
-                            question = dbsession.query(Question).filter(Question.id==params['control_answer_question'][idx]).first()
-                            if question and params['control_answer_answer'][idx].strip() != '':
-                                data_item.control_answers.append(DataItemControlAnswer(question=question, answer=params['control_answer_answer'][idx]))
                         dbsession.add(data_item)
                         dsid = data_item.dataset_id
                         sid = data_item.data_set.survey_id
@@ -456,8 +446,9 @@ def permset_edit(request):
                             for task in task_items:
                                 permutations.extend(itertools.permutations(itertools.product([task], interface_items)))
                         else:
-                            permutations = itertools.product(task_items, interface_items)
+                            permutations = [(prod,) for prod in itertools.product(task_items, interface_items)]
                 for comb in permutations:
+                    print comb
                     di = DataItem()
                     value = []
                     for pair in comb:
@@ -522,6 +513,17 @@ def permset_count(request):
     except api.Invalid:
         return {'count': 'Could not determine the required number of participants'}
 
+class ControlAnswerSchema(Schema):
+    question = validators.Int(not_empty=True)
+    data_item = validators.Int(not_empty=True)
+    answer = validators.UnicodeString()
+    
+class ControlAnswersSchema(Schema):
+    csrf_token = validators.UnicodeString(not_empty=True)
+    control = foreach.ForEach(ControlAnswerSchema())
+    
+    pre_validators = [variabledecode.NestedVariables()]
+
 @view_config(route_name='survey.qsheet.data')
 @render({'text/html': 'backend/data/qsheet.html'})
 def qsheet(request):
@@ -531,8 +533,41 @@ def qsheet(request):
     qsheet = dbsession.query(QSheet).filter(QSheet.id==request.matchdict['qsid']).first()
     if survey and qsheet:
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
-            return {'qsheet': qsheet,
-                    'survey': survey}
+            if qsheet.data_set and qsheet.data_set.type == 'dataset':
+                control_answers = dbsession.query(DataItemControlAnswer).join(DataItemControlAnswer.data_item,
+                                                                              DataItemControlAnswer.question).\
+                                                                         filter(and_(Question.qsheet_id==qsheet.id,
+                                                                                     DataItem.dataset_id==qsheet.dataset_id)).all()
+            else:
+                control_answers = []
+            if request.method == 'POST':
+                try:
+                    params = ControlAnswersSchema().to_python(request.POST)
+                    check_csrf_token(request, params)
+                    with transaction.manager:
+                        control_answers = dbsession.query(DataItemControlAnswer).join(DataItemControlAnswer.data_item,
+                                                                                      DataItemControlAnswer.question).\
+                                                                                 filter(and_(Question.qsheet_id==qsheet.id,
+                                                                                             DataItem.dataset_id==qsheet.dataset_id))
+                        for answer in control_answers:
+                            dbsession.delete(answer)
+                        for answer_data in params['control']:
+                            dbsession.add(DataItemControlAnswer(data_item_id=answer_data['data_item'],
+                                                                question_id=answer_data['question'],
+                                                                answer=answer_data['answer']))
+                    request.session.flash('Control answers updated', 'info')
+                    raise HTTPFound(request.route_url('survey.qsheet.data', sid=request.matchdict['sid'], qsid=request.matchdict['qsid']))
+                except api.Invalid as e:
+                    print e
+                    e.params = request.POST
+                    return {'survey': survey,
+                            'qsheet': qsheet,
+                            'control_answers': control_answers,
+                            'e': e}
+            else:
+                return {'qsheet': qsheet,
+                        'survey': survey,
+                        'control_answers': control_answers}
         else:
             redirect_to_login(request)
     else:
@@ -585,6 +620,12 @@ def detach(request):
         if is_authorised(':survey.is-owned-by(:user) or :user.has_permission("survey.edit-all")', {'user': user, 'survey': survey}):
             if request.method == 'POST':
                 with transaction.manager:
+                    control_answers = dbsession.query(DataItemControlAnswer).join(DataItemControlAnswer.data_item,
+                                                                                  DataItemControlAnswer.question).\
+                                                                             filter(and_(Question.qsheet_id==qsheet.id,
+                                                                                         DataItem.dataset_id==qsheet.dataset_id))
+                    for answer in control_answers:
+                        dbsession.delete(answer)
                     qsheet.dataset_id = None
                     dbsession.add(qsheet)
                 request.session.flash('Data detached', 'info')

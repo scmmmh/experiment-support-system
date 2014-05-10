@@ -14,7 +14,7 @@ from formencode import api
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
 from pywebtools.renderer import render
-from random import sample, shuffle
+from random import sample, choice, shuffle
 from sqlalchemy import and_
 from sqlalchemy.sql.expression import not_
 
@@ -22,15 +22,17 @@ from pyquest.l10n import get_translator
 from pyquest.models import (DBSession, Survey, QSheet, DataItem, Participant,
     DataItemCount, Answer, AnswerValue, Question)
 from pyquest.validation import PageSchema, ValidationState, flatten_invalid
+from pyquest.util import get_config_setting
 
 class ParticipantManager(object):
     
     def __init__(self, request, dbsession, survey):
+        
         session = SessionObject(request.environ, **coerce_session_params({'type':'cookie',
                                                                         'cookie_expires': 7776000,
                                                                         'key': 'survey.%s' % (survey.external_id),
-                                                                        'encrypt_key': 'thisisatest', # TODO: Change
-                                                                        'validate_key': 'testing123',
+                                                                        'encrypt_key': get_config_setting(request, 'beaker.session.encrypt_key'),
+                                                                        'validate_key': get_config_setting(request, 'beaker.session.validate_key'),
                                                                         'auto': True}))
         self._request = request
         self._dbsession = dbsession
@@ -45,9 +47,27 @@ class ParticipantManager(object):
                 permutation_items = {}
                 for qsheet in self._survey.qsheets:
                     if qsheet.data_set and qsheet.data_set.type == 'permutationset':
-                        items = [item for item in qsheet.data_set.items]
-                        if items:
-                            item = sample(items, 1)[0]
+                        pairs = dbsession.query(DataItem, Participant).outerjoin(Participant, DataItem.id==Participant.permutation_item_id).filter(DataItem.dataset_id==qsheet.data_set.id)
+                        if pairs.count() > 0:
+                            items = {}
+                            # Weighted random sampling, but only using those participants who have completed 
+                            for pair in pairs:
+                                if pair[1] and pair[1].completed:
+                                    if pair[0].id in items:
+                                        items[pair[0].id] = (pair[0], items[pair[0].id][1] + 1)
+                                    else:
+                                        items[pair[0].id] = (pair[0], 1)
+                                else:
+                                    items[pair[0].id] = (pair[0], 0)
+                            items = items.values()
+                            max_count = max([item[1] for item in items]) + 1
+                            weighted_items = []
+                            for item, cnt in items:
+                                weighted_items.extend([item for _ in range(0, max_count - cnt)])
+                            item = choice(weighted_items)
+                            
+                            # Load chosen permutation data
+                            self._participant.permutation_item = item
                             items = []
                             for idx, data in enumerate(json.loads(item.attributes[0].value)):
                                 data['did'] = item.id
@@ -94,15 +114,31 @@ class ParticipantManager(object):
                                 page['next'].append({'page': next_id})
                                 pages[next_id]['prev'] = page_id
                         else:
-                            # TODO: Detect and stop cycles
-                            next_id = self.build_pages(transition.target, pages, params)
-                            page['next'].append({'page': next_id,
-                                                 'condition': transition.condition})
-                            pages[next_id]['prev'] = page_id
+                            next_id = None
+                            for existing_id, existing_data in pages.items():
+                                if transition.target.id == existing_data['qsheet']:
+                                    next_id = existing_id
+                                    break
+                            if not next_id:
+                                next_id = self.build_pages(transition.target, pages, params)
+                                page['next'].append({'page': next_id,
+                                                     'condition': transition.condition})
+                                pages[next_id]['prev'] = page_id
+                            else:
+                                page['next'].append({'page': next_id,
+                                                     'condition': transition.condition})
                     else:
-                        next_id = self.build_pages(transition.target, pages, params)
-                        page['next'].append({'page': next_id})
-                        pages[next_id]['prev'] = page_id
+                        next_id = None
+                        for existing_id, existing_data in pages.items():
+                            if transition.target.id == existing_data['qsheet']:
+                                next_id = existing_id
+                                break
+                        if not next_id:
+                            next_id = self.build_pages(transition.target, pages, params)
+                            page['next'].append({'page': next_id})
+                            pages[next_id]['prev'] = page_id
+                        else:
+                            page['next'].append({'page': next_id})
         return page_id
     
     def state(self):
@@ -210,7 +246,16 @@ class ParticipantManager(object):
                                     for value in answer.values:
                                         if value.value == condition['answer']:
                                             next_id = transition['page']
+                                            if 'data-set' in state['pages'][next_id]: # TODO: Implement actual manual control of re-loading data-set items.
+                                                for page in state['history']:
+                                                    if state['pages'][next_id]['qsheet'] == page['qsheet']:
+                                                        dsid = unicode(state['pages'][next_id]['data-set'])
+                                                        if dsid in state['data-items'] and 'current' in state['data-items'][dsid]:
+                                                            del state['data-items'][dsid]['current']
+                                                            break
                                             break
+                                    if next_id:
+                                        break
                     else:
                         next_id = transition['page']
                         break
@@ -246,8 +291,14 @@ class ParticipantManager(object):
         for answer in self.participant().answers:
             if (not qsheet or answer.question.qsheet_id == qsheet.id) and answer.data_item and answer.data_item.control:
                 total = total + 1
-                #if answer.values[0].value == answer.data_item.control_answers[0].answer: TODO: Fix control answers
-                #    correct = correct + 1
+                matches = False
+                for answer_value in answer.values:
+                    for control_answer in answer.data_item.control_answers:
+                        if answer_value.value == control_answer.answer:
+                            matches = True
+                            break
+                if matches:
+                    correct = correct + 1
         if total == 0:
             return None
         else:
@@ -312,7 +363,6 @@ def run_survey(request):
                                     query = query.filter(and_(Answer.participant_id==participant.id,
                                                               Answer.question_id==question.id))
                             for answer in query:
-                                print 'Deleting!'
                                 dbsession.delete(answer)
                 participant = part_manager.participant()
                 with transaction.manager:
@@ -414,6 +464,8 @@ def finished_survey(request):
     survey = dbsession.query(Survey).filter(Survey.external_id==request.matchdict['seid']).first()
     if survey:
         part_manager = ParticipantManager(request, dbsession, survey)
+        with transaction.manager:
+            part_manager.participant().completed = True
         dbsession.add(survey)
         if survey.status == 'testing':
             request.response.delete_cookie('survey.%s' % request.matchdict['seid'])

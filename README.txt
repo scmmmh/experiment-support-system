@@ -1,5 +1,5 @@
-Experiment Support System README
-================================
+Experiment Support System
+=========================
 
 The Experiment Support System is an online interactive user experiment support
 system. It is built on the Pyramid webframework and lives at

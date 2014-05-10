@@ -296,7 +296,7 @@ def validators_for_params(params, question):
             validator = validators_for_params(params['schema'], question)
             if validator:
                 schema.add_field(attr, validator)
-        return schema
+        return augment(schema, question)
     else:
         return augment(validators.UnicodeString(messages={'empty': 'Please provide an answer to this question.', 'missingValue': 'Please provide an answer to this question.'}), question)
     return None

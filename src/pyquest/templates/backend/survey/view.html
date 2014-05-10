@@ -107,7 +107,7 @@
             </tr>
             <tr>
               <th>Participants</th>
-              <td>${len(survey.participants)} (${h.results.completed_count(survey)} completed <py:if test="len(survey.participants) > 0">&mdash; ${100.0 * h.results.completed_count(survey) / len(survey.participants)}%</py:if>)</td>
+              <td>${stats['completed']} completed <py:if test="len(survey.participants) > 0">(out of ${len(survey.participants)} &mdash; ${'%.2f' %(100.0 * stats['completed'] / len(survey.participants))}%)</py:if></td>
             </tr>
           </tbody>
         </table>

@@ -18,6 +18,7 @@ DEV
 - UPDATE: Removed the source editing functionality
 - UPDATE: Exporting an experiment now also exports all data sets in the
   experiment
+- UPDATE: Participant completion is now tracked explicitly
 
 0.9.1
 -----
