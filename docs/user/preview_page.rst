@@ -10,9 +10,9 @@ button on the edit page (see :doc:`edit_page`).
 .. figure:: ../_static/user/preview_page.png
    :alt: Page preview
    
-   The preview shows the page as the experiment :term:`participants` will see it
+   **Figure 1**: The preview shows the page as the experiment :term:`participants` will see it
 
-On the preview page (fig. :num:`fig-preview-page`) you are shown the experiment
+On the preview page (`figure 1 <#fig-preview-page>`_) you are shown the experiment
 :term:`page` as it will be shown to the experiment participants. The page is
 fully functional with one exception and if you have configured it to use
 :term:`data items`, then a sample selection will be loaded. However, no
