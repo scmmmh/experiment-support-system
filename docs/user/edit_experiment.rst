@@ -58,5 +58,7 @@ following sections:
    delete_page
    create_data
    edit_data
+   edit_permutation
    delete_data
+   link_data_set
    
