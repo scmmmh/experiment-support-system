@@ -129,10 +129,10 @@ class ParticipantManager(object):
                                                      'condition': transition.condition})
                     else:
                         next_id = None
-                        for existing_id, existing_data in pages.items():
-                            if transition.target.id == existing_data['qsheet']:
-                                next_id = existing_id
-                                break
+                        #for existing_id, existing_data in pages.items():
+                        #    if transition.target.id == existing_data['qsheet']:
+                        #        next_id = existing_id
+                        #        break
                         if not next_id:
                             next_id = self.build_pages(transition.target, pages, params)
                             page['next'].append({'page': next_id})
