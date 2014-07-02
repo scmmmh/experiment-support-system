@@ -8,6 +8,8 @@ from lxml import etree
 from StringIO import StringIO
 
 def convert_type(value, target_type, default=None):
+    if value is None:
+        return None
     if target_type == 'int':
         try:
             return int(value)
