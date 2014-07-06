@@ -388,8 +388,9 @@ def edit(request):
                                             attr_group.set_attr_value(column['attr'], value[column['name']])
                                         dbsession.add(attr_group)
                                         question.attributes.append(attr_group)
-                                    for attr_group in question.attr_group(field['name'], multi=True)[len(q_params[field['name']]):]:
-                                        dbsession.delete(attr_group)
+                                    if question.attr_group(field['name'], multi=True):
+                                        for attr_group in question.attr_group(field['name'], multi=True)[len(q_params[field['name']]):]:
+                                            dbsession.delete(attr_group)
                         dbsession.add(qsheet)
                     if request.is_xhr:
                         return {'flash': 'Experiment page updated'}
