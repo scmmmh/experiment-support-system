@@ -32,6 +32,10 @@ responses to stimuli are balanced.
 .. glossary::
   :sorted:
 
+  Control Item
+  Control Items
+    A :term:`data item` for which the ``control`` flag has been set to "Yes".
+    
   Data
     :term:`Experiments` can have data attached to them, in order to support
     the creation of flexible, data-driven :term:`experiments`. The Experiment

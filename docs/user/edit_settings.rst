@@ -4,14 +4,14 @@ Editing the experiment's settings
 To edit the :term:`experiment`'s settings, click on the "Edit" button in
 the :term:`experiment` overview page's toolbar
 (see :doc:`edit_experiment`, figure 1). This takes you to the experiment
-settings page (:num:`figure #fig-experiment-settings`).
+settings page (`figure 1 <#fig-experiment-settings>`_).
 
 .. _fig-experiment-settings:
 
 .. figure:: ../_static/user/experiment_settings.png
    :alt: Experiment settings
 
-   The experiment settings page showing all available settings
+   **Figure 1**: The experiment settings page showing all available settings
 
 The experiment settings page allows you to update the following settings:
 

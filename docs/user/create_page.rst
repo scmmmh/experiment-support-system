@@ -9,14 +9,14 @@ Add a new page
 
 To add a completely new page, on the experiment overview page, click on the
 "Add page" button in the toolbar. You are then shown the "Add a Page" page
-(:num:`figure #fig-new-page`).
+(`figure 1 <#fig-new-page>`_).
 
 .. _fig-new-page:
 
 .. figure:: ../_static/user/new_page.png
    :alt: New page
    
-   Specify a name and a title to create a new page and add it to the
+   **Figure 1**: Specify a name and a title to create a new page and add it to the
    :term:`experiment`.
 
 To add the new page, specify the page's name and title. The name is used to
@@ -36,16 +36,14 @@ Import an existing page
 
 To import an existing page, on the experiment overview page, click on the
 "Import page" button in the toolbar. You are then shown the "Import page"
-interface (:num:`figure #fig-import-page`).
+interface (`figure 2 <#fig-import-page>`_).
 
 .. _fig-import-page:
 
-.. _fig-new-page:
-
-.. figure:: ../_static/user/new_page.png
+.. figure:: ../_static/user/import_page.png
    :alt: New page
    
-   To import an existing page, simply select the page's file and add it to
+   **Figure 2**: To import an existing page, simply select the page's file and add it to
    the :term:`experiment`.
 
 Click on the "Browse" button to select the page file to import. After

@@ -10,7 +10,7 @@ Creating a new Experiment
 To create a new experiment, click on the
 "New Experiment" button on the list of experiments page
 (see :doc:`access_ess`). On the "New Experiment" page
-(:num:`figure #fig-new-experiment`) you provide the new experiment's title
+(`figure 1 <#fig-new-experiment>`_) you provide the new experiment's title
 and other settings:
 
 **Title**
@@ -36,7 +36,7 @@ and other settings:
 .. figure:: ../_static/user/new_experiment.png
    :alt: New experiment
    
-   On the "New Experiment" page, you specify the new experiment's basic
+   **Figure 1**: On the "New Experiment" page, you specify the new experiment's basic
    settings. 
 
 Click on the "Create" button to create the new experiment and be taken to the
@@ -52,7 +52,7 @@ experiment and then to modify that to create the desired experiment. To
 import an experiment, click on the "Import Experiment" button on the list
 of experiments page (see :doc:`access_ess`). 
 
-On the importing page (:num:`figure #fig-import-experiment`) select the
+On the importing page (`figure 2 <#fig-import-experiment>`_) select the
 experiment file you wish to import and then click on the "Import" button to
 start the import. After the experiment has been imported, you will be taken to
 the experiment construction and editing page (see :doc:`edit_experiment`),
@@ -63,6 +63,6 @@ where you can edit and modify the imported experiment.
 .. figure:: ../_static/user/import_experiment.png
    :alt: Import experiment
    
-   Select the experiment file to import and then click on the "Import"
+   **Figure 2**: Select the experiment file to import and then click on the "Import"
    button to import the experiment.
 
