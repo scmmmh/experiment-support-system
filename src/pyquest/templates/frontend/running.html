@@ -3,10 +3,10 @@
   <xi:include href="../layout/frontend.html"/>
   <head>
     <title>${survey.title} - ${qsheet.title}</title>
-    <style type="text/css">${h.Markup(survey.styles)}</style>
-    <style type="text/css">${h.Markup(qsheet.styles)}</style>
-    <script type="text/javascript">${h.Markup(survey.scripts)}</script>
-    <script type="text/javascript">${h.Markup(qsheet.scripts)}</script>
+    <style py:if="survey.styles" type="text/css">${h.Markup(survey.styles)}</style>
+    <style py:if="qsheet.styles" type="text/css">${h.Markup(qsheet.styles)}</style>
+    <script py:if="survey.scripts" type="text/javascript">${h.Markup(survey.scripts)}</script>
+    <script py:if="qsheet.scripts" type="text/javascript">${h.Markup(qsheet.scripts)}</script>
   </head>
   <body>
     <div py:if="survey.status == 'testing'" class="role-testing shadow"> 
