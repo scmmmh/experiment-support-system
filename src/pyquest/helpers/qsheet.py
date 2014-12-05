@@ -8,13 +8,15 @@ import itertools
 from random import shuffle
 
 from decorator import decorator
-from genshi.builder import tag, Markup
+from genshi.builder import tag, Markup, ElementFactory
 from genshi.template import TemplateLoader, TemplateNotFound, loader
 from pywebtools import form
 from re import search
 from StringIO import StringIO
 
 from pyquest.models import DBSession, QuestionType
+
+ess_tag = ElementFactory('https://bitbucket.org/mhall/experiment-support-system')
 
 def substitute(text, item, participant=None):
     if text:
@@ -85,39 +87,38 @@ def question():
     return decorator(wrapper)
 
 def question_as_text(question, no_ids=False):
-    text = ['  <ess:type>%s</ess:type>' % (question.q_type.name)]
+    if no_ids:
+        question_element = ess_tag.question()
+    else:
+        question_element = ess_tag.question(id=question.id)
+    question_element.append(ess_tag.type(question.q_type.name))
     for schema in question.q_type.backend_schema():
         if schema['type'] == 'question-name':
-            text.append('  <ess:name>%s</ess:name>' % (question.name))
+            question_element.append(ess_tag.name(question.name))
         elif schema['type'] == 'question-title':
-            text.append('  <ess:title>%s</ess:title>' % (question.title))
+            question_element.append(ess_tag.title(question.title))
         elif schema['type'] == 'question-required':
-            text.append('  <ess:required>%s</ess:required>' % ('true' if question.required else 'false'))
+            question_element.append(ess_tag.required('true' if question.required else 'false'))
         elif schema['type'] == 'question-help':
-            text.append('  <ess:help>%s</ess:help>' % (question.help))
+            question_element.append(ess_tag.help(question.help))
         elif schema['type'] in ['unicode', 'richtext', 'int', 'select']:
             if question.attr_value(schema['attr']):
-                text.append('  <ess:attribute name="%s">%s</ess:attribute>' % (schema['attr'], question.attr_value(schema['attr'], default='')))
+                question_element.append(ess_tag.attribute(question.attr_value(schema['attr'], default=''),
+                                                          name=schema['attr']))
         elif schema['type'] == 'table':
-            text.append('  <ess:attribute_group name="%s">' % (schema['attr']))
+            group_element = ess_tag.attribute_group(name=schema['attr'])
             for attr_group in question.attr_group(schema['attr'], default=[], multi=True):
-                text.append('    <ess:attribute>')
+                attr_element = ess_tag.attribute()
                 for column in schema['columns']:
-                    text.append('      <ess:value name="%s">%s</ess:value>' % (column['attr'], attr_group.attr_value(column['attr'], default='')))
-                text.append('    </ess:attribute>')
-            text.append('  </ess:attribute_group>')
-    if no_ids:
-        text = '<ess:question>\n%s\n</ess:question>' % ('\n'.join(text))
-    else:
-        text = '<ess:question id="%i">\n%s\n</ess:question>' % (question.id, '\n'.join(text))
-    return text
+                    attr_element.append(ess_tag.value(attr_group.attr_value(column['attr'], default=''),
+                                                      name=column['attr']))
+                group_element.append(attr_element)
+            question_element.append(group_element)
+    return question_element
 
-def as_text(qsheet, as_markup=False, no_ids=False):
-    text = '\n'.join([question_as_text(q, no_ids=no_ids) for q in qsheet.questions])
-    if as_markup:
-        return Markup(text)
-    else:
-        return text
+def as_text(qsheet, no_ids=False):
+    text = [question_as_text(q, no_ids=no_ids) for q in qsheet.questions]
+    return tag(text)
 
 def render_questions(qsheet, item, p, error=None):
     """ Constructs all the question sections for :py:class:`~pyquest.models.QSheet` qsheet. If the attribute 'show-question-numbers' is set to 'yes' then questions which are answerable are given a number. 

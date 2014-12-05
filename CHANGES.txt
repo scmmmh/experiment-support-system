@@ -19,6 +19,8 @@ DEV
 - UPDATE: Exporting an experiment now also exports all data sets in the
   experiment
 - UPDATE: Participant completion is now tracked explicitly
+- BUGFIX: Fixed import / export / duplicate errors caused by invalid XML
+  entities
 
 0.9.1
 -----

@@ -3,6 +3,6 @@
   <ess:scripts>${qsheet.scripts}</ess:scripts>
   <ess:attribute py:for="attr in qsheet.attributes" py:if="attr.value" name="${attr.key}">${attr.value}</ess:attribute>
   <ess:questions>
-    ${h.qsheet.as_text(qsheet, as_markup=True, no_ids=True)}
+    ${h.qsheet.as_text(qsheet, no_ids=True)}
   </ess:questions>
 </ess:page>

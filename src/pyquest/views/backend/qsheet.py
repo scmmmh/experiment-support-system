@@ -14,6 +14,7 @@ from pyramid.view import view_config
 from pywebtools.auth import is_authorised
 from pywebtools.renderer import render
 from sqlalchemy import and_
+from xml.sax.saxutils import unescape
 
 from pyquest.helpers.auth import check_csrf_token
 from pyquest.helpers.user import current_user, redirect_to_login
@@ -118,10 +119,13 @@ def new_qsheet(request):
         raise HTTPNotFound()
 
 def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
-    def single_xpath_value(element, path, default=None):
+    def single_xpath_value(element, path, default=None, auto_unescape=False):
         value = element.xpath(path, namespaces=NAMESPACES)
         if value:
-            return value[0]
+            if auto_unescape:
+                return unescape(value[0])
+            else:
+                return value[0]
         else:
             return default
     original_ids = [q.id for q in qsheet.questions]
@@ -145,23 +149,20 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
         question.order = idx
         for schema in question.q_type.backend_schema():
             if schema['type'] == 'question-name':
-                question.name = single_xpath_value(item, 'ess:name/text()', default='unnamed')
+                question.name = single_xpath_value(item, 'ess:name/text()', default='unnamed', auto_unescape=True)
             elif schema['type'] == 'question-title':
-                question.title = single_xpath_value(item, 'ess:title/text()', default='Missing title')
+                question.title = single_xpath_value(item, 'ess:title/text()', default='Missing title', auto_unescape=True)
             elif schema['type'] == 'question-required':
-                question.required = True if single_xpath_value(item, 'ess:required/text()', default='false').lower() == 'true' else False
+                question.required = True if single_xpath_value(item, 'ess:required/text()', default='false', auto_unescape=True).lower() == 'true' else False
             elif schema['type'] == 'question-help':
-                question.help = single_xpath_value(item, 'ess:help/text()', default='')
+                question.help = single_xpath_value(item, 'ess:help/text()', default='', auto_unescape=True)
             elif schema['type'] in ['unicode', 'richtext', 'int', 'select']:
                 value = single_xpath_value(item, "ess:attribute[@name='%s']" % (schema['attr']))
                 if value is not None:
-                    value = etree.tostring(value)
-                    value = value[value.find('>') + 1:value.rfind('<')]
-                    question.set_attr_value(schema['attr'], value)
+                    question.set_attr_value(schema['attr'], value.text)
                 elif 'default' in schema:
                     question.set_attr_value(schema['attr'], schema['default'])
                 else:
-                    'a'.stop()
                     question.set_attr_value(schema['attr'], '')
             elif schema['type'] == 'table':
                 attr_groups = question.attr_group(schema['attr'], default=[], multi=True)
@@ -169,14 +170,18 @@ def load_questions_from_xml(qsheet, root, dbsession, cleanup=True):
                 for idx2 in range(0, max(len(attr_groups), len(doc_groups))):
                     if idx2 < len(attr_groups) and idx2 < len(doc_groups):
                         for column in schema['columns']:
-                            attr_groups[idx2].set_attr_value(column['attr'], single_xpath_value(doc_groups[idx2], "ess:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''))
+                            attr_groups[idx2].set_attr_value(column['attr'], single_xpath_value(doc_groups[idx2], "ess:value[@name='%s']/text()" %(column['attr']),
+                                                                                                default=column['default'] if 'default' in column else '',
+                                                                                                auto_unescape=True))
                     elif idx2 < len(attr_groups):
                         dbsession.delete(attr_groups[idx2])
                     elif idx2 < len(doc_groups):
                         qag = QuestionAttributeGroup(key=schema['attr'], order=idx2)
                         for idx3, column in enumerate(schema['columns']):
                             qag.attributes.append(QuestionAttribute(key=column['attr'],
-                                                                    value=single_xpath_value(doc_groups[idx2], "ess:value[@name='%s']/text()" %(column['attr']), default=column['default'] if 'default' in column else ''),
+                                                                    value=single_xpath_value(doc_groups[idx2], "ess:value[@name='%s']/text()" %(column['attr']),
+                                                                                             default=column['default'] if 'default' in column else '',
+                                                                                             auto_unescape=True),
                                                                     order=idx3))
                         question.attributes.append(qag)
     if cleanup:
