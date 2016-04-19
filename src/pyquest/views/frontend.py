@@ -330,7 +330,7 @@ def run_survey(request):
             with transaction.manager:
                 request.session.flash('There are no more questions to answer in this section', queue='info')
                 part_manager.next_qsheet({'action_': 'Next Page'})
-            raise HTTPFound(request.route_url('survey.run.finished', seid=request.matchdict['seid']))
+            raise HTTPFound(request.route_url('survey.run', seid=request.matchdict['seid']))
         if request.method == 'GET':
             return {'survey': survey,
                     'qsheet': qsheet,

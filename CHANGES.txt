@@ -21,6 +21,7 @@ DEV
 - UPDATE: Participant completion is now tracked explicitly
 - BUGFIX: Fixed import / export / duplicate errors caused by invalid XML
   entities
+- BUGFIX: Fixed handling of the redirection after all data items processed
 
 0.9.1
 -----
