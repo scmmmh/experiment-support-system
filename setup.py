@@ -23,7 +23,8 @@ requires = [
     'formencode',
     'pyramid_beaker',
     'nose',
-    'pywebtools>=0.4'
+    'pywebtools>=0.4',
+    'nine'
     ]
 
 setup(name='ExperimentSupportSystem',

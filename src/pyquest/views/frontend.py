@@ -304,7 +304,7 @@ class ParticipantManager(object):
         else:
             return (correct, total)
 
-@view_config(route_name='survey.run')
+#@view_config(route_name='survey.run')
 @render({'text/html': 'frontend/running.html'})
 def run_survey(request):
     def safe_int(value):

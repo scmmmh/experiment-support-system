@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>${experiment.title}</title>
+    <link rel="stylesheet" href="${request.static_url('ess:static/css/app.css')}"/>
+  </head>
+  <body class="frontend">
+    <div class="row">
+      <div class="column small-12" data-sticky-container="">
+        <header class="sticky" data-sticky="" data-margin-top="0">
+          <div class="row collapse">
+            <div class="column small-12 text-center">Page X of Y</div>
+          </div>
+        </header>
+      </div>
+    </div>
+    <article class="row">
+      <div class="column small-12">
+        <h1>${experiment.title}</h1>
+      </div>
+    </article>
+    <script src="${request.static_url('ess:static/js/jquery.js')}"></script>
+    <script src="${request.static_url('ess:static/js/what-input.js')}"></script>
+    <script src="${request.static_url('ess:static/js/foundation.js')}"></script>
+    <script src="${request.static_url('ess:static/js/app.js')}"></script>
+    <script>$(document).foundation();</script>
+  </body>
+</html>
