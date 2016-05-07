@@ -20,3 +20,10 @@ syntax: regexp
 
 syntax: regexp
 ^src/ExperimentSupportSystem\.egg-info$
+
+syntax: regexp
+^\.settings$
+syntax: regexp
+^\.project$
+syntax: regexp
+^\.pydevproject$
