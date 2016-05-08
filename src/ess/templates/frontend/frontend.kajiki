@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
+  <py:import href="ess:templates/helpers/form.kajiki" alias="form"/>
+  <py:import href="ess:templates/frontend/question.kajiki" alias="qs"/>
   <head>
-    <title>${experiment.title}</title>
+    <title>${experiment.title} - ${qsheet.title}</title>
     <link rel="stylesheet" href="${request.static_url('ess:static/css/app.css')}"/>
   </head>
   <body class="frontend">
@@ -9,20 +11,31 @@
       <div class="column small-12" data-sticky-container="">
         <header class="sticky" data-sticky="" data-margin-top="0">
           <div class="row collapse">
-            <div class="column small-12 text-center">Page X of Y</div>
+            <div class="column small-12 text-center">
+               <div class="progress" role="progressbar" tabindex="0" aria-valuenow="2" aria-valuemin="0" aria-valuemax="12">
+                 <div class="progress-meter" style="width: 24%;"></div>
+               </div>
+            </div>
           </div>
         </header>
       </div>
     </div>
-    <article class="row">
+    <form action="" class="row" data-abide="" novalidate="novalidate">
       <div class="column small-12">
-        <h1>${experiment.title}</h1>
+        <h1>${qsheet.title}</h1>
+        <py:for each="question in qsheet.questions">
+          ${qs.render(question)}
+        </py:for>
+        <input type="submit"/>
       </div>
-    </article>
+    </form>
     <script src="${request.static_url('ess:static/js/jquery.js')}"></script>
     <script src="${request.static_url('ess:static/js/what-input.js')}"></script>
     <script src="${request.static_url('ess:static/js/foundation.js')}"></script>
-    <script src="${request.static_url('ess:static/js/app.js')}"></script>
-    <script>$(document).foundation();</script>
+    <script src="${request.static_url('ess:static/js/frontend.js')}"></script>
+    <script>
+    $(document).foundation();
+    $('.toggle-question-help').toggle_question_help();
+    </script>
   </body>
 </html>

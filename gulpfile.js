@@ -52,13 +52,16 @@ gulp.task('js', function() {
         })).
         pipe(concat('foundation.js')).
         pipe(gulp.dest('src/ess/static/js'));
-    gulp.src('src/static/js/*.js').
-        pipe(concat('app.js')).
-        pipe(gulp.dest('src/ess/static/js'));
+    gulp.src('src/static/js/frontend/*.js').
+    pipe(concat('frontend.js')).
+    pipe(gulp.dest('src/ess/static/js'));
+    gulp.src('src/static/js/backend/*.js').
+    pipe(concat('frontend.js')).
+    pipe(gulp.dest('src/ess/static/js'));
 });
 
 // Task to watch the SCSS/JS files and re-build when needed
 gulp.task('watch', function() {
     gulp.watch('src/static/scss/**/*.scss', ['scss']);
-    gulp.watch('src/static/js/*.js', ['js']);
+    gulp.watch('src/static/js/**/*.js', ['js']);
 });

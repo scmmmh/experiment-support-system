@@ -4591,6 +4591,9 @@ table.hover tr:nth-of-type(even):hover {
 .fi-zoom-out:before {
   content: "\f21a"; }
 
+.hidden {
+  display: none; }
+
 .frontend header {
   background: #ffffff;
   padding: 0 0 1em 0;

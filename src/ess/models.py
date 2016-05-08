@@ -343,38 +343,44 @@ class QuestionType(Base):
                                                 order_by='QuestionType.order',
                                                 cascade='all, delete-orphan'))
     parent = relationship('QuestionType', backref='children', remote_side=[id])
-    
-    def backend_schema(self):
-        if self.backend:
-            return json.loads(self.backend)
-        elif self.parent:
-            return self.parent.backend_schema()
+
+    def attribute(self, name):
+        if name in self.attributes:
+            return self.attributes[name]
         else:
-            return []
+            return None
+
+    #def backend_schema(self):
+    #    if self.backend:
+    #        return json.loads(self.backend)
+    #    elif self.parent:
+    #        return self.parent.backend_schema()
+    #    else:
+    #        return []
     
-    def dbschema_schema(self):
-        if self.dbschema:
-            return json.loads(self.dbschema)
-        elif self.parent:
-            return self.parent.dbschema_schema()
-        else:
-            return []
+    #def dbschema_schema(self):
+    #    if self.dbschema:
+    #        return json.loads(self.dbschema)
+    #    elif self.parent:
+    #        return self.parent.dbschema_schema()
+    #    else:
+    #        return []
     
-    def answer_schema(self):
-        if self.answer_validation:
-            return json.loads(self.answer_validation)
-        elif self.parent:
-            return self.parent.answer_schema()
-        else:
-            return []
+    #def answer_schema(self):
+    #    if self.answer_validation:
+    #        return json.loads(self.answer_validation)
+    #    elif self.parent:
+    #        return self.parent.answer_schema()
+    #    else:
+    #        return []
     
-    def frontend_doc(self):
-        if self.frontend:
-            return self.frontend
-        elif self.parent:
-            return self.parent.frontend_doc()
-        else:
-            return ''            
+    #def frontend_doc(self):
+    #    if self.frontend:
+    #        return self.frontend
+    #    elif self.parent:
+    #        return self.parent.frontend_doc()
+    #    else:
+    #        return ''            
 
 class Question(Base):
     
@@ -389,10 +395,10 @@ class Question(Base):
     help = Column(Unicode(255))
     order = Column(Integer)
     
-    attributes = relationship('QuestionAttributeGroup',
-                              backref='question',
-                              order_by='QuestionAttributeGroup.order',
-                              cascade='all, delete, delete-orphan')
+    #attributes = relationship('QuestionAttributeGroup',
+    #                          backref='question',
+    #                          order_by='QuestionAttributeGroup.order',
+    #                          cascade='all, delete, delete-orphan')
     answers = relationship('Answer',
                            backref='question',
                            cascade='all, delete, delete-orphan')
@@ -400,76 +406,82 @@ class Question(Base):
                                    backref='question',
                                    cascade='all, delete, delete-orphan')
     q_type = relationship('QuestionType', backref='questions')
-    
-    def attr_group(self, path, default=None, multi=False):
-        values = []
-        for group in self.attributes:
-            if group.key == path:
-                if multi:
-                    values.append(group)
-                else:
-                    return group
-        if values:
-            return values
+
+    def attribute(self, name):
+        if name in self.attributes:
+            return self.attributes[name]
         else:
-            return default
+            return self.q_type.attribute(name)
+
+    #def attr_group(self, path, default=None, multi=False):
+    #    values = []
+    #    for group in self.attributes:
+    #        if group.key == path:
+    #            if multi:
+    #                values.append(group)
+    #            else:
+    #                return group
+    #    if values:
+    #        return values
+    #    else:
+    #        return default
     
-    def attr(self, path, multi=False):
-        (q_group, q_attr) = path.split('.')
-        values = []
-        for group in self.attributes:
-            if group.key == q_group:
-                for attribute in group.attributes:
-                    if attribute.key == q_attr:
-                        if multi:
-                            values.append(attribute)
-                        else:
-                            return attribute
-        if values:
-            return values
-        else:
-            return None
+    #def attr(self, path, multi=False):
+    #    (q_group, q_attr) = path.split('.')
+    #    values = []
+    #    for group in self.attributes:
+    #        if group.key == q_group:
+    #            for attribute in group.attributes:
+    #                if attribute.key == q_attr:
+    #                    if multi:
+    #                        values.append(attribute)
+    #                    else:
+    #                        return attribute
+    #    if values:
+    #        return values
+    #    else:
+    #        return None
         
-    def attr_value(self, path, default=None, multi=False, data_type=None):
-        attr = self.attr(path, multi)
-        if attr:
-            if isinstance(attr, list):
-                if data_type:
-                    return [convert_type(a.value, target_type=data_type, default=default) for a in attr]
-                else:
-                    return [a.value if a.value else default for a in attr]
-            else:
-                if data_type:
-                    return convert_type(attr.value, target_type=data_type, default=default)
-                else:
-                    if attr.value:
-                        return attr.value
-                    else:
-                        return default
-        else:
-            return default
+    #def attr_value(self, path, default=None, multi=False, data_type=None):
+    #    attr = self.attr(path, multi)
+    #    if attr:
+    #        if isinstance(attr, list):
+    #            if data_type:
+    #                return [convert_type(a.value, target_type=data_type, default=default) for a in attr]
+    #            else:
+    #                return [a.value if a.value else default for a in attr]
+    #        else:
+    #            if data_type:
+    #                return convert_type(attr.value, target_type=data_type, default=default)
+    #            else:
+    #                if attr.value:
+    #                    return attr.value
+    #                else:
+    #                    return default
+    #    else:
+    #        return default
     
-    def set_attr_value(self, path, value, order=0, group_order=0):
-        attr = self.attr(path, multi=isinstance(value, list))
-        if attr:
-            attr.value = value # TODO: Fix updating of list values
-        else:
-            (q_group, q_attr) = path.split('.')
-            attr_group = self.attr_group(q_group)
-            if attr_group:
-                if isinstance(value, list):
-                    for idx, sub_value in enumerate(value):
-                        attr_group.attributes.append(QuestionAttribute(key=q_attr, value=sub_value, order=order + idx))
-                else:
-                    attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
-            else:
-                attr_group = QuestionAttributeGroup(key=q_group, order=group_order)
-                self.attributes.append(attr_group)
-                if isinstance(value, list):
-                    for idx, sub_value in enumerate(value):
-                        attr_group.attributes.append(QuestionAttribute(key=q_attr, value=sub_value, order=order + idx))
-                else:
-                    attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
+    #def set_attr_value(self, path, value, order=0, group_order=0):
+    #    attr = self.attr(path, multi=isinstance(value, list))
+    #    if attr:
+    #        attr.value = value # TODO: Fix updating of list values
+    #    else:
+    #        (q_group, q_attr) = path.split('.')
+    #        attr_group = self.attr_group(q_group)
+    #        if attr_group:
+    #            if isinstance(value, list):
+    #                for idx, sub_value in enumerate(value):
+    #                    attr_group.attributes.append(QuestionAttribute(key=q_attr, value=sub_value, order=order + idx))
+    #            else:
+    #                attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
+    #        else:
+    #            attr_group = QuestionAttributeGroup(key=q_group, order=group_order)
+    #            self.attributes.append(attr_group)
+    #            if isinstance(value, list):
+    #                for idx, sub_value in enumerate(value):
+    #                    attr_group.attributes.append(QuestionAttribute(key=q_attr, value=sub_value, order=order + idx))
+    #            else:
+    #                attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
 
 class QuestionAttributeGroup(Base):
     

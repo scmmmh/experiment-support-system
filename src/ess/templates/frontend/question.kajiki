@@ -1,0 +1,25 @@
+<div>
+  <!-- Generate just the form field -->
+  <py:def function="render(question)">
+    <section class="question qt-${question.q_type.name}">
+      <div class="row">
+        <div class="column small-12">
+          <div py:if="question.attribute('help')" class="float-right"><a href="#" title="Show help" class="toggle-question-help">?</a></div>
+          <h2>${question.title}</h2>
+          <p py:if="question.attribute('help')" class="question-help hidden">${question.attribute('help')}</p>
+        </div>
+        <div class="column small-${question.attribute('width')} end">
+          <py:switch test="question.q_type.display_as">
+            <py:case value="'single_line'">
+              ${single_line(question)}
+            </py:case>
+          </py:switch>
+        </div>
+      </div>
+    </section>
+  </py:def>
+  
+  <py:def function="single_line(question)">
+    ${form.field(question.attribute('input-type'), 'test', '', extra_attrs={'required': ''}, error_msg='Please ensure you provide a valid answer')}
+  </py:def>
+</div>
