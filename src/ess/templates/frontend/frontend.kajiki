@@ -20,11 +20,12 @@
         </header>
       </div>
     </div>
-    <form action="" class="row" data-abide="" novalidate="novalidate">
+    ${repr(participant.get_state())}
+    <form action="" class="row" data-abide="" novalidate="novalidate" method="post">
       <div class="column small-12">
         <h1>${qsheet.title}</h1>
         <py:for each="question in qsheet.questions">
-          ${qs.render(question)}
+          ${qs.render(question, {})}
         </py:for>
         <input type="submit"/>
       </div>

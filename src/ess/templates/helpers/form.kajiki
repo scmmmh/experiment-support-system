@@ -13,7 +13,7 @@
         <textarea name="${field_name}" py:attrs="kwargs['extra_attrs'] if 'extra_attrs' in kwargs else None"><py:if test="defined('values') and field_name in values">${values[field_name]}</py:if><py:else>${kwargs['value'] if 'value' in kwargs else ''}</py:else></textarea>
       </py:case>
       <py:case value="'select'">
-        <select name="${field_name}">
+        <select name="${field_name}" py:attrs="kwargs['extra_attrs'] if 'extra_attrs' in kwargs else None">
           <py:if test="defined('values') and field_name in values">
             <option py:for="(value, label) in kwargs['values']" value="${value}" py:attrs="{'selected': 'selected' if values[field_name] == value else None}">${label}</option>
           </py:if><py:else>

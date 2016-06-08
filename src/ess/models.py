@@ -27,8 +27,10 @@ from pyquest.util import convert_type
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-DB_VERSION = '11b7c2763658'
+
+DB_VERSION = '5a464c95c7f1'
 """The currently required database version."""
+
 
 class DBUpgradeException(Exception):
     """The :class:`~pyquest.models.DBUpgradeException` is used to indicate that
@@ -49,10 +51,11 @@ You are currently running version '%s', but version '%s' is required. Please run
 alembic -c config.ini upgrade to upgrade the database and then start the application
 again.
 """ % (self.current, self.required)
-    
+
+
 def check_database_version():
     """Checks that the current version of the database matches the version specified
-    by :data:`~pyquest.models.DB_VERSION`.
+    by :data:`~ess.models.DB_VERSION`.
     """
     dbsession = DBSession()
     try:
@@ -64,6 +67,70 @@ def check_database_version():
             raise DBUpgradeException(result[0], DB_VERSION)
     except OperationalError:
             raise DBUpgradeException('no version-information found', DB_VERSION)
+
+
+class AttributesMixin(object):
+    """The :class:`~ess.models.AttributesMixin` adds an ``attributes`` column to the object
+    it is mixed into. Additionally it provides the necessary functions so that the object
+    it is mixed into acts as a dictionary, which is backed by JSON encoded data in the
+    ``attributes`` column.
+
+    The :class:`~ess.models.AttributesMixin` also supports a parent lookup. By specifying
+    the ``__parent_attr_`` attribute with the name of an attribute that points to another
+    instance that mixes in :class:`~ess.models.AttributesMixin`, the :class:`~ess.models.AttributesMixin`
+    will look for any attribute that is not found in the current instance in the parent
+    instance. However, setting an attribute will always apply to the current instance's
+    stored attributes.
+    """
+
+    attributes = Column(UnicodeText)
+
+
+    def __contains__(self, key):
+        """Checks whether the given key exists in the object's attributes. If ``__parent_attr__``
+        is specified, will check in that property if the key does not exist in the current
+        object's attributes."""
+        if key in self._attributes:
+            return True
+        else:
+            if hasattr(self, '__parent_attr__') and getattr(self, self.__parent_attr__) is not None:
+                return key in getattr(self, self.__parent_attr__)
+            else:
+                return False
+
+    def __getitem__(self, key):
+        """Retrieves the stored value for the given key, if it exists in the object's attributes.
+        If ``__parent_attr__`` is specified, will retrieve the attribute value from that property.
+        Unlike standard dictionaries, this will return None, if no value exists for the key, rather
+        than throw an error."""
+        if key in self._attributes:
+            return self._attributes[key]
+        elif hasattr(self, '__parent_attr__') and getattr(self, self.__parent_attr__) is not None:
+            return getattr(self, self.__parent_attr__)[key]
+        else:
+            return None
+
+    def __setitem__(self, key, value):
+        """Sets the attribute ``key`` to the given ``value`` and updates the backing JSON database
+        property."""
+        self._attributes[key] = value
+        self.attributes = json.dumps(self._attributes)
+
+    @property
+    def _attributes(self):
+        """Helper function that handles caching of the backing JSON database property. Should only
+        be used inside the :class:`~ess.models.AttributesMixin`. External access should directly
+        use the in/get/set functionality of the object itself.
+        """
+        if hasattr(self, '_cached_attributes'):
+            return self._cached_attributes
+        else:
+            if self.attributes:
+                self._cached_attributes = json.loads(self.attributes)
+            else:
+                self._cached_attributes = {}
+            return self._attributes
+
 
 class User(Base):
     """The :class:`~pyquest.models.User` represents the researcher who creates
@@ -204,15 +271,8 @@ class Experiment(Base):
                                     primaryjoin="and_(Experiment.id==PermutationSet.survey_id, PermutationSet.type=='permutationset')",
                                     cascade='all, delete, delete-orphan')
 
-    def __init__(self, title=None, summary=None, styles=None, scripts=None, status='develop', start_id=None, language='en', owned_by=None):
-        self.title = title
-        self.summary = summary
-        self.styles = styles
-        self.scripts = scripts
-        self.status = status
-        self.start_id = start_id
-        self.language = language
-        self.owend_by = owned_by
+    def __init__(self, **kwargs):
+        Base.__init__(self, **kwargs)
         self.external_id = unicode(uuid1())
         
     def is_owned_by(self, user):
@@ -220,6 +280,7 @@ class Experiment(Base):
             return self.owned_by == user.id
         else:
             return False
+
 
 class QSheet(Base):
     
@@ -298,6 +359,7 @@ class QSheet(Base):
             buttons.append('clear');
         return buttons
 
+
 class QSheetAttribute(Base):
     
     __tablename__ = 'qsheet_attributes'
@@ -307,10 +369,11 @@ class QSheetAttribute(Base):
     key = Column(Unicode(255))
     value = Column(UnicodeText)
 
+
 class QuestionTypeGroup(Base):
-    
+
     __tablename__ = 'question_type_groups'
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
     title = Column(Unicode(255))
@@ -321,10 +384,12 @@ class QuestionTypeGroup(Base):
     parent = relationship('QuestionTypeGroup',
                           backref=backref('children', order_by='QuestionTypeGroup.order', cascade='all, delete-orphan'),
                           remote_side=[id])
-    
-class QuestionType(Base):
+
+
+class QuestionType(Base, AttributesMixin):
     
     __tablename__ = 'question_types'
+    __parent_attr__ = 'parent'
     
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
@@ -337,54 +402,21 @@ class QuestionType(Base):
     parent_id = Column(ForeignKey(id, name='question_types_parent_fk'))
     enabled = Column(Boolean, default=True)
     order = Column(Integer)
-    
+
     q_type_group = relationship(QuestionTypeGroup,
                                 backref=backref('q_types',
                                                 order_by='QuestionType.order',
                                                 cascade='all, delete-orphan'))
     parent = relationship('QuestionType', backref='children', remote_side=[id])
 
-    def attribute(self, name):
-        if name in self.attributes:
-            return self.attributes[name]
-        else:
-            return None
 
-    #def backend_schema(self):
-    #    if self.backend:
-    #        return json.loads(self.backend)
-    #    elif self.parent:
-    #        return self.parent.backend_schema()
-    #    else:
-    #        return []
-    
-    #def dbschema_schema(self):
-    #    if self.dbschema:
-    #        return json.loads(self.dbschema)
-    #    elif self.parent:
-    #        return self.parent.dbschema_schema()
-    #    else:
-    #        return []
-    
-    #def answer_schema(self):
-    #    if self.answer_validation:
-    #        return json.loads(self.answer_validation)
-    #    elif self.parent:
-    #        return self.parent.answer_schema()
-    #    else:
-    #        return []
-    
-    #def frontend_doc(self):
-    #    if self.frontend:
-    #        return self.frontend
-    #    elif self.parent:
-    #        return self.parent.frontend_doc()
-    #    else:
-    #        return ''            
+class Question(Base, AttributesMixin):
+    """The :class:`~ess.models.Question` represents a single question in
+    a :class:`~ess.models.QSheet`.
+    """
 
-class Question(Base):
-    
     __tablename__ = 'questions'
+    __parent_attr__ = 'q_type'
     
     id = Column(Integer, primary_key=True)
     qsheet_id = Column(ForeignKey(QSheet.id, name='questions_qsheets_fk'))
@@ -395,10 +427,6 @@ class Question(Base):
     help = Column(Unicode(255))
     order = Column(Integer)
     
-    #attributes = relationship('QuestionAttributeGroup',
-    #                          backref='question',
-    #                          order_by='QuestionAttributeGroup.order',
-    #                          cascade='all, delete, delete-orphan')
     answers = relationship('Answer',
                            backref='question',
                            cascade='all, delete, delete-orphan')
@@ -407,137 +435,6 @@ class Question(Base):
                                    cascade='all, delete, delete-orphan')
     q_type = relationship('QuestionType', backref='questions')
 
-    def attribute(self, name):
-        if name in self.attributes:
-            return self.attributes[name]
-        else:
-            return self.q_type.attribute(name)
-
-    #def attr_group(self, path, default=None, multi=False):
-    #    values = []
-    #    for group in self.attributes:
-    #        if group.key == path:
-    #            if multi:
-    #                values.append(group)
-    #            else:
-    #                return group
-    #    if values:
-    #        return values
-    #    else:
-    #        return default
-    
-    #def attr(self, path, multi=False):
-    #    (q_group, q_attr) = path.split('.')
-    #    values = []
-    #    for group in self.attributes:
-    #        if group.key == q_group:
-    #            for attribute in group.attributes:
-    #                if attribute.key == q_attr:
-    #                    if multi:
-    #                        values.append(attribute)
-    #                    else:
-    #                        return attribute
-    #    if values:
-    #        return values
-    #    else:
-    #        return None
-        
-    #def attr_value(self, path, default=None, multi=False, data_type=None):
-    #    attr = self.attr(path, multi)
-    #    if attr:
-    #        if isinstance(attr, list):
-    #            if data_type:
-    #                return [convert_type(a.value, target_type=data_type, default=default) for a in attr]
-    #            else:
-    #                return [a.value if a.value else default for a in attr]
-    #        else:
-    #            if data_type:
-    #                return convert_type(attr.value, target_type=data_type, default=default)
-    #            else:
-    #                if attr.value:
-    #                    return attr.value
-    #                else:
-    #                    return default
-    #    else:
-    #        return default
-    
-    #def set_attr_value(self, path, value, order=0, group_order=0):
-    #    attr = self.attr(path, multi=isinstance(value, list))
-    #    if attr:
-    #        attr.value = value # TODO: Fix updating of list values
-    #    else:
-    #        (q_group, q_attr) = path.split('.')
-    #        attr_group = self.attr_group(q_group)
-    #        if attr_group:
-    #            if isinstance(value, list):
-    #                for idx, sub_value in enumerate(value):
-    #                    attr_group.attributes.append(QuestionAttribute(key=q_attr, value=sub_value, order=order + idx))
-    #            else:
-    #                attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
-    #        else:
-    #            attr_group = QuestionAttributeGroup(key=q_group, order=group_order)
-    #            self.attributes.append(attr_group)
-    #            if isinstance(value, list):
-    #                for idx, sub_value in enumerate(value):
-    #                    attr_group.attributes.append(QuestionAttribute(key=q_attr, value=sub_value, order=order + idx))
-    #            else:
-    #                attr_group.attributes.append(QuestionAttribute(key=q_attr, value=value, order=order))
-
-class QuestionAttributeGroup(Base):
-    
-    __tablename__ = 'question_complex_attributes'
-    
-    id = Column(Integer, primary_key=True)
-    question_id = Column(ForeignKey(Question.id, name='question_complex_attributes_questions_fk'))
-    key = Column(Unicode(255))
-    label = Column(Unicode(255))
-    order = Column(Integer)
-     
-    attributes = relationship('QuestionAttribute',
-                              backref='attribute_group',
-                              order_by='QuestionAttribute.order',
-                              cascade='all, delete, delete-orphan')
-    
-    def attr(self, path, multi=False):
-        values = []
-        for attr in self.attributes:
-            if attr.key == path:
-                if multi:
-                    values.append(attr)
-                else:
-                    return attr
-        if values:
-            return values
-        else:
-            return None
-        
-    def attr_value(self, path, default=None, multi=False):
-        attr = self.attr(path, multi)
-        if attr:
-            if isinstance(attr, list):
-                return [a.value for a in attr]
-            else:
-                return attr.value
-        else:
-            return default
-    
-    def set_attr_value(self, path, value):
-        attr = self.attr(path, False)
-        if attr:
-            attr.value = value
-        else:
-            self.attributes.append(QuestionAttribute(key=path, value=value, order=len(self.attributes) + 1))
-
-class QuestionAttribute(Base):
-    
-    __tablename__ = 'question_attributes'
-    
-    id = Column(Integer, primary_key=True)
-    question_group_id = Column(ForeignKey(QuestionAttributeGroup.id, name='question_attributes_question_complex_attributes_fk'))
-    key = Column(Unicode(255))
-    label = Column(Unicode(255))
-    value = Column(UnicodeText)
-    order = Column(Integer)
 
 class QSheetTransition(Base):
     
