@@ -93,7 +93,7 @@ Best Regards,
          get_config_setting(request, 'app.title', default='Experiment Support System'),
          request.route_url('user.confirm',
                            token=token.token),
-         get_config_setting(request, 'app.title', default='Experiment Support System')))
+         get_config_setting(request, 'app.title', default='Experiment Support System')))  # noqa
 
 
 def new_user_validated(request, user, token):
@@ -127,8 +127,8 @@ link.
 
 Best Regards,
 %s''' % (user.display_name,
-         request.route_url('user.reset_password', token=token.token),
-         get_config_setting(request, 'app.title', default='Experiment Support System')))
+         request.route_url('user.reset_password', token=token.token),  # noqa
+         get_config_setting(request, 'app.title', default='Experiment Support System')))  # noqa
 
 
 def password_reset(request, user, token):
@@ -145,7 +145,9 @@ def password_reset(request, user, token):
                user.email,
                get_config_setting(request, 'email.sender',
                                   default='no-reply@example.com'),
-               'Password for the %s reset' % get_config_setting(request, 'app.title', default='Experiment Support System'),
+               'Password for the %s reset' % get_config_setting(request,
+                                                                'app.title',
+                                                                default='Experiment Support System'),
                '''Hello %s,
 
 You have asked to have your password reset. To complete the reset password
@@ -163,9 +165,9 @@ access your %s account.
 
 Best Regards,
 %s''' % (user.display_name,
-         request.route_url('user.reset_password', token=token.token),
-         get_config_setting(request, 'app.title', default='Experiment Support System'),
-         get_config_setting(request, 'app.title', default='Experiment Support System')))
+         request.route_url('user.reset_password', token=token.token),  # noqa
+         get_config_setting(request, 'app.title', default='Experiment Support System'),  # noqa
+         get_config_setting(request, 'app.title', default='Experiment Support System')))  # noqa
 
 
 def password_reset_failed(request):
@@ -198,5 +200,5 @@ possible as somebody else may have gained access to your account.
 
 Best Regards,
 %s''' % (user.display_name,
-         get_config_setting(request, 'app.title', default='Experiment Support System'),
-         get_config_setting(request, 'app.title', default='Experiment Support System')))
+         get_config_setting(request, 'app.title', default='Experiment Support System'),  # noqa
+         get_config_setting(request, 'app.title', default='Experiment Support System')))  # noqa

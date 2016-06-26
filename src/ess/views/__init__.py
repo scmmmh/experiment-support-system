@@ -1,9 +1,8 @@
-from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
-from pyramid.response import Response
 from pywebtools.pyramid.auth.views import current_user
 
 from . import frontend, user
+
 
 def init(config):
     config.add_route('root', '/')

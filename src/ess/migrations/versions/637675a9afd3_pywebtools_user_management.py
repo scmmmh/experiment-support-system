@@ -49,7 +49,7 @@ def upgrade():
     op.create_table('permission_groups_permissions',
                     sa.Column('permission_group_id',
                               sa.Integer,
-                              sa.ForeignKey('permission_groups.id',name='permission_groups_permissions_groups_fk'),
+                              sa.ForeignKey('permission_groups.id', name='permission_groups_permissions_groups_fk'),
                               primary_key=True),
                     sa.Column('permission_id',
                               sa.Integer,
@@ -61,7 +61,7 @@ def upgrade():
     op.create_table('users_permission_groups',
                     sa.Column('user_id',
                               sa.Integer,
-                              sa.ForeignKey('users.id',name='users_permission_groups_users_fk'),
+                              sa.ForeignKey('users.id', name='users_permission_groups_users_fk'),
                               primary_key=True),
                     sa.Column('permission_group_id',
                               sa.Integer,
@@ -82,7 +82,6 @@ def upgrade():
                     ['action', 'token', 'timeout'])
 
 
-
 def downgrade():
     bind = op.get_bind()
     metadata.bind = bind
@@ -94,7 +93,7 @@ def downgrade():
     op.create_table('groups_permissions',
                     sa.Column('group_id',
                               sa.Integer,
-                              sa.ForeignKey('permission_groups.id',name='groups_permissions_groups_fk'),
+                              sa.ForeignKey('permission_groups.id', name='groups_permissions_groups_fk'),
                               primary_key=True),
                     sa.Column('permission_id',
                               sa.Integer,
@@ -106,7 +105,7 @@ def downgrade():
     op.create_table('users_groups',
                     sa.Column('user_id',
                               sa.Integer,
-                              sa.ForeignKey('users.id',name='users_groups_users_fk'),
+                              sa.ForeignKey('users.id', name='users_groups_users_fk'),
                               primary_key=True),
                     sa.Column('group_id',
                               sa.Integer,

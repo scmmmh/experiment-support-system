@@ -1,9 +1,11 @@
-"""Simplify Questions and Question Types
+"""
+#####################################
+Simplify Questions and Question Types
+#####################################
 
 Revision ID: 5a464c95c7f1
 Revises: 11b7c2763658
 Create Date: 2016-05-08 19:13:21.079496
-
 """
 import json
 import sqlalchemy as sa
@@ -39,17 +41,18 @@ questions_attr = sa.Table('question_attributes', metadata,
                           sa.Column('value', sa.Unicode),
                           sa.Column('order', sa.Integer))
 
+
 def upgrade():
     locale = Locale('en')
     languages = list(locale.languages.items())
-    languages.sort(key=lambda t:t[1])
+    languages.sort(key=lambda t: t[1])
     territories = list(locale.territories.items())
-    territories.sort(key=lambda t:t[1])
+    territories.sort(key=lambda t: t[1])
     metadata.bind = op.get_bind()
     # Add the new columns
     op.add_column('question_types', sa.Column('attributes', sa.UnicodeText))
     op.add_column('questions', sa.Column('attributes', sa.UnicodeText))
-    # Update the question types 
+    # Update the question types
     question_type_mapping = {}
     for question_type in op.get_bind().execute(question_types.select()):
         question_type_mapping[question_type[0]] = question_type[1]
@@ -59,7 +62,8 @@ def upgrade():
                      'width': 'small-12',
                      'user_input': False,
                      'visible': True}
-        elif question_type[1] in ['long_text', 'short_text', 'number', 'email', 'url', 'date', 'time', 'datetime', 'month']:
+        elif question_type[1] in ['long_text', 'short_text', 'number', 'email',
+                                  'url', 'date', 'time', 'datetime', 'month']:
             input_type = question_type[1]
             if input_type == 'short_text':
                 input_type = 'text'
@@ -115,21 +119,21 @@ def upgrade():
                      'visible': True,
                      'answers': []}
         elif question_type[1] == 'language':
-            attrs= {'display_as': 'select_simple_choice',
-                    'allow_multiple': False,
-                    'widget': 'select',
-                    'width': 'small-12 medium-8 large-6',
-                    'user_input': True,
-                    'visible': True,
-                    'answers': [{'value': language[0], 'label': language[1]} for language in languages]}
+            attrs = {'display_as': 'select_simple_choice',
+                     'allow_multiple': False,
+                     'widget': 'select',
+                     'width': 'small-12 medium-8 large-6',
+                     'user_input': True,
+                     'visible': True,
+                     'answers': [{'value': language[0], 'label': language[1]} for language in languages]}
         elif question_type[1] == 'country':
-            attrs= {'display_as': 'select_simple_choice',
-                    'allow_multiple': False,
-                    'widget': 'select',
-                    'width': 'small-12 medium-8 large-6',
-                    'user_input': True,
-                    'visible': True,
-                    'answers': [{'value': territory[0], 'label': territory[1]} for territory in territories]}
+            attrs = {'display_as': 'select_simple_choice',
+                     'allow_multiple': False,
+                     'widget': 'select',
+                     'width': 'small-12 medium-8 large-6',
+                     'user_input': True,
+                     'visible': True,
+                     'answers': [{'value': territory[0], 'label': territory[1]} for territory in territories]}
         elif question_type[1] == 'js_check':
             attrs = {'display_as': 'js_check',
                      'user_input': False,
@@ -138,7 +142,13 @@ def upgrade():
                    where(question_types.c.id == question_type[0]).values({'attributes': json.dumps(attrs)}))
     # Update the questions
     for question in op.get_bind().execute(questions.select()):
-        attributes = op.get_bind().execute(questions_attr_group.join(questions_attr, questions_attr_group.c.id == questions_attr.c.question_group_id).select().where(questions_attr_group.c.question_id == question[0]).order_by(questions_attr_group.c.order, questions_attr.c.order, questions_attr.c.key))
+        attributes = op.get_bind().execute(questions_attr_group.
+                                           join(questions_attr,
+                                                questions_attr_group.c.id == questions_attr.c.question_group_id).
+                                           select().where(questions_attr_group.c.question_id == question[0]).
+                                           order_by(questions_attr_group.c.order,
+                                                    questions_attr.c.order,
+                                                    questions_attr.c.key))
         question_type = question_type_mapping[question[1]]
         attrs = {'required': question[3]}
         if question_type_mapping[question[1]] == 'text':

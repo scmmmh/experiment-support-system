@@ -1,17 +1,20 @@
-"""Change question attribute value columns from Unicode to UnicodeText
+"""
+###################################################################
+Change question attribute value columns from Unicode to UnicodeText
+###################################################################
 
 Revision ID: 23b66139a952
 Revises: 488366bafc98
 Create Date: 2013-03-10 18:34:04.565468
 
 """
+from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
 revision = '23b66139a952'
 down_revision = '488366bafc98'
-
-from alembic import op
-import sqlalchemy as sa
 
 
 def upgrade():

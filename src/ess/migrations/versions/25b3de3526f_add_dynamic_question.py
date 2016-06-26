@@ -1,18 +1,22 @@
-"""Add dynamic question type
+"""
+#########################
+Add dynamic question type
+#########################
 
 Revision ID: 25b3de3526f
 Revises: 105647470980
 Create Date: 2012-11-18 19:17:40.887408
 
+# flake8: noqa
 """
+from alembic import op
+from json import dumps
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
 revision = '25b3de3526f'
 down_revision = '105647470980'
-
-from alembic import op
-from json import dumps
-import sqlalchemy as sa
 
 q_table = sa.sql.table('questions',
                        sa.sql.column('type', sa.Unicode(255)),
@@ -25,6 +29,7 @@ qt_table = sa.sql.table('question_types',
                         sa.sql.column('answer_validation', sa.UnicodeText),
                         sa.sql.column('backend', sa.UnicodeText),
                         sa.sql.column('frontend', sa.UnicodeText))
+
 
 def upgrade():
     op.create_table('question_types',
@@ -371,7 +376,7 @@ def upgrade():
     for qt in op.get_bind().execute(qt_table.select()):
         op.execute(q_table.update().where(q_table.c.type==qt[1]).values({'type_id': qt[0]}))
     op.drop_column('questions', 'type')
-    
+
 
 def downgrade():
     op.add_column('questions', sa.Column('type', sa.Unicode(255)))

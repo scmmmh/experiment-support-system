@@ -4,19 +4,21 @@ Revision ID: 1cd78b756fb3
 Revises: 305eb54c5d1c
 Create Date: 2013-06-03 15:50:40.324668
 
+# flake8: noqa
 """
+from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
 revision = '1cd78b756fb3'
 down_revision = 'c6ce6d3adb3'
 
-from alembic import op
-import sqlalchemy as sa
-
 qt_table = sa.sql.table('question_types',
                         sa.sql.column('id', sa.Integer),
                         sa.sql.column('name', sa.Unicode(255)),
                         sa.sql.column('frontend', sa.UnicodeText))
+
 
 FRONTENDS = {u'single_choice': {u'new': u"""<div py:attrs="{'class':error_class}">
   <table py:if="q.attr_value('further.subtype', 'table') == 'table'">
@@ -234,10 +236,15 @@ FRONTENDS = {u'single_choice': {u'new': u"""<div py:attrs="{'class':error_class}
   </table>
   <p py:if="error_text">${error_text}</p>
 </div>"""}}
+
+
 def upgrade():
     for qt in op.get_bind().execute(qt_table.select().where(qt_table.c.name.in_(FRONTENDS.keys()))):
-        op.get_bind().execute(qt_table.update().values(frontend=FRONTENDS[qt[1]]['new']).where(qt_table.c.id==qt[0]))
+        op.get_bind().execute(qt_table.update().values(frontend=FRONTENDS[qt[1]]['new']).
+                              where(qt_table.c.id == qt[0]))
+
 
 def downgrade():
     for qt in op.get_bind().execute(qt_table.select().where(qt_table.c.name.in_(FRONTENDS.keys()))):
-        op.get_bind().execute(qt_table.update().values(frontend=FRONTENDS[qt[1]]['old']).where(qt_table.c.id==qt[0]))
+        op.get_bind().execute(qt_table.update().values(frontend=FRONTENDS[qt[1]]['old']).
+                              where(qt_table.c.id == qt[0]))

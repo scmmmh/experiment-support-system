@@ -1,34 +1,37 @@
-"""Fix other rendering on single/multi choide questions
+"""
+####################################################
+Fix other rendering on single/multi choide questions
+####################################################
 
 Revision ID: 36bdedebf543
 Revises: 43ad0a13e1ea
 Create Date: 2013-03-10 19:41:02.659131
 
+# flake8: noqa
 """
+from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
 revision = '36bdedebf543'
 down_revision = '43ad0a13e1ea'
 
-from alembic import op
-import sqlalchemy as sa
-
 metadata = sa.MetaData()
-
 qtg = sa.Table('question_type_groups', metadata,
                sa.Column('id', sa.Integer, primary_key=True),
                sa.Column('name', sa.Unicode(255)))
-
 qt = sa.Table('question_types', metadata,
               sa.Column('group_id', sa.Integer),
               sa.Column('name', sa.Unicode(255)),
               sa.Column('backend', sa.UnicodeText),
               sa.Column('frontend', sa.UnicodeText))
 
+
 def upgrade():
     metadata.bind = op.get_bind()
-    core_qtg = op.get_bind().execute(qtg.select(qtg.c.name==u'core')).first()
-    op.get_bind().execute(qt.update(sa.and_(qt.c.group_id==core_qtg[0], qt.c.name==u'single_choice'),
+    core_qtg = op.get_bind().execute(qtg.select(qtg.c.name == 'core')).first()
+    op.get_bind().execute(qt.update(sa.and_(qt.c.group_id == core_qtg[0], qt.c.name == 'single_choice'),
                                     {'frontend': """<div py:attrs="{'class':error_class}">
   <table py:if="q.attr_value('further.subtype', 'table') == 'table'">
     <thead>
@@ -64,7 +67,7 @@ def upgrade():
   </div>
   <p py:if="error_text">${error_text}</p>
 </div>"""}))
-    op.get_bind().execute(qt.update(sa.and_(qt.c.group_id==core_qtg[0], qt.c.name==u'multi_choice'),
+    op.get_bind().execute(qt.update(sa.and_(qt.c.group_id == core_qtg[0], qt.c.name == 'multi_choice'),
                                     {'frontend': """<div py:attrs="{'class':error_class}">
   <table py:if="q.attr_value('further.subtype', 'table') == 'table'">
     <thead>
@@ -99,10 +102,11 @@ def upgrade():
   <p py:if="error_text">${error_text}</p>
 </div>"""}))
 
+
 def downgrade():
     metadata.bind = op.get_bind()
-    core_qtg = op.get_bind().execute(qtg.select(qtg.c.name==u'core')).first()
-    op.get_bind().execute(qt.update(sa.and_(qt.c.group_id==core_qtg[0], qt.c.name==u'single_choice'),
+    core_qtg = op.get_bind().execute(qtg.select(qtg.c.name == 'core')).first()
+    op.get_bind().execute(qt.update(sa.and_(qt.c.group_id == core_qtg[0], qt.c.name == 'single_choice'),
                                     {'frontend': """<div py:attrs="{'class':error_class}">
   <table py:if="q.attr_value('further.subtype', 'table') == 'table'">
     <thead>
@@ -138,7 +142,7 @@ def downgrade():
   </div>
   <p py:if="error_text">${error_text}</p>
 </div>"""}))
-    op.get_bind().execute(qt.update(sa.and_(qt.c.group_id==core_qtg[0], qt.c.name==u'multi_choice'),
+    op.get_bind().execute(qt.update(sa.and_(qt.c.group_id == core_qtg[0], qt.c.name == 'multi_choice'),
                                     {'frontend': """<div py:attrs="{'class':error_class}">
   <table py:if="q.attr_value('further.subtype', 'table') == 'table'">
     <thead>

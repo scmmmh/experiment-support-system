@@ -1,9 +1,12 @@
-"""Add country and language questions
+"""
+##################################
+Add country and language questions
+##################################
 
 Revision ID: 56964e32266d
 Revises: 36bdedebf543
 Create Date: 2013-03-23 13:38:39.461584
-
+# flake8: noqa
 """
 
 # revision identifiers, used by Alembic.
@@ -35,18 +38,35 @@ qtg = sa.Table('question_type_groups', metadata,
 
 def upgrade():
     metadata.bind = op.get_bind()
-    qtg_id = op.get_bind().execute(qtg.select().where(qtg.c.name==u'core')).first()[0]
-    op.get_bind().execute(qt.insert({'name': u'country',
-                                     'title': u'Country selection',
-                                     'dbschema': dumps([{'type': 'attr', 'attr': 'further.priority', 'default': '', 'group_order': 0},
-                                                        {'type': 'attr', 'attr': 'further.allow_multiple', 'default': 'no', 'group_order': 1}]),
+    qtg_id = op.get_bind().execute(qtg.select().where(qtg.c.name == 'core')).first()[0]
+    op.get_bind().execute(qt.insert({'name': 'country',
+                                     'title': 'Country selection',
+                                     'dbschema': dumps([{'type': 'attr',
+                                                         'attr': 'further.priority',
+                                                         'default': '',
+                                                         'group_order': 0},
+                                                        {'type': 'attr',
+                                                         'attr': 'further.allow_multiple',
+                                                         'default': 'no',
+                                                         'group_order': 1}]),
                                      'answer_validation': dumps({'type': 'unicode'}),
                                      'backend': dumps([{'type': 'question-name'},
                                                        {'type': 'question-title'},
                                                        {'type': 'question-help'},
                                                        {'type': 'question-required'},
-                                                       {'type': 'unicode', 'name': 'priority', 'title': 'Prioritise these countries', 'attr': 'further.priority', 'default': '', 'validator': {'not_empty': False, 'if_empty': ''}},
-                                                       {'type': 'select', 'name': 'multiple', 'title': 'Allow multiple selection', 'attr': 'further.allow_multiple', 'values': [('no', 'No'), ('yes', 'Yes')], 'default': 'no', 'validator': {}}]),
+                                                       {'type': 'unicode',
+                                                        'name': 'priority',
+                                                        'title': 'Prioritise these countries',
+                                                        'attr': 'further.priority',
+                                                        'default': '',
+                                                        'validator': {'not_empty': False, 'if_empty': ''}},
+                                                       {'type': 'select',
+                                                        'name': 'multiple',
+                                                        'title': 'Allow multiple selection',
+                                                        'attr': 'further.allow_multiple',
+                                                        'values': [('no', 'No'), ('yes', 'Yes')],
+                                                        'default': 'no',
+                                                        'validator': {}}]),
                                      'frontend': """<?python
     from babel import Locale
     locale = Locale('en')
@@ -64,15 +84,31 @@ def upgrade():
                                      'group_id': qtg_id}))
     op.get_bind().execute(qt.insert({'name': u'language',
                                      'title': u'Language selection',
-                                     'dbschema': dumps([{'type': 'attr', 'attr': 'further.priority', 'default': '', 'group_order': 0},
-                                                        {'type': 'attr', 'attr': 'further.allow_multiple', 'default': 'no', 'group_order': 1}]),
+                                     'dbschema': dumps([{'type': 'attr',
+                                                         'attr': 'further.priority',
+                                                         'default': '',
+                                                         'group_order': 0},
+                                                        {'type': 'attr',
+                                                         'attr': 'further.allow_multiple',
+                                                         'default': 'no',
+                                                         'group_order': 1}]),
                                      'answer_validation': dumps({'type': 'unicode'}),
                                      'backend': dumps([{'type': 'question-name'},
                                                        {'type': 'question-title'},
                                                        {'type': 'question-help'},
                                                        {'type': 'question-required'},
-                                                       {'type': 'unicode', 'name': 'priority', 'title': 'Prioritise these languages', 'attr': 'further.priority', 'default': '', 'validator': {'not_empty': False, 'if_empty': ''}},
-                                                       {'type': 'select', 'name': 'multiple', 'title': 'Allow multiple selection', 'attr': 'further.allow_multiple', 'values': [('no', 'No'), ('yes', 'Yes')], 'default': 'no', 'validator': {}}]),
+                                                       {'type': 'unicode',
+                                                        'name': 'priority',
+                                                        'title': 'Prioritise these languages',
+                                                        'attr': 'further.priority', 'default': '',
+                                                        'validator': {'not_empty': False, 'if_empty': ''}},
+                                                       {'type': 'select',
+                                                        'name': 'multiple',
+                                                        'title': 'Allow multiple selection',
+                                                        'attr': 'further.allow_multiple',
+                                                        'values': [('no', 'No'), ('yes', 'Yes')],
+                                                        'default': 'no',
+                                                        'validator': {}}]),
                                      'frontend': """<?python
     from babel import Locale
     locale = Locale('en')
@@ -89,8 +125,9 @@ def upgrade():
 </select>""",
                                      'group_id': qtg_id}))
 
+
 def downgrade():
     metadata.bind = op.get_bind()
-    qtg_id = op.get_bind().execute(qtg.select().where(qtg.c.name==u'core')).first()[0]
-    op.get_bind().execute(qt.delete().where(sa.and_(qt.c.group_id==qtg_id, qt.c.name==u'country')))
-    op.get_bind().execute(qt.delete().where(sa.and_(qt.c.group_id==qtg_id, qt.c.name==u'language')))
+    qtg_id = op.get_bind().execute(qtg.select().where(qtg.c.name == 'core')).first()[0]
+    op.get_bind().execute(qt.delete().where(sa.and_(qt.c.group_id == qtg_id, qt.c.name == 'country')))
+    op.get_bind().execute(qt.delete().where(sa.and_(qt.c.group_id == qtg_id, qt.c.name == 'language')))
