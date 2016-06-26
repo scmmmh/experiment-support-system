@@ -1,5 +1,17 @@
-from . import frontend
+from pyramid.httpexceptions import HTTPNotFound
+from pyramid.view import view_config
+from pyramid.response import Response
+from pywebtools.pyramid.auth.views import current_user
+
+from . import frontend, user
 
 def init(config):
-    config.add_static_view(name='ess_static', path='ess:static', cache_max_age=3600)
+    config.add_route('root', '/')
+    user.init(config)
     frontend.init(config)
+
+
+@view_config(route_name='root', renderer='ess:templates/root.kajiki')
+@current_user()
+def root(request):
+    return {}

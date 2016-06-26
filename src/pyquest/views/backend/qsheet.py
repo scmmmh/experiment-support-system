@@ -11,8 +11,8 @@ from lxml import etree
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound, HTTPUnauthorized
 from pyramid.response import Response
 from pyramid.view import view_config
-from pywebtools.auth import is_authorised
-from pywebtools.renderer import render
+#from pywebtools.auth import is_authorised
+#from pywebtools.renderer import render
 from sqlalchemy import and_
 from xml.sax.saxutils import unescape
 
@@ -70,12 +70,12 @@ class QSheetAddQuestionSchema(Schema):
 NAMESPACES = {'ess': XmlValidator.namespace}
     
 @view_config(route_name='survey.qsheet')
-@render({'text/html': True})
+#@render({'text/html': True})
 def index(request):
     raise HTTPFound(request.route_url('survey.view', sid=request.matchdict['sid']))
 
 @view_config(route_name='survey.qsheet.new')
-@render({'text/html': 'backend/qsheet/new.html'})
+#@render({'text/html': 'backend/qsheet/new.html'})
 def new_qsheet(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -221,7 +221,7 @@ def load_transition_from_xml(qsheets, doc, dbsession):
                                                 'permutation': condition.attrib['permutation']}
 
 @view_config(route_name='survey.qsheet.import')
-@render({'text/html': 'backend/qsheet/import.html'})
+#@render({'text/html': 'backend/qsheet/import.html'})
 def import_qsheet(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -257,7 +257,7 @@ def import_qsheet(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.view')
-@render({'text/html': 'backend/qsheet/view.html'})
+#@render({'text/html': 'backend/qsheet/view.html'})
 def view(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -274,7 +274,7 @@ def view(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.preview')
-@render({'text/html': 'backend/qsheet/preview.html'})
+#@render({'text/html': 'backend/qsheet/preview.html'})
 def preview(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -317,8 +317,8 @@ def preview(request):
 
 
 @view_config(route_name='survey.qsheet.edit')
-@render({'text/html': 'backend/qsheet/edit.html',
-         'application/json': True})
+#@render({'text/html': 'backend/qsheet/edit.html',
+#         'application/json': True})
 def edit(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -405,7 +405,7 @@ def edit(request):
                                                           sid=request.matchdict['sid'],
                                                           qsid=request.matchdict['qsid']))
                 except api.Invalid as e:
-                    print e
+                    print(e)
                     e = flatten_invalid(e)
                     e.params = request.POST
                     if request.is_xhr:
@@ -424,7 +424,7 @@ def edit(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.edit.add_transition')
-@render({'text/html': 'backend/qsheet/transition.html'})
+#@render({'text/html': 'backend/qsheet/transition.html'})
 def edit_add_transition(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -454,7 +454,7 @@ def edit_add_transition(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.edit.delete_transition')
-@render({'application/json': True})
+#@render({'application/json': True})
 def edit_delete_transition(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -474,7 +474,7 @@ def edit_delete_transition(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.edit.add_question')
-@render({'text/html': 'backend/qsheet/edit_fragment.html'}, allow_cache=False)
+#@render({'text/html': 'backend/qsheet/edit_fragment.html'}, allow_cache=False)
 # TODO: CSRF Protection
 def edit_add_question(request):
     dbsession = DBSession()
@@ -511,7 +511,7 @@ def edit_add_question(request):
                         'idx': 0}
 
 @view_config(route_name='survey.qsheet.edit.delete_question')
-@render({'application/json': ''})
+#@render({'application/json': ''})
 # TODO: CSRF Protection
 def edit_delete_question(request):
     dbsession = DBSession()
@@ -529,7 +529,7 @@ def edit_delete_question(request):
                 return {'status': 'ok'}
 
 @view_config(route_name='survey.qsheet.delete')
-@render({'text/html': 'backend/qsheet/delete.html'})
+#@render({'text/html': 'backend/qsheet/delete.html'})
 def delete_qsheet(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()

@@ -1,0 +1,6 @@
+<footer class="row expanded">
+  <?py from pywebtools.pyramid.util import get_config_setting ?>
+  <?py from ess.util import version ?>
+  <div class="small-6 column">Powered by the <a href="https://experiment-support-system.readthedocs.io/">Experiment Support System</a></div>
+  <div class="small-6 column text-right">Version ${version()}</div>
+</footer>

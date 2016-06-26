@@ -1,0 +1,24 @@
+<py:extends href="ess:templates/layout/backend/centred.kajiki">
+  <py:block name="title">
+    <py:if test="status == 'success'">Registration confirmed</py:if>
+    <py:if test="status == 'fail'">Confirmation failed</py:if>
+  </py:block>
+  <py:block name="content">
+    <py:if test="status == 'success'">
+      <h1>Registration confirmed</h1>
+      <p>Your registration has been confirmed and you have been sent an
+        e-mail with a link that will allow you to set a passsword.</p>
+      <p>The link is only valid for the next 20 minutes, so please set
+        your password as soon as possible.</p>
+    </py:if>
+    <py:if test="status == 'fail'">
+      <h1>Confirmation failed</h1>
+      <p>Unfortunately we have no data that matches your confirmation.</p>
+      <p>Please try <a href="${request.route_url('user.register')}">registering again</a>
+        or if that confirms that a user with your e-mail address already
+        exists, then try to <a href="${request.route_url('user.forgotten_password')}">request a new password</a>
+        using the e-mail address you provided, which will send another
+        confirmation e-mail.</p>
+    </py:if>
+  </py:block>
+</py:extends>

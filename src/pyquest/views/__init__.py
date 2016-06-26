@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pyramid.view import view_config
-from pywebtools.renderer import render
+#from pywebtools.renderer import render
 from sqlalchemy import func, and_
 
 from pyquest.models import DBSession, Survey
@@ -18,7 +18,7 @@ def init(config):
 
 
 @view_config(route_name='root')
-@render({'text/html': 'root.html'})
+#@render({'text/html': 'root.html'})
 def root(request):
     dbsession = DBSession()
     surveys = dbsession.query(Survey).filter(and_(Survey.status=='running', Survey.public==True)).limit(5)

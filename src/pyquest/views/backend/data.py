@@ -12,8 +12,8 @@ import transaction
 from formencode import Schema, validators, api, variabledecode, foreach
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.view import view_config
-from pywebtools.auth import is_authorised
-from pywebtools.renderer import render
+#from pywebtools.auth import is_authorised
+#from pywebtools.renderer import render
 from sqlalchemy import and_
 
 from pyquest.helpers.auth import check_csrf_token
@@ -65,7 +65,7 @@ class EditPermutationSetSchema(Schema):
     interfaces_mode = validators.UnicodeString()
 
 @view_config(route_name='data.list')
-@render({'text/html': 'backend/data/list.html'})
+#@render({'text/html': 'backend/data/list.html'})
 def dataset_list(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -76,7 +76,7 @@ def dataset_list(request):
         redirect_to_login(request)
 
 @view_config(route_name='data.view')
-@render({'text/html': 'backend/data/view.html'})
+#@render({'text/html': 'backend/data/view.html'})
 def dataset_view(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -95,7 +95,7 @@ def dataset_view(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.new')
-@render({'text/html': 'backend/data/dataset_new.html'})
+#@render({'text/html': 'backend/data/dataset_new.html'})
 def dataset_new(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -154,7 +154,7 @@ def load_csv_file(file_data, file_name, survey, dbsession):
     return data_set
 
 @view_config(route_name='data.upload')
-@render({'text/html': 'backend/data/dataset_upload.html'})
+#@render({'text/html': 'backend/data/dataset_upload.html'})
 def dataset_upload(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -184,7 +184,7 @@ def dataset_upload(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.edit')
-@render({'text/html': 'backend/data/dataset_edit.html'})
+#@render({'text/html': 'backend/data/dataset_edit.html'})
 def dataset_edit(request):
     dbsession = DBSession()
     data_set = dbsession.query(DataSet).filter(DataSet.id==request.matchdict['dsid']).first()
@@ -225,7 +225,7 @@ def dataset_edit(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.delete')
-@render({'text/html': 'backend/data/dataset_delete.html'})
+#@render({'text/html': 'backend/data/dataset_delete.html'})
 def dataset_delete(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -248,7 +248,7 @@ def dataset_delete(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.download')
-@render({'text/csv': ''})
+#@render({'text/csv': ''})
 def dataset_download(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -272,7 +272,7 @@ def dataset_download(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.item.new')
-@render({'text/html': 'backend/data/item_new.html'})
+#@render({'text/html': 'backend/data/item_new.html'})
 def item_new(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -310,7 +310,7 @@ def item_new(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.item.edit')
-@render({'text/html': 'backend/data/item_edit.html'})
+#@render({'text/html': 'backend/data/item_edit.html'})
 def edit(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -351,7 +351,7 @@ def edit(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.item.delete')
-@render({'text/html': 'backend/data/item_delete.html'})
+#@render({'text/html': 'backend/data/item_delete.html'})
 def delete(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -376,7 +376,7 @@ def delete(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.new.permset')
-@render({'text/html': 'backend/data/permset_new.html'})
+#@render({'text/html': 'backend/data/permset_new.html'})
 def permset_new(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -411,7 +411,7 @@ def permset_new(request):
         raise HTTPNotFound()
 
 @view_config(route_name='data.edit.permset')
-@render({'text/html': 'backend/data/permset_edit.html'}) # TODO: Fix permutation generation
+#@render({'text/html': 'backend/data/permset_edit.html'}) # TODO: Fix permutation generation
 def permset_edit(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -448,7 +448,7 @@ def permset_edit(request):
                         else:
                             permutations = [(prod,) for prod in itertools.product(task_items, interface_items)]
                 for comb in permutations:
-                    print comb
+                    print(comb)
                     di = DataItem()
                     value = []
                     for pair in comb:
@@ -471,7 +471,7 @@ def permset_edit(request):
                 'permset': permset}
 
 @view_config(route_name='data.edit.permset.count')
-@render({'application/json': True})
+#@render({'application/json': True})
 def permset_count(request):
     try:
         dbsession = DBSession()
@@ -525,7 +525,7 @@ class ControlAnswersSchema(Schema):
     pre_validators = [variabledecode.NestedVariables()]
 
 @view_config(route_name='survey.qsheet.data')
-@render({'text/html': 'backend/data/qsheet.html'})
+#@render({'text/html': 'backend/data/qsheet.html'})
 def qsheet(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -558,7 +558,7 @@ def qsheet(request):
                     request.session.flash('Control answers updated', 'info')
                     raise HTTPFound(request.route_url('survey.qsheet.data', sid=request.matchdict['sid'], qsid=request.matchdict['qsid']))
                 except api.Invalid as e:
-                    print e
+                    print(e)
                     e.params = request.POST
                     return {'survey': survey,
                             'qsheet': qsheet,
@@ -574,7 +574,7 @@ def qsheet(request):
         raise HTTPNotFound()
     
 @view_config(route_name='survey.qsheet.data.attach')
-@render({'text/html': 'backend/data/qsheet_attach.html'})
+#@render({'text/html': 'backend/data/qsheet_attach.html'})
 def attach(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -610,7 +610,7 @@ def attach(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.qsheet.data.detach')
-@render({'text/html': 'backend/data/qsheet_detach.html'})
+#@render({'text/html': 'backend/data/qsheet_detach.html'})
 def detach(request):
     dbsession = DBSession()
     user = current_user(request)

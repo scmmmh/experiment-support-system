@@ -1,0 +1,63 @@
+<div>
+  <!-- Generate just the form field -->
+  <py:def function="input(field_type, field_name, **kwargs)">
+    <py:switch test="field_type">
+      <py:case value="'checkbox'">
+        <py:if test="(defined('values') and field_name in values and kwargs['value'] in values[field_name] if 'value' in kwargs else 'on' in kwargs['value']) or ('checked' in kwargs and kwargs['checked'])">
+          <input type="checkbox" name="${field_name}" value="${kwargs['value'] if 'value' in kwargs else 'on'}" checked="checked" py:attrs="kwargs['extra_attrs'] if 'extra_attrs' in kwargs else None"/>
+        </py:if><py:else>
+          <input type="checkbox" name="${field_name}" value="${kwargs['value'] if 'value' in kwargs else 'on'}" py:attrs="kwargs['extra_attrs'] if 'extra_attrs' in kwargs else None"/>
+        </py:else>
+      </py:case>
+      <py:case value="'textarea'">
+        <textarea name="${field_name}" py:attrs="kwargs['extra_attrs'] if 'extra_attrs' in kwargs else None"><py:if test="defined('values') and field_name in values">${values[field_name]}</py:if><py:else>${kwargs['value'] if 'value' in kwargs else ''}</py:else></textarea>
+      </py:case>
+      <py:case value="'select'">
+        <select name="${field_name}">
+          <py:if test="defined('values') and field_name in values">
+            <option py:for="(value, label) in kwargs['values']" value="${value}" py:attrs="{'selected': 'selected' if values[field_name] == value else None}">${label}</option>
+          </py:if><py:else>
+            <option py:for="(value, label) in kwargs['values']" value="${value}" py:attrs="{'selected': 'selected' if 'value' in kwargs and kwargs['value'] == value else None}">${label}</option>
+          </py:else>
+        </select>
+      </py:case>
+    </py:switch>
+    <py:if test="field_type not in ['checkbox', 'textarea', 'select']">
+      <py:if test="defined('values') and field_name in values">
+        <input type="${field_type}" name="${field_name}" value="${values[field_name]}" py:attrs="kwargs['extra_attrs'] if 'extra_attrs' in kwargs else None"/>
+      </py:if><py:else>
+        <input type="${field_type}" name="${field_name}" value="${kwargs['value'] if 'value' in kwargs else ''}" py:attrs="kwargs['extra_attrs'] if 'extra_attrs' in kwargs else None"/>
+      </py:else>
+    </py:if>
+  </py:def>
+  
+  <!-- Generate a form field with wrapping label and error display -->
+  <py:def function="field(field_type, field_name, field_label, **kwargs)">
+    <py:if test="defined('errors') and errors and field_name in errors">
+      <?py
+if 'extra_attrs' in kwargs:
+    if 'class' in kwargs['extra_attrs']:
+        kwargs['extra_attrs']['class'] = '%s is-invalid-input' % kwargs['extra_attrs']['class']
+    else:
+        kwargs['extra_attrs']['class'] = 'is-invalid-input'
+else:
+    kwargs['extra_attrs'] = {'class': 'is-invalid-input'}
+      ?>
+      <label class="is-invalid-label"><py:if test="field_type not in ['checkbox', 'radio']">${field_label}</py:if>
+        ${input(field_type, field_name, **kwargs)}
+        <py:if test="field_type in ['checkbox', 'radio']">${field_label}</py:if>
+      </label>
+      <span class="form-error is-visible">${errors[field_name]}</span>
+    </py:if><py:else>
+      <label><py:if test="field_type not in ['checkbox', 'radio']">${field_label}</py:if>
+        ${input(field_type, field_name, **kwargs)}
+        <py:if test="field_type in ['checkbox', 'radio']">${field_label}</py:if>
+      </label>
+    </py:else>
+  </py:def>
+  
+  <!-- Generate a form field with the CSRF token in the session -->
+  <py:def function="csrf_field()">
+    ${field('hidden', 'csrf_token', '', value=request.session.get_csrf_token())}
+  </py:def>
+</div>

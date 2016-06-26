@@ -12,61 +12,16 @@ import random
 import hashlib
 import time
 
+from pywebtools.pyramid.auth.models import User
+from pywebtools.sqlalchemy import Base, DBSession
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
-                        Table, DateTime, Boolean, func)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref,
-                            reconstructor)
-from zope.sqlalchemy import ZopeTransactionExtension
+                        DateTime, Boolean, func)
+from sqlalchemy.orm import (relationship, backref)
 from uuid import uuid1
 
-from pyquest.helpers import as_data_type
-from pyquest.util import convert_type
 
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-Base = declarative_base()
-
-
-DB_VERSION = '5a464c95c7f1'
+DB_VERSION = '637675a9afd3'
 """The currently required database version."""
-
-
-class DBUpgradeException(Exception):
-    """The :class:`~pyquest.models.DBUpgradeException` is used to indicate that
-    the database requires an upgrade before the Experiment Support System system
-    can be used.
-    """
-    def __init__(self, current, required):
-        self.current = current
-        self.required = required
-    
-    def __repr__(self):
-        return "DBUpgradeException('%s', '%s'" % (self.current, self.required)
-    
-    def __str__(self):
-        return """A database upgrade is required.
-
-You are currently running version '%s', but version '%s' is required. Please run
-alembic -c config.ini upgrade to upgrade the database and then start the application
-again.
-""" % (self.current, self.required)
-
-
-def check_database_version():
-    """Checks that the current version of the database matches the version specified
-    by :data:`~ess.models.DB_VERSION`.
-    """
-    dbsession = DBSession()
-    try:
-        result = dbsession.query('version_num').\
-                from_statement('SELECT version_num FROM alembic_version WHERE version_num = :version_num').\
-                params(version_num=DB_VERSION).first()
-        if not result:
-            result = dbsession.query('version_num').from_statement('SELECT version_num FROM alembic_version').first()
-            raise DBUpgradeException(result[0], DB_VERSION)
-    except OperationalError:
-            raise DBUpgradeException('no version-information found', DB_VERSION)
 
 
 class AttributesMixin(object):
@@ -131,92 +86,6 @@ class AttributesMixin(object):
                 self._cached_attributes = {}
             return self._attributes
 
-
-class User(Base):
-    """The :class:`~pyquest.models.User` represents the researcher who creates
-    the experiment via a :class:`~pyquest.models.Experiment`. The participant in
-    the experiment is represented by :class:`~pyquest.models.Participant`.
-    """
-    __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True)
-    username = Column(Unicode(64), unique=True, index=True)
-    email = Column(Unicode(255))
-    salt = Column(Unicode(255))
-    password = Column(Unicode(255))
-    display_name = Column(Unicode(64))
-    login_limit = Column(Integer)
-    
-    permissions = relationship('Permission', backref='users', secondary='users_permissions')
-    groups = relationship('Group', backref='users', secondary='users_groups')
-    
-    def __init__(self, username, email, display_name, password=None):
-        self.username = username
-        self.email = email
-        self.display_name = display_name
-        self.salt = u''.join(unichr(random.randint(0, 127)) for _ in range(32))
-        if password:
-            self.password = unicode(hashlib.sha512('%s$$%s' % (self.salt, password)).hexdigest())
-        else:
-            self.password = u''
-        self.login_limit = 0
-        self.preferences_ = {}
-    
-    @reconstructor
-    def init(self):
-        self.preferences_ = {}
-        
-    def new_password(self, password):
-        self.salt = u''.join(unichr(random.randint(0, 127)) for _ in range(32))
-        self.password = unicode(hashlib.sha512('%s$$%s' % (self.salt, password)).hexdigest())
-    
-    def password_matches(self, password):
-        password = unicode(hashlib.sha512('%s$$%s' % (self.salt, password)).hexdigest())
-        return password == self.password
-    
-    def has_permission(self, permission):
-        dbsession = DBSession()
-        direct_perm = dbsession.query(Permission.name).join(User, Permission.users).filter(User.id==self.id)
-        group_perm = dbsession.query(Permission.name).join(Group, Permission.groups).join(User, Group.users).filter(User.id==self.id)
-        return permission in map(lambda p: p[0], direct_perm.union(group_perm))
-    
-    def preference(self, key, default=None, data_type=None):
-        if not self.preferences_:
-            for pref in self.preferences:
-                self.preferences_[pref.key] = pref.value
-        if key in self.preferences_:
-            return as_data_type(self.preferences_[key], data_type)
-        else:
-            return default
-    
-users_permissions = Table('users_permissions', Base.metadata,
-                          Column('user_id', ForeignKey('users.id', name='users_permissions_users_fk'), primary_key=True),
-                          Column('permission_id', ForeignKey('permissions.id', name='users_permissions_permissions_fk'), primary_key=True))
-
-class Permission(Base):
-    
-    __tablename__ = 'permissions'
-    
-    id = Column(Integer, primary_key=True)
-    name = Column(Unicode(255), index=True, unique=True)
-    title = Column(Unicode(255))
-    
-class Group(Base):
-    
-    __tablename__ = 'groups'
-    
-    id = Column(Integer, primary_key=True)
-    title = Column(Unicode(255))
-    
-    permissions = relationship('Permission', backref='groups', secondary='groups_permissions')
-    
-groups_permissions = Table('groups_permissions', Base.metadata,
-                           Column('group_id', ForeignKey(Group.id, name='groups_permissions_groups_fk'), primary_key=True),
-                           Column('permission_id', ForeignKey(Permission.id, 'groups_permissions_permissions_fk'), primary_key=True))
-
-users_groups = Table('users_groups', Base.metadata,
-                     Column('user_id', ForeignKey(User.id, name='users_groups_users_fk'), primary_key=True),
-                     Column('group_id', ForeignKey(Group.id, name='users_groups_groups_fk'), primary_key=True))
 
 class Preference(Base):
     

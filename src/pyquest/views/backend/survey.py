@@ -10,10 +10,10 @@ from formencode import Schema, validators, api, variabledecode, foreach
 from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.response import Response
 from pyramid.view import view_config
-from pywebtools.auth import is_authorised
-from pywebtools.renderer import render
+#from pywebtools.auth import is_authorised
+#from pywebtools.renderer import render
 from sqlalchemy import desc, and_
-from StringIO import StringIO
+#from StringIO import StringIO
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from pyquest import helpers
@@ -61,7 +61,7 @@ class SurveyDuplicateSchema(Schema):
     title = validators.UnicodeString(not_empty=True)
 
 @view_config(route_name='survey')
-@render({'text/html': 'backend/survey/index.html'})
+#@render({'text/html': 'backend/survey/index.html'})
 def index(request):
     user = current_user(request)
     if is_authorised(':user.logged-in', {'user': user}):
@@ -70,7 +70,7 @@ def index(request):
         redirect_to_login(request)
 
 @view_config(route_name='survey.view')
-@render({'text/html': 'backend/survey/view.html'})
+#@render({'text/html': 'backend/survey/view.html'})
 def view(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -87,7 +87,7 @@ def view(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.new')
-@render({'text/html': 'backend/survey/new.html'})
+#@render({'text/html': 'backend/survey/new.html'})
 def new(request):
     dbsession = DBSession()
     user = current_user(request)
@@ -190,7 +190,7 @@ def load_survey_from_stream(stream, owner, dbsession):
         raise api.Invalid(str(e), {}, None, error_dict={'source_file': str(e)})
 
 @view_config(route_name='survey.import')
-@render({'text/html': 'backend/survey/import.html'})
+#@render({'text/html': 'backend/survey/import.html'})
 def import_survey(request):
     user = current_user(request)
     if is_authorised(':user.has_permission("survey.new")', {'user': user}):
@@ -214,7 +214,7 @@ def import_survey(request):
         redirect_to_login(request)
 
 @view_config(route_name='survey.edit')
-@render({'text/html': 'backend/survey/edit.html'})
+#@render({'text/html': 'backend/survey/edit.html'})
 def edit(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -258,7 +258,7 @@ def edit(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.edit.delete_notification')
-@render({'text/html': 'backend/survey/notifications.html'})
+#@render({'text/html': 'backend/survey/notifications.html'})
 def edit_delete_notification(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -269,7 +269,7 @@ def edit_delete_notification(request):
     return {'survey': survey}
 
 @view_config(route_name='survey.edit.add_notification')
-@render({'text/html': 'backend/survey/notifications.html'})
+#@render({'text/html': 'backend/survey/notifications.html'})
 def edit_add_notification(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -281,7 +281,7 @@ def edit_add_notification(request):
     return {'survey':survey}
 
 @view_config(route_name='survey.duplicate')
-@render({'text/html': 'backend/survey/duplicate.html'})
+#@render({'text/html': 'backend/survey/duplicate.html'})
 def duplicate(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -312,7 +312,7 @@ def duplicate(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.delete')
-@render({'text/html': 'backend/survey/delete.html'})
+#@render({'text/html': 'backend/survey/delete.html'})
 def delete(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -338,7 +338,7 @@ def delete(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.preview')
-@render({'text/html': 'backend/survey/preview.html'})
+#@render({'text/html': 'backend/survey/preview.html'})
 def preview(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()
@@ -362,7 +362,7 @@ def preview(request):
         raise HTTPNotFound()
 
 @view_config(route_name='survey.status')
-@render({'text/html': 'backend/survey/status.html'})
+#@render({'text/html': 'backend/survey/status.html'})
 def status(request):
     dbsession = DBSession()
     survey = dbsession.query(Survey).filter(Survey.id==request.matchdict['sid']).first()

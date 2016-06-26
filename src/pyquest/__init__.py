@@ -2,11 +2,11 @@
 
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
-from pywebtools import renderer
+#from pywebtools import renderer
 from sqlalchemy import engine_from_config
 
-from ess import views as ess_views
-from ess import models as ess_models
+#from ess import views as ess_views
+#from ess import models as ess_models
 
 from pyquest.models import DBSession, check_database_version
 from pyquest import l10n, views, helpers

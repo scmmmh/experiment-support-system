@@ -1,0 +1,17 @@
+<py:extends href="ess:templates/layout/backend/centred.kajiki">
+  <py:block name="title">Logout</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <h1>Logout</h1>
+    <form action="${request.route_url('user.logout')}" method="post">
+      ${form.csrf_field()}
+      <p>That's enough for now.</p>
+      <div class="row">
+        <div class="small-12 medium-8 large-6 column end text-right">
+          <a href="${request.route_url('root')}" class="button secondary">Stay</a>
+          <input type="submit" value="Logout" class="button"/>
+        </div>
+      </div>
+    </form>
+  </py:block>
+</py:extends>

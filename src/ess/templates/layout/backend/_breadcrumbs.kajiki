@@ -1,0 +1,15 @@
+<nav>
+  <ul class="breadcrumbs">
+    <li><a href="${request.route_url('root')}">Home</a></li>
+    <py:if test="defined('crumbs') and crumbs">
+      <li py:for="crumb in crumbs[:-1]" class="${'current' if 'current' in crumb else ''} ${'unavailable' if 'url' not in crumb else ''}">
+        <py:if test="'url' in crumb">
+          <a href="${crumb['url']}">${crumb['title']}</a>
+        </py:if><py:else>
+          ${crumb['title']}
+        </py:else>
+      </li>
+      <li>${crumbs[-1]['title']}</li>
+    </py:if>
+  </ul>
+</nav>

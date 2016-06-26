@@ -4,7 +4,7 @@ Created on 23 Jan 2012
 
 @author: mhall
 '''
-from pywebtools.auth import is_authorised
+#from pywebtools.auth import is_authorised
 
 from pyramid.httpexceptions import HTTPForbidden
 

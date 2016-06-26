@@ -5,7 +5,7 @@ u"""
 """
 
 from lxml import etree
-from StringIO import StringIO
+#from StringIO import StringIO
 
 def convert_type(value, target_type, default=None):
     if value is None:

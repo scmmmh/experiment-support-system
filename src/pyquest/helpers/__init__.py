@@ -3,7 +3,7 @@
 import json
 from genshi import Markup
 
-from pywebtools import form, text
+#from pywebtools import form, text
 
 from pyquest.util import template_as_text, get_config_setting
 

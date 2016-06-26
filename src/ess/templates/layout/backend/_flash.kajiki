@@ -1,0 +1,5 @@
+<div py:if="request.session.peek_flash('info') or request.session.peek_flash('error') or request.session.peek_flash('auth')" id="flash" class="row">
+  <div py:for="msg in request.session.pop_flash('info')" class="callout primary small" data-closable=""><button class="close-button" aria-label="Dismiss alert" type="button" data-close=""><span class="fi-x" aria-hidden="true"></span></button>${msg}</div>
+  <div py:for="msg in request.session.pop_flash('auth')" class="callout warning small" data-closable=""><button class="close-button" aria-label="Dismiss alert" type="button" data-close=""><span class="fi-x" aria-hidden="true"></span></button>${msg}</div>
+  <div py:for="msg in request.session.pop_flash('error')" class="callout alert small" data-closable=""><button class="close-button" aria-label="Dismiss alert" type="button" data-close=""><span class="fi-x" aria-hidden="true"></span></button>${msg}</div>
+</div>

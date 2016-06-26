@@ -9,7 +9,7 @@ from formencode import Schema, validators, api, variabledecode, foreach, compoun
 from lxml import etree
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
-from pywebtools.renderer import render
+#from pywebtools.renderer import render
 from sqlalchemy import desc
 
 from pyquest.helpers.auth import check_csrf_token
@@ -28,7 +28,7 @@ class QuestionTypesImportSchema(Schema):
     source_file = compound.Pipe(validators.FieldStorageUploadConverter(not_empty=True), FileReaderValidator(), XmlValidator())
 
 @view_config(route_name='admin.question_types')
-@render({'text/html': 'admin/question_types/index.html'})
+#@render({'text/html': 'admin/question_types/index.html'})
 def index(request):
     user = current_user(request)
     dbsession = DBSession()
@@ -99,7 +99,7 @@ def load_q_types_from_xml(dbsession, element, order):
         return question_type
 
 @view_config(route_name='admin.question_types.import')
-@render({'text/html': 'admin/question_types/import.html'})
+#@render({'text/html': 'admin/question_types/import.html'})
 def import_qtypes(request):
     user = current_user(request)
     dbsession = DBSession()
@@ -125,7 +125,7 @@ def import_qtypes(request):
         redirect_to_login(request)
 
 @view_config(route_name='admin.question_types.delete')
-@render({'text/html': 'admin/question_types/delete.html'})
+#@render({'text/html': 'admin/question_types/delete.html'})
 def delete_qtypes(request):
     def qtg_used(qtg):
         if qtg.children:
