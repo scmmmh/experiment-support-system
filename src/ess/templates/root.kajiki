@@ -1,7 +1,11 @@
 <py:extends href="ess:templates/layout/backend/centred.kajiki">
-  <py:block name="title">  <?py from pywebtools.pyramid.util import get_config_setting ?>${get_config_setting(request, 'app.title', default='Experiment Support System')}</py:block>
+  <py:block name="title"><?py from pywebtools.pyramid.util import get_config_setting ?>${get_config_setting(request, 'app.title', default='Experiment Support System')}</py:block>
   <py:block name="content">
     <?py from pywebtools.pyramid.util import get_config_setting ?>
-    <h1>${get_config_setting(request, 'app.title', default='Experiment Support System')}</h1>
+    <article class="row">
+      <div class="column small-12">
+        <h1>${get_config_setting(request, 'app.title', default='Experiment Support System')}</h1>
+      </div>
+    </article>
   </py:block>
 </py:extends>
