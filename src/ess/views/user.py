@@ -42,7 +42,7 @@ def init(config):
                                  'user.forgotten_password': 'ess:templates/users/forgotten_password.kajiki',
                                  'user.reset_password': 'ess:templates/users/reset_password.kajiki'},
                       redirects={'_default': 'root',
-                                 'user.login': 'root',
+                                 'user.login': 'dashboard',
                                  'user.logout': 'root',
                                  'user.register': 'root',
                                  'user.forgotten_password': 'root',

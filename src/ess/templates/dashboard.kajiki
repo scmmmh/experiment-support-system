@@ -1,0 +1,6 @@
+<py:extends href="ess:templates/layout/backend/centred.kajiki">
+  <py:block name="title">Experiments</py:block>
+  <py:block name="content">
+    <h1>Experiments</h1>
+  </py:block>
+</py:extends>
