@@ -1,9 +1,9 @@
 <header>
   <?py from pywebtools.pyramid.util import get_config_setting ?>
   <nav class="top-bar">
-    <div class="top-bar-title"><a href="${request.route_url('root')}">${get_config_setting(request, 'app.title', default='Experiment Support System')}</a></div>
     <div class="top-bar-left">
       <ul class="menu">
+        <li><a href="${request.route_url('root')}">${get_config_setting(request, 'app.title', default='Experiment Support System')}</a></li>        
       </ul>
     </div>
     <div class="top-bar-right">

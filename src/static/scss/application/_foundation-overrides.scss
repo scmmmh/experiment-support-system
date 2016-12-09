@@ -1,0 +1,81 @@
+/* Overrides to make the top-bar look nice */
+.top-bar-title a {
+    padding: 1rem;
+    line-height: 1;
+    display: block;
+    font-size: 0.875rem;
+}
+.top-bar {
+    a {
+        color: $white;
+    }
+
+    .menu {
+        a {
+            padding: 1rem 1rem;
+            color: $white;
+            
+            &:hover {
+                color: $white;
+                background-color: $black;
+            }
+        }
+        li {
+            &.active {
+                a {
+                    background-color: $primary-color;
+                }
+            }
+        }
+        .is-dropdown-submenu, .divider {
+            border-color: $black;
+            background-color: $topbar-background;
+            z-index: 11;
+        }
+    }
+}
+
+/* Additional breadcrumb bar styling */
+.breadcrumbs {
+    padding: 0.3rem 1rem 0.3rem 1rem;
+    background: $light-gray;
+    border-bottom: 1px solid $medium-gray;
+}
+
+/* Postfix button addon */
+.button.postfix {
+    display: block;
+    width: 100%;
+    height: ($input-font-size + ($form-spacing * 1.5) - rem-calc(1));
+    padding: $form-spacing / 2;
+}
+
+/* Fix the icon font size for callout close buttons. */
+.callout .close-button {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+/* No dropdown indicator in the menubar */
+.menubar .dropdown.menu > li.is-dropdown-submenu-parent > a {
+    padding-right: 0.2rem;
+    
+    &::after {
+        display: none;
+    }
+}
+
+/* Align all labels in headers to the top */
+h1 .label,
+h2 .label,
+h3 .label,
+h4 .label,
+h5 .label,
+h6 .label {
+    vertical-align: top;
+}
+
+/* Table heading cells in the table body should be left aligned. */
+tbody th {
+    text-align: left;
+}

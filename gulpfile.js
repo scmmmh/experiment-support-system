@@ -3,6 +3,8 @@
 var gulp = require('gulp');
 var sass = require('gulp-sass');
 var concat = require('gulp-concat');
+var clean_css = require('gulp-clean-css');
+var rename = require('gulp-rename');
 var babel = require('gulp-babel');
 var modernizr = require('gulp-modernizr');
 var uglify = require('gulp-uglify');
@@ -12,26 +14,18 @@ gulp.task('default', ['scss', 'js']);
 
 // Task to build the CSS
 gulp.task('scss', function(cb) {
-    var count = 0;
-    var pcb = function() {
-        count++;
-        if(count == 2) {
-            cb();
-        }
-    }
-    // Build the application CSS
-    pump([gulp.src('src/static/scss/app.scss'),
-          sass({
-              includePaths: ['node_modules/foundation-sites/scss']
-          }),
-          gulp.src('src/static/scss/foundation-icons/foundation-icons.*'),
-          uglify(),
-          gulp.dest('src/ess/static/css')
-    ], pcb);
-    // Copy the font icons
-    pump([gulp.src('src/static/scss/foundation-icons/svgs/*'),
-          gulp.dest('src/ess/static/css/svgs')
-    ], pcb);
+    var css_sources = ['src/static/scss/base-settings.scss'];
+    css_sources.push('src/static/scss/foundation-loader.scss');
+    css_sources.push('src/static/scss/application.scss');
+    gulp.src(css_sources, {base: 'src/static/scss'}).
+        pipe(concat('application.scss')).
+        pipe(sass({
+            includePaths: ['node_modules/foundation-sites/scss',
+                           'node_modules/foundation-icons']
+        })).
+        pipe(clean_css()).
+        pipe(rename('application.min.css')).
+        pipe(gulp.dest('src/ess/static/css'));
 });
 
 // Task to build the JavaScript files

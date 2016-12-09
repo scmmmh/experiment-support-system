@@ -1,0 +1,7 @@
+/* Load foundation extensions */
+@import 'application/foundation-overrides';
+
+/* Load the actual SCSS files */
+@import 'application/generic.scss';
+@import 'application/frontend.scss';
+@import 'application/footer.scss';
