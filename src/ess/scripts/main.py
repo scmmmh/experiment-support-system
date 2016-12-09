@@ -10,7 +10,7 @@ def get_user_parameter(prompt, default=''):
         prompt = '%s [%s]: ' % (prompt, default)
     else:
         prompt = '%s: ' % (prompt)
-    response = raw_input(prompt)
+    response = input(prompt)
     if response.strip() == '':
         return default
     else:
