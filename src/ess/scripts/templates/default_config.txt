@@ -38,6 +38,10 @@ pyramid.debug_routematch = false
 pyramid.debug_templates = false
 pyramid.default_locale_name = en
 pyramid.includes = pyramid_tm
+{%if debug %}\
+    pyramid_debugtoolbar
+{%end%}\
+kajiki.mode = xml
 
 # DON'T CHANGE THIS
 use = egg:ExperimentSupportSystem
