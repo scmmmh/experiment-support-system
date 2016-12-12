@@ -14,6 +14,7 @@ gulp.task('default', ['scss', 'js']);
 
 // Task to build the CSS
 gulp.task('scss', function(cb) {
+    // Build the CSS
     var css_sources = ['src/static/scss/base-settings.scss'];
     css_sources.push('src/static/scss/foundation-loader.scss');
     css_sources.push('src/static/scss/application.scss');
@@ -25,6 +26,13 @@ gulp.task('scss', function(cb) {
         })).
         pipe(clean_css()).
         pipe(rename('application.min.css')).
+        pipe(gulp.dest('src/ess/static/css'));
+    // Copy Material Design Icon Fonts
+    gulp.src(['node_modules/material-design-icons/iconfont/*.eot',
+              'node_modules/material-design-icons/iconfont/*.svg',
+              'node_modules/material-design-icons/iconfont/*.ttf',
+              'node_modules/material-design-icons/iconfont/*.woff',
+              'node_modules/material-design-icons/iconfont/*.woff2'], {base: 'node_modules/material-design-icons/iconfont'}).
         pipe(gulp.dest('src/ess/static/css'));
 });
 
