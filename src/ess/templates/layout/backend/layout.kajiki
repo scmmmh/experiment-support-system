@@ -13,11 +13,7 @@
     <py:include href="ess:templates/layout/backend/_header.kajiki"/>
     <py:include href="ess:templates/layout/backend/_breadcrumbs.kajiki"/>
     <py:include href="ess:templates/layout/backend/_flash.kajiki"/>
-    <article class="row expanded">
-      <div class="column small-12">
-        <py:block name="content"></py:block>
-      </div>
-    </article>
+    <py:block name="content"></py:block>
     <py:include href="ess:templates/layout/backend/_footer.kajiki"/>
     <py:include href="ess:templates/layout/backend/_scripts.kajiki"/>
     <py:block name="body_preinit_script"></py:block>

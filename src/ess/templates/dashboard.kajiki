@@ -1,10 +1,14 @@
-<py:extends href="ess:templates/layout/backend/full-width.kajiki">
+<py:extends href="ess:templates/layout/backend/layout.kajiki">
   <py:block name="title">Experiments</py:block>
   <py:block name="content">
     <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
-    <div class="float-right">
-      <a href="${request.route_url('experiment.create')}" class="button">${icon.md('add', 'Create a new Experiment')}</a>
+    <div class="row expanded">
+      <article class="column small-12">
+        <div class="float-right">
+          <a py:if="request.current_user.has_permission('experiment.create')" href="${request.route_url('experiment.create')}" class="button">${icon.md('add', 'Create a new Experiment')}</a>
+        </div>
+        <h1>Experiments</h1>
+      </article>
     </div>
-    <h1>Experiments</h1>
   </py:block>
 </py:extends>

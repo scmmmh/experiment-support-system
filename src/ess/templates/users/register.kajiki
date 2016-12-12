@@ -1,32 +1,36 @@
-<py:extends href="ess:templates/layout/backend/centred.kajiki">
+<py:extends href="ess:templates/layout/backend/layout.kajiki">
   <py:block name="title">Register</py:block>
   <py:block name="content">
     <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
-    <h1>Register</h1>
-    <form action="${request.route_url('user.register')}" method="post">
-      ${form.csrf_field()}
-      <py:if test="'return_to' in request.params">${h.form.hidden_field('return_to', request.params['return_to'])}</py:if>
-      <div class="row">
-        <div class="small-12 medium-8 large-6 column end">
-           ${form.field('email', 'email', 'E-Mail Address', extra_attrs={'placeholder': 'Your e-mail address will be your username'})}
-        </div>
-      </div>
-      <div class="row">
-        <div class="small-12 medium-8 large-6 column end">
-           ${form.field('email', 'email_confirm', 'Confirm E-Mail Address', extra_attrs={'placeholder': 'Please confirm your e-mail address'})}
-        </div>
-      </div>
-      <div class="row">
-        <div class="small-12 medium-8 large-6 column end">
-           ${form.field('text', 'name', 'Name', extra_attrs={'placeholder': 'Please enter your full name'})}
-        </div>
-      </div>
-      <div class="row text-right">
-        <div class="small-12 medium-8 large-6 column end">
-          <a href="${request.route_url('root')}" class="button secondary">Don't Register</a>
-          <input type="submit" value="Register" class="button"/>
-        </div>
-      </div>
-    </form>
+    <div class="row">
+      <article class="column small-12 medium-offset-3 medium-6">
+        <h1>Register</h1>
+        <form action="${request.route_url('user.register')}" method="post">
+          ${form.csrf_field()}
+          <py:if test="'return_to' in request.params">${h.form.hidden_field('return_to', request.params['return_to'])}</py:if>
+          <div class="row">
+            <div class="column small-12">
+               ${form.field('email', 'email', 'E-Mail Address', extra_attrs={'placeholder': 'Your e-mail address will be your username'})}
+            </div>
+          </div>
+          <div class="row">
+            <div class="column small-12">
+               ${form.field('email', 'email_confirm', 'Confirm E-Mail Address', extra_attrs={'placeholder': 'Please confirm your e-mail address'})}
+            </div>
+          </div>
+          <div class="row">
+            <div class="column small-12">
+               ${form.field('text', 'name', 'Name', extra_attrs={'placeholder': 'Please enter your full name'})}
+            </div>
+          </div>
+          <div class="row text-right">
+            <div class="column small-12">
+              <a href="${request.route_url('root')}" class="button secondary">Don't Register</a>
+              <input type="submit" value="Register" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
   </py:block>
 </py:extends>

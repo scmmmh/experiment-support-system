@@ -1,20 +1,19 @@
 <py:extends href="ess:templates/layout/backend/layout.kajiki">
-  <py:block name="title">Request a new password</py:block>
+  <py:block name="title">Create a new Experiment</py:block>
   <py:block name="content">
     <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
     <div class="row">
       <article class="column small-12 medium-offset-3 medium-6">
-        <h1>Request Password</h1>
-        <form action="${request.route_url('user.forgotten_password')}" method="post">
+        <h1>Create a new Experiment</h1>
+        <form action="${request.route_url('experiment.create')}" method="post">
           ${form.csrf_field()}
           <div class="row">
-            <div class="column small-12">
-              ${form.field('email', 'email', 'E-Mail Address', extra_attrs={'placeholder': 'Please enter the e-mail address you used to regiser'})}
-            </div>
+            <div class="column small-12">${form.field('text', 'title', 'Title')}</div>
           </div>
           <div class="row text-right">
             <div class="column small-12">
-              <input type="submit" value="Reset Password" class="button"/>
+              <a href="${request.route_url('dashboard')}" class="button secondary">Don't Create</a>
+              <input type="submit" value="Create" class="button"/>
             </div>
           </div>
         </form>

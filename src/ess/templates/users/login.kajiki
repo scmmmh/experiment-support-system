@@ -1,22 +1,26 @@
-<py:extends href="ess:templates/layout/backend/centred.kajiki">
+<py:extends href="ess:templates/layout/backend/layout.kajiki">
   <py:block name="title">Login</py:block>
   <py:block name="content">
     <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
-    <h1>Login</h1>
-    <form action="${request.route_url('user.login')}" method="post">
-      ${form.csrf_field()}
-      <input py:if="'return_to' in request.params" type="hidden" name="return_to" value="${request.params['return_to']}"/>
-      <div class="row">
-        <div class="column small-12 medium-6 large-4">${form.field('email', 'email', 'E-Mail Address')}</div>
-        <div class="column small-12 medium-6 large-4 end">${form.field('password', 'password', 'Password')}</div>
-      </div>
-      <div class="row text-right">
-        <div class="column small-12 large-8 end">
-          <a href="${request.route_url('user.register')}" class="button secondary">Register</a>
-          <a href="${request.route_url('user.forgotten_password')}" class="button secondary">Forgotten Password</a>
-          <input type="submit" value="Login" class="button"/>
-        </div>
-      </div>
-    </form>
+    <div class="row">
+      <article class="column small-12 medium-offset-3 medium-6">
+        <h1>Login</h1>
+        <form action="${request.route_url('user.login')}" method="post">
+          ${form.csrf_field()}
+          <input py:if="'return_to' in request.params" type="hidden" name="return_to" value="${request.params['return_to']}"/>
+          <div class="row">
+            <div class="column small-12 medium-6">${form.field('email', 'email', 'E-Mail Address')}</div>
+            <div class="column small-12 medium-6">${form.field('password', 'password', 'Password')}</div>
+          </div>
+          <div class="row text-right">
+            <div class="column small-12">
+              <a href="${request.route_url('user.register')}" class="button secondary">Register</a>
+              <a href="${request.route_url('user.forgotten_password')}" class="button secondary">Forgotten Password</a>
+              <input type="submit" value="Login" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
   </py:block>
 </py:extends>
