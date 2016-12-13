@@ -1,0 +1,57 @@
+#sidebar {
+    background: $light-gray;
+    border-right: 1px solid $medium-gray;
+    padding-top: $global-padding;
+    overflow: auto;
+    height: 100px;
+    
+    h2 {
+        font-size: 24px;
+        
+        small {
+            display: block;
+            margin-top: $global-margin/2;
+            color: darken($dark-gray, 20%);
+        }
+    }
+
+    dl {
+        margin-top: $global-margin * 2;
+        
+        dt {
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            color: darken($dark-gray, 30%);
+            padding-left: $global-padding;
+            padding-right: $global-padding;
+        }
+        dd {
+            padding-bottom: $global-padding / 2;
+            margin-bottom: $global-padding / 2;
+            border-bottom: 1px solid $medium-gray;
+            
+            ul {
+                margin: 0;
+                padding: 0;
+                
+                li {
+                    &:hover, &.current {
+                        background: $medium-gray;
+                    }
+                    a {
+                        display: block;
+                        padding-left: $global-padding;
+                        padding-right: $global-padding;
+                        padding-top: $global-padding / 4;
+                        padding-bottom: $global-padding / 4;
+                        font-size: 0.9rem;
+                        
+                        .mdi {
+                            color: $dark-gray;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

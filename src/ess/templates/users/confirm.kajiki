@@ -1,4 +1,4 @@
-<py:extends href="ess:templates/layout/backend/layout.kajiki">
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
   <py:block name="title">
     <py:if test="status == 'success'">Registration confirmed</py:if>
     <py:if test="status == 'fail'">Confirmation failed</py:if>

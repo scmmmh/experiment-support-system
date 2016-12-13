@@ -140,15 +140,11 @@ class Experiment(Base):
                                     primaryjoin="and_(Experiment.id==PermutationSet.survey_id, PermutationSet.type=='permutationset')",
                                     cascade='all, delete, delete-orphan')
 
-    def __init__(self, **kwargs):
-        Base.__init__(self, **kwargs)
-        self.external_id = unicode(uuid1())
-        
-    def is_owned_by(self, user):
-        if user:
-            return self.owned_by == user.id
-        else:
-            return False
+    def allow(self, action, user):
+        if action == 'view':
+            if user.id == self.owned_by or user.has_permission('experiment.view'):
+                return True
+        return False
 
 
 class QSheet(Base):

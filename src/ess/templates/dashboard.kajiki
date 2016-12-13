@@ -1,4 +1,4 @@
-<py:extends href="ess:templates/layout/backend/layout.kajiki">
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
   <py:block name="title">Experiments</py:block>
   <py:block name="content">
     <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
