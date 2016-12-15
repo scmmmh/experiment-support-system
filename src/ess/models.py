@@ -8,8 +8,6 @@ This module contains all the database-abstraction classes.
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
 import json
-import random
-import hashlib
 import time
 
 from pywebtools.pyramid.auth.models import User
@@ -17,7 +15,6 @@ from pywebtools.sqlalchemy import Base, DBSession
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         DateTime, Boolean, func)
 from sqlalchemy.orm import (relationship, backref)
-from uuid import uuid1
 
 
 DB_VERSION = '637675a9afd3'
@@ -120,6 +117,7 @@ class Experiment(Base):
     qsheets = relationship('QSheet',
                            backref='survey',
                            primaryjoin='Experiment.id==QSheet.survey_id',
+                           order_by='QSheet.name',
                            cascade='all, delete, delete-orphan')
     participants = relationship('Participant',
                                 backref='survey',
@@ -143,6 +141,9 @@ class Experiment(Base):
     def allow(self, action, user):
         if action == 'view':
             if user.id == self.owned_by or user.has_permission('experiment.view'):
+                return True
+        elif action == 'edit':
+            if user.id == self.owned_by or user.has_permission('experiment.edit'):
                 return True
         return False
 

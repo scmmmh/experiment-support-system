@@ -1,0 +1,48 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - General Settings</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row expanded">
+      <div class="column small-12">
+        <h1>Settings</h1>
+      </div>
+    </div>
+    <div class="row expanded">
+      <div class="column small-12 medium-4 large-2">
+        <py:include href="ess:templates/experiment/settings/_sidebar.kajiki"/>
+      </div>
+      <article class="column small-12 medium-8 large-10">
+        <h2>General Settings</h2>
+        <form action="${request.route_url('experiment.settings.general', eid=experiment.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('text', 'title', 'Title', value=experiment.title)}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('textarea', 'summary', 'Summary', value=experiment.summary, extra_attrs={'style': 'height: 8rem;'})}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('select', 'language', 'Interface Language', values=[('en', 'English')], value=experiment.language)}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('checkbox', 'public', 'Public Experiment', value='true', checked=experiment.public)}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end text-right">
+              <a href="${request.route_url('experiment.settings.general', eid=experiment.id)}" class="button secondary">Don't Update</a>
+              <input type="submit" value="Update" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>
