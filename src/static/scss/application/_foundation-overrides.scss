@@ -79,3 +79,14 @@ h6 .label {
 tbody th {
     text-align: left;
 }
+
+/* Optionally left-align the row */
+.row.left {
+    margin-left: 0;
+}
+.row .row.left {
+    margin-left: 0;
+}
+.row.expanded .row.left {
+    margin-left: 0;
+}

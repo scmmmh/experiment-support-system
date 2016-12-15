@@ -114,16 +114,16 @@ class Experiment(Base):
     public = Column(Boolean, default=True)
 
     owner = relationship('User', backref='surveys')
-    qsheets = relationship('QSheet',
-                           backref='survey',
-                           primaryjoin='Experiment.id==QSheet.survey_id',
-                           order_by='QSheet.name',
-                           cascade='all, delete, delete-orphan')
+    pages = relationship('Page',
+                         backref='experiment',
+                         primaryjoin='Experiment.id==Page.survey_id',
+                         order_by='Page.name',
+                         cascade='all, delete, delete-orphan')
     participants = relationship('Participant',
                                 backref='survey',
                                 cascade='all, delete, delete-orphan')
-    start = relationship('QSheet',
-                         primaryjoin='Experiment.start_id==QSheet.id',
+    start = relationship('Page',
+                         primaryjoin='Experiment.start_id==Page.id',
                          post_update=True)
 
     notifications = relationship('Notification',
@@ -148,7 +148,7 @@ class Experiment(Base):
         return False
 
 
-class QSheet(Base):
+class Page(Base):
     
     __tablename__ = 'qsheets'
     
@@ -169,12 +169,12 @@ class QSheet(Base):
                               cascade='all, delete, delete-orphan')
     next = relationship('QSheetTransition',
                         backref=backref('source', uselist=False),
-                        primaryjoin='QSheet.id==QSheetTransition.source_id',
+                        primaryjoin='Page.id==QSheetTransition.source_id',
                         order_by='QSheetTransition.order',
                         cascade='all, delete, delete-orphan')
     prev = relationship('QSheetTransition',
                         backref=backref('target', uselist=False),
-                        primaryjoin='QSheet.id==QSheetTransition.target_id',
+                        primaryjoin='Page.id==QSheetTransition.target_id',
                         cascade='all, delete, delete-orphan')
     
     def attr(self, key):
@@ -198,15 +198,15 @@ class QSheet(Base):
             self.attributes.append(QSheetAttribute(key=key, value=value))
     
     def valid_buttons(self):
-        """Returns a list of valid UI buttons for this :class':`~pyquest.models.QSheet`.
+        """Returns a list of valid UI buttons for this :class':`~pyquest.models.Page`.
         
         The following values are possible:
-        * *finish* - if the :py:class:`~pyquest.models.QSheet` is the last in the
+        * *finish* - if the :py:class:`~pyquest.models.Page` is the last in the
           :py:class:`~pyquest.models.Experiment`;
-        * *next* - if there is another :py:class:`~pyquest.models.QSheet` after this one;
-        * *more* - if this :py:class:`~pyquest.models.QSheet` has its ``repeat`` attribute
+        * *next* - if there is another :py:class:`~pyquest.models.Page` after this one;
+        * *more* - if this :py:class:`~pyquest.models.Page` has its ``repeat`` attribute
           set to 'repeat';
-        * *clear* - if this :py:class:`~pyquest.models.QSheet` has questions that can be
+        * *clear* - if this :py:class:`~pyquest.models.Page` has questions that can be
           answered by the user.
     
         :return: A `list` with the valid buttons
@@ -231,7 +231,7 @@ class QSheetAttribute(Base):
     __tablename__ = 'qsheet_attributes'
     
     id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(QSheet.id, name='qsheet_attributes_qsheets_fk'))
+    qsheet_id = Column(ForeignKey(Page.id, name='qsheet_attributes_qsheets_fk'))
     key = Column(Unicode(255))
     value = Column(UnicodeText)
 
@@ -278,14 +278,14 @@ class QuestionType(Base, AttributesMixin):
 
 class Question(Base, AttributesMixin):
     """The :class:`~ess.models.Question` represents a single question in
-    a :class:`~ess.models.QSheet`.
+    a :class:`~ess.models.Page`.
     """
 
     __tablename__ = 'questions'
     __parent_attr__ = 'q_type'
     
     id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(QSheet.id, name='questions_qsheets_fk'))
+    qsheet_id = Column(ForeignKey(Page.id, name='questions_qsheets_fk'))
     type_id = Column(ForeignKey(QuestionType.id, name='question_types_fk'))
     name = Column(Unicode(255))
     title = Column(Unicode(255))
@@ -307,8 +307,8 @@ class QSheetTransition(Base):
     __tablename__ = 'qsheet_transitions'
     
     id = Column(Integer, primary_key=True)
-    source_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_source_fk'))
-    target_id = Column(ForeignKey(QSheet.id, name='qsheet_transitions_qsheets_target_fk'))
+    source_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_source_fk'))
+    target_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_target_fk'))
     order = Column(Integer, default=0)
     _condition = Column(UnicodeText)
     _action = Column(UnicodeText)
@@ -338,7 +338,7 @@ class DataSet(Base):
 
     survey = relationship('Experiment')
     items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
-    qsheets = relationship('QSheet', backref='data_set')
+    qsheets = relationship('Page', backref='data_set')
     owner = relationship('User', backref='data_sets')
     attribute_keys = relationship('DataSetAttributeKey', 
                                   backref='dataset',
@@ -457,7 +457,7 @@ class DataItemCount(Base):
     
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_counts_data_items_fk'))
-    qsheet_id = Column(ForeignKey(QSheet.id, name='data_item_counts_qsheets_fk'))
+    qsheet_id = Column(ForeignKey(Page.id, name='data_item_counts_qsheets_fk'))
     count = Column(Integer)
 
 class DataItemControlAnswer(Base):
@@ -470,7 +470,7 @@ class DataItemControlAnswer(Base):
     answer = Column(Unicode(4096))
 
 class PermutationSet(DataSet):
-    """ PermutationSet extends DataSet. A PermutationSet is created when a QSheet has tasks and interfaces to permute.
+    """ PermutationSet extends DataSet. A PermutationSet is created when a Page has tasks and interfaces to permute.
     The DataItems in a PermutationSet are strings representing the individual permutations. A DataSet containing the parts
     of the actual permutation is created when a Participant actually starts the survey. 
     """
