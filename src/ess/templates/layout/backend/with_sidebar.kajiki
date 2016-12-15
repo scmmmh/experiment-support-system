@@ -13,7 +13,7 @@
     <?py from ess.human_readable import experiment_status ?>
     <py:include href="ess:templates/layout/backend/_header.kajiki"/>
     <div class="row expanded collapse">
-      <nav id="sidebar" class="column small-1 medium-4 large-2">
+      <nav id="sidebar" class="column small-1 medium-3 large-2">
         <div class="row">
           <div class="column small-12">
             <hgroup>
@@ -25,37 +25,37 @@
           <dt>Experiment</dt>
           <dd>
             <ul class="no-bullet">
-              <li class="${'current' if request.matched_route.name == 'experiment.view' else ''}"><a href="${request.route_url('experiment.view', eid=experiment.id)}"><span class="mdi mdi-24">view_quilt</span> Overview</a></li>
-              <li><a href=""><span class="mdi mdi-24">directions_run</span> Test</a></li>
-              <li><a href=""><span class="mdi mdi-24">play_arrow</span> Start</a></li>
-              <li class="${'current' if request.matched_route.name.startswith('experiment.settings') else ''}"><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}"><span class="mdi mdi-24">settings</span> Settings</a></li>
+              <li class="${'current' if request.matched_route.name == 'experiment.view' else ''}"><a href="${request.route_url('experiment.view', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">view_quilt</span> Overview</a></li>
+              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">directions_run</span> Test</a></li>
+              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">play_arrow</span> Start</a></li>
+              <li class="${'current' if request.matched_route.name.startswith('experiment.settings') else ''}"><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">settings</span> Settings</a></li>
             </ul>
           </dd>
           <dt>Pages</dt>
           <dd>
             <ul class="no-bullet">
-              <li class="${'current' if request.matched_route.name.startswith('experiment.page') else ''}"><a href="${request.route_url('experiment.page', eid=experiment.id)}"><span class="mdi mdi-24">content_copy</span> All Pages</a></li>
-              <li><a href=""><span class="mdi mdi-24">call_split</span> Flow</a></li>
+              <li class="${'current' if request.matched_route.name.startswith('experiment.page') else ''}"><a href="${request.route_url('experiment.page', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">content_copy</span> All Pages</a></li>
+              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">call_split</span> Flow</a></li>
             </ul>
           </dd>
           <dt>Data</dt>
           <dd>
             <ul class="no-bullet">
-              <li><a href=""><span class="mdi mdi-24">view_headline</span> Data Sets</a></li>
-              <li><a href=""><span class="mdi mdi-24">view_module</span> Latin Squares</a></li>
+              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">view_headline</span> Data Sets</a></li>
+              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">view_module</span> Latin Squares</a></li>
             </ul>
           </dd>
           <dt>Results</dt>
           <dd>
             <ul class="no-bullet">
-              <li><a href=""><span class="mdi mdi-24">pie_chart</span> Overview</a></li>
-              <li><a href=""><span class="mdi mdi-24">format_list_numbered</span> Export by Question</a></li>
-              <li><a href=""><span class="mdi mdi-24">person</span> Export by Participant</a></li>
+              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">pie_chart</span> Overview</a></li>
+              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">format_list_numbered</span> Export by Question</a></li>
+              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">person</span> Export by Participant</a></li>
             </ul>
           </dd>
         </dl>
       </nav>
-      <div class="column small-9 medium-8 large-10">
+      <div class="column small-9 medium-9 large-10">
         <py:include href="ess:templates/layout/backend/_breadcrumbs.kajiki"/>
         <py:include href="ess:templates/layout/backend/_flash.kajiki"/>
         <py:block name="content"></py:block>

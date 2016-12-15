@@ -9,7 +9,7 @@
         </div>
         <h1>Pages</h1>
         <ul>
-          <li py:for="page in experiment.pages"><a href="${request.route_url('experiment.page.view', eid=experiment.id, pid=page.id)}">${page.name} (${page.title})</a></li>
+          <li py:for="page in experiment.pages"><a href="${request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)}">${page.title if page.title else 'No title'} (${page.name})</a></li>
         </ul>
       </article>
     </div>

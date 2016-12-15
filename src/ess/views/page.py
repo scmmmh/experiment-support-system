@@ -6,15 +6,16 @@ from pyramid.view import view_config
 from pywebtools.formencode import CSRFSchema, State
 from pywebtools.pyramid.auth.views import current_user, require_permission
 from pywebtools.sqlalchemy import DBSession
+from sqlalchemy import and_
 
-from ess.models import Experiment, Page
+from ess.models import Experiment, Page, QuestionTypeGroup
 from ess.validators import PageNameUniqueValidator
 
 
 def init(config):
     config.add_route('experiment.page', '/experiments/{eid}/pages')
     config.add_route('experiment.page.create', '/experiments/{eid}/pages/create')
-    config.add_route('experiment.page.view', '/experiments/{eid}/pages/{pid}')
+    config.add_route('experiment.page.edit', '/experiments/{eid}/pages/{pid}')
 
 
 @view_config(route_name='experiment.page', renderer='ess:templates/page/list.kajiki')
@@ -45,7 +46,7 @@ class CreatePageSchema(CSRFSchema):
 
 @view_config(route_name='experiment.page.create', renderer='ess:templates/page/create.kajiki')
 @current_user()
-@require_permission(permission='experiment.create')
+@require_permission(class_=Experiment, request_key='eid', action='edit')
 def create(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
@@ -90,3 +91,30 @@ def create(request):
         raise HTTPNotFound()
 
 
+@view_config(route_name='experiment.page.edit', renderer='ess:templates/page/edit.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+def view(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['eid'],
+                                                 Page.experiment == experiment)).first()
+    else:
+        page = None
+    if experiment and page:
+        qgroups = dbsession.query(QuestionTypeGroup).order_by(QuestionTypeGroup.order)
+        return {'experiment': experiment,
+                'page': page,
+                'qgroups': qgroups,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Pages',
+                            'url': request.route_url('experiment.page', eid=experiment.id)},
+                           {'title': '%s (%s)' % (page.title, page.name)
+                            if page.title else 'No title (%s)' % page.name,
+                            'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)}]}
+    else:
+        raise HTTPNotFound()
