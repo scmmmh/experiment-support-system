@@ -25,7 +25,8 @@ requires = [
     'nose',
     'nine',
     'pycrypto',
-    'asset'
+    'asset',
+    'pywebtools>=1.1.1'
     ]
 
 setup(name='ExperimentSupportSystem',

@@ -52,12 +52,12 @@ def init(config):
                                  'user.password_reset': password_reset,
                                  'user.password_reset_failed': password_reset_failed,
                                  'user.password_reset_complete': password_reset_complete})
-    config.add_route('users', '/users')
-    config.add_route('users.action', '/users/action')
-    config.add_route('user.view', '/users/{uid}')
-    config.add_route('user.edit', '/users/{uid}/edit')
-    config.add_route('user.permissions', '/users/{uid}/permissions')
-    config.add_route('user.delete', '/users/{uid}/delete')
+    #config.add_route('users', '/users')
+    #config.add_route('users.action', '/users/action')
+    #config.add_route('user.view', '/users/{uid}')
+    #config.add_route('user.edit', '/users/{uid}/edit')
+    #config.add_route('user.permissions', '/users/{uid}/permissions')
+    #config.add_route('user.delete', '/users/{uid}/delete')
 
 
 def new_user_created(request, user, token):
