@@ -161,7 +161,7 @@ class Page(Base):
     dataset_id = Column(ForeignKey('data_sets.id', name='qsheets_dataset_id_fk'))
 
     questions = relationship('Question',
-                             backref='qsheet',
+                             backref='page',
                              order_by='Question.order',
                              cascade='all, delete, delete-orphan')
     attributes = relationship('QSheetAttribute',

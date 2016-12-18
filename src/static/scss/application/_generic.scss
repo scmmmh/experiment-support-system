@@ -1,3 +1,11 @@
 .hidden {
     display: none;
 }
+.show-for-hover {
+    display: none;
+}
+.hover-parent:hover {
+    .show-for-hover {
+        display: block;
+    }
+}

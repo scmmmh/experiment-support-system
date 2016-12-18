@@ -4,7 +4,7 @@
     <section class="question qt-${question.q_type.name} ${'hidden' if not question['visible'] else ''}">
       <div class="row">
         <div class="column small-12">
-          <div py:if="'help' in question" class="float-right"><a href="#" title="Show help" class="toggle-question-help">?</a></div>
+          <div py:if="'help' in question" class="float-right"><a href="#" title="Show help" class="toggle-question-help"><span class="mdi mdi-18">help_outline</span></a></div>
           <h2>${question.title}</h2>
           <p py:if="'help' in question" class="question-help hidden">${question['help']}</p>
         </div>
@@ -22,7 +22,11 @@
   </py:def>
   
   <py:def function="text(question)">
-    ${literal(question['text'])}
+    <py:if test="question['text'].strip()">
+      ${literal(question['text'])}
+    </py:if><py:else>
+      <p>No text has been provided for this text block.</p>
+    </py:else>
   </py:def>
   
   <py:def function="simple_input(question)">

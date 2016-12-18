@@ -1,0 +1,43 @@
+.question {
+    margin-bottom: $global-margin * 2;
+    
+    h2 {
+        font-size: rem-calc(20);
+        margin-bottom: $global-margin;
+    }
+}
+.edit-question {
+    .show-for-hover {
+        .hide-edit {
+            display: none;
+        }
+        .show-edit {
+            display: block;
+        }
+    }
+    .hide-edit {
+        display: none;
+    }
+    .show-edit {
+        display: block;
+    }
+}
+.preview-question {
+    .show-for-hover {
+        .hide-edit {
+            display: block;
+        }
+        .show-edit {
+            display: none;
+        }
+    }
+    .hide-edit {
+        display: block;
+    }
+    .show-edit {
+        display: none;
+    }
+}
+.question-form {
+    margin-bottom: $global-margin * 2;
+}

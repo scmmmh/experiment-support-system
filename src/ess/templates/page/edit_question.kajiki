@@ -1,0 +1,4 @@
+<div>
+  <py:import href="ess:templates/helpers/question.kajiki" alias="questions"/>
+  ${questions.render(question, None)}
+</div>

@@ -1,0 +1,14 @@
+a.alert {
+    color: get-color(alert);
+    
+    &:hover {
+        color: darken(get-color(alert), 5%);
+    }
+}
+a.success {
+    color: get-color(success);
+    
+    &:hover {
+        color: darken(get-color(success), 5%);
+    }
+}

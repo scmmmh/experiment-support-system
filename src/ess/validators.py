@@ -1,5 +1,6 @@
 import formencode
 
+from pywebtools.formencode import CSRFSchema
 from sqlalchemy import and_
 
 from ess.models import Page
@@ -21,3 +22,13 @@ class PageNameUniqueValidator(formencode.FancyValidator):
                 raise formencode.Invalid(self.message('no_experiment', state), value, state)
         else:
             raise formencode.Invalid(self.message('no_dbsession', state), value, state)
+
+
+class QuestionEditSchema(CSRFSchema):
+
+    def __init__(self, question, *args, **kwargs):
+        CSRFSchema.__init__(self, *args, **kwargs)
+        if question['display_as'] == 'text':
+            self.add_field('text', formencode.validators.UnicodeString(if_empty='', if_missing=''))
+        else:
+            self.add_field('name', formencode.validators.UnicodeString)
