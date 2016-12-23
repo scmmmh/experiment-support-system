@@ -4,6 +4,7 @@
     <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
     <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
     <py:import href="ess:templates/helpers/question.kajiki" alias="questions"/>
+    <py:import href="ess:templates/page/_question_types.kajiki" alias="qtypes"/>
     <div class="row expanded">
       <div class="column small-12">
         <h1>${page.title if page.title else 'No title'} <small>${page.name}</small></h1>
@@ -12,93 +13,80 @@
     </div>
     <div class="row expanded">
       <article class="column small-12 medium-8 large-9">
-        <div py:for="question in page.questions" class="row collapse expanded hover-parent preview-question">
+        <div py:for="question in page.questions" id="question-${question.id}" data-question-id="${question.id}" class="row collapse expanded hover-parent preview-question">
           <nav class="column small-3 medium-2 large-1">
             <ul class="menu vertical text-right show-for-hover">
               <li class="hide-edit"><a href="#" data-action="edit">${icon.md('edit', 'Edit')}</a></li>
-              <li class="hide-edit"><a href="#" class="alert">${icon.md('delete', 'Delete')}</a></li>
+              <li class="hide-edit"><a href="#" data-action="reorder">${icon.md('open_with', 'Re-order')}</a></li>
+              <li class="hide-edit"><a href="${request.route_url('experiment.page.delete.question', eid=experiment.id, pid=page.id, qid=question.id, _query=[('csrf_token', request.session.get_csrf_token())])}" data-action="delete" class="alert post-link">${icon.md('delete', 'Delete')}</a></li>
               <li class="show-edit"><a href="#" data-action="save" class="success">${icon.md('check', 'Save Changes')}</a></li>
               <li class="show-edit"><a href="#" data-action="cancel" class="alert">${icon.md('close', 'Discard Changes')}</a></li>
             </ul>
           </nav>
           <div class="column small-9 medium-10 large-11">
-            <div class="hide-edit">${questions.render(question, None)}</div>
+            <div class="hide-edit question-wrapper">${questions.render(question, None)}<section class="question ${'hidden' if question['frontend', 'visible'] else ''}"><div class="row"><div class="column small-12"><h2>${question['name']}</h2></div></div></section></div>
             <div class="show-edit">
               <form action="${request.route_url('experiment.page.edit.question', eid=experiment.id, pid=page.id, qid=question.id)}" method="post" class="question-form">
                 ${form.csrf_field()}
-                <py:if test="question.q_type.name == 'text'">
-                  <div class="row">
-                    <div class="column small-12 end">
-                      ${form.field('textarea', 'text', 'Text', value=question['text'], extra_attrs={'style': 'height: 10rem'})}
-                    </div>
+                <div class="row"> 
+                  <div class="column small-12">
+                    <h2>${question.q_type.title}</h2>
                   </div>
-                </py:if><py:else>
-                  <div class="row">
-                    <div class="column small-12 medium-6 end">
-                      ${form.field('text', 'name', 'Unique Name', value=question.name)}
-                    </div>
+                </div>
+                <div py:for="field in question['backend', 'fields']" class="row">
+                  <div class="column small-12 end">
+                    <py:switch test="field['type']">
+                      <py:case value="'checkbox'">${form.field(field['type'], field['name'], field['title'], value=field['value'] if 'value' in field else 'true', checked="checked" if question[field['name']] else None, extra_attrs=field['extra_attrs'] if 'extra_attrs' in field else None)}</py:case>
+                      <py:case value="'select'">${form.field(field['type'], field['name'], field['title'], value=question['frontend', field['name']], values=field['values'] if 'values' in field else [], extra_attrs=field['extra_attrs'] if 'extra_attrs' in field else None)}</py:case>
+                      <py:case value="'table'">
+                        <label>${field['title']}</label>
+                        <table>
+                          <thead>
+                            <tr>
+                              <th py:for="sub_field in field['fields']">${sub_field['title']}</th>
+                              <th></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr py:for="idx, value in enumerate(question['frontend', field['name']])">
+                              <td py:for="sub_field in field['fields']">${form.field('text', '%s-%i.%s' % (field['name'], idx, sub_field['name']), '', value=value[sub_field['name']])}</td>
+                              <td class="text-center"><a href="" data-action="remove-row" class="alert">${icon.md('remove', 'Remove Answer')}</a></td>
+                            </tr>
+                            <tr>
+                              <td py:for="sub_field in field['fields']">${form.field('text', '%s-%i.%s' % (field['name'], len(question['fronend', field['name']]) if question['fronend', field['name']] else 0, sub_field['name']), '', extra_attrs={'class': 'hidden'})}</td>
+                              <td class="text-center"><a href="" data-action="add-row" class="success">${icon.md('add', 'Add Answer')}</a></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </py:case>
+                      <py:else>${form.field(field['type'], field['name'], field['title'], value=question['frontend', field['name']], extra_attrs=field['extra_attrs'] if 'extra_attrs' in field else None)}</py:else>
+                    </py:switch>
                   </div>
-                  <div class="row">
-                    <div class="column small-12 medium-6 end">
-                      ${form.field('text', 'title', 'Title', value=question.title)}
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="column small-12 medium-6 end">
-                      ${form.field('textarea', 'help', 'Help Text', value=question['help'], extra_attrs={'style': 'height: 8rem'})}
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="column small-12 medium-6 end">
-                      ${form.field('checkbox', 'required', 'Required', value='true')}
-                    </div>
-                  </div>
-                  <py:if test="question['display_as'] == 'simple_input'">
-                    <div class="row">
-                      <div class="column small-12 medium-6 end">
-                        ${form.field('select', 'input_type', 'Type', value=question['input_type'], values=[('text', 'Single-line Text Input'), ('textarea', 'Multi-line Text Input'), ('number', 'Number Input'), ('email', 'E-Mail Input'), ('url', 'URL Input'), ('date', 'Date Input'), ('time', 'Time Input'), ('datetime', 'Date and Time Input'), ('month', 'Month Input'), ('checkbox', 'Checkbox')])}
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="column small-12 medium-6 end">
-                        ${form.field('text', 'label', 'Label', value=question['label'])}
-                      </div>
-                    </div>
-                  </py:if>
-                </py:else>
+                </div>
               </form>
             </div>
           </div>
         </div>
       </article>
-      <div class="column small-12 medium-4 large-3">
-        <ul class="accordion" data-accordion="" data-multi-expand="true" data-allow-all-closed="true">
-          <li py:for="qgroup in qgroups" class="accordion-item" data-accordion-item="">
-            <a href="#" class="accordion-title">${qgroup.title}</a>
-            <div class="accordion-content" data-tab-content="">
-              <ul class="accordion" data-accordion="" data-multi-expand="true" data-allow-all-closed="true">
-                <li py:for="qgroup2 in qgroup.children" class="accordion-item" data-accordion-item="">
-                  <a href="#" class="accordion-title">${qgroup2.title}</a>
-                  <div class="accordion-content" data-tab-content="">
-                    <ul>
-                      <li py:for="q_type in qgroup2.q_types">${q_type.title}</li>
-                    </ul>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </li>
-        </ul>
+      <div id="question-types" class="column small-12 medium-4 large-3">
+        ${qtypes.accordion_menu(qtgroups)}
       </div>
     </div>
   </py:block>
   <py:block name="body_script">
   <script>
+  <![CDATA[
+  // Handle clicking on the question edit button
   $('article').on('click', 'a[data-action=edit]', function(ev) {
       ev.preventDefault();
       var link = $(this);
-      link.parents('.preview-question').removeClass('preview-question').addClass('edit-question');
+      var question = link.parents('.preview-question');
+      question.removeClass('preview-question').addClass('edit-question');
+      setTimeout(function() {
+          $(window).scrollTop(question.offset().top);
+      }, 50);
   });
+  // Handle clicking on the question cancel edits button
   $('article').on('click', 'a[data-action=cancel]', function(ev) {
       ev.preventDefault();
       var link = $(this);
@@ -106,15 +94,20 @@
       question.removeClass('edit-question').addClass('preview-question');
       question.find('form')[0].reset();
   });
+  // Handle clicking on the question save button
   $('article').on('click', 'a[data-action=save]', function(ev) {
       ev.preventDefault();
       var link = $(this);
       var question = link.parents('.edit-question');
       question.find('form').trigger('submit');
   });
-  $('article form').on('submit', function(ev) {
+  // Handle question edit submission
+  $('article').on('submit', 'form', function(ev) {
       ev.preventDefault();
       var form = $(this);
+      form.find('.is-invalid-label').removeClass('is-invalid-label');
+      form.find('.is-invalid-input').removeClass('is-invalid-input');
+      form.find('span.form-error.is-visible').removeClass('is-visible');
       var promise = $.ajax(form.attr('action'), {
           method: 'POST',
           data: form.serialize()
@@ -123,12 +116,75 @@
           if(data.status == 'ok') {
               var question = form.parents('.edit-question');
               question.removeClass('edit-question').addClass('preview-question');
-              question.find('section.question').replaceWith($(data.question).find('section.question'));
+              question.find('.question-wrapper').empty().append($(data.question).find('section.question'));
           } else {
-              
+              for(key in data.errors) {
+                  var input = form.find('*[name=' + key + ']');
+                  var label = input.parents('label');
+                  var span = label.find('span.form-error');
+                  if(span.length === 0) {
+                      span = $('<span class="form-error"></span>');
+                      label.append(span);
+                  }
+                  label.addClass('is-invalid-label');
+                  input.addClass('is-invalid-input');
+                  span.addClass('is-visible');
+                  span.html(data.errors[key]);
+              }
           }
       });
   });
+  // Prevent clicking on the reorder button having an effec
+  $('article').on('click', 'a[data-action=reorder]', function(ev) {
+      ev.preventDefault();
+  });
+  // Handle add-a-row in a table editor clicks
+  $('article').on('click', 'a[data-action=add-row]', function(ev) {
+      ev.preventDefault();
+      var link = $(this);
+      var row = link.parent().parent();
+      var new_row = row.clone();
+      new_row.find('a[data-action=add-row]').attr('data-action', 'remove-row').addClass('alert').removeClass('success');
+      new_row.find('.mdi').html('remove');
+      new_row.find('input').each(function() {
+          var input = $(this);
+          input.val('');
+          input.removeClass('hidden');
+      });
+      row.find('input').each(function() {
+          var input = $(this);
+          var count = parseInt(/[0-9]+/.exec(input.attr('name'))[[0]]) + 1;
+          input.attr('name', input.attr('name').replace(/[0-9]+/, count));
+      });
+      row.before(new_row);
+  });
+  // Handle remove-a-row in a table editor clicks
+  $('article').on('click', 'a[data-action=remove-row]', function(ev) {
+      ev.preventDefault();
+      $(this).parent().parent().remove();
+  });
+  // Make the list of questions sortable
+  $('article').sortable({
+      handle: 'a[data-action=reorder]',
+      update: function() {
+          var question_ids = [];
+          $('article').children('div').each(function() {
+              question_ids.push($(this).data('question-id'));
+          });
+          $.ajax('${request.route_url('experiment.page.edit.reorder', eid=experiment.id, pid=page.id)}', {
+              method: 'POST',
+              data: $.param({csrf_token: '${request.session.get_csrf_token()}', question: question_ids}, true)
+          });
+      }
+  });
+  // If there is a hash set, start editing that question
+  if(window.location.hash) {
+      $(window.location.hash).find('a[data-action=edit]').trigger('click');
+      if(window.history) {
+          history.replaceState(null, document.title, window.location.pathname + window.location.search);
+      }
+  }
+  ]]>
   </script>
   </py:block>
 </py:extends>

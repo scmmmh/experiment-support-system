@@ -79,6 +79,12 @@ h6 .label {
 tbody th {
     text-align: left;
 }
+/* */
+tbody {
+    #{text-inputs()}, textarea, select {
+        margin-bottom: 0;
+    }
+}
 
 /* Optionally left-align the row */
 .row.left {

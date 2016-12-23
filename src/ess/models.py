@@ -11,7 +11,7 @@ import json
 import time
 
 from pywebtools.pyramid.auth.models import User
-from pywebtools.sqlalchemy import Base, DBSession
+from pywebtools.sqlalchemy import Base, DBSession, MutableDict, JSONUnicodeText
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         DateTime, Boolean, func)
 from sqlalchemy.orm import (relationship, backref)
@@ -82,6 +82,59 @@ class AttributesMixin(object):
             else:
                 self._cached_attributes = {}
             return self._attributes
+
+
+class ParentedAttributesMixin(object):
+
+    def __split_attr_key__(self, key):
+        if isinstance(key, tuple):
+            if hasattr(self, key[0]):
+                return getattr(self, key[0]), key[1]
+            else:
+                return getattr(self, 'attributes'), key[1]
+        else:
+            return getattr(self, 'attributes'), key
+
+    def __get_attr_parent__(self):
+        if hasattr(self, self.__parent_attr__):
+            return getattr(self, self.__parent_attr__)
+        else:
+            return None
+
+    def __contains__(self, key):
+        attr, sub_key = self.__split_attr_key__(key)
+        if attr and sub_key in attr:
+            return True
+        else:
+            parent = self.__get_attr_parent__()
+            if parent:
+                return key in parent
+            else:
+                return False 
+
+    def __getitem__(self, key):
+        attr, sub_key = self.__split_attr_key__(key)
+        if attr and sub_key in attr:
+            return attr[sub_key]
+        else:
+            parent = self.__get_attr_parent__()
+            if parent:
+                return parent[key]
+            else:
+                return None
+
+    def __setitem__(self, key, value):
+        attr, sub_key = self.__split_attr_key__(key)
+        if attr is None:
+            if isinstance(key, tuple):
+                if hasattr(self, key[0]):
+                    setattr(self, key[0], {})
+                else:
+                    setattr(self, 'attributes', {})
+            else:
+                setattr(self, 'attributes', {})
+            attr, sub_key = self.__split_attr_key__(key)
+        attr[sub_key] = value
 
 
 class Preference(Base):
@@ -252,7 +305,7 @@ class QuestionTypeGroup(Base):
                           remote_side=[id])
 
 
-class QuestionType(Base, AttributesMixin):
+class QuestionType(Base, ParentedAttributesMixin):
     
     __tablename__ = 'question_types'
     __parent_attr__ = 'parent'
@@ -262,8 +315,9 @@ class QuestionType(Base, AttributesMixin):
     title = Column(Unicode(255))
     dbschema = Column(UnicodeText)
     answer_validation = Column(UnicodeText)
-    backend = Column(UnicodeText)
-    frontend = Column(UnicodeText)
+    backend = Column(MutableDict.as_mutable(JSONUnicodeText))
+    frontend = Column(MutableDict.as_mutable(JSONUnicodeText))
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
     group_id = Column(ForeignKey(QuestionTypeGroup.id, name='question_type_groups_fk'))
     parent_id = Column(ForeignKey(id, name='question_types_parent_fk'))
     enabled = Column(Boolean, default=True)
@@ -276,7 +330,7 @@ class QuestionType(Base, AttributesMixin):
     parent = relationship('QuestionType', backref='children', remote_side=[id])
 
 
-class Question(Base, AttributesMixin):
+class Question(Base, ParentedAttributesMixin):
     """The :class:`~ess.models.Question` represents a single question in
     a :class:`~ess.models.Page`.
     """
@@ -292,6 +346,7 @@ class Question(Base, AttributesMixin):
     required = Column(Boolean)
     help = Column(Unicode(255))
     order = Column(Integer)
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
     
     answers = relationship('Answer',
                            backref='question',

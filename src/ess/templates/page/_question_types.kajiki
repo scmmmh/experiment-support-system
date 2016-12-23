@@ -1,0 +1,16 @@
+<div>
+  <!-- Generate the question type hierarchy menu -->
+  <py:def function="accordion_menu(qtgroups, root=True)">
+    <ul class="menu vertical ${'nested' if not root else ''}" py:attrs="{'data-accordion-menu': '' if root else None}">
+      <li py:for="qtgroup in qtgroups"><a href="#">${qtgroup.title}</a>
+        <py:if test="qtgroup.children">
+          ${accordion_menu(qtgroup.children, False)}
+        </py:if><py:else>
+          <ul class="menu vertical nested">
+            <li py:for="qtype in qtgroup.q_types"><a href="${request.route_url('experiment.page.edit.add_question', eid=experiment.id, pid=page.id, qtid=qtype.id, _query=[('csrf_token', request.session.get_csrf_token())])}" class="post-link">${qtype.title}</a></li>
+          </ul>
+        </py:else>
+      </li>
+    </ul>
+  </py:def>
+</div>

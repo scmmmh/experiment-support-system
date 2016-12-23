@@ -1,15 +1,15 @@
 <div>
   <!-- Generate just the form field -->
   <py:def function="render(question, data_item)">
-    <section class="question qt-${question.q_type.name} ${'hidden' if not question['visible'] else ''}">
+    <section class="question qt-${question.q_type.name} ${'hidden' if not question['frontend', 'visible'] else ''}">
       <div class="row">
         <div class="column small-12">
-          <div py:if="'help' in question" class="float-right"><a href="#" title="Show help" class="toggle-question-help"><span class="mdi mdi-18">help_outline</span></a></div>
-          <h2>${question.title}</h2>
-          <p py:if="'help' in question" class="question-help hidden">${question['help']}</p>
+          <div py:if="('frontend', 'help') in question and question['frontend', 'help'].strip()" class="float-right"><a href="#" title="Show help" class="toggle-question-help"><span class="mdi mdi-18">help_outline</span></a></div>
+          <h2>${question['frontend', 'title']}</h2>
+          <p py:if="('frontend', 'help') in question and question['frontend', 'help'].strip()" class="question-help hidden">${question['frontend', 'help']}</p>
         </div>
-        <div class="column ${question['width']} end">
-          <py:switch test="question['display_as']">
+        <div class="column ${question['frontend', 'width']} end">
+          <py:switch test="question['frontend', 'display_as']">
             <py:case value="'text'">${text(question)}</py:case>
             <py:case value="'simple_input'">${simple_input(question)}</py:case>
             <py:case value="'select_simple_choice'">${select_simple_choice(question)}</py:case>
@@ -22,51 +22,51 @@
   </py:def>
   
   <py:def function="text(question)">
-    <py:if test="question['text'].strip()">
-      ${literal(question['text'])}
+    <py:if test="('frontend', 'text') in question and question['frontend', 'text']">
+      ${literal(question['frontend', 'text'])}
     </py:if><py:else>
       <p>No text has been provided for this text block.</p>
     </py:else>
   </py:def>
   
   <py:def function="simple_input(question)">
-    ${form.field(question['input_type'], question.name, question['label'], value=question['value'], extra_attrs={'required': question['required']}, error_msg='')}
+    ${form.field(question['frontend', 'input_type'], question.name, question['frontend', 'label'], value=question['frontend', 'value'], extra_attrs={'required': question['frontend', 'required']}, error_msg='')}
   </py:def>
   
   <py:def function="select_simple_choice(question)">
-    <py:switch test="question['widget']">
+    <py:switch test="question['frontend', 'widget']">
       <py:case value="'select'">
-        ${form.field('select', question.name, '', values=[(a['value'], a['label']) for a in question['answers']] + ([('other', 'Other')] if question['allow_other'] else []), extra_attrs={'required': question['required'], 'multiple': 'multiple' if question['allow_multiple'] else None})}
-        <py:if test="question['allow_other']">${form.field('checkbox' if question['allow_multiple'] else 'radio', question.name, '', value='_other', extra_attrs={'required': question['required']})} ${form.field('text', '%s.other' % question.name, '')}</py:if>
+        ${form.field('select', question.name, '', values=[(a['value'], a['label']) for a in question['frontend', 'answers']] + ([('other', 'Other')] if question['frontend', 'allow_other'] else []), extra_attrs={'required': question['frontend', 'required'], 'multiple': 'multiple' if question['frontend', 'allow_multiple'] else None})}
+        <py:if test="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', question.name, '', value='_other', extra_attrs={'required': question['frontend', 'required']})} ${form.field('text', '%s.other' % question.name, '')}</py:if>
       </py:case>
       <py:case value="'table'">
         <table>
           <thead>
             <tr>
-              <th py:if="question['before_label']"></th>
-              <th py:for="answer in question['answers']">${answer['label']}</th>
-              <th py:if="question['after_label']"></th>
-              <th py:if="question['allow_other']">Other</th>
+              <th py:if="question['frontend', 'before_label']"></th>
+              <th py:for="answer in question['frontend', 'answers']">${answer['label']}</th>
+              <th py:if="question['frontend', 'after_label']"></th>
+              <th py:if="question['frontend', 'allow_other']">Other</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <th py:if="question['before_label']" class="question_label">${question['before_label']}</th>
-              <td py:for="answer in question['answers']">${form.field('checkbox' if question['allow_multiple'] else 'radio', question.name, '', value=answer['value'], extra_attrs={'required': question['required']})}</td>
-              <th py:if="question['after_label']" class="question_label">${question['after_label']}</th>
-              <th py:if="question['allow_other']">${form.field('checkbox' if question['allow_multiple'] else 'radio', question.name, '', value='_other', extra_attrs={'required': question['required']})} ${form.field('text', '%s.other' % question.name, '')}</th>
+              <th py:if="question['frontend', 'before_label']" class="question_label">${question['frontend', 'before_label']}</th>
+              <td py:for="answer in question['frontend', 'answers']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', question.name, '', value=answer['value'], extra_attrs={'required': question['frontend', 'required']})}</td>
+              <th py:if="question['frontend', 'after_label']" class="question_label">${question['frontend', 'after_label']}</th>
+              <th py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', question.name, '', value='_other', extra_attrs={'required': question['frontend', 'required']})} ${form.field('text', '%s.other' % question.name, '')}</th>
             </tr>
           </tbody>
         </table>
       </py:case>
       <py:else>
         <ul class="no-bullet">
-          <li py:if="question['before_label']" class="question_label">${question['before_label']}</li>
-          <li py:for="answer in question['answers']">
-            ${form.field('checkbox' if question['allow_multiple'] else 'radio', question.name, answer['label'], value=answer['value'], extra_attrs={'required': question['required']}, error_msg='')}
+          <li py:if="question['frontend', 'before_label']" class="question_label">${question['frontend', 'before_label']}</li>
+          <li py:for="answer in question['frontend', 'answers']">
+            ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', question.name, answer['label'], value=answer['value'], extra_attrs={'required': question['frontend', 'required']}, error_msg='')}
           </li>
-          <li py:if="question['after_label']" class="question_label">${question['after_label']}</li>
-          <li py:if="question['allow_other']">${form.field('checkbox' if question['allow_multiple'] else 'radio', question.name, '', value='_other', extra_attrs={'required': question['required']})} ${form.field('text', '%s.other' % question.name, '')}</li>
+          <li py:if="question['frontend', 'after_label']" class="question_label">${question['frontend', 'after_label']}</li>
+          <li py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', question.name, 'Other', value='_other', extra_attrs={'required': question['frontend', 'required']})} ${form.field('text', '%s.other' % question.name, '')}</li>
         </ul>
       </py:else>
     </py:switch>
@@ -77,17 +77,17 @@
       <thead>
         <tr>
           <th></th>
-          <th py:if="question['before_label']"></th>
-          <th py:for="answer in question['answers']">${answer['label']}</th>
-          <th py:if="question['after_label']"></th>
+          <th py:if="question['frontend', 'before_label']"></th>
+          <th py:for="answer in question['frontend', 'answers']">${answer['label']}</th>
+          <th py:if="question['frontend', 'after_label']"></th>
         </tr>
       </thead>
       <tbody>
-        <tr py:for="sub_question in question['questions']">
+        <tr py:for="sub_question in question['frontend', 'questions']">
           <th>${sub_question['label']}</th>
-          <th py:if="question['before_label']" class="question_label">${question['before_label']}</th>
-          <td py:for="answer in question['answers']">${form.field('checkbox' if question['allow_multiple'] else 'radio', '%s.%s' % (question.name, sub_question['name']), '', value=answer['value'], extra_attrs={'required': question['required']})}</td>
-          <th py:if="question['after_label']" class="question_label">${question['after_label']}</th>
+          <th py:if="question['frontend', 'before_label']" class="question_label">${question['frontend', 'before_label']}</th>
+          <td py:for="answer in question['answers']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', '%s.%s' % (question.name, sub_question['name']), '', value=answer['value'], extra_attrs={'required': question['frontend', 'required']})}</td>
+          <th py:if="question['frontend', 'after_label']" class="question_label">${question['frontend', 'after_label']}</th>
         </tr>
       </tbody>
     </table>
@@ -95,7 +95,7 @@
   
   <py:def function="ranking(question)">
     <ul class="no-bullet">
-      <li py:for="answer in question['answers']"><input type="hidden" name="${question.name}" value="${answer['value']}"/>${answer['label']}</li>
+      <li py:for="answer in question['frontend', 'answers']"><input type="hidden" name="${question.name}" value="${answer['value']}"/>${answer['label']}</li>
     </ul>
   </py:def>
 </div>

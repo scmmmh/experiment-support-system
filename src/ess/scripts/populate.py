@@ -3,13 +3,13 @@ import json
 import transaction
 
 from alembic import config, command
-from csv import DictReader
-from lxml import etree
-from pkg_resources import resource_stream
+from pkg_resources import resource_string
 from pyramid.paster import (get_appsettings, setup_logging)
 from pywebtools.sqlalchemy import DBSession, Base
 from pywebtools.pyramid.auth.models import User, PermissionGroup, Permission
 from sqlalchemy import engine_from_config
+
+from ess.views.admin import load_question_types
 
 
 def init(subparsers):
@@ -46,6 +46,26 @@ def initialise_database(args):
         group.permissions.append(Permission(name='experiment.edit', title='Edit all experiments'))
         group.permissions.append(Permission(name='experiment.delete', title='Delete all experiments'))
         dbsession.add(group)
+        load_question_types(dbsession,
+                            json.loads(resource_string('ess', 'scripts/templates/default_question_types.json').\
+                                       decode('utf-8')))
+        from ess.models import Experiment, Page, Question
+        exp = Experiment(title='Test', owned_by=1)
+        dbsession.add(exp)
+        page = Page(name='test1', title='Test 1', experiment=exp)
+        dbsession.add(page)
+        q = Question(page=page, type_id=1, order=0)
+        dbsession.add(q)
+        q = Question(page=page, type_id=2, order=1, attributes={'name': 'q1', 'title': 'Question 1'})
+        dbsession.add(q)
+        q = Question(page=page, type_id=3, order=2, attributes={'name': 'q2', 'title': 'Question 2'})
+        dbsession.add(q)
+        q = Question(page=page, type_id=4, order=3, attributes={'name': 'q3', 'title': 'Question 3'})
+        dbsession.add(q)
+        q = Question(page=page, type_id=5, order=4, attributes={'name': 'q4', 'title': 'Question 4'})
+        dbsession.add(q)
+        q = Question(page=page, type_id=6, order=5, attributes={'name': 'q5'})
+        dbsession.add(q)
     alembic_config = config.Config(args.configuration, ini_section='app:main')
     alembic_config.set_section_option('app:main', 'script_location', 'ess:migrations')
     command.stamp(alembic_config, "head")

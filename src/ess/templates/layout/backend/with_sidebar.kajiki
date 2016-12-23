@@ -67,7 +67,7 @@
     <py:include href="ess:templates/layout/backend/_init.kajiki"/>
     <script>
     function resize_sidebar() {
-        var height = $(document).innerHeight();
+        var height = $(window).innerHeight();
         var sidebar = $('#sidebar');
         sidebar.parent().siblings('header').each(function() {
             height = height - $(this).outerHeight(true);

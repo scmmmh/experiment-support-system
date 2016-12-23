@@ -41,7 +41,7 @@ gulp.task('js', function(cb) {
     var count = 0;
     var pcb = function() {
         count++;
-        if(count == 3) {
+        if(count == 5) {
             cb();
         }
     }
@@ -70,13 +70,34 @@ gulp.task('js', function(cb) {
               presets: ['es2015']
           }),
           concat('foundation.js'),
-          modernizr({
+          uglify(),
+          gulp.dest('src/ess/static/js')
+    ], pcb);
+    pump([modernizr({
               options: ['html5shiv',
                         'html5printshiv',
                         'setClasses']
           }),
           gulp.src(['node_modules/jquery/dist/jquery.js',
-                         'node_modules/what-input/what-input.js']),
+                    'node_modules/what-input/what-input.js']),
+          uglify(),
+          gulp.dest('src/ess/static/js')
+    ], pcb);
+    pump([gulp.src(['node_modules/jquery-ui/ui/version.js',
+                    'node_modules/jquery-ui/ui/effect.js',
+                    'node_modules/jquery-ui/ui/plugin.js',
+                    'node_modules/jquery-ui/ui/widget.js',
+                    'node_modules/jquery-ui/ui/position.js',
+                    'node_modules/jquery-ui/ui/data.js',
+                    'node_modules/jquery-ui/ui/safe-active-element.js',
+                    'node_modules/jquery-ui/ui/safe-blur.js',
+                    'node_modules/jquery-ui/ui/disable-selection.js',
+                    'node_modules/jquery-ui/ui/scroll-parent.js',
+                    'node_modules/jquery-ui/ui/widgets/mouse.js',
+                    'node_modules/jquery-ui/ui/widgets/draggable.js',
+                    'node_modules/jquery-ui/ui/widgets/dropable.js',
+                    'node_modules/jquery-ui/ui/widgets/sortable.js']),
+          concat('jquery-ui.js'),
           uglify(),
           gulp.dest('src/ess/static/js')
     ], pcb);
