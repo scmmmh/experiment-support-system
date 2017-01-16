@@ -11,7 +11,7 @@ def load_question_types(dbsession, data):
                                                     order=obj['attributes']['order']
                                                     if 'order' in obj['attributes'] else 0)
             dbsession.add(qtgroups[obj['id']])
-        elif obj['type'] == 'question_type':
+        elif obj['type'] == 'question_types':
             qtypes[obj['id']] = QuestionType(name=obj['id'],
                                              title=obj['attributes']['title'],
                                              order=obj['attributes']['order']
@@ -26,7 +26,7 @@ def load_question_types(dbsession, data):
             if 'relationships' in obj and 'parent' in obj['relationships']:
                 if obj['relationships']['parent']['data']['id'] in qtgroups:
                     qtgroups[obj['id']].parent = qtgroups[obj['relationships']['parent']['data']['id']]
-        elif obj['type'] == 'question_type':
+        elif obj['type'] == 'question_types':
             if 'relationships' in obj and 'q_type_group' in obj['relationships']:
                 if obj['relationships']['q_type_group']['data']['id'] in qtgroups:
                     qtypes[obj['id']].q_type_group = qtgroups[obj['relationships']['q_type_group']['data']['id']]

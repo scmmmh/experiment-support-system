@@ -56,7 +56,7 @@ def run_survey(request):
     dbsession = DBSession
     experiment = dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['ueid']).first()
     participant = current_participant(request, experiment)
-    qsheet = experiment.qsheets[0]
+    qsheet = experiment.pages[0]
     qsheet.questions[1]['help'] = 'This works.'
     return {'experiment': experiment,
             'qsheet': qsheet,

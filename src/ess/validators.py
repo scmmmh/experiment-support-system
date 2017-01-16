@@ -43,6 +43,8 @@ class QuestionEditSchema(formencode.Schema):
                     self.add_field(field['name'], formencode.validators.UnicodeString(**kwargs))
                 elif field['validation']['type'] == 'boolean':
                     self.add_field(field['name'], formencode.validators.StringBool(**kwargs))
+                elif field['validation']['type'] == 'number':
+                    self.add_field(field['name'], formencode.validators.Number(**kwargs))
                 elif field['validation']['type'] == 'oneof':
                     self.add_field(field['name'], formencode.validators.OneOf(field['validation']['values'], **kwargs))
                 elif field['validation']['type'] == 'nested':

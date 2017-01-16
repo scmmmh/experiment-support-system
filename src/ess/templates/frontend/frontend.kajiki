@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
   <py:import href="ess:templates/helpers/form.kajiki" alias="form"/>
-  <py:import href="ess:templates/frontend/question.kajiki" alias="qs"/>
+  <py:import href="ess:templates/helpers/question.kajiki" alias="qs"/>
+  <?py from ess.util import replace_variables ?>
   <head>
     <title>${experiment.title} - ${qsheet.title}</title>
-    <link rel="stylesheet" href="${request.static_url('ess:static/css/app.css')}"/>
+    <link rel="stylesheet" href="${request.static_url('ess:static/css/frontend.min.css')}"/>
   </head>
   <body class="frontend">
     <div class="row">
@@ -32,11 +33,23 @@
     </form>
     <script src="${request.static_url('ess:static/js/jquery.js')}"></script>
     <script src="${request.static_url('ess:static/js/what-input.js')}"></script>
+    <script src="${request.static_url('ess:static/js/jquery-ui.js')}"></script>
     <script src="${request.static_url('ess:static/js/foundation.js')}"></script>
     <script src="${request.static_url('ess:static/js/frontend.js')}"></script>
     <script>
     $(document).foundation();
     $('.toggle-question-help').toggle_question_help();
+    </script>
+    <script py:for="question in qsheet.questions" py:if="('frontend', 'javascript') in question">
+    (function (question) {
+        ${replace_variables(question['frontend', 'javascript'], question)}
+    })($('#question-${question.id}'));
+    </script>
+    <script>
+    $('form').on('submit', function(ev) {
+        ev.preventDefault();
+        alert('Submit');
+    });
     </script>
   </body>
 </html>

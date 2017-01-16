@@ -7,6 +7,7 @@ import asset
 import logging
 import math
 import smtplib
+import re
 
 from email.mime.text import MIMEText
 from email.utils import formatdate
@@ -135,4 +136,22 @@ def paginate(request, query, start, rows, query_params=None):
         pages.append({'type': 'next'})
     return pages
 
+
+VARIABLE_PATTERN = re.compile('\${([a-z0-9.]+)}', re.IGNORECASE)
+
+
+def replace_variables(text, *sources):
+    if isinstance(text, str):
+        match = re.search(VARIABLE_PATTERN, text)
+        while match is not None:
+            replaced = False
+            for source in sources:
+                if source is not None and match.group(1) in source:
+                    text = text.replace(match.group(0), str(source[match.group(1)]))
+                    replaced = True
+                    break
+            if not replaced:
+                text = text.replace(match.group(0), match.group(1))
+            match = re.search(VARIABLE_PATTERN, text)
+    return text
 
