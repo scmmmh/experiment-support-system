@@ -23,7 +23,7 @@
               <li class="show-edit"><a href="#" data-action="cancel" class="alert">${icon.md('close', 'Discard Changes')}</a></li>
             </ul>
           </nav>
-          <div class="column small-9 medium-10 large-11">
+          <div class="column small-9 medium-10 large-11 question-edit-wrapper">
             <div class="hide-edit question-wrapper">${questions.render(question, None)}<section class="question ${'hidden' if question['frontend', 'visible'] else ''}"><div class="row"><div class="column small-12"><h2>${question['name']}</h2></div></div></section></div>
             <div class="show-edit">
               <form action="${request.route_url('experiment.page.edit.question', eid=experiment.id, pid=page.id, qid=question.id)}" method="post" class="question-form">

@@ -35,7 +35,7 @@
           <dd>
             <ul class="no-bullet">
               <li class="${'current' if request.matched_route.name.startswith('experiment.page') else ''}"><a href="${request.route_url('experiment.page', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">content_copy</span> All Pages</a></li>
-              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">call_split</span> Flow</a></li>
+              <!-- <li><a href=""><span class="mdi mdi-24" aria-hidden="true">call_split</span> Flow</a></li> -->
             </ul>
           </dd>
           <dt>Data</dt>
