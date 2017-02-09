@@ -20,6 +20,11 @@
           </div>
           <div class="row expanded">
             <div class="column small-12 medium-8 end">
+              ${form.field('select', 'start', 'First Page', value=str(experiment.start.id) if experiment.start else '', values=[('', '--- Please select a starting page ---')] + [(str(p.id), '%s (%s)' % (p.title, p.name) if p.title else 'Untitled (%s)' % (p.name)) for p in experiment.pages])}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
               ${form.field('select', 'language', 'Interface Language', values=[('en', 'English')], value=experiment.language)}
             </div>
           </div>

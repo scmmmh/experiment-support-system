@@ -11,23 +11,40 @@ var uglify = require('gulp-uglify');
 var pump = require('pump');
 
 gulp.task('default', ['scss', 'js']);
-gulp.task('scss', ['scss-core', 'material-design-icons']);
+gulp.task('scss', ['scss-backend', 'scss-frontend', 'material-design-icons']);
 gulp.task('js', ['library-js', 'frontend-js', 'backend-js']);
 gulp.task('library-js', ['what-input', 'modernizr', 'jquery', 'jquery-ui', 'foundation-js']);
 
-gulp.task('scss-core', function(cb) {
+gulp.task('scss-backend', function(cb) {
     var css_sources = ['src/static/scss/base-settings.scss'];
     css_sources.push('src/static/scss/foundation-loader.scss');
-    css_sources.push('src/static/scss/application.scss');
+    css_sources.push('src/static/scss/backend.scss');
     pump([
         gulp.src(css_sources, {base: 'src/static/scss'}),
-        concat('application.scss'),
+        concat('backend.scss'),
         sass({
             includePaths: ['node_modules/foundation-sites/scss',
                            'node_modules/foundation-icons']
         }),
         clean_css(),
-        rename('application.min.css'),
+        rename('backend.min.css'),
+        gulp.dest('src/ess/static/css')
+    ], cb);
+});
+
+gulp.task('scss-frontend', function(cb) {
+    var css_sources = ['src/static/scss/base-settings.scss'];
+    css_sources.push('src/static/scss/foundation-loader.scss');
+    css_sources.push('src/static/scss/frontend.scss');
+    pump([
+        gulp.src(css_sources, {base: 'src/static/scss'}),
+        concat('frontend.scss'),
+        sass({
+            includePaths: ['node_modules/foundation-sites/scss',
+                           'node_modules/foundation-icons']
+        }),
+        clean_css(),
+        rename('frontend.min.css'),
         gulp.dest('src/ess/static/css')
     ], cb);
 });
@@ -155,6 +172,6 @@ gulp.task('backend-js', function(cb) {
 
 // Task to watch the SCSS/JS files and re-build when needed
 gulp.task('watch', function() {
-    gulp.watch('src/static/scss/**/*.scss', ['scss-core']);
+    gulp.watch('src/static/scss/**/*.scss', ['scss-backend', 'scss-frontend']);
     gulp.watch('src/static/js/**/*.js', ['frontend-js', 'backend-js']);
 });

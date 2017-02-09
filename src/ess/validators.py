@@ -1,17 +1,40 @@
 import formencode
+import re
 
-from pywebtools.formencode import CSRFValidator
+from datetime import datetime
+from pywebtools.formencode import CSRFValidator, CSRFSchema, DynamicSchema
 from sqlalchemy import and_
 
-from ess.models import Page
-from asyncio.test_utils import force_legacy_ssl_support
+from ess.models import Page, Question
+from ess.util import replace_variables
+
+
+class PageExistsValidator(formencode.FancyValidator):
+
+    messages = {'no_page': 'The selected page does not exist',
+                'no_experiment': 'No experiment was specified to validate the Page',
+                'no_dbsession': 'No dbsession was specified to validate the Page'}
+
+    def _validate_python(self, value, state=None):
+        if hasattr(state, 'dbsession'):
+            if hasattr(state, 'experiment'):
+                if not state.dbsession.query(Page).filter(and_(Page.experiment == state.experiment,
+                                                               Page.id == value)).first():
+                    raise formencode.Invalid(self.message('no_page', state), value, state)
+            else:
+                raise formencode.Invalid(self.message('no_experiment', state), value, state)
+        else:
+            raise formencode.Invalid(self.message('no_dbsession', state), value, state)
+
+    def _convert_to_python(self, value, state=None):
+        return int(value)
 
 
 class PageNameUniqueValidator(formencode.FancyValidator):
 
     messages = {'page_exists': 'This name is already being used for a different page',
-                'no_experiment': 'No experiment was specified to validate the Page',
-                'no_dbsession': 'No dbsession was specified to validate the Page'}
+                'no_experiment': 'No experiment was specified to validate the page',
+                'no_dbsession': 'No dbsession was specified to validate the page'}
 
     def _validate_python(self, value, state):
         if hasattr(state, 'dbsession'):
@@ -23,6 +46,91 @@ class PageNameUniqueValidator(formencode.FancyValidator):
                 raise formencode.Invalid(self.message('no_experiment', state), value, state)
         else:
             raise formencode.Invalid(self.message('no_dbsession', state), value, state)
+
+
+class QuestionExistsValidator(formencode.FancyValidator):
+
+    messages = {'no_question': 'The selected question does not exist',
+                'no_dbsession': 'No dbsession was specified to validate the page'}
+
+    def __init__(self, page, *args, **kwargs):
+        formencode.FancyValidator.__init__(self, *args, **kwargs)
+        if isinstance(page, Page):
+            self._page_id = page.id
+        else:
+            self._page_id = page
+
+    def _validate_python(self, value, state=None):
+        if hasattr(state, 'dbsession'):
+            if not state.dbsession.query(Question).filter(and_(Question.page_id == self._page_id,
+                                                               Question.id == value)).first():
+                raise formencode.Invalid(self.message('no_question', state), value, state)
+        else:
+            raise formencode.Invalid(self.message('no_dbsession', state), value, state)
+
+    def _convert_to_python(self, value, state=None):
+        return int(value)
+
+
+DATE_PATTERN = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+
+
+class DateValidator(formencode.FancyValidator):
+
+    messages = {'invalid_format': 'Please enter the date as yyyy-mm-dd',
+                'invalid_date': 'Please enter a valid date'}
+
+    def _validate_python(self, value, state):
+        match = DATE_PATTERN.match(value)
+        if match:
+            try:
+                datetime.strptime(value, '%Y-%m-%d')
+            except:
+                raise formencode.Invalid(self.message('invalid_date', state), value, state)
+        else:
+            raise formencode.Invalid(self.message('invalid_format', state), value, state)
+
+
+TIME_PATTERN = re.compile('(([0-1][0-9])|(2[0-3])):[0-5][0-9]')
+
+
+class TimeValidator(formencode.FancyValidator):
+
+    messages = {'invalid_format': 'Please enter the time as hh:mm'}
+
+    def _validate_python(self, value, state):
+        if not TIME_PATTERN.match(value):
+            raise formencode.Invalid(self.message('invalid_format', state), value, state)
+
+
+DATETIME_PATTERN = re.compile('([0-9]{4}-[0-9]{2}-[0-9]{2}) (([0-1][0-9])|(2[0-3])):[0-5][0-9]')
+
+
+class DateTimeValidator(formencode.FancyValidator):
+
+    messages = {'invalid_format': 'Please enter the date-time as yyyy-mm-dd hh:mm',
+                'invalid_date': 'Please enter a valid date'}
+
+    def _validate_python(self, value, state):
+        match = DATETIME_PATTERN.match(value)
+        if match:
+            try:
+                datetime.strptime(match.group(1), '%Y-%m-%d')
+            except:
+                raise formencode.Invalid(self.message('invalid_date', state), value, state)
+        else:
+            raise formencode.Invalid(self.message('invalid_format', state), value, state)
+
+
+class MonthValidator(formencode.FancyValidator):
+
+    messages = {'invalid_month': 'Please enter a valid month as a number, three letter abbreviation, or full month'}
+
+    def _validate_python(self, value, state):
+        if value.lower() not in ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec',
+                                 '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
+                                 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'oktober', 'november', 'december']:
+            raise formencode.Invalid(self.message('invalid_month', state), value, state)
 
 
 class QuestionEditSchema(formencode.Schema):
@@ -57,3 +165,78 @@ class QuestionEditSchema(formencode.Schema):
                         sub_validator = QuestionEditSchema(field['fields'], csrf_validate=False, **kwargs)
                     if sub_validator:
                         self.add_field(field['name'], formencode.foreach.ForEach(sub_validator, convert_to_list=True, **kwargs))
+
+
+class FrontendPageSchema(CSRFSchema):
+
+    pre_validators = [formencode.variabledecode.NestedVariables()]
+    messages = {'missingValue': 'Please answer this question'}
+
+    def __init__(self, questions, data_items, *args, **kwargs):
+        formencode.Schema.__init__(self, *args, **kwargs)
+        for question in questions:
+            for data_item in data_items:
+                # Set the generic validation settings
+                default_attrs = {}
+                if question['frontend', 'required']:
+                    default_attrs['not_empty'] = True
+                    default_attrs['if_missing'] = formencode.NoDefault
+                    default_attrs['if_empty'] = formencode.NoDefault
+                else:
+                    default_attrs['if_missing'] = None
+                    default_attrs['if_empty'] = None
+                if question['frontend', 'display_as'] == 'simple_input':
+                    # Simple input field validation
+                    if question['frontend', 'input_type'] == 'number':
+                        self.add_field(question['frontend', 'name'], formencode.validators.Number(**default_attrs))
+                    elif question['frontend', 'input_type'] == 'email':
+                        self.add_field(question['frontend', 'name'], formencode.validators.Email(**default_attrs))
+                    elif question['frontend', 'input_type'] == 'url':
+                        self.add_field(question['frontend', 'name'], formencode.validators.URL(**default_attrs))
+                    elif question['frontend', 'input_type'] == 'date':
+                        self.add_field(question['frontend', 'name'], DateValidator(**default_attrs))
+                    elif question['frontend', 'input_type'] == 'time':
+                        self.add_field(question['frontend', 'name'], TimeValidator(**default_attrs))
+                    elif question['frontend', 'input_type'] == 'datetime':
+                        self.add_field(question['frontend', 'name'], DateTimeValidator(**default_attrs))
+                    elif question['frontend', 'input_type'] == 'month':
+                        self.add_field(question['frontend', 'name'], MonthValidator(**default_attrs))
+                    else:
+                        self.add_field(question['frontend', 'name'], formencode.validators.UnicodeString(**default_attrs))
+                elif question['frontend', 'display_as'] == 'select_simple_choice':
+                    # Single / multi-choice validation
+                    values = [replace_variables(answer['value'], question, data_item)
+                              for answer in question['frontend', 'answers']]
+                    if question['frontend', 'allow_multiple']:
+                        self.add_field(question['frontend', 'name'],
+                                       formencode.foreach.ForEach(formencode.validators.OneOf(values),
+                                                                  use_list=True,
+                                                                  **default_attrs))
+                    else:
+                        self.add_field(question['frontend', 'name'], formencode.validators.OneOf(values,
+                                                                                                 **default_attrs))
+                elif question['frontend', 'display_as'] == 'select_grid_choice':
+                    # Grid-structured single / multi-choice validation
+                    values = [replace_variables(answer['value'], question, data_item)
+                              for answer in question['frontend', 'answers']]
+                    sub_schema = DynamicSchema(messages={'missingValue': 'Please answer this question'},
+                                               **default_attrs)
+                    for sub_question in question['frontend', 'questions']:
+                        if question['frontend', 'allow_multiple']:
+                            sub_schema.add_field(sub_question['name'],
+                                                 formencode.foreach.ForEach(formencode.validators.OneOf(values),
+                                                                            use_list=True,
+                                                                            **default_attrs))
+                        else:
+                            sub_schema.add_field(sub_question['name'], formencode.validators.OneOf(values,
+                                                                                                   **default_attrs))
+                    self.add_field(question['frontend', 'name'], sub_schema)
+                elif question['frontend', 'display_as'] == 'ranking':
+                    # Ranking validation
+                    values = [replace_variables(answer['value'], question, data_item)
+                              for answer in question['frontend', 'answers']]
+                    self.add_field(question['frontend', 'name'],
+                                   formencode.validators.OneOf(values,
+                                                               testValueList=True,
+                                                               use_list=True,
+                                                               **default_attrs))

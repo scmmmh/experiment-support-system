@@ -1,5 +1,5 @@
 <div>
-  <py:import href="ess:templates/helpers/form.kajiki" alias="form"/>
+  <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
   <py:import href="ess:templates/helpers/question.kajiki" alias="questions"/>
   ${questions.render(question, None)}
 </div>

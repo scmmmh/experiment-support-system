@@ -9,6 +9,7 @@ from pywebtools.pyramid.auth.views import current_user, require_permission
 from pywebtools.sqlalchemy import DBSession
 
 from ess.models import Experiment
+from ess.validators import PageExistsValidator
 
 
 def init(config):
@@ -75,6 +76,7 @@ class SettingsGeneralSchema(CSRFSchema):
     title = formencode.validators.UnicodeString(not_empty=True,
                                                 messages={'empty': 'Please provide a title'})
     summary = formencode.validators.UnicodeString()
+    start = PageExistsValidator()
     language = formencode.validators.OneOf(['en'])
     public = formencode.validators.StringBool(if_missing=False, if_empty=False)
 
@@ -88,10 +90,13 @@ def settings_general(request):
     if experiment:
         if request.method == 'POST':
             try:
-                params = SettingsGeneralSchema().to_python(request.params, State(request=request))
+                params = SettingsGeneralSchema().to_python(request.params, State(request=request,
+                                                                                 dbsession=dbsession,
+                                                                                 experiment=experiment))
                 with transaction.manager:
                     experiment.title = params['title']
                     experiment.summary = params['summary']
+                    experiment.start_id = params['start']
                     experiment.language = params['language']
                     experiment.public = params['public']
                     dbsession.add(experiment)

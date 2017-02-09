@@ -1,0 +1,18 @@
+.editable {
+    .editable-container {
+        a[data-action=reorder] {
+            cursor: move;
+        }
+        .show-edit {
+            display: none;
+        }
+        &.editing {
+            .show-edit {
+                display: block;
+            }
+            .hide-edit {
+                display: none;
+            }
+        }
+    }
+}

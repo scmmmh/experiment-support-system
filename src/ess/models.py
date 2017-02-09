@@ -10,6 +10,7 @@ This module contains all the database-abstraction classes.
 import json
 import time
 
+from pyramid.decorator import reify
 from pywebtools.pyramid.auth.models import User
 from pywebtools.sqlalchemy import Base, DBSession, MutableDict, JSONUnicodeText
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
@@ -150,7 +151,7 @@ class Preference(Base):
     
 class Experiment(Base):
 
-    __tablename__ = 'surveys'
+    __tablename__ = 'experiments'
     
     id = Column(Integer, primary_key=True)
     title = Column(Unicode(1024))
@@ -158,18 +159,18 @@ class Experiment(Base):
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
     status = Column(Unicode(64))
-    start_id = Column(Integer, ForeignKey('qsheets.id', use_alter=True, name='fk_start_id'))
+    start_id = Column(Integer, ForeignKey('pages.id', use_alter=True, name='fk_start_id'))
     language = Column(Unicode(64))
     external_id = Column(Unicode(64), index=True)
-    owned_by = Column(ForeignKey(User.id, name='surveys_users_owner_fk'))
+    owned_by = Column(ForeignKey(User.id, name='experiments_users_owner_fk'))
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime)
     public = Column(Boolean, default=True)
 
-    owner = relationship('User', backref='surveys')
+    owner = relationship('User', backref='experiments')
     pages = relationship('Page',
                          backref='experiment',
-                         primaryjoin='Experiment.id==Page.survey_id',
+                         primaryjoin='Experiment.id == Page.experiment_id',
                          order_by='Page.name',
                          cascade='all, delete, delete-orphan')
     participants = relationship('Participant',
@@ -203,52 +204,40 @@ class Experiment(Base):
 
 class Page(Base):
     
-    __tablename__ = 'qsheets'
+    __tablename__ = 'pages'
     
     id = Column(Integer, primary_key=True)
-    survey_id = Column(ForeignKey(Experiment.id, name='qsheets_surveys_fk'))
+    experiment_id = Column(ForeignKey(Experiment.id, name='pages_experiments_fk'))
     name = Column(Unicode(255))
     title = Column(Unicode(255))
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
-    dataset_id = Column(ForeignKey('data_sets.id', name='qsheets_dataset_id_fk'))
+    dataset_id = Column(ForeignKey('data_sets.id', name='pages_dataset_id_fk'))
 
     questions = relationship('Question',
                              backref='page',
                              order_by='Question.order',
                              cascade='all, delete, delete-orphan')
-    attributes = relationship('QSheetAttribute',
-                              backref='qsheet',
-                              cascade='all, delete, delete-orphan')
-    next = relationship('QSheetTransition',
+    next = relationship('Transition',
                         backref=backref('source', uselist=False),
-                        primaryjoin='Page.id==QSheetTransition.source_id',
-                        order_by='QSheetTransition.order',
+                        primaryjoin='Page.id==Transition.source_id',
+                        order_by='Transition.order',
                         cascade='all, delete, delete-orphan')
-    prev = relationship('QSheetTransition',
+    prev = relationship('Transition',
                         backref=backref('target', uselist=False),
-                        primaryjoin='Page.id==QSheetTransition.target_id',
+                        primaryjoin='Page.id==Transition.target_id',
                         cascade='all, delete, delete-orphan')
-    
-    def attr(self, key):
-        for attr in self.attributes:
-            if attr.key == key:
-                return attr
-        return None
-    
-    def attr_value(self, key, default=None):
-        attr = self.attr(key)
-        if attr:
-            return attr.value
+
+    @property
+    def title_name(self):
+        if self.title:
+            return self.title
         else:
-            return default
-    
-    def set_attr_value(self, key, value):
-        attr = self.attr(key)
-        if attr:
-            attr.value = value
-        else:
-            self.attributes.append(QSheetAttribute(key=key, value=value))
+            return self.name
+
+    @reify
+    def has_answerable_questions(self):
+        return len([q for q in self.questions if q['frontend', 'display_as'] != 'text']) > 0
     
     def valid_buttons(self):
         """Returns a list of valid UI buttons for this :class':`~pyquest.models.Page`.
@@ -277,16 +266,6 @@ class Page(Base):
         if (len([q for q in self.questions if q.q_type.answer_schema()])):
             buttons.append('clear');
         return buttons
-
-
-class QSheetAttribute(Base):
-    
-    __tablename__ = 'qsheet_attributes'
-    
-    id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(Page.id, name='qsheet_attributes_qsheets_fk'))
-    key = Column(Unicode(255))
-    value = Column(UnicodeText)
 
 
 class QuestionTypeGroup(Base):
@@ -339,7 +318,7 @@ class Question(Base, ParentedAttributesMixin):
     __parent_attr__ = 'q_type'
     
     id = Column(Integer, primary_key=True)
-    qsheet_id = Column(ForeignKey(Page.id, name='questions_qsheets_fk'))
+    page_id = Column(ForeignKey(Page.id, name='questions_pages_fk'))
     type_id = Column(ForeignKey(QuestionType.id, name='question_types_fk'))
     name = Column(Unicode(255))
     title = Column(Unicode(255))
@@ -357,30 +336,15 @@ class Question(Base, ParentedAttributesMixin):
     q_type = relationship('QuestionType', backref='questions')
 
 
-class QSheetTransition(Base):
+class Transition(Base, AttributesMixin):
     
-    __tablename__ = 'qsheet_transitions'
+    __tablename__ = 'transitions'
     
     id = Column(Integer, primary_key=True)
     source_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_source_fk'))
     target_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_target_fk'))
     order = Column(Integer, default=0)
-    _condition = Column(UnicodeText)
-    _action = Column(UnicodeText)
-    
-    def set_condition(self, condition):
-        if condition:
-            self._condition = json.dumps(condition)
-        else:
-            self._condition = None
-    
-    def get_condition(self):
-        if self._condition:
-            return json.loads(self._condition)
-        else:
-            return None
-    
-    condition = property(get_condition, set_condition)
+
 
 class DataSet(Base):
 
@@ -435,6 +399,7 @@ class DataSet(Base):
         self.copy_data(newds)
         return newds
 
+
 class DataSetRelation(Base):
     
     __tablename__ = 'data_set_relations'
@@ -459,7 +424,8 @@ class DataSetRelation(Base):
         self._data = json.dumps(data)
     
     data = property(get_data, set_data)
-    
+
+
 class DataSetAttributeKey(Base):
 
     __tablename__ = 'data_set_attribute_keys'
@@ -471,6 +437,7 @@ class DataSetAttributeKey(Base):
     values = relationship('DataItemAttribute',
                           backref='key',
                           cascade='all, delete, delete-orphan')
+
 
 class DataItem(Base):
     
@@ -497,6 +464,7 @@ class DataItem(Base):
     def sorted_attributes(self):
         return sorted(self.attributes, key = lambda attribute: attribute.key.order)
 
+
 class DataItemAttribute(Base):
     
     __tablename__ = 'data_item_attributes'
@@ -505,6 +473,7 @@ class DataItemAttribute(Base):
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
     value = Column(UnicodeText)
     key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
+
 
 class DataItemCount(Base):
     
@@ -515,6 +484,7 @@ class DataItemCount(Base):
     qsheet_id = Column(ForeignKey(Page.id, name='data_item_counts_qsheets_fk'))
     count = Column(Integer)
 
+
 class DataItemControlAnswer(Base):
     
     __tablename__ = 'data_item_control_answers'
@@ -523,6 +493,7 @@ class DataItemControlAnswer(Base):
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_control_answers_data_items_fk'))
     question_id = Column(ForeignKey(Question.id, name='data_item_control_answers_questions_fk'))
     answer = Column(Unicode(4096))
+
 
 class PermutationSet(DataSet):
     """ PermutationSet extends DataSet. A PermutationSet is created when a Page has tasks and interfaces to permute.
@@ -539,32 +510,21 @@ class PermutationSet(DataSet):
 
     __mapper_args__ = {'polymorphic_identity': 'permutationset'}
 
-class Participant(Base):
+
+class Participant(Base, AttributesMixin):
     
     __tablename__ = 'participants'
     
     id = Column(Integer, primary_key=True)
-    survey_id = Column(ForeignKey(Experiment.id, name='participants_surveys_fk'))
-    state = Column(UnicodeText)
+    experiment_id = Column(ForeignKey(Experiment.id, name='participants_experiments_fk'))
     completed = Column(Boolean, default=False)
-    permutation_item_id = Column(ForeignKey(DataItem.id, name='participants_data_set_item_id_perm_fk'))
 
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
-    permutation_item = relationship('DataItem',
-                                    backref='participants')
-    
-    def get_state(self):
-        if self.state:
-            return json.loads(self.state)
-        else:
-            return None
-    
-    def set_state(self, new_state):
-        self.state = json.dumps(new_state)
 
-class Answer(Base):
+
+class Answer(Base, AttributesMixin):
     
     __tablename__ = 'answers'
     
@@ -572,25 +532,13 @@ class Answer(Base):
     participant_id = Column(ForeignKey(Participant.id, name='answers_participants_fk'))
     question_id = Column(ForeignKey(Question.id, name='answers_questions_fk'))
     data_item_id = Column(ForeignKey(DataItem.id, name='answers_data_items_fk'))
-    
-    values = relationship('AnswerValue',
-                          backref='answer',
-                          cascade='all, delete, delete-orphan')
-    
-class AnswerValue(Base):
-    
-    __tablename__ = 'answer_values'
-    
-    id = Column(Integer, primary_key=True)
-    answer_id = Column(ForeignKey(Answer.id, name='answer_values_answers_fk'))
-    name = Column(Unicode(255))
-    value = Column(Unicode(4096))
+
 
 class Notification(Base):
 
     __tablename__ = 'notifications'
     id = Column(Integer, primary_key=True)
-    survey_id = Column(ForeignKey(Experiment.id, name='notifications_surveys_fk'))
+    survey_id = Column(ForeignKey(Experiment.id, name='notifications_experiments_fk'))
     ntype = Column(Unicode(32))
     value = Column(Integer)
     recipient = Column(Unicode(255))

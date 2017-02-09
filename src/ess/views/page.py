@@ -10,8 +10,8 @@ from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_
 
-from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType
-from ess.validators import PageNameUniqueValidator, QuestionEditSchema
+from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition
+from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator
 
 
 def init(config):
@@ -22,6 +22,11 @@ def init(config):
     config.add_route('experiment.page.edit.question', '/experiments/{eid}/pages/{pid}/questions/{qid}/edit')
     config.add_route('experiment.page.edit.reorder', '/experiments/{eid}/pages/{pid}/reorder')
     config.add_route('experiment.page.delete.question', '/experiments/{eid}/pages/{pid}/questions/{qid}/delete')
+    config.add_route('experiment.page.transition', '/experiments/{eid}/pages/{pid}/transitions')
+    config.add_route('experiment.page.transition.add', '/experiments/{eid}/pages/{pid}/transitions/add')
+    config.add_route('experiment.page.transition.reorder', '/experiments/{eid}/pages/{pid}/transitions/reorder')
+    config.add_route('experiment.page.transition.edit', '/experiments/{eid}/pages/{pid}/transitions/{tid}/edit')
+    config.add_route('experiment.page.transition.delete', '/experiments/{eid}/pages/{pid}/transitions/{tid}/delete')
 
 
 @view_config(route_name='experiment.page', renderer='ess:templates/page/list.kajiki')
@@ -172,7 +177,7 @@ def edit_question(request):
                                                     'question': question},
                                                    request=request)
             return {'status': 'ok',
-                    'question': data.body.decode('utf-8')}
+                    'fragment': data.body.decode('utf-8')}
         except formencode.Invalid as e:
             return {'status': 'error',
                     'errors': e.unpack_errors()}
@@ -180,9 +185,9 @@ def edit_question(request):
         raise HTTPNotFound()
 
 
-class ReorderPageSchema(CSRFSchema):
+class ReorderSchema(CSRFSchema):
 
-    question = formencode.foreach.ForEach(formencode.validators.Int, convert_to_list=True)
+    item = formencode.foreach.ForEach(formencode.validators.Int, convert_to_list=True)
 
 
 @view_config(route_name='experiment.page.edit.reorder', renderer='json')
@@ -199,9 +204,9 @@ def reorder_page(request):
         page = None
     if experiment and page:
         try:
-            params = ReorderPageSchema().to_python(request.params, State(request=request))
+            params = ReorderSchema().to_python(request.params, State(request=request))
             with transaction.manager:
-                for idx, qid in enumerate(params['question']):
+                for idx, qid in enumerate(params['item']):
                     question = dbsession.query(Question).filter(and_(Question.id == qid,
                                                                      Question.page == page)).first()
                     if question is not None:
@@ -278,5 +283,195 @@ def delete_question(request):
             raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
         except formencode.Invalid:
             raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.page.transition', renderer='ess:templates/page/transition.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+def transitions(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                                 Page.experiment == experiment)).first()
+    else:
+        page = None
+    if experiment and page:
+        pages_questions = {}
+        for tmp_page in experiment.pages:
+            pages_questions[tmp_page.id] = {'page': tmp_page,
+                                            'questions': dict([(q.id, q) for q in tmp_page.questions])}
+        return {'experiment': experiment,
+                'page': page,
+                'pages_questions': pages_questions,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Pages',
+                            'url': request.route_url('experiment.page', eid=experiment.id)},
+                           {'title': '%s (%s)' % (page.title, page.name)
+                            if page.title else 'No title (%s)' % page.name,
+                            'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+class TransitionEditSchema(CSRFSchema):
+
+    target = PageExistsValidator()
+    condition = formencode.validators.OneOf(['', 'answer', 'permutation'])
+
+
+@view_config(route_name='experiment.page.transition.edit', renderer='json')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+@require_method('POST')
+def edit_transition(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                                 Page.experiment == experiment)).first()
+    else:
+        page = None
+    if page:
+        transition = dbsession.query(Transition).filter(and_(Transition.id == request.matchdict['tid'],
+                                                             Transition.source == page)).first()
+    else:
+        transition = None
+    if experiment and page and transition:
+        try:
+            schema = TransitionEditSchema()
+            if 'condition' in request.params and request.params['condition'] == 'answer':
+                schema.add_field('condition_answer_page', PageExistsValidator(not_empty=True))
+                schema.add_field('condition_answer_question', QuestionExistsValidator(request.params['condition_answer_page'] if 'condition_answer_page' in request.params else '', not_empty=True))
+                schema.add_field('condition_answer_value', formencode.validators.UnicodeString())
+            params = schema.to_python(request.params, State(request=request,
+                                                            dbsession=dbsession,
+                                                            experiment=experiment,
+                                                            page=page))
+            with transaction.manager:
+                transition.target_id = params['target']
+                if params['condition'] == '':
+                    if 'condition' in transition:
+                        del transition['condition']
+                else:
+                    if params['condition'] == 'answer':
+                        transition['condition'] = {'type': 'answer',
+                                                   'page': params['condition_answer_page'],
+                                                   'question': params['condition_answer_question'],
+                                                   'value': params['condition_answer_value']}
+                dbsession.add(transition)
+            dbsession.add(experiment)
+            dbsession.add(page)
+            dbsession.add(transition)
+            pages_questions = {}
+            for tmp_page in experiment.pages:
+                pages_questions[tmp_page.id] = {'page': tmp_page,
+                                                'questions': dict([(q.id, q) for q in tmp_page.questions])}
+            data = render_to_response('ess:templates/page/edit_transition.kajiki',
+                                      {'experiment': experiment,
+                                       'page': page,
+                                       'transition': transition,
+                                       'pages_questions': pages_questions},
+                                       request=request)
+            return {'status': 'ok',
+                    'fragment': data.body.decode('utf-8')}
+        except formencode.Invalid as e:
+            return {'status': 'error',
+                    'errors': e.unpack_errors()}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.page.transition.reorder', renderer='json')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+@require_method('POST')
+def reorder_transition(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                                 Page.experiment == experiment)).first()
+    else:
+        page = None
+    if experiment and page:
+        try:
+            params = ReorderSchema().to_python(request.params, State(request=request))
+            with transaction.manager:
+                for idx, tid in enumerate(params['item']):
+                    transition = dbsession.query(Transition).filter(and_(Transition.id == tid,
+                                                                         Transition.source == page)).first()
+                    if transition is not None:
+                        transition.order = idx
+            return {'status': 'ok'}
+        except formencode.Invalid:
+            return {'status': 'error'}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.page.transition.delete', renderer='json')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+@require_method('POST')
+def delete_transition(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                                 Page.experiment == experiment)).first()
+    else:
+        page = None
+    if page:
+        transition = dbsession.query(Transition).filter(and_(Transition.id == request.matchdict['tid'],
+                                                             Transition.source == page)).first()
+    else:
+        transition = None
+    if experiment and page and transition:
+        try:
+            with transaction.manager:
+                dbsession.delete(transition)
+            dbsession.add(experiment)
+            dbsession.add(page)
+            raise HTTPFound(request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id))
+        except formencode.Invalid:
+            raise HTTPFound(request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id))
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.page.transition.add', renderer='json')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+@require_method('POST')
+def add_transition(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                                 Page.experiment == experiment)).first()
+    else:
+        page = None
+    if experiment and page:
+        try:
+            with transaction.manager:
+                dbsession.add(page)
+                if page.next:
+                    order = max([t.order for t in page.next]) + 1
+                else:
+                    order = 1
+                transition = Transition(source=page, order=order)
+                dbsession.add(transition)
+            dbsession.add(experiment)
+            dbsession.add(page)
+            dbsession.add(transition)
+            raise HTTPFound(request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id, _anchor='transition-%i' % transition.id))
+        except formencode.Invalid:
+            raise HTTPFound(request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id))
     else:
         raise HTTPNotFound()

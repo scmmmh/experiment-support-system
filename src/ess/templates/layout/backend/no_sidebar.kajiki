@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><py:block name="title"></py:block></title>
     <script src="${request.static_url('ess:static/js/modernizr.js')}"></script>
-    <link rel="stylesheet" href="${request.static_url('ess:static/css/application.min.css')}" />
+    <link rel="stylesheet" href="${request.static_url('ess:static/css/backend.min.css')}" />
     <py:block name="title_link"></py:block>
     <py:block name="title_script"></py:block>
   </head>

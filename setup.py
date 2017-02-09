@@ -26,7 +26,7 @@ requires = [
     'nine',
     'pycrypto',
     'asset',
-    'pywebtools>=1.1.1'
+    'pywebtools>=1.1.3'
     ]
 
 setup(name='ExperimentSupportSystem',

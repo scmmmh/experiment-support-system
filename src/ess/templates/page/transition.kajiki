@@ -1,0 +1,116 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - ${page.title if page.title else 'No title'} (${page.name})</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <py:import href="ess:templates/helpers/page.kajiki" alias="page_helper"/>
+    <py:import href="ess:templates/helpers/question.kajiki" alias="questions"/>
+    <py:import href="ess:templates/page/_question_types.kajiki" alias="qtypes"/>
+    <div class="row expanded">
+      <div class="column small-12">
+        <h1>${page.title if page.title else 'No title'} <small>${page.name}</small></h1>
+        <py:include href="ess:templates/page/_menubar.kajiki"/>
+      </div>
+    </div>
+    <div class="row expanded">
+      <article class="column small-12 medium-8 large-9 editable">
+        <div py:for="transition in page.next" id="transition-${transition.id}" data-item-id="${transition.id}" class="row collapse expanded editable-container hover-parent">
+          <nav class="column small-1">
+            <ul class="menu vertical text-right show-for-hover">
+              <li class="hide-edit"><a href="#" data-action="reorder">${icon.md('swap_vert', 'Re-order')}</a></li>
+            </ul>
+            &nbsp;
+          </nav>
+          <div class="column small-11 hide-edit">
+            <div class="preview">
+              <p>Transition to <py:if test="transition.target">page ${page_helper.backend_link(transition.target)}</py:if><py:else>the end</py:else></p>
+              <p py:if="'condition' in transition and transition['condition']['type'] == 'answer'">Conditional on the response to question ${pages_questions[transition['condition']['page']]['questions'][transition['condition']['question']]['frontend', 'name']} (${page_helper.backend_link(pages_questions[transition['condition']['page']]['page'])}) being "${transition['condition']['value']}".</p>
+            </div>
+          </div>
+          <div class="column small-11 show-edit">
+            <form action="${request.route_url('experiment.page.transition.edit', eid=experiment.id, pid=page.id, tid=transition.id)}" method="post" class="question-form">
+              ${form.csrf_field()}
+              <div class="row collapse"> 
+                <div class="column small-12">
+                  ${form.field('select', 'target', 'Target Page', value=str(transition.target.id) if transition.target else '', values=[('', '--- Please select a target page ---')] + [(str(p.id), '%s (%s)' % (p.title, p.name) if p.title else 'Untitled (%s)' % (p.name)) for p in experiment.pages])}
+                </div>
+              </div>
+              <div class="row collapse"> 
+                <div class="column small-12">
+                  ${form.field('select', 'condition', 'Transition condition', value=transition['condition']['type'] if 'condition' in transition else '', values=[('', 'Unconditional Transition'), ('answer', 'Conditional upon an Answer'), ('permutation', 'Conditional upon additional states in the Permutation Set')])}
+                </div>
+              </div>
+              <div class="row collapse"> 
+                <div class="column small-4">
+                  ${form.field('select', 'condition_answer_page', 'Page', value=str(transition['condition']['page']) if 'condition' in transition else '', values=[('', '--- Please select a Page ---')] + [(str(p.id), '%s (%s)' % (p.title, p.name) if p.title else 'Untitled (%s)' % (p.name)) for p in experiment.pages if p.has_answerable_questions])}
+                </div>
+                <div class="column small-4">
+                  <py:for each="p in experiment.pages" py:if="p.has_answerable_questions">
+                    ${form.field('select', 'condition_answer_question', 'Question', value=str(transition['condition']['question']) if 'condition' in transition else '', values=[('', '--- Please select a Question ---')] + [(str(q.id), q['frontend', 'name']) for q in p.questions if q['frontend', 'display_as'] != 'text'], extra_attrs={'class': 'questions-page-%s' % p.id})}
+                  </py:for>
+                </div>
+                <div class="column small-4">
+                  ${form.field('text', 'condition_answer_value', 'Answer', value=transition['condition']['value'] if 'condition' in transition and transition['condition']['type'] == 'answer' else '')}
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="column small-12">
+            <nav>
+              <ul class="menu align-right">
+                <li class="hide-edit"><a href="#" data-action="edit">${icon.md('edit', 'Edit')}</a></li>
+                <li class="hide-edit"><a href="${request.route_url('experiment.page.transition.delete', eid=experiment.id, pid=page.id, tid=transition.id, _query=[('csrf_token', request.session.get_csrf_token())])}" data-action="delete" class="alert post-link">${icon.md('delete', 'Delete')}</a></li>
+                <li class="show-edit"><a href="#" data-action="save" class="success">${icon.md('check', 'Save Changes')}</a></li>
+                <li class="show-edit"><a href="#" data-action="cancel" class="alert">${icon.md('close', 'Discard Changes')}</a></li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </article>
+      <div id="transition-types" class="column small-12 medium-4 large-3">
+        <ul>
+          <li><a href="${request.route_url('experiment.page.transition.add', eid=experiment.id, pid=page.id)}" class="post-link">Add a Transition</a></li>
+        </ul>
+      </div>
+    </div>
+  </py:block>
+  <py:block name="body_script">
+  <script>
+  <![CDATA[
+      $('article').inlineEditor({
+          reorder: '${request.route_url('experiment.page.transition.reorder', eid=experiment.id, pid=page.id)}',
+          csrf_token: '${request.session.get_csrf_token()}'
+      });
+      // If there is a hash set, start editing that transition
+      if(window.location.hash) {
+          $(window.location.hash).find('a[data-action=edit]').trigger('click');
+          if(window.history) {
+              history.replaceState(null, document.title, window.location.pathname + window.location.search);
+          }
+      }
+      // Handle enable/disable based on elements
+      function enable_disable(form) {
+          var condition = form.find('select[name=condition]');
+          if(condition.val() == '') {
+              form.find('select[name=condition_answer_page]').attr('disabled', 'disabled').parent().hide();
+              form.find('select[name=condition_answer_question]').attr('disabled', 'disabled').parent().hide();
+              form.find('input[name=condition_answer_value]').attr('disabled', 'disabled').parent().hide();
+          } else if(condition.val() == 'answer') {
+              var page = form.find('select[name=condition_answer_page]');
+              page.removeAttr('disabled').parent().show();
+              form.find('select[name=condition_answer_question]').attr('disabled', 'disabled').parent().hide();
+              form.find('input[name=condition_answer_value]').removeAttr('disabled').parent().show();
+              form.find('select.questions-page-' + page.val()).removeAttr('disabled').parent().show();
+          } else if(condition.val() == 'permutation') {
+          }
+      }
+      $('article').on('change', 'select', function(ev) {
+          enable_disable($(this).parents('form'));
+      });
+      $('article form').each(function() {
+          enable_disable($(this));
+      });
+  ]]>
+  </script>
+  </py:block>
+</py:extends>

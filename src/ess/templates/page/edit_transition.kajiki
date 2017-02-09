@@ -1,0 +1,5 @@
+<div>
+  <py:import href="ess:templates/helpers/page.kajiki" alias="page_helper"/>
+  <p>Transition to <py:if test="transition.target">page ${page_helper.backend_link(transition.target)}</py:if><py:else>the end</py:else></p>
+  <p py:if="'condition' in transition and transition['condition']['type'] == 'answer'">Conditional on the response to question ${pages_questions[transition['condition']['page']]['questions'][transition['condition']['question']]['frontend', 'name']} (${page_helper.backend_link(pages_questions[transition['condition']['page']]['page'])}) being "${transition['condition']['value']}".</p>
+</div>

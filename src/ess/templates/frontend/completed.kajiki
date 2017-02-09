@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html>
-  <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
-  <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
-  <py:import href="ess:templates/helpers/question.kajiki" alias="qs"/>
   <?py from ess.util import replace_variables ?>
   <head>
-    <title>${experiment.title} - ${page.title}</title>
+    <title>${experiment.title} - Completed</title>
     <link rel="stylesheet" href="${request.static_url('ess:static/css/frontend.min.css')}"/>
   </head>
   <body class="frontend">
@@ -22,16 +19,12 @@
         </header>
       </div>
     </div>
-    <form action="" class="row" novalidate="novalidate" method="post">
-      ${form.csrf_field()}
+    <div class="row">
       <div class="column small-12">
-        <h1>${page.title}</h1>
-        <py:for each="question in page.questions">
-          ${qs.render(question, {})}
-        </py:for>
-        <input type="submit"/>
+        <h1>${experiment.title}</h1>
+        <p>Thank you for completing the experiment "${experiment.title}". Your responses have been saved.</p>
       </div>
-    </form>
+    </div>
     <script src="${request.static_url('ess:static/js/jquery.js')}"></script>
     <script src="${request.static_url('ess:static/js/what-input.js')}"></script>
     <script src="${request.static_url('ess:static/js/jquery-ui.js')}"></script>
@@ -39,12 +32,6 @@
     <script src="${request.static_url('ess:static/js/frontend.js')}"></script>
     <script>
     $(document).foundation();
-    $('.toggle-question-help').toggle_question_help();
-    </script>
-    <script py:for="question in page.questions" py:if="('frontend', 'javascript') in question">
-    (function (question) {
-        ${replace_variables(question['frontend', 'javascript'], question)}
-    })($('#question-${question.id}'));
     </script>
   </body>
 </html>
