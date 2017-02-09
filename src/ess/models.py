@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-:mod:`pyquest.models`
-=============================
+###################################
+:mod:`ess.models` - Database Models
+###################################
 
 This module contains all the database-abstraction classes.
 
