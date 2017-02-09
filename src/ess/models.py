@@ -238,34 +238,6 @@ class Page(Base):
     @reify
     def has_answerable_questions(self):
         return len([q for q in self.questions if q['frontend', 'display_as'] != 'text']) > 0
-    
-    def valid_buttons(self):
-        """Returns a list of valid UI buttons for this :class':`~pyquest.models.Page`.
-        
-        The following values are possible:
-        * *finish* - if the :py:class:`~pyquest.models.Page` is the last in the
-          :py:class:`~pyquest.models.Experiment`;
-        * *next* - if there is another :py:class:`~pyquest.models.Page` after this one;
-        * *more* - if this :py:class:`~pyquest.models.Page` has its ``repeat`` attribute
-          set to 'repeat';
-        * *clear* - if this :py:class:`~pyquest.models.Page` has questions that can be
-          answered by the user.
-    
-        :return: A `list` with the valid buttons
-        """
-        buttons = []
-        if self.next:
-            for transition in self.next:
-                if transition.target:
-                    buttons.append('next')
-                    break
-        if not buttons:
-            buttons.append('finish')
-        if self.attr_value('repeat') == 'repeat':
-            buttons.append('more')
-        if (len([q for q in self.questions if q.q_type.answer_schema()])):
-            buttons.append('clear');
-        return buttons
 
 
 class QuestionTypeGroup(Base):
