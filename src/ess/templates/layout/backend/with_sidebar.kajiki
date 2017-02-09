@@ -66,16 +66,7 @@
     <py:block name="body_preinit_script"></py:block>
     <py:include href="ess:templates/layout/backend/_init.kajiki"/>
     <script>
-    function resize_sidebar() {
-        var height = $(window).innerHeight();
-        var sidebar = $('#sidebar');
-        sidebar.parent().siblings('header').each(function() {
-            height = height - $(this).outerHeight(true);
-        });
-        $('#sidebar').css('height', height + 'px');
-    }
-    $(window).on('resize', resize_sidebar);
-    resize_sidebar();
+    $('#sidebar').sidebar();
     </script>
     <py:block name="body_script"></py:block>
   </body>
