@@ -7,6 +7,9 @@
             display: none;
         }
         &.editing {
+            a.show-edit, span.show-edit {
+                display: inline;
+            }
             .show-edit {
                 display: block;
             }

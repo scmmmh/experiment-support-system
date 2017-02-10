@@ -1,0 +1,26 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Upload a Data Set</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row left">
+      <article class="column small-12 medium-6 end">
+        <h1>Upload a Data Set</h1>
+        <form action="${request.route_url('experiment.data.upload', eid=experiment.id)}" method="post" enctype="multipart/form-data">
+          ${form.csrf_field()}
+          <div class="row">
+            <div class="column small-12">${form.field('text', 'name', 'Unique Name')}</div>
+          </div>
+          <div class="row">
+            <div class="column small-12">${form.field('file', 'source', 'Source CSV File')}</div>
+          </div>
+          <div class="row text-right">
+            <div class="column small-12">
+              <a href="${request.route_url('experiment.data', eid=experiment.id)}" class="button secondary">Don't Upload</a>
+              <input type="submit" value="Upload" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

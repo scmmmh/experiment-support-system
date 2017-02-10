@@ -175,7 +175,7 @@ def edit_question(request):
                                                    {'experiment': experiment,
                                                     'page': page,
                                                     'question': question},
-                                                   request=request)
+                                                    request=request)
             return {'status': 'ok',
                     'fragment': data.body.decode('utf-8')}
         except formencode.Invalid as e:

@@ -1,0 +1,150 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - ${data_set.name}</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <div class="row expanded">
+      <article class="column small-12">
+        <div class="float-right">
+          <a py:if="experiment.allow('edit', request.current_user)" href="${request.route_url('experiment.data.edit', eid=experiment.id, did=data_set.id)}" class="button">${icon.md('edit', 'Edit Data Set')}</a>
+          <a py:if="experiment.allow('edit', request.current_user)" href="${request.route_url('experiment.data.delete', eid=experiment.id, did=data_set.id, _query=[('csrf_token', request.session.get_csrf_token())])}" class="alert button post-link">${icon.md('delete', 'Delete Data Set')}</a>
+        </div>
+        <h1>${data_set.name}</h1>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th py:for="col in data_set['columns']">${col}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody class="editable">
+            <tr py:for="item in data_set.items" data-item-id="${item.id}" data-edit-url="${request.route_url('experiment.data.item.edit', eid=experiment.id, did=data_set.id, diid=item.id)}" class="editable-container">
+              <td class="text-center"><a href="#" data-action="reorder">${icon.md('swap_vert', 'Re-order')}</a></td>
+              <td py:for="col in data_set['columns']" data-column-name="${col}">
+                <span class="hide-edit"><py:if test="col in item['values']">${item['values'][col]}</py:if></span>
+                <span class="show-edit">${form.field('text', col, '', value=item['values'][col] if col in item['values'] else '')}</span>
+              </td>
+              <td class="text-center no-wrap">
+                <a href="#" data-action="edit" class="hide-edit">${icon.md('edit', 'Edit Item')}</a>
+                <a href="${request.route_url('experiment.data.item.delete', eid=experiment.id, did=data_set.id, diid=item.id)}" class="alert post-link hide-edit">${icon.md('remove', 'Remove Item')}</a>
+                <a href="#" data-action="cancel" class="alert show-edit">${icon.md('close', 'Discard Changes')}</a>
+                <a href="#" data-action="save" class="success show-edit">${icon.md('check', 'Save Changes')}</a>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td></td>
+              <td py:for="col in data_set['columns']">${form.field('text', col, col)}</td>
+              <td class="text-center"><a href="#" data-action="add-row" class="success">${icon.md('add', 'Add Item')}</a></td>
+            </tr>
+            <tr id="template" data-edit-url="${request.route_url('experiment.data.item.edit', eid=experiment.id, did=data_set.id, diid='id')}" class="hidden editable-container">
+              <td class="text-center"><a href="#" data-action="reorder">${icon.md('swap_vert', 'Re-order')}</a></td>
+              <td py:for="col in data_set['columns']" data-column-name="${col}">
+                <span class="hide-edit"></span>
+                <span class="show-edit">${form.field('text', col, '', value='')}</span>
+              </td>
+              <td class="text-center">
+                <a href="#" data-action="edit" class="hide-edit">${icon.md('edit', 'Edit Item')}</a>
+                <a href="${request.route_url('experiment.data.item.delete', eid=experiment.id, did=data_set.id, diid='id')}" data-action="remove" class="alert post-link hide-edit">${icon.md('remove', 'Remove Item')}</a>
+                <a href="#" data-action="cancel" class="alert show-edit">${icon.md('close', 'Discard Changes')}</a>
+                <a href="#" data-action="save" class="success show-edit">${icon.md('check', 'Save Changes')}</a>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </article>
+    </div>
+  </py:block>
+  <script>
+  <![CDATA[
+      $('table').on('click', 'a[data-action=add-row]', function(ev) {
+          ev.preventDefault();
+          var link = $(this);
+          var data = {
+              csrf_token: '${request.session.get_csrf_token()}'
+          };
+          link.parent().parent().find('input').each(function() {
+              var input = $(this);
+              data[input.attr('name')] = input.val();
+          });
+          var promise = $.ajax('${request.route_url('experiment.data.item.add', eid=experiment.id, did=data_set.id)}', {
+              method: 'POST',
+              data: data
+          });
+          promise.then(function(data) {
+              if(data.status == 'ok') {
+                  var new_row = $('#template').clone();
+                  new_row.removeClass('hidden');
+                  new_row.removeAttr('id');
+                  new_row.attr('data-item-id', data.id);
+                  new_row.find('td[data-column-name]').each(function() {
+                      var elem = $(this);
+                      elem.children('.hide-edit').html(data.values[elem.data('column-name')]);
+                      elem.find('input').val(data.values[elem.data('column-name')]);
+                  });
+                  new_row.attr('data-edit-url', new_row.attr('data-edit-url').replace('id', data.id));
+                  var a = new_row.find('a[data-action=remove]');
+                  a.attr('href', a.attr('href').replace('id', data.id)).postLink();
+                  link.parents('table').find('tbody').append(new_row);
+                  link.parent().parent().find('input').each(function() {
+                      $(this).val('');
+                  });
+              }
+          });
+      });
+      $('table').on('click', 'a[data-action=edit]', function(ev) {
+          ev.preventDefault();
+          var link = $(this);
+          link.parents('.editable-container').addClass('editing');
+      });
+      $('table').on('click', 'a[data-action=cancel]', function(ev) {
+          ev.preventDefault();
+          var link = $(this);
+          link.parents('.editable-container').removeClass('editing');
+      });
+      $('table').on('click', 'a[data-action=save]', function(ev) {
+          ev.preventDefault();
+          var link = $(this);
+          var row = link.parents('tr');
+          var data = {
+              csrf_token: '${request.session.get_csrf_token()}'
+          };
+          row.find('input').each(function() {
+              var input = $(this);
+              data[input.attr('name')] = input.val();
+          });
+          var promise = $.ajax(row.data('edit-url'), {
+              method: 'POST',
+              data: data
+          });
+          promise.then(function(data) {
+              if(data.status == 'ok') {
+                  row.find('td[data-column-name]').each(function() {
+                      var elem = $(this);
+                      elem.children('.hide-edit').html(data.values[elem.data('column-name')]);
+                      elem.find('input').val(data.values[elem.data('column-name')]);
+                  });
+                  link.parents('.editable-container').removeClass('editing');
+              }
+          });
+      });
+      $('table tbody').sortable({
+          handle: 'a[data-action=reorder]',
+          containment: 'parent',
+          tolerance: 'pointer',
+          update: function() {
+              var item_ids = [];
+              $('table tbody').children('tr').each(function() {
+                  item_ids.push($(this).data('item-id'));
+              });
+              $.ajax('${request.route_url('experiment.data.item.reorder', eid=experiment.id, did=data_set.id)}', {
+                  method: 'POST',
+                  data: $.param({csrf_token: '${request.session.get_csrf_token()}', item: item_ids}, true)
+              });
+          }
+      });
+  ]]>
+  </script>
+</py:extends>

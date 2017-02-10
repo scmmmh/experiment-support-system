@@ -80,7 +80,7 @@ tbody th {
     text-align: left;
 }
 /* */
-tbody {
+tbody, tfoot {
     #{text-inputs()}, textarea, select {
         margin-bottom: 0;
     }

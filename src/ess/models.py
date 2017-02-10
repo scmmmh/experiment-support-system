@@ -13,7 +13,7 @@ import time
 
 from pyramid.decorator import reify
 from pywebtools.pyramid.auth.models import User
-from pywebtools.sqlalchemy import Base, DBSession, MutableDict, JSONUnicodeText
+from pywebtools.sqlalchemy import Base, MutableDict, JSONUnicodeText
 from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
                         DateTime, Boolean, func)
 from sqlalchemy.orm import (relationship, backref)
@@ -149,7 +149,8 @@ class Preference(Base):
     value = Column(Unicode(255))
     
     user = relationship('User', backref='preferences')
-    
+
+
 class Experiment(Base):
 
     __tablename__ = 'experiments'
@@ -180,18 +181,13 @@ class Experiment(Base):
     start = relationship('Page',
                          primaryjoin='Experiment.start_id==Page.id',
                          post_update=True)
-
     notifications = relationship('Notification',
                           backref='survey',
                           cascade='all, delete, delete-orphan')
-    
     data_sets = relationship('DataSet', 
-                             primaryjoin="and_(Experiment.id==DataSet.survey_id, DataSet.type=='dataset')",
+                             primaryjoin="and_(Experiment.id==DataSet.experiment_id, DataSet.type=='dataset')",
                              cascade='all, delete, delete-orphan')
 
-    permutation_sets = relationship('PermutationSet', 
-                                    primaryjoin="and_(Experiment.id==PermutationSet.survey_id, PermutationSet.type=='permutationset')",
-                                    cascade='all, delete, delete-orphan')
 
     def allow(self, action, user):
         if action == 'view':
@@ -319,61 +315,20 @@ class Transition(Base, AttributesMixin):
     order = Column(Integer, default=0)
 
 
-class DataSet(Base):
+class DataSet(Base, AttributesMixin):
 
     __tablename__ = 'data_sets'
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
-    owned_by = Column(ForeignKey(User.id, name="data_sets_owned_by_fk"))
-    survey_id = Column(ForeignKey(Experiment.id, name="data_sets_survey_id_fk"))
+    experiment_id = Column(ForeignKey(Experiment.id, name="data_sets_experiment_id_fk"))
     type = Column(Unicode(20))
 
-    survey = relationship('Experiment')
-    items = relationship('DataItem', backref='data_set', cascade='all, delete, delete-orphan')
-    qsheets = relationship('Page', backref='data_set')
-    owner = relationship('User', backref='data_sets')
-    attribute_keys = relationship('DataSetAttributeKey', 
-                                  backref='dataset',
-                                  order_by='DataSetAttributeKey.order',
-                                  cascade='all, delete, delete-orphan')
-
-    __mapper_args__ = {'polymorphic_on': type,
-                       'polymorphic_identity': 'dataset'}
-
-    def is_owned_by(self, user):
-        if user:
-            return self.owned_by == user.id
-        else:
-            return False
-
-    def copy_data(self, newds):
-        # TODO: Needs to be moved into the view
-        dbsession = DBSession()
-        new_keys_for_old = {}
-        for ak in self.attribute_keys:
-            new_ak = DataSetAttributeKey(key=ak.key, order=ak.order)
-            dbsession.add(new_ak)
-            newds.attribute_keys.append(new_ak)
-            dbsession.flush()
-            new_keys_for_old[ak.id] = new_ak.id
-        for item in self.items:
-            new_item = DataItem(order=item.order, control=item.control)
-            for attribute in item.attributes:
-                new_attribute = DataItemAttribute(value=attribute.value, key_id=new_keys_for_old[attribute.key_id])
-                new_item.attributes.append(new_attribute)
-            newds.items.append(new_item)
-
-    def duplicate(self):
-        """ Creates and returns a new DataSet which is a copy of this one. The owned_by and survey_id fields are
-        left unfilled.
-        """
-        dbsession = DBSession()
-        newds = DataSet(name=self.name, show_in_list=self.show_in_list)
-        self.copy_data(newds)
-        return newds
+    experiment = relationship('Experiment')
+    items = relationship('DataItem', backref='data_set', order_by='DataItem.order', cascade='all, delete, delete-orphan')
+    pages = relationship('Page', backref='data_set')
 
 
-class DataSetRelation(Base):
+class DataSetRelation(Base, AttributesMixin):
     
     __tablename__ = 'data_set_relations'
     
@@ -381,7 +336,6 @@ class DataSetRelation(Base):
     subject_id = Column(ForeignKey(DataSet.id, name='data_set_relations_subject_id_fk'))
     object_id = Column(ForeignKey(DataSet.id, name='data_set_relations_object_id_fk'))
     rel = Column(Unicode(255))
-    _data = Column(UnicodeText())
     
     subject = relationship('DataSet',
                            backref='subject_of',
@@ -390,40 +344,15 @@ class DataSetRelation(Base):
                            backref='object_of',
                            primaryjoin='DataSet.id==DataSetRelation.object_id')
 
-    def get_data(self):
-        return json.loads(self._data)
-    
-    def set_data(self, data):
-        self._data = json.dumps(data)
-    
-    data = property(get_data, set_data)
 
-
-class DataSetAttributeKey(Base):
-
-    __tablename__ = 'data_set_attribute_keys'
-    id = Column(Integer, primary_key=True)
-    key = Column(Unicode(255))
-    order = Column(Integer)
-    dataset_id = Column(ForeignKey(DataSet.id, name="data_set_attribute_keys_dataset_id_fk"))
- 
-    values = relationship('DataItemAttribute',
-                          backref='key',
-                          cascade='all, delete, delete-orphan')
-
-
-class DataItem(Base):
+class DataItem(Base, AttributesMixin):
     
     __tablename__ = 'data_items'
     
     id = Column(Integer, primary_key=True)
     dataset_id = Column(ForeignKey(DataSet.id, name="data_items_dataset_id_fk"))
     order = Column(Integer)
-    control = Column(Boolean, default=False)
 
-    attributes = relationship('DataItemAttribute',
-                              backref='data_item', 
-                              cascade='all, delete, delete-orphan')
     counts = relationship('DataItemCount',
                           backref='counts',
                           cascade='all, delete, delete-orphan')
@@ -434,19 +363,6 @@ class DataItem(Base):
                                    backref='data_item',
                                    cascade='all, delete, delete-orphan')
 
-    def sorted_attributes(self):
-        return sorted(self.attributes, key = lambda attribute: attribute.key.order)
-
-
-class DataItemAttribute(Base):
-    
-    __tablename__ = 'data_item_attributes'
-    
-    id = Column(Integer, primary_key=True)
-    data_item_id = Column(ForeignKey(DataItem.id, name='data_item_attributes_data_items_fk'))
-    value = Column(UnicodeText)
-    key_id = Column(ForeignKey(DataSetAttributeKey.id, name='data_item_attributes_data_set_attribute_key_fk'))
-
 
 class DataItemCount(Base):
     
@@ -454,7 +370,7 @@ class DataItemCount(Base):
     
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_counts_data_items_fk'))
-    qsheet_id = Column(ForeignKey(Page.id, name='data_item_counts_qsheets_fk'))
+    page_id = Column(ForeignKey(Page.id, name='data_item_counts_qsheets_fk'))
     count = Column(Integer)
 
 
@@ -466,22 +382,6 @@ class DataItemControlAnswer(Base):
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_control_answers_data_items_fk'))
     question_id = Column(ForeignKey(Question.id, name='data_item_control_answers_questions_fk'))
     answer = Column(Unicode(4096))
-
-
-class PermutationSet(DataSet):
-    """ PermutationSet extends DataSet. A PermutationSet is created when a Page has tasks and interfaces to permute.
-    The DataItems in a PermutationSet are strings representing the individual permutations. A DataSet containing the parts
-    of the actual permutation is created when a Participant actually starts the survey. 
-    """
-
-    tasks = relationship('DataSetRelation',
-                         primaryjoin="and_(PermutationSet.id==DataSetRelation.subject_id, DataSetRelation.rel=='tasks')",
-                         uselist=False)
-    interfaces = relationship('DataSetRelation',
-                              primaryjoin="and_(PermutationSet.id==DataSetRelation.subject_id, DataSetRelation.rel=='interfaces')",
-                              uselist=False)
-
-    __mapper_args__ = {'polymorphic_identity': 'permutationset'}
 
 
 class Participant(Base, AttributesMixin):

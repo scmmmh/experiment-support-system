@@ -11,9 +11,10 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
 from pywebtools.formencode import State
 from pywebtools.pyramid.util import get_config_setting 
+from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_
 
-from ess.models import (DBSession, Experiment, Page, Participant, Question, Answer)
+from ess.models import (Experiment, Page, Participant, Question, Answer)
 from ess.validators import FrontendPageSchema
 
 

@@ -5,7 +5,7 @@ from datetime import datetime
 from pywebtools.formencode import CSRFValidator, CSRFSchema, DynamicSchema
 from sqlalchemy import and_
 
-from ess.models import Page, Question
+from ess.models import Page, Question, DataSet
 from ess.util import replace_variables
 
 
@@ -131,6 +131,25 @@ class MonthValidator(formencode.FancyValidator):
                                  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
                                  'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'oktober', 'november', 'december']:
             raise formencode.Invalid(self.message('invalid_month', state), value, state)
+
+
+class DataSetUniqueValidator(formencode.FancyValidator):
+
+    messages = {'data_set_exists': 'This name is already being used for a different data set',
+                'no_experiment': 'No experiment was specified to validate the data set',
+                'no_dbsession': 'No dbsession was specified to validate the data set'}
+
+    def _validate_python(self, value, state):
+        if hasattr(state, 'dbsession'):
+            if hasattr(state, 'experiment'):
+                data_set = state.dbsession.query(DataSet).filter(and_(DataSet.experiment == state.experiment,
+                                                                      DataSet.name == value)).first()
+                if data_set and (not hasattr(state, 'data_set') or state.data_set.id != data_set.id):
+                    raise formencode.Invalid(self.message('data_set_exists', state), value, state)
+            else:
+                raise formencode.Invalid(self.message('no_experiment', state), value, state)
+        else:
+            raise formencode.Invalid(self.message('no_dbsession', state), value, state)
 
 
 class QuestionEditSchema(formencode.Schema):
