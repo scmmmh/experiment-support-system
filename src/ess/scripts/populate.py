@@ -29,7 +29,7 @@ def initialise_database(args):
     Base.metadata.create_all(engine)
     dbsession = DBSession()
     with transaction.manager:
-        user = User(email='admin@example.com', display_name='Admin')
+        user = User(email='admin@example.com', display_name='Admin', status='active')
         user.new_password('password')
         group = PermissionGroup(title='Site administrator')
         group.permissions.append(Permission(name='admin.users.view', title='View all users'))

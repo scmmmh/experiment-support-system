@@ -1,8 +1,8 @@
 (function($) {
     /**
      * The postLink jQuery plugin provides automatic submission of a standard
-     * link via a POST request. If a data-wte-confirm attribute is present on
-     * the link, then the user has to confirm the action. The data-wte-confirm
+     * link via a POST request. If a data-ess-confirm attribute is present on
+     * the link, then the user has to confirm the action. The data-ess-confirm
      * attribute should look like this:
      * 
      * {"title": "Title string", "msg": "Main message string", "cancel":
@@ -15,7 +15,7 @@
                 var component = $(this);
                 component.on('click', function(ev) {
                     ev.preventDefault();
-                    var confirm = component.data('wte-confirm');
+                    var confirm = component.data('ess-confirm');
                     if (confirm) {
                         var html = '<div id="confirm-modal" class="reveal" data-reveal="">'
                                 + '<h2>' + (confirm.title || 'Please confirm')

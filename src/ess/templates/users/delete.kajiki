@@ -1,0 +1,22 @@
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
+  <py:block name="title">${user.display_name} - Delete</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <h1>${user.display_name} - Delete</h1>
+    <form action="${request.route_url('user.delete', uid=user.id)}" method="post">
+      ${form.csrf_field()}
+      <div class="row">
+        <div class="column small-12 medium-8 large-6 end">
+          <p>Please confirm that you wish to
+            delete <py:if test="user.id == request.current_user.id">your</py:if><py:else>the</py:else>
+            user &quot;${user.display_name}&quot;. This step cannot be undone.</p>
+        
+          <div class="text-right">
+            <a href="${request.route_url('user.view', uid=user.id)}" class="button secondary">Don't Delete</a>
+            <input type="submit" value="Delete" class="button alert"/>
+          </div>
+        </div>
+      </div>
+    </form>
+  </py:block>
+</py:extends>
