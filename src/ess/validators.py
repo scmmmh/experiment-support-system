@@ -152,6 +152,27 @@ class DataSetUniqueValidator(formencode.FancyValidator):
             raise formencode.Invalid(self.message('no_dbsession', state), value, state)
 
 
+class DataSetExistsValidator(formencode.FancyValidator):
+
+    messages = {'no_data_set': 'The selected data set does not exist',
+                'no_experiment': 'No experiment was specified to validate the data set',
+                'no_dbsession': 'No dbsession was specified to validate the data set'}
+
+    def _validate_python(self, value, state=None):
+        if hasattr(state, 'dbsession'):
+            if hasattr(state, 'experiment'):
+                if not state.dbsession.query(DataSet).filter(and_(DataSet.experiment_id == state.experiment.id,
+                                                                  DataSet.id == value)).first():
+                    raise formencode.Invalid(self.message('no_data_set', state), value, state)
+            else:
+                raise formencode.Invalid(self.message('no_experiment', state), value, state)
+        else:
+            raise formencode.Invalid(self.message('no_dbsession', state), value, state)
+
+    def _convert_to_python(self, value, state=None):
+        return int(value)
+
+
 class QuestionEditSchema(formencode.Schema):
 
     pre_validators = [formencode.variabledecode.NestedVariables()]
@@ -191,10 +212,12 @@ class FrontendPageSchema(CSRFSchema):
     pre_validators = [formencode.variabledecode.NestedVariables()]
     messages = {'missingValue': 'Please answer this question'}
 
-    def __init__(self, questions, data_items, *args, **kwargs):
+    def __init__(self, questions, data_items, actions, *args, **kwargs):
         formencode.Schema.__init__(self, *args, **kwargs)
-        for question in questions:
-            for data_item in data_items:
+        self.add_field('_action', formencode.validators.OneOf(actions, not_empty=True))
+        for data_item in data_items:
+            di_schema = DynamicSchema()
+            for question in questions:
                 # Set the generic validation settings
                 default_attrs = {}
                 if question['frontend', 'required']:
@@ -207,33 +230,33 @@ class FrontendPageSchema(CSRFSchema):
                 if question['frontend', 'display_as'] == 'simple_input':
                     # Simple input field validation
                     if question['frontend', 'input_type'] == 'number':
-                        self.add_field(question['frontend', 'name'], formencode.validators.Number(**default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], formencode.validators.Number(**default_attrs))
                     elif question['frontend', 'input_type'] == 'email':
-                        self.add_field(question['frontend', 'name'], formencode.validators.Email(**default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], formencode.validators.Email(**default_attrs))
                     elif question['frontend', 'input_type'] == 'url':
-                        self.add_field(question['frontend', 'name'], formencode.validators.URL(**default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], formencode.validators.URL(**default_attrs))
                     elif question['frontend', 'input_type'] == 'date':
-                        self.add_field(question['frontend', 'name'], DateValidator(**default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], DateValidator(**default_attrs))
                     elif question['frontend', 'input_type'] == 'time':
-                        self.add_field(question['frontend', 'name'], TimeValidator(**default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], TimeValidator(**default_attrs))
                     elif question['frontend', 'input_type'] == 'datetime':
-                        self.add_field(question['frontend', 'name'], DateTimeValidator(**default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], DateTimeValidator(**default_attrs))
                     elif question['frontend', 'input_type'] == 'month':
-                        self.add_field(question['frontend', 'name'], MonthValidator(**default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], MonthValidator(**default_attrs))
                     else:
-                        self.add_field(question['frontend', 'name'], formencode.validators.UnicodeString(**default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], formencode.validators.UnicodeString(**default_attrs))
                 elif question['frontend', 'display_as'] == 'select_simple_choice':
                     # Single / multi-choice validation
                     values = [replace_variables(answer['value'], question, data_item)
                               for answer in question['frontend', 'answers']]
                     if question['frontend', 'allow_multiple']:
-                        self.add_field(question['frontend', 'name'],
-                                       formencode.foreach.ForEach(formencode.validators.OneOf(values),
-                                                                  use_list=True,
-                                                                  **default_attrs))
+                        di_schema.add_field(question['frontend', 'name'],
+                                            formencode.foreach.ForEach(formencode.validators.OneOf(values),
+                                                                       use_list=True,
+                                                                       **default_attrs))
                     else:
-                        self.add_field(question['frontend', 'name'], formencode.validators.OneOf(values,
-                                                                                                 **default_attrs))
+                        di_schema.add_field(question['frontend', 'name'], formencode.validators.OneOf(values,
+                                                                                                      **default_attrs))
                 elif question['frontend', 'display_as'] == 'select_grid_choice':
                     # Grid-structured single / multi-choice validation
                     values = [replace_variables(answer['value'], question, data_item)
@@ -249,13 +272,14 @@ class FrontendPageSchema(CSRFSchema):
                         else:
                             sub_schema.add_field(sub_question['name'], formencode.validators.OneOf(values,
                                                                                                    **default_attrs))
-                    self.add_field(question['frontend', 'name'], sub_schema)
+                    di_schema.add_field(question['frontend', 'name'], sub_schema)
                 elif question['frontend', 'display_as'] == 'ranking':
                     # Ranking validation
                     values = [replace_variables(answer['value'], question, data_item)
                               for answer in question['frontend', 'answers']]
-                    self.add_field(question['frontend', 'name'],
-                                   formencode.validators.OneOf(values,
-                                                               testValueList=True,
-                                                               use_list=True,
-                                                               **default_attrs))
+                    di_schema.add_field(question['frontend', 'name'],
+                                        formencode.validators.OneOf(values,
+                                                                    testValueList=True,
+                                                                    use_list=True,
+                                                                    **default_attrs))
+            self.add_field('d%s' % data_item.id, di_schema)

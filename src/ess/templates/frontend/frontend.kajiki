@@ -24,12 +24,18 @@
     </div>
     <form action="" class="row" novalidate="novalidate" method="post">
       ${form.csrf_field()}
+      ${form.field('hidden', '_action', '', value='')}
       <div class="column small-12">
         <h1>${page.title}</h1>
-        <py:for each="question in page.questions">
-          ${qs.render(question, {})}
+        <py:for each="data_item in data_items">
+          <py:for each="question in page.questions">
+            ${qs.render(question, data_item)}
+          </py:for>
         </py:for>
-        <input type="submit"/>
+        <ul class="menu simple align-right">
+          <li py:for="action in actions"><button class="button action" data-action="${action[0]}">${action[1]}</button></li>
+        </ul>
+          
       </div>
     </form>
     <script src="${request.static_url('ess:static/js/jquery.js')}"></script>
@@ -40,6 +46,18 @@
     <script>
     $(document).foundation();
     $('.toggle-question-help').toggle_question_help();
+    var action = $('input[name=_action]');
+    action.val('');
+    var form = $('form');
+    form.on('submit', function(ev) {
+        if(action.val() == '') {
+            ev.preventDefault();
+        }
+    });
+    $('button.action').on('click', function() {
+        action.val($(this).data('action'));
+        form.trigger('submit');
+    });
     </script>
     <script py:for="question in page.questions" py:if="('frontend', 'javascript') in question">
     (function (question) {

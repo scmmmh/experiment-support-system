@@ -199,7 +199,7 @@ class Experiment(Base):
         return False
 
 
-class Page(Base):
+class Page(Base, AttributesMixin):
     
     __tablename__ = 'pages'
     

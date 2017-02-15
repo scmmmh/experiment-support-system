@@ -10,8 +10,8 @@ from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_
 
-from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition
-from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator
+from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition, DataSet
+from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator, DataSetExistsValidator
 
 
 def init(config):
@@ -27,6 +27,7 @@ def init(config):
     config.add_route('experiment.page.transition.reorder', '/experiments/{eid}/pages/{pid}/transitions/reorder')
     config.add_route('experiment.page.transition.edit', '/experiments/{eid}/pages/{pid}/transitions/{tid}/edit')
     config.add_route('experiment.page.transition.delete', '/experiments/{eid}/pages/{pid}/transitions/{tid}/delete')
+    config.add_route('experiment.page.data', '/experiments/{eid}/pages/{pid}/data')
 
 
 @view_config(route_name='experiment.page', renderer='ess:templates/page/list.kajiki')
@@ -322,7 +323,7 @@ def transitions(request):
 class TransitionEditSchema(CSRFSchema):
 
     target = PageExistsValidator()
-    condition = formencode.validators.OneOf(['', 'answer', 'permutation'])
+    condition = formencode.validators.OneOf(['', 'answer', 'dataset', 'permutation'])
 
 
 @view_config(route_name='experiment.page.transition.edit', renderer='json')
@@ -364,6 +365,8 @@ def edit_transition(request):
                                                    'page': params['condition_answer_page'],
                                                    'question': params['condition_answer_question'],
                                                    'value': params['condition_answer_value']}
+                    elif params['condition'] == 'dataset':
+                        transition['condition'] = {'type': 'dataset'}
                 dbsession.add(transition)
             dbsession.add(experiment)
             dbsession.add(page)
@@ -473,5 +476,74 @@ def add_transition(request):
             raise HTTPFound(request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id, _anchor='transition-%i' % transition.id))
         except formencode.Invalid:
             raise HTTPFound(request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id))
+    else:
+        raise HTTPNotFound()
+
+
+class DataAttachmentSchema(CSRFSchema):
+
+    data_set = DataSetExistsValidator(if_empty=None, if_missing=None)
+
+
+@view_config(route_name='experiment.page.data', renderer='ess:templates/page/data.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+def data(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                             Page.experiment_id == request.matchdict['eid'])).first()
+    if experiment and page:
+        data_sets = dbsession.query(DataSet).filter(DataSet.experiment_id == experiment.id)
+        if request.method == 'POST':
+            try:
+                schema = DataAttachmentSchema()
+                mode = ''
+                if 'data_set' in request.params and request.params['data_set'] in [str(ds.id) for ds in data_sets if ds.type == 'dataset']:
+                    schema.add_field('data_items', formencode.validators.Int(not_empty=True))
+                    mode = 'dataset'
+                params = schema.to_python(request.params, State(request=request,
+                                                                dbsession=dbsession,
+                                                                experiment=experiment))
+                with transaction.manager:
+                    dbsession.add(page)
+                    page.dataset_id = params['data_set']
+                    if mode == 'dataset':
+                        page['data'] = {'type': 'dataset',
+                                        'item_count': params['data_items']}
+                dbsession.add(experiment)
+                dbsession.add(page)
+                raise HTTPFound(request.route_url('experiment.page.data', eid=experiment.id, pid=page.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'page': page,
+                        'data_sets': data_sets,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Pages',
+                                    'url': request.route_url('experiment.page', eid=experiment.id)},
+                                   {'title': '%s (%s)' % (page.title, page.name)
+                                    if page.title else 'No title (%s)' % page.name,
+                                    'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
+                                   {'title': 'Data',
+                                    'url': request.route_url('experiment.page.data', eid=experiment.id, pid=page.id)}],
+                        'errors': e.error_dict,
+                        'values': request.params}
+        return {'experiment': experiment,
+                'page': page,
+                'data_sets': data_sets,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Pages',
+                            'url': request.route_url('experiment.page', eid=experiment.id)},
+                           {'title': '%s (%s)' % (page.title, page.name)
+                            if page.title else 'No title (%s)' % page.name,
+                            'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
+                           {'title': 'Data',
+                            'url': request.route_url('experiment.page.data', eid=experiment.id, pid=page.id)}]}
     else:
         raise HTTPNotFound()

@@ -12,9 +12,10 @@ from pyramid.view import view_config
 from pywebtools.formencode import State
 from pywebtools.pyramid.util import get_config_setting 
 from pywebtools.sqlalchemy import DBSession
-from sqlalchemy import and_
+from random import sample
+from sqlalchemy import and_, func, asc
 
-from ess.models import (Experiment, Page, Participant, Question, Answer)
+from ess.models import (Experiment, Page, Participant, Question, Answer, DataItem)
 from ess.validators import FrontendPageSchema
 
 
@@ -92,37 +93,86 @@ def determine_progress(participant, page):
                 answered + pages[1]]
 
 
-def next_page(dbsession, participant, page):
+def next_page(dbsession, participant, page, action):
     if page.next:
         for transition in page.next:
-            if 'condition' in transition:
-                question = dbsession.query(Question).filter(and_(Question.id == transition['condition']['question'],
-                                                                 Question.page_id == transition['condition']['page'])).first()
-                answer = dbsession.query(Answer).filter(and_(Answer.question_id == transition['condition']['question'],
-                                                             Answer.participant_id == participant.id)).first()
-                if question and answer:
-                    answer = answer['response']
-                    if isinstance(answer, list) and transition['condition']['value'] in answer:
-                        return transition.target.id
-                    elif isinstance(answer, dict) and transition['condition']['subquestion'] in answer and str(answer[transition['condition']['subquestion']]) == transition['condition']['value']:
-                        return transition.target.id
-                    elif str(answer) == transition['condition']['value']:
-                        return transition.target.id
-            else:
-                return transition.target.id
+            if transition.target:
+                if 'condition' in transition:
+                    if transition['condition']['type'] == 'answer':
+                        question = dbsession.query(Question).filter(and_(Question.id == transition['condition']['question'],
+                                                                         Question.page_id == transition['condition']['page'])).first()
+                        answer = dbsession.query(Answer).filter(and_(Answer.question_id == transition['condition']['question'],
+                                                                     Answer.participant_id == participant.id)).first()
+                        if question and answer:
+                            answer = answer['response']
+                            if isinstance(answer, list) and transition['condition']['value'] in answer:
+                                return transition.target.id
+                            elif isinstance(answer, dict) and transition['condition']['subquestion'] in answer and str(answer[transition['condition']['subquestion']]) == transition['condition']['value']:
+                                return transition.target.id
+                            elif str(answer) == transition['condition']['value']:
+                                return transition.target.id
+                    elif transition['condition']['type'] == 'dataset':
+                        if page.dataset_id is not None:
+                            if str(page.dataset_id) in participant['data']:
+                                del participant['data'][str(page.dataset_id)]
+                            data_items = select_data_items(dbsession, participant, page)
+                            if data_items and action == 'more-items':
+                                return transition.target.id
+                else:
+                    return transition.target.id
     return None
 
 
 def flatten_errors(errors):
     result = []
-    for k, v in errors.items():
-        if isinstance(v, dict):
-            tmp = flatten_errors(v)
-            for (sub_k, sub_v) in tmp.items():
-                result.append(('%s.%s' % (k, sub_k), sub_v))
-        else:
-            result.append((k, v))
+    if isinstance(errors, dict):
+        for k, v in errors.items():
+            if isinstance(v, dict):
+                tmp = flatten_errors(v)
+                for (sub_k, sub_v) in tmp.items():
+                    result.append(('%s.%s' % (k, sub_k), sub_v))
+            else:
+                result.append((k, v))
+    else:
+        result.append(('_', errors))
     return dict(result)
+
+
+def select_data_items(dbsession, participant, page):
+    if 'data' not in participant:
+        participant['data'] = {}
+    if page is not None:
+        if page.dataset_id is None:
+            return [DataItem(id=-1)]
+        else:
+            if str(page.dataset_id) not in participant['data']:
+                data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).outerjoin(Answer).filter(DataItem.dataset_id == page.dataset_id).group_by(DataItem.id).order_by(asc('count'), DataItem.id)
+                seen_items = [t[0] for t in dbsession.query(DataItem.id).join(Answer).join(Participant).filter(Participant.id == participant.id)]
+                item_ids = []
+                limit_count = None
+                for item_id, count in data_items:
+                    if item_id not in seen_items:
+                        if limit_count is not None and limit_count != count and len(item_ids) > page['data']['item_count']:
+                            break
+                        item_ids.append(item_id)
+                        limit_count = count
+                if item_ids and len(item_ids) >= page['data']['item_count']:
+                    participant['data'][str(page.dataset_id)] = sample(item_ids, page['data']['item_count'])
+                else:
+                    participant['data'][str(page.dataset_id)] = None
+                    return None
+            return dbsession.query(DataItem).filter(DataItem.id.in_(participant['data'][str(page.dataset_id)]))
+
+
+def page_actions(participant, page):
+    if page:
+        actions = [('next-page', 'Next Page')]
+        for transition in page.next:
+            if 'condition' in transition and transition['condition']['type'] == 'dataset':
+                actions.append(('more-items', 'Answer more Questions'))
+        return actions
+    else:
+        return []
 
 
 @view_config(route_name='experiment.run', renderer='ess:templates/frontend/frontend.kajiki')
@@ -135,7 +185,9 @@ def run_survey(request):
         participant = current_participant(request, dbsession, experiment)
         page = dbsession.query(Page).filter(and_(Page.id == participant['current'],
                                                  Page.experiment_id == experiment.id)).first()
+        data_items = select_data_items(dbsession, participant, page)
         participant['progress'] = determine_progress(participant, page)
+        actions = page_actions(participant, page)
     if page is None:
         if participant['current'] is None:
             dbsession.add(experiment)
@@ -148,28 +200,31 @@ def run_survey(request):
                 dbsession.add(experiment)
                 dbsession.add(page)
                 dbsession.add(participant)
-                params = FrontendPageSchema(page.questions, [None]).to_python(request.params, State(request=request))
-                for question in page.questions:
-                    if question['frontend', 'display_as'] != 'text':
-                        answer = Answer(participant_id=participant.id,
-                                        question_id=question.id,
-                                        data_item_id=None)
-                        answer['response'] = params[question['name']]
-                        if isinstance(answer['response'], list) and len(question['frontend', 'answers']) == 1:
-                            answer['response'] = answer['response'][0]
-                        dbsession.add(answer)
+                params = FrontendPageSchema(page.questions, data_items, [a[0] for a in actions]).to_python(request.params, State(request=request))
+                for data_item in data_items:
+                    for question in page.questions:
+                        if question['frontend', 'display_as'] != 'text':
+                            answer = Answer(participant_id=participant.id,
+                                            question_id=question.id,
+                                            data_item_id=data_item.id if data_item.id != -1 else None)
+                            answer['response'] = params['d%s' % data_item.id][question['name']]
+                            if isinstance(answer['response'], list) and len(question['frontend', 'answers']) == 1:
+                                answer['response'] = answer['response'][0]
+                            dbsession.add(answer)
                 participant['answered'].append(page.id)
-                participant['current'] = next_page(dbsession, participant, page)
+                participant['current'] = next_page(dbsession, participant, page, params['_action'])
             dbsession.add(experiment)
             raise HTTPFound(request.route_url('experiment.run', ueid=experiment.external_id))
         except formencode.Invalid as e:
-            print(flatten_errors(e.unpack_errors()))
+            print(e)
             dbsession.add(experiment)
             dbsession.add(page)
             dbsession.add(participant)
             return {'experiment': experiment,
                     'page': page,
                     'participant': participant,
+                    'data_items': data_items,
+                    'actions': actions,
                     'values': request.params,
                     'errors': flatten_errors(e.unpack_errors())}
     dbsession.add(experiment)
@@ -177,7 +232,9 @@ def run_survey(request):
     dbsession.add(participant)
     return {'experiment': experiment,
             'page': page,
-            'participant': participant}
+            'participant': participant,
+            'data_items': data_items,
+            'actions': actions}
 
 
 @view_config(route_name='experiment.completed', renderer='ess:templates/frontend/completed.kajiki')

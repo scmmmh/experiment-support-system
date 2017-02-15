@@ -49,7 +49,7 @@ def initialise_database(args):
         load_question_types(dbsession,
                             json.loads(resource_string('ess', 'scripts/templates/default_question_types.json').\
                                        decode('utf-8')))
-        from ess.models import Experiment, Page, Question, Transition
+        from ess.models import Experiment, Page, Question, Transition, DataSet, DataItem
         exp = Experiment(title='Test 1', owned_by=1, external_id='1', status='develop')
         dbsession.add(exp)
         page1 = Page(name='test1', title='Page 1', experiment=exp)
@@ -153,6 +153,39 @@ def initialise_database(args):
         trans = Transition(source=page2, target=page4, order=1)
         trans['condition'] = {'type': 'answer', 'page': page2.id, 'question': qg.id, 'value': 'male'}
         dbsession.add(trans)
+
+        exp = Experiment(title='Sampling Test 1', owned_by=1, external_id='3', status='develop')
+        dbsession.add(exp)
+        page1 = Page(name='crowd', title='Crowd Sourcing', experiment=exp)
+        exp.start = page1
+        dbsession.add(page1)
+        q = Question(page=page1, type_id=1, order=0, attributes={'text': 'You are voting for: ${name}.'})
+        q = Question(page=page1, type_id=3, order=1, attributes={'name': 'vote', 'title': 'Vote', 'answers': [{'value': 'up', 'label': 'Yes'}, {'value': 'down', 'label': 'No'}], 'required': True})
+        dbsession.add(q)
+        ds = DataSet(experiment=exp, name='superheroes', type='dataset')
+        ds['columns'] = ['name']
+        dbsession.add(ds)
+        di = DataItem(data_set=ds, order=0)
+        di['values'] = {'name': 'Batman'}
+        di = DataItem(data_set=ds, order=1)
+        di['values'] = {'name': 'Superman'}
+        di = DataItem(data_set=ds, order=2)
+        di['values'] = {'name': 'Captain America'}
+        di = DataItem(data_set=ds, order=3)
+        di['values'] = {'name': 'Wonder Woman'}
+        di = DataItem(data_set=ds, order=4)
+        di['values'] = {'name': 'The Hulk'}
+        di = DataItem(data_set=ds, order=5)
+        di['values'] = {'name': 'Iron Man'}
+        di = DataItem(data_set=ds, order=6)
+        di['values'] = {'name': 'Black Widow'}
+        di = DataItem(data_set=ds, order=7)
+        di['values'] = {'name': 'Scarlett Witch'}
+        di = DataItem(data_set=ds, order=8)
+        di['values'] = {'name': 'Mr Incredible'}
+        di = DataItem(data_set=ds, order=9)
+        di['values'] = {'name': 'Elastigirl'}
+
     alembic_config = config.Config(args.configuration, ini_section='app:main')
     alembic_config.set_section_option('app:main', 'script_location', 'ess:migrations')
     command.stamp(alembic_config, "head")
