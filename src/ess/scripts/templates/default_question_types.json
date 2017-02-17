@@ -103,7 +103,7 @@
      "id": "auto_submit",
      "attributes": {"title": "Automatic Page Submission",
                     "order": 1,
-                    "frontend": {"display_as": "simple_input", "input_type": "hidden", "visible": false, "value": "", "javascript": "var form=question.parents('form');setTimeout(function() {form.trigger('submit');}, parseInt(${delay})*1000);"},
+                    "frontend": {"display_as": "simple_input", "input_type": "hidden", "visible": false, "value": "", "javascript": "var form=question.parents('form');setTimeout(function() {form.find('button[data-action=next-page]').trigger('click');}, parseInt(${delay})*1000);"},
                     "backend": {"fields": [{"name": "name", "type": "text", "title": "Unique Name", "validation": {"type": "unicode", "not_empty": true}},
                                            {"name": "delay", "type": "text", "title": "Delay (seconds)", "validation": {"type": "number", "not_empty": true}}]}},
      "relationships": {"q_type_group": {"data": {"type": "question_type_groups", "id": "js"}}}}
