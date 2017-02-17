@@ -5,6 +5,7 @@
     <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
     <py:import href="ess:templates/helpers/question.kajiki" alias="questions"/>
     <py:import href="ess:templates/page/_question_types.kajiki" alias="qtypes"/>
+    <?py from ess.models import DataItem ?>
     <div class="row expanded">
       <div class="column small-12">
         <h1>${page.title if page.title else 'No title'} <small>${page.name}</small></h1>
@@ -21,7 +22,7 @@
             &nbsp;
           </nav>
           <div class="column small-11 hide-edit">
-            <div class="preview">${questions.render(question, None)}<section class="question ${'hidden' if question['frontend', 'visible'] else ''}"><div class="row"><div class="column small-12"><h2>${question['name']}</h2></div></div></section></div>
+            <div class="preview">${questions.render(question, DataItem(id=None))}<section class="question ${'hidden' if question['frontend', 'visible'] else ''}"><div class="row"><div class="column small-12"><h2>${question['name']}</h2></div></div></section></div>
           </div>
           <div class="column small-11 show-edit">
             <form action="${request.route_url('experiment.page.edit.question', eid=experiment.id, pid=page.id, qid=question.id)}" method="post" class="question-form">

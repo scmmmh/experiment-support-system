@@ -2,7 +2,8 @@
   <!-- Generate just the form field -->
   <py:def function="render(question, data_item)">
     <?py from ess.util import replace_variables ?>
-    <section id="question-${question.id}" class="question qt-${question.q_type.name} ${'hidden' if not question['frontend', 'visible'] else ''}">
+    <?py from ess.human_readable import question_error ?>
+    <section id="question-${question.id}" class="question qt-${question.q_type.name} ${'hidden' if not question['frontend', 'visible'] else ''} ${'error' if defined('errors') and question_error(question, data_item, errors) else ''}">
       <div class="row">
         <div class="column small-12">
           <div py:if="('frontend', 'help') in question and question['frontend', 'help'].strip()" class="float-right"><a href="#" title="Show help" class="toggle-question-help"><span class="mdi mdi-18">help_outline</span></a></div>
@@ -18,6 +19,9 @@
             <py:case value="'ranking'">${ranking(question, data_item)}</py:case>
           </py:switch>
         </div>
+      </div>
+      <div py:if="defined('errors') and question_error(question, data_item, errors)" class="row">
+        <div class="column ${question['frontend', 'width']} end error-message">${question_error(question, data_item, errors)}</div>
       </div>
     </section>
   </py:def>
@@ -78,20 +82,21 @@
 
   <py:def function="select_grid_choice(question, data_item)">
     <?py from ess.util import replace_variables ?>
+    <?py from ess.human_readable import question_error ?>
     <table>
       <thead>
         <tr>
           <th></th>
           <th py:if="question['frontend', 'before_label']"></th>
-          <th py:for="answer in question['frontend', 'answers']">${replace_variables(answer['label'], question, data_item['values'])}</th>
+          <th py:for="answer in question['frontend', 'answers']" class="text-center">${replace_variables(answer['label'], question, data_item['values'])}</th>
           <th py:if="question['frontend', 'after_label']"></th>
         </tr>
       </thead>
       <tbody>
-        <tr py:for="sub_question in question['frontend', 'questions']">
+        <tr py:for="sub_question in question['frontend', 'questions']" class="${'error' if defined('errors') and question_error(question, data_item, errors, sub_question['name']) else ''}">
           <th>${sub_question['label']}</th>
           <th py:if="question['frontend', 'before_label']" class="question_label">${replace_variables(question['frontend', 'before_label'], question, data_item['values'])}</th>
-          <td py:for="answer in question['answers']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%.%s.%s' % (data_item.id, question['name'], sub_question['name']), '', value=replace_variables(answer['value'], question, data_item['values']))}</td>
+          <td py:for="answer in question['answers']" class="text-center">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.%s' % (data_item.id, question['name'], sub_question['name']), '', value=replace_variables(answer['value'], question, data_item['values']))}</td>
           <th py:if="question['frontend', 'after_label']" class="question_label">${replace_variables(question['frontend', 'after_label'], question, data_item['values'])}</th>
         </tr>
       </tbody>
@@ -101,7 +106,7 @@
   <py:def function="ranking(question, data_item)">
     <?py from ess.util import replace_variables ?>
     <ul class="no-bullet answer-list">
-      <li py:for="answer in question['frontend', 'answers']"><input type="hidden" name="${question['name']}" value="${replace_variables(answer['value'], question, data_item['values'])}"/>${icon.md('swap_vert', 'Re-order')} ${replace_variables(answer['label'] if answer['label'] else answer['value'], question, data_item['values'])}</li>
+      <li py:for="answer in question['frontend', 'answers']"><input type="hidden" name="${'d%s.%s' % (data_item.id, question['name'])}" value="${replace_variables(answer['value'], question, data_item['values'])}"/>${icon.md('swap_vert', 'Re-order')} ${replace_variables(answer['label'] if answer['label'] else answer['value'], question, data_item['values'])}</li>
     </ul>
   </py:def>
 </div>

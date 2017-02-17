@@ -138,12 +138,19 @@ def flatten_errors(errors):
     return dict(result)
 
 
+def expand_errors(errors, page):
+    expanded_errors = {}
+    for k, v in errors.items():
+        expanded_errors[k] = ''
+    return expanded_errors
+
+
 def select_data_items(dbsession, participant, page):
     if 'data' not in participant:
         participant['data'] = {}
     if page is not None:
         if page.dataset_id is None:
-            return [DataItem(id=-1)]
+            return [DataItem(id=None)]
         else:
             if str(page.dataset_id) not in participant['data']:
                 data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).outerjoin(Answer).filter(DataItem.dataset_id == page.dataset_id).group_by(DataItem.id).order_by(asc('count'), DataItem.id)
@@ -226,7 +233,7 @@ def run_survey(request):
                     'data_items': data_items,
                     'actions': actions,
                     'values': request.params,
-                    'errors': flatten_errors(e.unpack_errors())}
+                    'errors': e.unpack_errors()}
     dbsession.add(experiment)
     dbsession.add(page)
     dbsession.add(participant)

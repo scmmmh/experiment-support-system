@@ -9,4 +9,41 @@
     td > label > input {
         margin: 0;
     }
+
+    &.error {
+        h2:after {
+            font-family: 'Material Icons';
+            color: $form-label-color-invalid;
+            content: 'error';
+            font-weight: normal;
+            font-style: normal;
+            display: inline-block;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            line-height: 1;
+            margin-left: rem-calc(6);
+        }
+        label {
+            color: $form-label-color-invalid;
+        }
+        tr.error {
+            border: 1px solid $input-error-color;
+        }
+        #{text-inputs()}, textarea, select {
+            border-color: $input-error-color;
+            color: $input-error-color;
+
+            &:focus {
+                border: $input-border-focus;
+                color: $input-color;
+            }
+        }
+        .error-message {
+            font-size: $input-error-font-size;
+            font-weight: $input-error-font-weight;
+            color: $form-label-color-invalid;
+        }
+    }
 }

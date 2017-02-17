@@ -154,4 +154,3 @@ def replace_variables(text, *sources):
                 text = text.replace(match.group(0), match.group(1))
             match = re.search(VARIABLE_PATTERN, text)
     return text
-

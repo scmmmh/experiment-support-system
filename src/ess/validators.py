@@ -216,7 +216,7 @@ class FrontendPageSchema(CSRFSchema):
         formencode.Schema.__init__(self, *args, **kwargs)
         self.add_field('_action', formencode.validators.OneOf(actions, not_empty=True))
         for data_item in data_items:
-            di_schema = DynamicSchema()
+            di_schema = DynamicSchema(messages=self._messages)
             for question in questions:
                 # Set the generic validation settings
                 default_attrs = {}
