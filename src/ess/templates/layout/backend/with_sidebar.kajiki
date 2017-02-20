@@ -26,7 +26,7 @@
           <dd>
             <ul class="no-bullet">
               <li class="${'current' if request.matched_route.name == 'experiment.view' else ''}"><a href="${request.route_url('experiment.view', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">view_quilt</span> Overview</a></li>
-              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">directions_run</span> Test</a></li>
+              <li><a href="${request.route_url('experiment.run', ueid=experiment.external_id)}" target="experiment-${experiment.id}"><span class="mdi mdi-24" aria-hidden="true">directions_run</span> Test</a></li>
               <li><a href=""><span class="mdi mdi-24" aria-hidden="true">play_arrow</span> Start</a></li>
               <li class="${'current' if request.matched_route.name.startswith('experiment.settings') else ''}"><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">settings</span> Settings</a></li>
             </ul>
