@@ -1,7 +1,9 @@
 from pyramid.view import view_config
 from pywebtools.pyramid.auth.views import current_user
+from pywebtools.sqlalchemy import DBSession
 
 from . import frontend, user, experiment, page, data
+from ess.models import Experiment
 
 
 def init(config):
@@ -23,4 +25,6 @@ def root(request):
 @view_config(route_name='dashboard', renderer='ess:templates/dashboard.kajiki')
 @current_user()
 def dashboard(request):
-    return {}
+    dbsession = DBSession()
+    experiments = dbsession.query(Experiment).filter(Experiment.owned_by == request.current_user.id)
+    return {'experiments': experiments}

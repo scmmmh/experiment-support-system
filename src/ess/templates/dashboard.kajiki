@@ -8,6 +8,9 @@
           <a py:if="request.current_user.has_permission('experiment.create')" href="${request.route_url('experiment.create')}" class="button">${icon.md('add', 'Create a new Experiment')}</a>
         </div>
         <h1>Experiments</h1>
+        <ul>
+          <li py:for="experiment in experiments"><a href="${request.route_url('experiment.view', eid=experiment.id)}">${experiment.title}</a></li>
+        </ul>
       </article>
     </div>
   </py:block>
