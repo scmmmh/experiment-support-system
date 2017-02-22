@@ -1,6 +1,15 @@
 def experiment_status(status):
     if status == 'develop':
         return 'In Development'
+    elif status == 'live':
+        return 'Live'
+    elif status == 'paused':
+        return 'Paused'
+    elif status == 'completed':
+        return 'Completed'
+    else:
+        return ''
+
 
 def question_error(question, data_item, errors, sub_question=None):
     if question['frontend', 'display_as'] != 'text':

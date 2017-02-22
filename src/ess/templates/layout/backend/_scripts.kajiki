@@ -3,5 +3,6 @@
   <script src="${request.static_url('ess:static/js/what-input.js')}"></script>
   <script src="${request.static_url('ess:static/js/jquery-ui.js')}"></script>
   <script src="${request.static_url('ess:static/js/foundation.js')}"></script>
+  <script src="${request.static_url('ess:static/js/chart.js')}"></script>
   <script src="${request.static_url('ess:static/js/backend.js')}"></script>
 </div>

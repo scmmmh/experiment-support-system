@@ -48,9 +48,8 @@
           <dt>Results</dt>
           <dd>
             <ul class="no-bullet">
-              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">pie_chart</span> Overview</a></li>
-              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">format_list_numbered</span> Export by Question</a></li>
-              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">person</span> Export by Participant</a></li>
+              <li><a href="${request.route_url('experiment.results', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">pie_chart</span> Overview</a></li>
+              <li><a href="${request.route_url('experiment.results.export', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">cloud_download</span> Export</a></li>
             </ul>
           </dd>
         </dl>

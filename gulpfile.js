@@ -13,7 +13,7 @@ var pump = require('pump');
 gulp.task('default', ['scss', 'js']);
 gulp.task('scss', ['scss-backend', 'scss-frontend', 'material-design-icons']);
 gulp.task('js', ['library-js', 'frontend-js', 'backend-js']);
-gulp.task('library-js', ['what-input', 'modernizr', 'jquery', 'jquery-ui', 'foundation-js']);
+gulp.task('library-js', ['what-input', 'modernizr', 'jquery', 'jquery-ui', 'foundation-js', 'chart-js']);
 
 gulp.task('scss-backend', function(cb) {
     var css_sources = ['src/static/scss/base-settings.scss'];
@@ -149,6 +149,18 @@ gulp.task('jquery-ui', function(cb) {
         concat('jquery-ui.js'),
         uglify(),
         gulp.dest('src/ess/static/js')
+    ], cb);
+});
+
+gulp.task('chart-js', function(cb) {
+    pump([
+       gulp.src([
+           'src/static/js/pallette.js',
+           'node_modules/chart.js/dist/Chart.bundle.js'
+       ]),
+       concat('chart.js'),
+       uglify(),
+       gulp.dest('src/ess/static/js')
     ], cb);
 });
 

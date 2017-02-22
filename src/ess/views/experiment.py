@@ -2,13 +2,15 @@ import formencode
 import transaction
 import uuid
 
+from datetime import datetime, timedelta
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
 from pywebtools.formencode import CSRFSchema, State
 from pywebtools.pyramid.auth.views import current_user, require_permission
 from pywebtools.sqlalchemy import DBSession
+from sqlalchemy import func, and_
 
-from ess.models import Experiment
+from ess.models import Experiment, Participant
 from ess.validators import PageExistsValidator
 
 
@@ -62,11 +64,38 @@ def view(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     if experiment:
-        return {'experiment': experiment,
-                'crumbs': [{'title': 'Experiments',
-                            'url': request.route_url('dashboard')},
-                           {'title': experiment.title,
-                            'url': request.route_url('experiment.view', eid=experiment.id)}]}
+        result = {'experiment': experiment,
+                  'crumbs': [{'title': 'Experiments',
+                              'url': request.route_url('dashboard')},
+                             {'title': experiment.title,
+                              'url': request.route_url('experiment.view', eid=experiment.id)}]}
+        if experiment.status in ['live', 'paused', 'completed']:
+            time_boundary = datetime.now() - timedelta(minutes=20)
+            overall = {'total': dbsession.query(func.count(Participant.id.unique)).filter(Participant.experiment_id == experiment.id).first()[0],
+                       'completed': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
+                                                                                                   Participant.completed == True)).first()[0],
+                       'in_progress': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
+                                                                                                     Participant.completed == False,
+                                                                                                     Participant.updated >= time_boundary)).first()[0],
+                       'abandoned': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
+                                                                                                   Participant.completed == False,
+                                                                                                   Participant.updated < time_boundary)).first()[0]}
+            result['overall'] = overall
+            result['in_progress'] = {}
+            result['abandoned'] = {}
+            for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
+                                                                        Participant.completed == False)):
+                if participant.updated >= time_boundary:
+                    if participant['current'] in result['in_progress']:
+                        result['in_progress'][participant['current']] = result['in_progress'][participant['current']] + 1
+                    else:
+                        result['in_progress'][participant['current']] = 1
+                else:
+                    if participant['current'] in result['abandoned']:
+                        result['abandoned'][participant['current']] = result['abandoned'][participant['current']] + 1
+                    else:
+                        result['abandoned'][participant['current']] = 1
+        return result
     else:
         raise HTTPNotFound()
 

@@ -2,7 +2,7 @@ from pyramid.view import view_config
 from pywebtools.pyramid.auth.views import current_user
 from pywebtools.sqlalchemy import DBSession
 
-from . import frontend, user, experiment, page, data
+from . import frontend, user, experiment, page, data, results
 from ess.models import Experiment
 
 
@@ -14,6 +14,7 @@ def init(config):
     experiment.init(config)
     page.init(config)
     data.init(config)
+    results.init(config)
 
 
 @view_config(route_name='root', renderer='ess:templates/root.kajiki')

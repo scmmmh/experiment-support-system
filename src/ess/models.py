@@ -11,6 +11,7 @@ This module contains all the database-abstraction classes.
 import json
 import time
 
+from datetime import datetime
 from pyramid.decorator import reify
 from pywebtools.pyramid.auth.models import User
 from pywebtools.sqlalchemy import Base, MutableDict, JSONUnicodeText
@@ -391,6 +392,8 @@ class Participant(Base, AttributesMixin):
     id = Column(Integer, primary_key=True)
     experiment_id = Column(ForeignKey(Experiment.id, name='participants_experiments_fk'))
     completed = Column(Boolean, default=False)
+    started = Column(DateTime, default=datetime.now)
+    updated = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     answers = relationship('Answer',
                            backref='participant',
