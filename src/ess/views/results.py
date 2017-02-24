@@ -1,19 +1,18 @@
 import formencode
-import transaction
 
 from collections import Counter
+from csv import DictWriter
 from datetime import datetime, timedelta
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-from pyramid.renderers import render_to_response
+from io import StringIO
+from pyramid.httpexceptions import HTTPNotFound
+from pyramid.response import Response
 from pyramid.view import view_config
 from pywebtools.formencode import CSRFSchema, State
 from pywebtools.pyramid.auth.views import current_user, require_permission
-from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_, func
 
 from ess.models import Experiment, Participant, Question, Answer, Page
-from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator, DataSetExistsValidator
 
 
 def init(config):
@@ -99,5 +98,152 @@ def overview(request):
                             'url': request.route_url('experiment.view', eid=experiment.id)},
                            {'title': 'Results',
                             'url': request.route_url('experiment.results', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+class ExportSchema(CSRFSchema):
+
+    na_value = formencode.validators.UnicodeString(not_empty=True)
+    include_incomplete = formencode.validators.StringBool(if_missing=False, if_empty=False)
+
+
+@view_config(route_name='experiment.results.export', renderer='ess:templates/results/export.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+def export_settings(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        if request.method == 'POST':
+            try:
+                schema = ExportSchema()
+                questions = [str(q.id) for p in experiment.pages for q in p.questions if q['frontend', 'display_as'] != 'text']
+                schema.add_field('question', formencode.ForEach(formencode.validators.OneOf(questions, not_empty=True)))
+                for data_set in experiment.data_sets:
+                    schema.add_field('data_set_identifier_%s' % data_set.id, formencode.validators.OneOf(['_id'] + [str(c) for c in data_set['columns']]))
+                params = schema.to_python(request.params, State(request=request))
+                def data_item_column_mapper(data_item):
+                    if params['data_set_identifier_%s' % data_item.dataset_id] == '_id':
+                        return data_item.id
+                    else:
+                        return data_item['values'][params['data_set_identifier_%s' % data_item.dataset_id]]
+                columns = set(['_participant'])
+                for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
+                                                                            Participant.completed == True)):
+                    for answer in participant.answers:
+                        if str(answer.question.id) not in params['question']:
+                            continue
+                        column = '%s.%s' % (answer.question.page.name, answer.question['name'])
+                        new_columns = []
+                        if answer.question['frontend', 'display_as'] == 'select_grid_choice':
+                            for key, value in answer['response'].items():
+                                sub_column = '%s.%s' % (column, key)
+                                if answer.question['frontend', 'allow_multiple']:
+                                    if isinstance(value, list):
+                                        sub_column = ['%s.%s' % (sub_column, a) for a in value]
+                                    else:
+                                        sub_column = ['%s.%s' % (sub_column, value)]
+                                else:
+                                    sub_column = [sub_column]
+                                new_columns.extend(sub_column)
+                        elif answer.question['frontend', 'display_as'] == 'ranking':
+                            new_columns.extend(['%s.%s' % (column, a['value']) for a in answer.question['frontend', 'answers']])
+                        else:
+                            if answer.question['frontend', 'allow_multiple']:
+                                if isinstance(answer['response'], list):
+                                    new_columns = ['%s.%s' % (column, a) for a in answer['response']]
+                                else:
+                                    new_columns = ['%s.%s' % (column, answer['response'])]
+                            else:
+                                new_columns = [column]
+                        if answer.question.page.dataset_id is not None:
+                            new_columns = ['%s.%s' % (c, data_item_column_mapper(di)) for c in new_columns for di in answer.question.page.data_set.items]
+                        columns.update(new_columns)
+                columns = list(columns)
+                columns.sort(key=lambda k: k.split('.'))
+                io = StringIO()
+                writer = DictWriter(io, fieldnames=columns, restval=params['na_value'], extrasaction='ignore')
+                writer.writeheader()
+                for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
+                                                                            Participant.completed == True)).order_by(Participant.id):
+                    responses = {'_participant': participant.id}
+                    for answer in participant.answers:
+                        column = '%s.%s' % (answer.question.page.name, answer.question['name'])
+                        if answer.question['frontend', 'display_as'] == 'select_grid_choice':
+                            for key, value in answer['response'].items():
+                                sub_column = '%s.%s' % (column, key)
+                                if answer.question['frontend', 'allow_multiple']:
+                                    for c in columns:
+                                        if c.startswith(sub_column):
+                                            responses[c] = 0
+                                    if isinstance(value, list):
+                                        for sub_answer in value:
+                                            if answer.data_item_id is None:
+                                                responses['%s.%s' % (sub_column, sub_answer)] = 1
+                                            else:
+                                                responses['%s.%s.%s' % (sub_column, sub_answer, data_item_column_mapper(answer.data_item))] = 1
+                                    else:
+                                        if answer.data_item_id is None:
+                                            responses['%s.%s' % (sub_column, value)] = 1
+                                        else:
+                                            responses['%s.%s.%s' % (sub_column, value, data_item_column_mapper(answer.data_item))] = 1
+                                else:
+                                    if answer.data_item_id is None:
+                                        responses[sub_column] = value
+                                    else:
+                                        responses['%s.%s' % (sub_column, data_item_column_mapper(answer.data_item))] = value
+                        elif answer.question['frontend', 'display_as'] == 'ranking':
+                            for idx, sub_answer in enumerate(answer['response']):
+                                if answer.data_item_id is None:
+                                    responses['%s.%s' % (column, sub_answer)] = idx
+                                else:
+                                    responses['%s.%s.%s' % (column, sub_answer, data_item_column_mapper(answer.data_item))] = idx
+                        else:
+                            if answer.question['frontend', 'allow_multiple']:
+                                for c in columns:
+                                    if c.startswith(column):
+                                        responses[c] = 0
+                                if isinstance(answer['response'], list):
+                                    for sub_answer in answer['response']:
+                                        if answer.data_item_id is None:
+                                            responses['%s.%s' % (column, sub_answer)] = 1
+                                        else:
+                                            responses['%s.%s.%s' % (column, sub_answer, data_item_column_mapper(answer.data_item))] = 1
+                                else:
+                                    if answer.data_item_id is None:
+                                        responses['%s.%s' % (column, answer['response'])] = 1
+                                    else:
+                                        responses['%s.%s.%s' % (column, answer['response'], data_item_column_mapper(answer.data_item))] = 1
+                            else:
+                                if answer.data_item_id is None:
+                                    responses[column] = answer['response']
+                                else:
+                                    responses['%s.%s' % (column, data_item_column_mapper(answer.data_item))] = answer['response']
+                    writer.writerow(responses)
+                return Response(body=io.getvalue().encode('utf8'),
+                                headers=[('Content-Type', 'text/csv'),
+                                         ('Content-Disposition', 'attachment; filename="%s.csv"' % experiment.title)])
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'values': request.params,
+                        'errors': e.error_dict,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Results',
+                                    'url': request.route_url('experiment.results', eid=experiment.id)},
+                                   {'title': 'Export',
+                                    'url': request.route_url('experiment.results.export', eid=experiment.id)}]}                
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Results',
+                            'url': request.route_url('experiment.results', eid=experiment.id)},
+                           {'title': 'Export',
+                            'url': request.route_url('experiment.results.export', eid=experiment.id)}]}
     else:
         raise HTTPNotFound()

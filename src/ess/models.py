@@ -290,7 +290,6 @@ class Question(Base, ParentedAttributesMixin):
     id = Column(Integer, primary_key=True)
     page_id = Column(ForeignKey(Page.id, name='questions_pages_fk'))
     type_id = Column(ForeignKey(QuestionType.id, name='question_types_fk'))
-    name = Column(Unicode(255))
     title = Column(Unicode(255))
     required = Column(Boolean)
     help = Column(Unicode(255))

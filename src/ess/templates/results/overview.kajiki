@@ -2,7 +2,6 @@
   <py:block name="title">${experiment.title} - Results Overview</py:block>
   <py:block name="content">
     <?py import json ?>
-    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
     <article>
       <div class="row expanded">
         <div class="column small-12">
