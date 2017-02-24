@@ -44,7 +44,7 @@
     <?py from ess.util import replace_variables ?>
     <py:switch test="question['frontend', 'widget']">
       <py:case value="'select'">
-        ${form.field('select', 'd%s.%s' % (data_item.id, question['name']), '', values=[(replace_variables(a['value'], question, data_item['values']), replace_variables(a['label'], question, data_item['values'])) for a in question['frontend', 'answers']] + ([('other', 'Other')] if question['frontend', 'allow_other'] else []), extra_attrs={'multiple': 'multiple' if question['frontend', 'allow_multiple'] else None})}
+        ${form.field('select', 'd%s.%s' % (data_item.id, question['name']), '', values=[('', '--- Please select an option ---')] + [(replace_variables(a['value'], question, data_item['values']), replace_variables(a['label'], question, data_item['values'])) for a in question['frontend', 'answers']] + ([('other', 'Other')] if question['frontend', 'allow_other'] else []), extra_attrs={'multiple': 'multiple' if question['frontend', 'allow_multiple'] else None})}
         <py:if test="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), '', value='_other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}</py:if>
       </py:case>
       <py:case value="'table'">

@@ -59,9 +59,11 @@
     });
     </script>
     <script py:for="question in page.questions" py:if="('frontend', 'javascript') in question">
-    (function (question) {
-        ${replace_variables(question['frontend', 'javascript'], question)}
-    })($('#question-${question.id}'));
+    <![CDATA[
+        (function (question) {
+            ${literal(replace_variables(question['frontend', 'javascript'], question, data_item['values'], question.q_type.frontend))}
+        })($('#question-${question.id}'));
+    ]]>
     </script>
   </body>
 </html>
