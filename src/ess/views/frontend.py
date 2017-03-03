@@ -15,7 +15,8 @@ from pywebtools.sqlalchemy import DBSession
 from random import sample
 from sqlalchemy import and_, func, asc
 
-from ess.models import (Experiment, Page, Participant, Question, Answer, DataItem)
+from ess.models import (Experiment, Page, Participant, Question, Answer, DataItem,
+    DataSet)
 from ess.validators import FrontendPageSchema
 
 
@@ -24,7 +25,7 @@ def init(config):
     config.add_route('experiment.completed', '/run/{ueid}/complete')
 
 
-def remaining_pages(page, seen=None):
+def remaining_pages(page, seen=None):  # Todo: Make this latin-square aware
     if seen is None:
         seen = []
     if page.id in seen:
@@ -118,6 +119,13 @@ def next_page(dbsession, participant, page, action):
                             data_items = select_data_items(dbsession, participant, page)
                             if data_items and action == 'more-items':
                                 return transition.target.id
+                    elif transition['condition']['type'] == 'latinsquare':
+                        if page.dataset_id is not None:
+                            if str(page.dataset_id) in participant['data']:
+                                participant['data'][str(page.dataset_id)]['seen'].append(participant['data'][str(page.dataset_id)]['iids'][0])
+                                participant['data'][str(page.dataset_id)]['iids'] = participant['data'][str(page.dataset_id)]['iids'][1:]
+                                if len(participant['data'][str(page.dataset_id)]['iids']) > 0:
+                                    return transition.target.id
                 else:
                     return transition.target.id
     return None
@@ -138,13 +146,6 @@ def flatten_errors(errors):
     return dict(result)
 
 
-def expand_errors(errors, page):
-    expanded_errors = {}
-    for k, v in errors.items():
-        expanded_errors[k] = ''
-    return expanded_errors
-
-
 def select_data_items(dbsession, participant, page):
     if 'data' not in participant:
         participant['data'] = {}
@@ -152,31 +153,59 @@ def select_data_items(dbsession, participant, page):
         if page.dataset_id is None:
             return [DataItem(id=None)]
         else:
-            if str(page.dataset_id) not in participant['data']:
-                data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).outerjoin(Answer).filter(DataItem.dataset_id == page.dataset_id).group_by(DataItem.id).order_by(asc('count'), DataItem.id)
-                seen_items = [t[0] for t in dbsession.query(DataItem.id).join(Answer).join(Participant).filter(Participant.id == participant.id)]
-                item_ids = []
-                limit_count = None
-                for item_id, count in data_items:
-                    if item_id not in seen_items:
-                        if limit_count is not None and limit_count != count and len(item_ids) > page['data']['item_count']:
+            data_set = dbsession.query(DataSet).filter(DataSet.id == page.dataset_id).first()
+            if data_set.type == 'dataset':
+                if str(page.dataset_id) not in participant['data']:
+                    data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).outerjoin(Answer).filter(DataItem.dataset_id == page.dataset_id).group_by(DataItem.id).order_by(asc('count'), DataItem.id)
+                    seen_items = [t[0] for t in dbsession.query(DataItem.id).join(Answer).join(Participant).filter(Participant.id == participant.id)]
+                    item_ids = []
+                    limit_count = None
+                    for item_id, count in data_items:
+                        if item_id not in seen_items:
+                            if limit_count is not None and limit_count != count and len(item_ids) > page['data']['item_count']:
+                                break
+                            item_ids.append(item_id)
+                            limit_count = count
+                    if item_ids and len(item_ids) >= page['data']['item_count']:
+                        participant['data'][str(page.dataset_id)] = sample(item_ids, page['data']['item_count'])
+                    else:
+                        participant['data'][str(page.dataset_id)] = None
+                        return None
+                return dbsession.query(DataItem).filter(DataItem.id.in_(participant['data'][str(page.dataset_id)]))
+            elif data_set.type == 'latinsquare':
+                if str(page.dataset_id) not in participant['data']:
+                    dids = [c[0] for c in data_set['combinations']]
+                    data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).outerjoin(Answer).filter(and_(DataItem.dataset_id == page.dataset_id,
+                                                                                                                                  DataItem.id.in_(dids))).group_by(DataItem.id).order_by(asc('count'), DataItem.id)
+                    item_ids = []
+                    limit_count = None
+                    for item_id, count in data_items:
+                        if limit_count is not None and limit_count != count and len(item_ids) > 1:
                             break
                         item_ids.append(item_id)
                         limit_count = count
-                if item_ids and len(item_ids) >= page['data']['item_count']:
-                    participant['data'][str(page.dataset_id)] = sample(item_ids, page['data']['item_count'])
-                else:
-                    participant['data'][str(page.dataset_id)] = None
-                    return None
-            return dbsession.query(DataItem).filter(DataItem.id.in_(participant['data'][str(page.dataset_id)]))
+                    if item_ids:
+                        iid = sample(item_ids, 1)[0]
+                        for combination in data_set['combinations']:
+                            if combination[0] == iid:
+                                participant['data'][str(page.dataset_id)] = {'iids': combination,
+                                                                             'seen': []}
+                                break
+                    else:
+                        participant['data'][str(page.dataset_id)] = None
+                        return None
+                return dbsession.query(DataItem).filter(DataItem.id == participant['data'][str(page.dataset_id)]['iids'][0])
+            else:
+                return [DataItem(id=None)]
 
 
 def page_actions(participant, page):
     if page:
         actions = [('next-page', 'Next Page')]
         for transition in page.next:
-            if 'condition' in transition and transition['condition']['type'] == 'dataset':
-                actions.append(('more-items', 'Answer more Questions'))
+            if 'condition' in transition:
+                if transition['condition']['type'] == 'dataset':
+                    actions.append(('more-items', 'Answer more Questions'))
         return actions
     else:
         return []

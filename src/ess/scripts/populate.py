@@ -170,6 +170,7 @@ def initialise_database(args):
         exp.start = page1
         dbsession.add(page1)
         q = Question(page=page1, type_id=1, order=0, attributes={'text': 'You are voting for: ${name}.'})
+        dbsession.add(q)
         q = Question(page=page1, type_id=3, order=1, attributes={'name': 'vote', 'title': 'Vote', 'answers': [{'value': 'up', 'label': 'Yes'}, {'value': 'down', 'label': 'No'}], 'required': True})
         dbsession.add(q)
         ds = DataSet(experiment=exp, name='superheroes', type='dataset')
@@ -195,6 +196,38 @@ def initialise_database(args):
         di['values'] = {'name': 'Mr Incredible'}
         di = DataItem(data_set=ds, order=9)
         di['values'] = {'name': 'Elastigirl'}
+
+        exp = Experiment(title='Latin Square Test 1', owned_by=1, external_id='4', status='develop')
+        dbsession.add(exp)
+        page1 = Page(name='page1', title='Page 1', experiment=exp)
+        exp.start = page1
+        dbsession.add(page1)
+        q = Question(page=page1, type_id=1, order=0, attributes={'text': 'You are undertaking ${title} with ${label}.'})
+        dbsession.add(q)
+        q = Question(page=page1, type_id=7, order=1, attributes={'name': 'q1'})
+        dbsession.add(q)
+        page2 = Page(name='page2', title='Page 2', experiment=exp)
+        dbsession.add(page1)
+        q = Question(page=page2, type_id=1, order=0, attributes={'text': 'How did you feel about that?'})
+        dbsession.add(q)
+        q = Question(page=page2, type_id=3, order=1, attributes={'name': 'vote', 'title': 'Vote', 'answers': [{'value': 'up', 'label': 'Yes'}, {'value': 'down', 'label': 'No'}], 'required': True})
+        dbsession.add(q)
+        ds = DataSet(experiment=exp, name='tasks', type='dataset')
+        ds['columns'] = ['task', 'title']
+        dbsession.add(ds)
+        di = DataItem(data_set=ds, order=0)
+        di['values'] = {'task': 'task1', 'title': 'Task 1'}
+        di = DataItem(data_set=ds, order=1)
+        di['values'] = {'task': 'task2', 'title': 'Task 2'}
+        di = DataItem(data_set=ds, order=2)
+        di['values'] = {'task': 'task3', 'title': 'Task 3'}
+        ds = DataSet(experiment=exp, name='interfaces', type='dataset')
+        ds['columns'] = ['interface', 'label']
+        dbsession.add(ds)
+        di = DataItem(data_set=ds, order=0)
+        di['values'] = {'interface': 'interface1', 'label': 'Interface 1'}
+        di = DataItem(data_set=ds, order=1)
+        di['values'] = {'interface': 'interface2', 'label': 'Interface 2'}
 
     alembic_config = config.Config(args.configuration, ini_section='app:main')
     alembic_config.set_section_option('app:main', 'script_location', 'ess:migrations')

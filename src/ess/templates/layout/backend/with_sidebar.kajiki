@@ -42,7 +42,7 @@
           <dd>
             <ul class="no-bullet">
               <li class="${'current' if request.matched_route.name.startswith('experiment.data') else ''}"><a href="${request.route_url('experiment.data', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">view_headline</span> Data Sets</a></li>
-              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">view_module</span> Latin Squares</a></li>
+              <li class="${'current' if request.matched_route.name.startswith('experiment.latinsquare') else ''}"><a href="${request.route_url('experiment.latinsquare', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">view_module</span> Latin Squares</a></li>
             </ul>
           </dd>
           <dt>Results</dt>

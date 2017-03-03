@@ -38,7 +38,7 @@
               </div>
               <div class="row collapse"> 
                 <div class="column small-12">
-                  ${form.field('select', 'condition', 'Transition condition', value=transition['condition']['type'] if 'condition' in transition else '', values=[('', 'Unconditional Transition'), ('answer', 'Conditional upon an Answer'), ('dataset', 'Conditional upon additional unanswered items the linked Data Set'), ('permutation', 'Conditional upon additional states in the Permutation Set')])}
+                  ${form.field('select', 'condition', 'Transition condition', value=transition['condition']['type'] if 'condition' in transition else '', values=[('', 'Unconditional Transition'), ('answer', 'Conditional upon an Answer'), ('dataset', 'Conditional upon additional unanswered items the linked Data Set'), ('latinsquare', 'Conditional upon additional states in the linked Latin Square')])}
                 </div>
               </div>
               <div class="row collapse"> 
@@ -106,7 +106,7 @@
               form.find('select[name=condition_answer_page]').attr('disabled', 'disabled').parent().hide();
               form.find('select[name=condition_answer_question]').attr('disabled', 'disabled').parent().hide();
               form.find('input[name=condition_answer_value]').attr('disabled', 'disabled').parent().hide();
-          } else if(condition.val() == 'dataset') {
+          } else if(condition.val() == 'latinsquare') {
               form.find('select[name=condition_answer_page]').attr('disabled', 'disabled').parent().hide();
               form.find('select[name=condition_answer_question]').attr('disabled', 'disabled').parent().hide();
               form.find('input[name=condition_answer_value]').attr('disabled', 'disabled').parent().hide();

@@ -188,6 +188,9 @@ class Experiment(Base):
     data_sets = relationship('DataSet', 
                              primaryjoin="and_(Experiment.id==DataSet.experiment_id, DataSet.type=='dataset')",
                              cascade='all, delete, delete-orphan')
+    latin_squares = relationship('DataSet', 
+                                 primaryjoin="and_(Experiment.id==DataSet.experiment_id, DataSet.type=='latinsquare')",
+                                 cascade='all, delete, delete-orphan')
 
 
     def allow(self, action, user):

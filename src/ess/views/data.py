@@ -1,10 +1,11 @@
 import formencode
+import itertools
 import transaction
 
 from csv import DictReader
 from io import StringIO
+from math import factorial
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-from pyramid.renderers import render_to_response
 from pyramid.view import view_config
 from pywebtools.formencode import CSRFSchema, State, CSRFValidator
 from pywebtools.pyramid.auth.views import current_user, require_permission
@@ -13,7 +14,7 @@ from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_, func
 
 from ess.models import Experiment, DataSet, DataItem
-from ess.validators import DataSetUniqueValidator
+from ess.validators import DataSetUniqueValidator, DataSetExistsValidator
 from pyquest.validation import DynamicSchema
 
 
@@ -28,6 +29,12 @@ def init(config):
     config.add_route('experiment.data.item.reorder', '/experiments/{eid}/data/{did}/reorder')
     config.add_route('experiment.data.item.edit', '/experiments/{eid}/data/{did}/{diid}/edit')
     config.add_route('experiment.data.item.delete', '/experiments/{eid}/data/{did}/{diid}/delete')
+    config.add_route('experiment.latinsquare', '/experiments/{eid}/latinsquares')
+    config.add_route('experiment.latinsquare.create', '/experiments/{eid}/latinsquares/create')
+    config.add_route('experiment.latinsquare.view', '/experiments/{eid}/latinsquares/{did}')
+    config.add_route('experiment.latinsquare.edit', '/experiments/{eid}/latinsquares/{did}/edit')
+    config.add_route('experiment.latinsquare.edit.estimate', '/experiments/{eid}/latinsquares/{did}/edit/estimate')
+    config.add_route('experiment.latinsquare.delete', '/experiments/{eid}/latinsquares/{did}/delete')
 
 
 @view_config(route_name='experiment.data', renderer='ess:templates/data/data_list.kajiki')
@@ -172,7 +179,8 @@ def data_view(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
-                                                    DataSet.experiment_id == request.matchdict['eid'])).first()
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'dataset')).first()
     if experiment and data_set:
         return {'experiment': experiment,
                 'data_set': data_set,
@@ -195,7 +203,8 @@ def data_edit(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
-                                                    DataSet.experiment_id == request.matchdict['eid'])).first()
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'dataset')).first()
     if experiment and data_set:
         if request.method == 'POST':
             try:
@@ -249,7 +258,8 @@ def data_item_add(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
-                                                    DataSet.experiment_id == request.matchdict['eid'])).first()
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'dataset')).first()
     if experiment and data_set:
         try:
             schema = DynamicSchema()
@@ -291,7 +301,8 @@ def data_item_edit(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
-                                                    DataSet.experiment_id == request.matchdict['eid'])).first()
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'dataset')).first()
     data_item = dbsession.query(DataItem).filter(and_(DataItem.id == request.matchdict['diid'],
                                                       DataItem.dataset_id == request.matchdict['did'])).first()
     if experiment and data_set and data_item:
@@ -332,7 +343,8 @@ def data_item_delete(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
-                                                    DataSet.experiment_id == request.matchdict['eid'])).first()
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'dataset')).first()
     data_item = dbsession.query(DataItem).filter(and_(DataItem.id == request.matchdict['diid'],
                                                       DataItem.dataset_id == request.matchdict['did'])).first()
     if experiment and data_set and data_item:
@@ -358,7 +370,8 @@ def data_reorder(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
-                                                    DataSet.experiment_id == request.matchdict['eid'])).first()
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'dataset')).first()
     if experiment and data_set:
         try:
             params = ReorderSchema().to_python(request.params, State(request=request))
@@ -375,23 +388,276 @@ def data_reorder(request):
         raise HTTPNotFound()
 
 
-@view_config(route_name='experiment.data.delete', renderer='json')
+@view_config(route_name='experiment.data.delete')
+@view_config(route_name='experiment.latinsquare.delete')
 @current_user()
 @require_permission(class_=Experiment, request_key='eid', action='edit')
 @require_method('POST')
 def data_delete(request):
+    mode = 'latinsquare' if 'latinsquare' in request.matched_route.name else 'dataset'
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
-                                                    DataSet.experiment_id == request.matchdict['eid'])).first()
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == mode)).first()
     if experiment and data_set:
         try:
             CSRFSchema().to_python(request.params, State(request=request))
             with transaction.manager:
                 dbsession.delete(data_set)
             dbsession.add(experiment)
-            raise HTTPFound(request.route_url('experiment.data', eid=experiment.id))
+            raise HTTPFound(request.route_url('experiment.%s' % mode, eid=experiment.id))
         except formencode.Invalid:
-            raise HTTPFound(request.route_url('experiment.data.view', eid=experiment.id, did=data_set.id))
+            raise HTTPFound(request.route_url('experiment.%s.view' % mode, eid=experiment.id, did=data_set.id))
     else:
         raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.latinsquare', renderer='ess:templates/data/latinsquare_list.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+def latinsquare_list(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Latin Squares',
+                            'url': request.route_url('experiment.latinsquare', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.latinsquare.create', renderer='ess:templates/data/latinsquare_create.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+def latinsquare_create(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        if request.method == 'POST':
+            try:
+                params = DataSetCreateSchema().to_python(request.params, State(request=request,
+                                                                               dbsession=dbsession,
+                                                                               experiment=experiment))
+                with transaction.manager:
+                    dbsession.add(experiment)
+                    data_set = DataSet(name=params['name'],
+                                       experiment=experiment,
+                                       type='latinsquare')
+                    data_set['columns'] = []
+                    data_set['combinations'] = []
+                    dbsession.add(data_set)
+                dbsession.add(experiment)
+                dbsession.add(data_set)
+                raise HTTPFound(request.route_url('experiment.latinsquare.edit', eid=experiment.id, did=data_set.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Latin Squares',
+                                    'url': request.route_url('experiment.latinsquare', eid=experiment.id)},
+                                   {'title': 'Add',
+                                    'url': request.route_url('experiment.latinsquare.create', eid=experiment.id)}],
+                        'values': request.params,
+                        'errors': e.error_dict}
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Latin Squares',
+                            'url': request.route_url('experiment.latinsquare', eid=experiment.id)},
+                           {'title': 'Add',
+                            'url': request.route_url('experiment.latinsquare.create', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.latinsquare.view', renderer='ess:templates/data/latinsquare_view.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+def latinsquare_view(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'latinsquare')).first()
+    if experiment and data_set:
+        source_a = dbsession.query(DataSet).filter(and_(DataSet.id == data_set['source_a'],
+                                                        DataSet.type == 'dataset')).first()
+        source_b = dbsession.query(DataSet).filter(and_(DataSet.id == data_set['source_b'],
+                                                        DataSet.type == 'dataset')).first()
+        return {'experiment': experiment,
+                'data_set': data_set,
+                'sources': {'a': source_a, 'b': source_b},
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Latin Squares',
+                            'url': request.route_url('experiment.latinsquare', eid=experiment.id)},
+                           {'title': data_set.name,
+                            'url': request.route_url('experiment.data.view', eid=experiment.id, did=data_set.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+class LatinSquareEditSchema(CSRFSchema):
+
+    name = DataSetUniqueValidator(not_empty=True)
+    source_a = DataSetExistsValidator(not_empty=True)
+    mode_a = formencode.validators.OneOf(['within', 'between'])
+    source_b = DataSetExistsValidator(not_empty=True)
+    mode_b = formencode.validators.OneOf(['within', 'between'])
+
+
+@view_config(route_name='experiment.latinsquare.edit', renderer='ess:templates/data/latinsquare_edit.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+def latinsquare_edit(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'latinsquare')).first()
+    if experiment and data_set:
+        if request.method == 'POST':
+            try:
+                params = LatinSquareEditSchema().to_python(request.params, State(request=request,
+                                                                             dbsession=dbsession,
+                                                                             experiment=experiment,
+                                                                             data_set=data_set))
+                count = latinsquare_estimate_count(dbsession, params['source_a'], params['mode_a'], params['source_b'], params['mode_b'])
+                if count > 10000:
+                    raise formencode.Invalid('', None, None, error_dict={'source_a': 'These settings generate too many combinations (%s).' % count, 'source_b': 'These settings generate too many combinations (%s).' % count})
+                with transaction.manager:
+                    dbsession.add(data_set)
+                    source_a = dbsession.query(DataSet).filter(and_(DataSet.id == params['source_a'],
+                                                                    DataSet.type == 'dataset')).first()
+                    source_b = dbsession.query(DataSet).filter(and_(DataSet.id == params['source_b'],
+                                                                    DataSet.type == 'dataset')).first()
+                    data_set.name = params['name']
+                    data_set['source_a'] = int(params['source_a'])
+                    data_set['mode_a'] = params['mode_a']
+                    data_set['source_b'] = int(params['source_b'])
+                    data_set['mode_b'] = params['mode_b']
+                    data_set['columns'] = source_a['columns'] + source_b['columns']
+                    data_set.items.clear()
+                    combinations = []
+                    if params['mode_a'] == 'within' and params['mode_b'] == 'within':
+                        iterator = itertools.permutations(itertools.product(source_a.items, source_b.items))
+                    elif params['mode_a'] == 'between' and params['mode_b'] == 'within':
+                        iterator = []
+                        for item_a in source_a.items:
+                            iterator.extend(itertools.permutations(itertools.product([item_a], source_b.items)))
+                    elif params['mode_a'] == 'within' and params['mode_b'] == 'between':
+                        iterator = []
+                        for item_b in source_b.items:
+                            iterator.extend(itertools.permutations(itertools.product(source_a.items, [item_b])))
+                    elif params['mode_a'] == 'between' and params['mode_b'] == 'between':
+                        iterator = [[p] for p in itertools.product(source_a.items, source_b.items)]
+                    order = 0
+                    for data in iterator:
+                        comb = []
+                        for pair in data:
+                            item = DataItem(data_set=data_set,
+                                            order=order)
+                            values = {}
+                            values.update(pair[0]['values'])
+                            values.update(pair[1]['values'])
+                            item['values'] = values
+                            comb.append(item)
+                            order = order + 1
+                        combinations.append(comb)
+                    dbsession.flush()
+                    data_set['combinations'] = [[di.id for di in c] for c in combinations]
+                dbsession.add(experiment)
+                dbsession.add(data_set)
+                raise HTTPFound(request.route_url('experiment.latinsquare.view', eid=experiment.id, did=data_set.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'data_set': data_set,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Latin Squares',
+                                    'url': request.route_url('experiment.latinsquare', eid=experiment.id)},
+                                   {'title': data_set.name,
+                                    'url': request.route_url('experiment.latinsquare.view', eid=experiment.id, did=data_set.id)},
+                                   {'title': 'Edit',
+                                    'url': request.route_url('experiment.latinsquare.edit', eid=experiment.id, did=data_set.id)}],
+                        'values': request.params,
+                        'errors': e.error_dict}
+        return {'experiment': experiment,
+                'data_set': data_set,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Latin Squares',
+                            'url': request.route_url('experiment.latinsquare', eid=experiment.id)},
+                           {'title': data_set.name,
+                            'url': request.route_url('experiment.latinsquare.view', eid=experiment.id, did=data_set.id)},
+                           {'title': 'Edit',
+                            'url': request.route_url('experiment.latinsquare.edit', eid=experiment.id, did=data_set.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+class LatinSquareEstimateSchema(CSRFSchema):
+
+    source_a = DataSetExistsValidator(not_empty=True)
+    mode_a = formencode.validators.OneOf(['within', 'between'])
+    source_b = DataSetExistsValidator(not_empty=True)
+    mode_b = formencode.validators.OneOf(['within', 'between'])
+
+
+@view_config(route_name='experiment.latinsquare.edit.estimate', renderer='json')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+def latinsquare_estimate(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    data_set = dbsession.query(DataSet).filter(and_(DataSet.id == request.matchdict['did'],
+                                                    DataSet.experiment_id == request.matchdict['eid'],
+                                                    DataSet.type == 'latinsquare')).first()
+    if experiment and data_set:
+        try:
+            params = LatinSquareEstimateSchema().to_python(request.params,
+                                                           State(request=request,
+                                                                 dbsession=dbsession,
+                                                                 experiment=experiment))
+            count = latinsquare_estimate_count(dbsession, params['source_a'], params['mode_a'], params['source_b'], params['mode_b'])
+            if count is None:
+                return {'count': ''}
+            else:
+                return {'count': count}
+        except formencode.Invalid:
+            return {'count': ''}
+    else:
+        raise HTTPNotFound()
+
+def latinsquare_estimate_count(dbsession, source_a, mode_a, source_b, mode_b):
+        source_a = dbsession.query(DataSet).filter(and_(DataSet.id == source_a,
+                                                        DataSet.type == 'dataset')).first()
+        source_b = dbsession.query(DataSet).filter(and_(DataSet.id == source_b,
+                                                        DataSet.type == 'dataset')).first()
+        if source_a is None or source_b is None:
+            return None
+        count_a = dbsession.query(func.count(DataItem.id)).filter(DataItem.dataset_id == source_a.id).first()
+        count_b = dbsession.query(func.count(DataItem.id)).filter(DataItem.dataset_id == source_b.id).first()
+        if mode_a == 'within' and mode_b == 'within':
+            return factorial(count_a[0] * count_b[0])
+        elif mode_a == 'between' and mode_b == 'within':
+            return count_a[0] * factorial(count_b[0])
+        elif mode_a == 'within' and mode_b == 'between':
+            return factorial(count_a[0]) * count_b[0]
+        elif mode_a == 'between' and mode_b == 'between':
+            return count_a[0] * count_b[0]

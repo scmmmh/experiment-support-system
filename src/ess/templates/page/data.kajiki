@@ -18,7 +18,7 @@
           ${form.csrf_field()}
           <div class="row expanded">
             <div class="column small-12 medium-8 end">
-              ${form.field('select', 'data_set', 'Link the following data', values=[('', 'Do not link')] + [(ds.id, ds.name) for ds in data_sets], value=str(page.dataset_id) if page.dataset_id is not None else '')}
+              ${form.field('select', 'data_set', 'Link the following data set or latin square', values=[('', 'Do not link')] + [(ds.id, ds.name) for ds in data_sets], value=str(page.dataset_id) if page.dataset_id is not None else '')}
             </div>
           </div>
           <div class="row expanded dataset">

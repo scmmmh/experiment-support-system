@@ -96,4 +96,7 @@ tbody, tfoot {
 .row.expanded .row.left {
     margin-left: 0;
 }
- 
+
+small.alert {
+    color: $alert-color;
+}

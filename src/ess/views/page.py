@@ -323,7 +323,7 @@ def transitions(request):
 class TransitionEditSchema(CSRFSchema):
 
     target = PageExistsValidator()
-    condition = formencode.validators.OneOf(['', 'answer', 'dataset', 'permutation'])
+    condition = formencode.validators.OneOf(['', 'answer', 'dataset', 'latinsquare'])
 
 
 @view_config(route_name='experiment.page.transition.edit', renderer='json')
@@ -346,10 +346,11 @@ def edit_transition(request):
     if experiment and page and transition:
         try:
             schema = TransitionEditSchema()
-            if 'condition' in request.params and request.params['condition'] == 'answer':
-                schema.add_field('condition_answer_page', PageExistsValidator(not_empty=True))
-                schema.add_field('condition_answer_question', QuestionExistsValidator(request.params['condition_answer_page'] if 'condition_answer_page' in request.params else '', not_empty=True))
-                schema.add_field('condition_answer_value', formencode.validators.UnicodeString())
+            if 'condition' in request.params:
+                if request.params['condition'] == 'answer':
+                    schema.add_field('condition_answer_page', PageExistsValidator(not_empty=True))
+                    schema.add_field('condition_answer_question', QuestionExistsValidator(request.params['condition_answer_page'] if 'condition_answer_page' in request.params else '', not_empty=True))
+                    schema.add_field('condition_answer_value', formencode.validators.UnicodeString())
             params = schema.to_python(request.params, State(request=request,
                                                             dbsession=dbsession,
                                                             experiment=experiment,
@@ -367,6 +368,8 @@ def edit_transition(request):
                                                    'value': params['condition_answer_value']}
                     elif params['condition'] == 'dataset':
                         transition['condition'] = {'type': 'dataset'}
+                    elif params['condition'] == 'latinsquare':
+                        transition['condition'] = {'type': 'latinsquare'}
                 dbsession.add(transition)
             dbsession.add(experiment)
             dbsession.add(page)
