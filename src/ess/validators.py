@@ -103,34 +103,42 @@ class TimeValidator(formencode.FancyValidator):
             raise formencode.Invalid(self.message('invalid_format', state), value, state)
 
 
-DATETIME_PATTERN = re.compile('([0-9]{4}-[0-9]{2}-[0-9]{2}) (([0-1][0-9])|(2[0-3])):[0-5][0-9]')
+DATETIME_PATTERN = re.compile('([0-9]{4}-[0-9]{2}-[0-9]{2})T(([0-1][0-9])|(2[0-3])):[0-5][0-9]Z')
 
 
 class DateTimeValidator(formencode.FancyValidator):
 
-    messages = {'invalid_format': 'Please enter the date-time as yyyy-mm-dd hh:mm',
+    messages = {'invalid_format': 'Please enter the date-time as yyyy-mm-ddThh:mmZ',
                 'invalid_date': 'Please enter a valid date'}
 
     def _validate_python(self, value, state):
         match = DATETIME_PATTERN.match(value)
         if match:
             try:
-                datetime.strptime(match.group(1), '%Y-%m-%d')
+                datetime.strptime(value, '%Y-%m-%dT%H:%MZ')
             except:
                 raise formencode.Invalid(self.message('invalid_date', state), value, state)
         else:
             raise formencode.Invalid(self.message('invalid_format', state), value, state)
 
 
+MONTH_PATTERN = re.compile('[0-9]{4}-[0-9]{2}')
+
+
 class MonthValidator(formencode.FancyValidator):
 
-    messages = {'invalid_month': 'Please enter a valid month as a number, three letter abbreviation, or full month'}
+    messages = {'invalid_format': 'Please enter the month as yyyy-mm',
+                'invalid_month': 'Please enter a valid month as a number, three letter abbreviation, or full month'}
 
     def _validate_python(self, value, state):
-        if value.lower() not in ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec',
-                                 '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
-                                 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'oktober', 'november', 'december']:
-            raise formencode.Invalid(self.message('invalid_month', state), value, state)
+        match = MONTH_PATTERN.match(value)
+        if match:
+            try:
+                datetime.strptime(value, '%Y-%m')
+            except:
+                raise formencode.Invalid(self.message('invalid_month', state), value, state)
+        else:
+            raise formencode.Invalid(self.message('invalid_format', state), value, state)
 
 
 class DataSetUniqueValidator(formencode.FancyValidator):

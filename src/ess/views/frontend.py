@@ -252,7 +252,6 @@ def run_survey(request):
             dbsession.add(experiment)
             raise HTTPFound(request.route_url('experiment.run', ueid=experiment.external_id))
         except formencode.Invalid as e:
-            print(e)
             dbsession.add(experiment)
             dbsession.add(page)
             dbsession.add(participant)

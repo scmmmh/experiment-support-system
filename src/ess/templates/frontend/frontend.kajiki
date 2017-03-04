@@ -1,27 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-  <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
-  <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
-  <py:import href="ess:templates/helpers/question.kajiki" alias="qs"/>
-  <?py from ess.util import replace_variables ?>
-  <head>
-    <title>${experiment.title} - ${page.title}</title>
-    <link rel="stylesheet" href="${request.static_url('ess:static/css/frontend.min.css')}"/>
-  </head>
-  <body class="frontend">
-    <div class="row">
-      <div class="column small-12" data-sticky-container="">
-        <header class="sticky" data-sticky="" data-margin-top="0">
-          <div class="row collapse">
-            <div class="column small-12 text-center">
-               <div class="progress" role="progressbar" tabindex="0" aria-valuenow="${participant['progress'][0]}" aria-valuemin="0" aria-valuemax="${participant['progress'][1]}" style="height:5px;">
-                 <div class="progress-meter" style="width: ${participant['progress'][0] * 100 / participant['progress'][1]}%;"></div>
-               </div>
-            </div>
-          </div>
-        </header>
-      </div>
-    </div>
+<py:extends href="ess:templates/layout/frontend.kajiki">
+  <py:block name="title">${experiment.title} - ${page.title}</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <py:import href="ess:templates/helpers/question.kajiki" alias="qs"/>
     <form action="" class="row" novalidate="novalidate" method="post">
       ${form.csrf_field()}
       ${form.field('hidden', '_action', '', value='')}
@@ -37,33 +19,35 @@
         </ul>
       </div>
     </form>
-    <script src="${request.static_url('ess:static/js/jquery.js')}"></script>
-    <script src="${request.static_url('ess:static/js/what-input.js')}"></script>
-    <script src="${request.static_url('ess:static/js/jquery-ui.js')}"></script>
-    <script src="${request.static_url('ess:static/js/foundation.js')}"></script>
-    <script src="${request.static_url('ess:static/js/frontend.js')}"></script>
+  </py:block>
+  <py:block name="body_script">
+    <?py from ess.util import replace_variables ?>
     <script>
-    $(document).foundation();
-    $('.toggle-question-help').toggle_question_help();
-    var action = $('input[name=_action]');
-    action.val('');
-    var form = $('form');
-    form.on('submit', function(ev) {
-        if(action.val() === '') {
-            ev.preventDefault();
-        }
-    });
-    $('button.action').on('click', function() {
-        action.val($(this).data('action'));
-        form.trigger('submit');
-    });
-    </script>
-    <script py:for="question in page.questions" py:if="('frontend', 'javascript') in question">
     <![CDATA[
-        (function (question) {
-            ${literal(replace_variables(question['frontend', 'javascript'], question, data_item['values'], question.q_type.frontend))}
-        })($('#question-${question.id}'));
+        $(document).foundation();
+        $('.toggle-question-help').toggle_question_help();
+        var action = $('input[name=_action]');
+        action.val('');
+        var form = $('form');
+        form.on('submit', function(ev) {
+            if(action.val() === '') {
+                ev.preventDefault();
+            }
+        });
+        $('button.action').on('click', function() {
+            action.val($(this).data('action'));
+            form.trigger('submit');
+        });
     ]]>
     </script>
-  </body>
-</html>
+    <py:for each="data_item in data_items">
+      <script py:for="question in page.questions" py:if="('frontend', 'javascript') in question">
+      <![CDATA[
+          (function (question) {
+              ${literal(replace_variables(question['frontend', 'javascript'], question, data_item['values'], question.q_type.frontend))}
+          })($('#question-${question.id}'));
+      ]]>
+      </script>
+    </py:for>
+  </py:block>
+</py:extends>

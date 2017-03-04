@@ -1,37 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-  <?py from ess.util import replace_variables ?>
-  <head>
-    <title>${experiment.title} - Completed</title>
-    <link rel="stylesheet" href="${request.static_url('ess:static/css/frontend.min.css')}"/>
-  </head>
-  <body class="frontend">
-    <div class="row">
-      <div class="column small-12" data-sticky-container="">
-        <header class="sticky" data-sticky="" data-margin-top="0">
-          <div class="row collapse">
-            <div class="column small-12 text-center">
-               <div class="progress" role="progressbar" tabindex="0" aria-valuenow="${participant['progress'][0]}" aria-valuemin="0" aria-valuemax="${participant['progress'][1]}" style="height:5px;">
-                 <div class="progress-meter" style="width: ${participant['progress'][0] * 100 / participant['progress'][1]}%;"></div>
-               </div>
-            </div>
-          </div>
-        </header>
-      </div>
-    </div>
+<py:extends href="ess:templates/layout/frontend.kajiki">
+  <py:block name="title">${experiment.title} - Completed</py:block>
+  <py:block name="content">
     <div class="row">
       <div class="column small-12">
         <h1>${experiment.title}</h1>
         <p>Thank you for completing the experiment "${experiment.title}". Your responses have been saved.</p>
       </div>
     </div>
-    <script src="${request.static_url('ess:static/js/jquery.js')}"></script>
-    <script src="${request.static_url('ess:static/js/what-input.js')}"></script>
-    <script src="${request.static_url('ess:static/js/jquery-ui.js')}"></script>
-    <script src="${request.static_url('ess:static/js/foundation.js')}"></script>
-    <script src="${request.static_url('ess:static/js/frontend.js')}"></script>
+  </py:block>
+  <py:block name="body_script">
     <script>
-    $(document).foundation();
+    <![CDATA[
+        $(document).foundation();
+    ]]>
     </script>
-  </body>
-</html>
+  </py:block>
+</py:extends>
