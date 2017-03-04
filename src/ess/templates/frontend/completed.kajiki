@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <?py from ess.util import replace_variables ?>
   <head>
     <title>${experiment.title} - Completed</title>

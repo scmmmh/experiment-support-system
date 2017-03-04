@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
   <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
   <py:import href="ess:templates/helpers/question.kajiki" alias="qs"/>

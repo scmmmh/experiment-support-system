@@ -1,13 +1,29 @@
+
 .question {
-    margin-bottom: $global-margin * 2;
+    margin-bottom: $global-margin;
     
     h2 {
         font-size: rem-calc(20);
         margin-bottom: $global-margin;
+        color: $primary-color;
+    }
+
+    label {
+        font-size: 100%;
     }
 
     td > label > input {
         margin: 0;
+    }
+
+    ul, ol {
+        margin-bottom: 0;
+    }
+
+    .question_label {
+        color: darken($dark-gray, 20);
+        font-weight: bold;
+        margin-bottom: $form-spacing * 0.5;
     }
 
     &.error {
