@@ -83,7 +83,7 @@ def initialise_database(args):
         dbsession.add(page4)
         q = Question(page=page4, type_id=1, order=0, attributes={'text': 'Here are some questions.'})
         dbsession.add(q)
-        q = Question(page=page4, type_id=5, order=1, attributes={'name': 'q1', 'title': 'Some Questions', 'answers': [{'value': 'a', 'label': 'A'}, {'value': 'b', 'label': 'B'}], 'required': True})
+        q = Question(page=page4, type_id=5, order=1, attributes={'name': 'q1', 'title': 'Some Questions', 'answers': [{'value': 'a', 'label': 'A'}, {'value': 'b', 'label': 'B'}, {'value': 'c', 'label': 'C'}], 'required': True})
         dbsession.add(q)
         trans = Transition(source=page3, target=page4, order=0)
         dbsession.add(trans)

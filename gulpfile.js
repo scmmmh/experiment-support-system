@@ -121,7 +121,7 @@ gulp.task('jquery', function(cb) {
 gulp.task('what-input', function(cb) {
     pump([
         gulp.src([
-            'node_modules/what-input/what-input.js'
+            'node_modules/what-input/dist/what-input.js'
         ]),
         uglify(),
         gulp.dest('src/ess/static/js')

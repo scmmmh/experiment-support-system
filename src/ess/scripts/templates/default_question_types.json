@@ -71,7 +71,7 @@
      "id": "ranking",
      "attributes": {"title": "Ranking",
                     "order": 4,
-                    "frontend": {"display_as": "ranking", "visible": true, "answers": [], "javascript": "question.find('.answer-list').sortable();"},
+                    "frontend": {"display_as": "ranking", "visible": true, "answers": [], "javascript": "question.find('.answer-list').sortable();question.on('click', 'a.up', function(){var item=$(this).parent().parent();item.prev('li').before(item);});question.on('click', 'a.down', function(){var item=$(this).parent().parent();item.next('li').after(item);});"},
                     "backend": {"fields": [{"name": "name", "type": "text", "title": "Unique Name", "validation": {"type": "unicode", "not_empty": true}},
                                            {"name": "title", "type": "text", "title": "Title", "validation": {"type": "unicode", "if_empty": "", "if_missing": ""}},
                                            {"name": "required", "type": "checkbox", "title": "Required", "validation": {"type": "unicode", "if_empty": "", "if_missing": ""}},

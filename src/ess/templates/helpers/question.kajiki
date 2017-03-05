@@ -106,7 +106,7 @@
   <py:def function="ranking(question, data_item)">
     <?py from ess.util import replace_variables ?>
     <ul class="no-bullet answer-list">
-      <li py:for="answer in question['frontend', 'answers']"><input type="hidden" name="${'d%s.%s' % (data_item.id, question['name'])}" value="${replace_variables(answer['value'], question, data_item['values'])}"/>${icon.md('swap_vert', 'Re-order')} ${replace_variables(answer['label'] if answer['label'] else answer['value'], question, data_item['values'])}</li>
+      <li py:for="answer in question['frontend', 'answers']"><input type="hidden" name="${'d%s.%s' % (data_item.id, question['name'])}" value="${replace_variables(answer['value'], question, data_item['values'])}"/><span class="mouse-only">${icon.md('swap_vert', 'Re-order')}</span><span class="touch-only"><a href="#" class="up">${icon.md('arrow_upward', 'Up')}</a><a href="#" class="down">${icon.md('arrow_downward', 'Down')}</a></span> ${replace_variables(answer['label'] if answer['label'] else answer['value'], question, data_item['values'])}</li>
     </ul>
   </py:def>
 </div>

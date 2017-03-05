@@ -26,6 +26,20 @@
         margin-bottom: $form-spacing * 0.5;
     }
 
+    &.qt-ranking {
+        li:first-child {
+            a.up {
+                display: none;
+            }
+            a.down {
+                margin-left: rem-calc(30);
+            }
+        }
+        li:last-child a.down {
+            display: none;
+        }
+    }
+
     &.error {
         h2:after {
             font-family: 'Material Icons';
@@ -62,4 +76,8 @@
             color: $form-label-color-invalid;
         }
     }
+}
+.input-types-touch .question.qt-ranking .touch-only {
+    width: rem-calc(72);
+    display: inline-block;
 }
