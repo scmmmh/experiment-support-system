@@ -130,6 +130,8 @@ def export_settings(request):
                     else:
                         return data_item['values'][params['data_set_identifier_%s' % data_item.dataset_id]]
                 columns = set(['_participant'])
+                if params['include_useragent']:
+                    columns.add('_user_agent.screen_size')
                 for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
                                                                             Participant.completed == True)):
                     if params['include_useragent']:
@@ -181,6 +183,8 @@ def export_settings(request):
                                         responses[column] = 0
                                 for input_type in participant['user_agent']['input_types']:
                                     responses['_user_agent.input_type.%s' % input_type] = 1
+                            if 'screen_size' in participant['user_agent']:
+                                responses['_user_agent.screen_size'] = participant['user_agent']['screen_size']
                     for answer in participant.answers:
                         column = '%s.%s' % (answer.question.page.name, answer.question['name'])
                         if answer.question['frontend', 'display_as'] == 'select_grid_choice':

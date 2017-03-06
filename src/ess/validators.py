@@ -219,6 +219,7 @@ class UserAgentSchema(formencode.Schema):
 
     input_type = formencode.ForEach(formencode.validators.OneOf(['mouse', 'touch', 'keyboard']),
                                     convert_to_list=True)
+    screen_size = formencode.validators.UnicodeString(if_missing=None, if_empty=None)
 
 
 class FrontendPageSchema(CSRFSchema):

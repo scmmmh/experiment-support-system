@@ -244,6 +244,8 @@ def run_survey(request):
                     if 'input_types' not in participant['user_agent']:
                         participant['user_agent']['input_types'] = []
                     participant['user_agent']['input_types'] = list(set(participant['user_agent']['input_types'] + params['_user_agent']['input_type']))
+                if 'screen_size' in params['_user_agent'] and params['_user_agent']['screen_size']:
+                    participant['user_agent']['screen_size'] = params['_user_agent']['screen_size']
                 # Experiment Responses
                 for data_item in data_items:
                     for question in page.questions:
