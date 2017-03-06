@@ -106,6 +106,7 @@ class ExportSchema(CSRFSchema):
 
     na_value = formencode.validators.UnicodeString(not_empty=True)
     include_incomplete = formencode.validators.StringBool(if_missing=False, if_empty=False)
+    include_useragent = formencode.validators.StringBool(if_missing=False, if_empty=False)
 
 
 @view_config(route_name='experiment.results.export', renderer='ess:templates/results/export.kajiki')
@@ -131,6 +132,10 @@ def export_settings(request):
                 columns = set(['_participant'])
                 for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
                                                                             Participant.completed == True)):
+                    if params['include_useragent']:
+                        if 'user_agent' in participant:
+                            if 'input_types' in participant['user_agent']:
+                                columns.update(['_user_agent.input_type.%s' % input_type for input_type in participant['user_agent']['input_types']])
                     for answer in participant.answers:
                         if str(answer.question.id) not in params['question']:
                             continue
@@ -168,6 +173,14 @@ def export_settings(request):
                 for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
                                                                             Participant.completed == True)).order_by(Participant.id):
                     responses = {'_participant': participant.id}
+                    if params['include_useragent']:
+                        if 'user_agent' in participant:
+                            if 'input_types' in participant['user_agent']:
+                                for column in columns:
+                                    if column.startswith('_user_agent.input_type.'):
+                                        responses[column] = 0
+                                for input_type in participant['user_agent']['input_types']:
+                                    responses['_user_agent.input_type.%s' % input_type] = 1
                     for answer in participant.answers:
                         column = '%s.%s' % (answer.question.page.name, answer.question['name'])
                         if answer.question['frontend', 'display_as'] == 'select_grid_choice':

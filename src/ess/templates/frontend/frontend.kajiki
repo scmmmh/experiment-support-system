@@ -33,11 +33,18 @@
             if(action.val() === '') {
                 ev.preventDefault();
             }
+            var input_types = whatInput.types();
+            for(var idx = 0; idx < input_types.length; idx++) {
+                if(input_types[idx] != 'initial') {
+                    form.append('<input type="hidden" name="_user_agent.input_type" value="' + input_types[idx] + '"/>');
+                }
+            }
         });
         $('button.action').on('click', function() {
             action.val($(this).data('action'));
             form.trigger('submit');
         });
+        $('html').addClass('${' '.join(['whatinput-types-%s' % it for it in participant['user_agent']['input_types']]) if 'user_agent' in participant and 'input_types' in participant['user_agent'] else '')');
     ]]>
     </script>
     <py:for each="data_item in data_items">

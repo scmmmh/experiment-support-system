@@ -215,7 +215,15 @@ class QuestionEditSchema(formencode.Schema):
                         self.add_field(field['name'], formencode.foreach.ForEach(sub_validator, convert_to_list=True, **kwargs))
 
 
+class UserAgentSchema(formencode.Schema):
+
+    input_type = formencode.ForEach(formencode.validators.OneOf(['mouse', 'touch', 'keyboard']),
+                                    convert_to_list=True)
+
+
 class FrontendPageSchema(CSRFSchema):
+
+    _user_agent = UserAgentSchema(if_missing={}, if_empty={})
 
     pre_validators = [formencode.variabledecode.NestedVariables()]
     messages = {'missingValue': 'Please answer this question'}

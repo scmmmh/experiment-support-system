@@ -28,7 +28,8 @@
               ${form.field('select', 'data_set_identifier_%s' % data_set.id, 'Field to use to identify items in the data set %s' % data_set.name, values=[('_id', 'Unique number')] + [(c, c) for c in data_set['columns']])}
             </py:for>
             ${form.field('text', 'na_value', 'Value to use for missing responses', value='NA')}
-            ${form.field('checkbox', 'included_incomplete', 'Include incomplete responses', value='true')}
+            ${form.field('checkbox', 'include_incomplete', 'Include incomplete responses', value='true')}
+            ${form.field('checkbox', 'include_useragent', 'Include user browser information', value='true')}
           </div>
         </div>
         <div class="row expanded">

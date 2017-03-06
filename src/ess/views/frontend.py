@@ -237,6 +237,14 @@ def run_survey(request):
                 dbsession.add(page)
                 dbsession.add(participant)
                 params = FrontendPageSchema(page.questions, data_items, [a[0] for a in actions]).to_python(request.params, State(request=request))
+                # UserAgent Settings
+                if 'user_agent' not in participant:
+                    participant['user_agent'] = {}
+                if 'input_type' in params['_user_agent']:
+                    if 'input_types' not in participant['user_agent']:
+                        participant['user_agent']['input_types'] = []
+                    participant['user_agent']['input_types'] = list(set(participant['user_agent']['input_types'] + params['_user_agent']['input_type']))
+                # Experiment Responses
                 for data_item in data_items:
                     for question in page.questions:
                         if question['frontend', 'display_as'] != 'text':
