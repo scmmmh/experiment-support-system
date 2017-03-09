@@ -130,11 +130,16 @@ def export_settings(request):
                     else:
                         return data_item['values'][params['data_set_identifier_%s' % data_item.dataset_id]]
                 columns = set(['_participant'])
+                if params['include_incomplete']:
+                    query = dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id))
+                    columns.add('_completed')
+                else:
+                    query = dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
+                                                                            Participant.completed == True))
                 if params['include_useragent']:
                     columns.add('_user_agent.screen_size')
                     columns.add('_user_agent.string')
-                for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
-                                                                            Participant.completed == True)):
+                for participant in query:
                     if params['include_useragent']:
                         if 'user_agent' in participant:
                             if 'input_types' in participant['user_agent']:
@@ -173,9 +178,10 @@ def export_settings(request):
                 io = StringIO()
                 writer = DictWriter(io, fieldnames=columns, restval=params['na_value'], extrasaction='ignore')
                 writer.writeheader()
-                for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
-                                                                            Participant.completed == True)).order_by(Participant.id):
+                for participant in query.order_by(Participant.id):
                     responses = {'_participant': participant.id}
+                    if params['include_incomplete']:
+                        responses['_completed'] = participant.completed
                     if params['include_useragent']:
                         if 'user_agent' in participant:
                             if 'input_types' in participant['user_agent']:
