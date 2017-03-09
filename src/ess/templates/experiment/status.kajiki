@@ -1,0 +1,40 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title}</py:block>
+  <py:block name="content">
+    <?py import json ?>
+    <?py from ess.human_readable import experiment_status ?>
+    <article>
+      <div class="row expanded">
+        <div class="column small-12">
+          <h1 py:if="experiment.status == 'develop'">Start Experiment</h1>
+          <h1 py:if="experiment.status == 'live'">Pause / End Experiment</h1>
+          <h1 py:if="experiment.status == 'paused'">Re-start / End Experiment</h1>
+        </div>
+      </div>
+      <div class="row expanded">
+        <div class="column small-12">
+          <div py:if="experiment.status == 'develop'">
+            <p>The experiment is currently in the development stage. To distribute the experiment to participants, please start it.</p>
+            <p>Starting the experiment will remove all data collected during testing.</p>
+            <a href="${request.route_url('experiment.status', eid=experiment.id, _query=[('csrf_token', request.session.get_csrf_token()), ('status', 'live')])}" class="post-link button alert">Start the Experiment</a> 
+          </div>
+          <div py:if="experiment.status == 'live'">
+            <p>The experiment is currently running. If you wish to make changes, you can pause the experiment. If the experiment is complete, you can end the experiment.</p>
+            <a href="${request.route_url('experiment.status', eid=experiment.id, _query=[('csrf_token', request.session.get_csrf_token()), ('status', 'paused')])}" class="post-link button">Pause the Experiment</a> 
+            <a href="${request.route_url('experiment.status', eid=experiment.id, _query=[('csrf_token', request.session.get_csrf_token()), ('status', 'completed')])}" class="post-link button alert">End the Experiment</a> 
+          </div>
+          <div py:if="experiment.status == 'paused'">
+            <p>The experiment is currently paused. You can re-start it or end it.</p>
+            <a href="${request.route_url('experiment.status', eid=experiment.id, _query=[('csrf_token', request.session.get_csrf_token()), ('status', 'live')])}" class="post-link button">Re-Start the Experiment</a> 
+            <a href="${request.route_url('experiment.status', eid=experiment.id, _query=[('csrf_token', request.session.get_csrf_token()), ('status', 'completed')])}" class="post-link button alert">End the Experiment</a> 
+          </div>
+          <div py:if="experiment.status == 'completed'">
+            <p>The experiment is currently in the development stage. To distribute the experiment to participants, please start it.</p>
+            <p>Starting the experiment will remove all data collected during testing.</p>
+            <input type="submit" value="Start the Experiment" class="button alert"/> 
+          </div>
+        </div>
+      </div>
+    </article>
+  </py:block>
+</py:extends>

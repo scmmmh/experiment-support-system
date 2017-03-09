@@ -22,7 +22,9 @@ from ess.validators import FrontendPageSchema
 
 def init(config):
     config.add_route('experiment.run', '/run/{ueid}')
+    config.add_route('experiment.test', '/run/{ueid}/test')
     config.add_route('experiment.completed', '/run/{ueid}/complete')
+    config.add_route('experiment.unavailable', '/run/{ueid}/unavailable')
 
 
 def remaining_pages(page, seen=None):  # Todo: Make this latin-square aware
@@ -212,12 +214,19 @@ def page_actions(participant, page):
 
 
 @view_config(route_name='experiment.run', renderer='ess:templates/frontend/frontend.kajiki')
-def run_survey(request):
+@view_config(route_name='experiment.test', renderer='ess:templates/frontend/frontend.kajiki')
+def run(request):
     dbsession = DBSession
     with transaction.manager:
         experiment = dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['ueid']).first()
         if experiment is None:
             raise HTTPNotFound()
+        if experiment.status == 'develop' and request.matched_route.name == 'experiment.run':
+            raise HTTPFound(request.route_url('experiment.test', ueid=experiment.external_id))
+        elif experiment.status == 'live' and request.matched_route.name == 'experiment.test':
+            raise HTTPFound(request.route_url('experiment.unavailable', ueid=experiment.external_id))
+        elif experiment.status in ['paused', 'completed']:
+            raise HTTPFound(request.route_url('experiment.unavailable', ueid=experiment.external_id))
         participant = current_participant(request, dbsession, experiment)
         page = dbsession.query(Page).filter(and_(Page.id == participant['current'],
                                                  Page.experiment_id == experiment.id)).first()
@@ -262,7 +271,7 @@ def run_survey(request):
                 participant['answered'].append(page.id)
                 participant['current'] = next_page(dbsession, participant, page, params['_action'])
             dbsession.add(experiment)
-            raise HTTPFound(request.route_url('experiment.run', ueid=experiment.external_id))
+            raise HTTPFound(request.route_url(request.matched_route.name, ueid=experiment.external_id))
         except formencode.Invalid as e:
             dbsession.add(experiment)
             dbsession.add(page)
@@ -285,13 +294,20 @@ def run_survey(request):
 
 
 @view_config(route_name='experiment.completed', renderer='ess:templates/frontend/completed.kajiki')
-def completed_survey(request):
+def completed(request):
     dbsession = DBSession
     with transaction.manager:
         experiment = dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['ueid']).first()
+        if experiment is None:
+            raise HTTPNotFound()
+        if experiment.status in ['paused', 'completed']:
+            raise HTTPFound(request.route_url('experiment.unavailable', ueid=experiment.external_id))
         participant = current_participant(request, dbsession, experiment, allow_create=False)
         if participant is None:
-            raise HTTPFound(request.route_url('experiment.run', ueid=experiment.external_id))
+            if experiment.status == 'develop':
+                raise HTTPFound(request.route_url('experiment.test', ueid=experiment.external_id))
+            else:
+                raise HTTPFound(request.route_url('experiment.run', ueid=experiment.external_id))
         participant.completed = True
     dbsession.add(experiment)
     dbsession.add(participant)
@@ -307,3 +323,12 @@ def completed_survey(request):
         request.response.headerlist.append(('Set-Cookie', session.__dict__['_headers']['cookie_out']))
     return {'experiment': experiment,
             'participant': participant}
+
+
+@view_config(route_name='experiment.unavailable', renderer='ess:templates/frontend/unavailable.kajiki')
+def unavailable(request):
+    dbsession = DBSession
+    experiment = dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['ueid']).first()
+    if experiment is None:
+        raise HTTPNotFound()
+    return {'experiment': experiment}

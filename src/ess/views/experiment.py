@@ -10,7 +10,7 @@ from pywebtools.pyramid.auth.views import current_user, require_permission
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import func, and_
 
-from ess.models import Experiment, Participant
+from ess.models import Experiment, Participant, Answer
 from ess.validators import PageExistsValidator
 
 
@@ -19,6 +19,7 @@ def init(config):
     config.add_route('experiment.view', '/experiments/{eid}')
     config.add_route('experiment.settings.general', '/experiments/{eid}/settings/general')
     config.add_route('experiment.settings.display', '/experiments/{eid}/settings/display')
+    config.add_route('experiment.status', '/experiments/{eid}/status')
 
 
 class CreateExperimentSchema(CSRFSchema):
@@ -191,5 +192,52 @@ def settings_display(request):
                             'url': request.route_url('experiment.view', eid=experiment.id)},
                            {'title': 'Display Settings',
                             'url': request.route_url('experiment.settings.display', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+class StatusSchema(CSRFSchema):
+
+    status = formencode.validators.OneOf(['develop', 'live', 'paused', 'completed'])
+
+
+@view_config(route_name='experiment.status', renderer='ess:templates/experiment/status.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+def status(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        if request.method == 'POST':
+            try:
+                params = StatusSchema().to_python(request.params, State(request=request))
+                with transaction.manager:
+                    dbsession.add(experiment)
+                    if experiment.status == 'develop' and params['status'] == 'live':
+                        for participant in dbsession.query(Participant).filter(Participant.experiment_id == experiment.id):
+                            dbsession.delete(participant)
+                    experiment.status = params['status']
+                dbsession.add(experiment)
+                if experiment.status == 'completed':
+                    raise HTTPFound(request.route_url('experiment.results', eid=experiment.id))
+                else:
+                    raise HTTPFound(request.route_url('experiment.view', eid=experiment.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Status',
+                                    'url': request.route_url('experiment.status', eid=experiment.id)}],
+                        'errors': e.error_dict,
+                        'values': request.params}
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Status',
+                            'url': request.route_url('experiment.status', eid=experiment.id)}]}
     else:
         raise HTTPNotFound()

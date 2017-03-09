@@ -26,8 +26,11 @@
           <dd>
             <ul class="no-bullet">
               <li class="${'current' if request.matched_route.name == 'experiment.view' else ''}"><a href="${request.route_url('experiment.view', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">view_quilt</span> Overview</a></li>
-              <li><a href="${request.route_url('experiment.run', ueid=experiment.external_id)}" target="experiment-${experiment.id}"><span class="mdi mdi-24" aria-hidden="true">directions_run</span> Test</a></li>
-              <li><a href=""><span class="mdi mdi-24" aria-hidden="true">play_arrow</span> Start</a></li>
+              <li py:if="experiment.status == 'develop'"><a href="${request.route_url('experiment.test', ueid=experiment.external_id)}" target="experiment-${experiment.id}"><span class="mdi mdi-24" aria-hidden="true">directions_run</span> Test</a></li>
+              <li py:if="experiment.status == 'develop'" class="${'current' if request.matched_route.name == 'experiment.status' else ''}"><a href="${request.route_url('experiment.status', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">play_arrow</span> Start</a></li>
+              <li py:if="experiment.status == 'live'" class="${'current' if request.matched_route.name == 'experiment.status' else ''}"><a href="${request.route_url('experiment.status', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">pause</span> Pause</a></li>
+              <li py:if="experiment.status == 'live'" class="${'current' if request.matched_route.name == 'experiment.status' else ''}"><a href="${request.route_url('experiment.status', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">stop</span> End</a></li>
+              <li py:if="experiment.status == 'paused'" class="${'current' if request.matched_route.name == 'experiment.status' else ''}"><a href="${request.route_url('experiment.status', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">play_arrow</span> Re-start</a></li>
               <li class="${'current' if request.matched_route.name.startswith('experiment.settings') else ''}"><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">settings</span> Settings</a></li>
             </ul>
           </dd>
@@ -57,6 +60,22 @@
       <div class="column small-9 medium-9 large-10">
         <py:include href="ess:templates/layout/backend/_breadcrumbs.kajiki"/>
         <py:include href="ess:templates/layout/backend/_flash.kajiki"/>
+        <div py:if="experiment.status in ['live', 'paused', 'completed']" class="row expanded">
+          <div class="column small-12">
+            <div py:if="experiment.status == 'live'" class="callout">
+              <p><py:if test="request.matched_route.name.startswith('experiment.settings') or request.matched_route.name.startswith('experiment.page') or request.matched_route.name.startswith('experiment.data') or request.matched_route.name.startswith('experiment.latinsquare')"><span class="mdi mdi-24" style="color:#ff0000;">warning</span></py:if><py:else><span class="mdi mdi-24">info_outline</span></py:else>
+                This experiment is live and can be accessed at <a href="${request.route_url('experiment.run', ueid=experiment.external_id)}" target="experiment-${experiment.id}">${request.route_url('experiment.run', ueid=experiment.external_id)}</a>. <span py:if="request.matched_route.name.startswith('experiment.settings') or request.matched_route.name.startswith('experiment.page') or request.matched_route.name.startswith('experiment.data') or request.matched_route.name.startswith('experiment.latinsquare')">Please be aware that any changes you make might cause errors for participants currently undertaking the experiment. It is recommended that you first <a href="${request.route_url('experiment.status', eid=experiment.id)}">pause the experiment</a>.</span></p>
+            </div>
+            <div py:if="experiment.status == 'paused'" class="callout">
+              <p><py:if test="request.matched_route.name.startswith('experiment.settings') or request.matched_route.name.startswith('experiment.page') or request.matched_route.name.startswith('experiment.data') or request.matched_route.name.startswith('experiment.latinsquare')"><span class="mdi mdi-24" style="color:#ff0000;">warning</span></py:if><py:else><span class="mdi mdi-24">info_outline</span></py:else>
+                This experiment is currently <a href="${request.route_url('experiment.status', eid=experiment.id)}">paused</a>. <span py:if="request.matched_route.name.startswith('experiment.settings') or request.matched_route.name.startswith('experiment.page') or request.matched_route.name.startswith('experiment.data') or request.matched_route.name.startswith('experiment.latinsquare')">Please be aware that any changes you make might lead to inconsistencies in the responses collected by the system.</span></p>
+            </div>
+            <div py:if="experiment.status == 'completed' and (request.matched_route.name.startswith('experiment.settings') or request.matched_route.name.startswith('experiment.page') or request.matched_route.name.startswith('experiment.data') or request.matched_route.name.startswith('experiment.latinsquare'))" class="callout">
+              <p><span class="mdi mdi-24" style="color:#ff0000;">warning</span>
+                This experiment has completed. Any changes you make may result in inconsistencies or lost data when you export the participants' responses.</p>
+            </div>
+          </div>
+        </div>
         <py:block name="content"></py:block>
         <py:include href="ess:templates/layout/backend/_footer.kajiki"/>
       </div>

@@ -10,7 +10,7 @@
     <py:block name="title_script"></py:block>
   </head>
   <body class="frontend">
-    <div class="row">
+    <div py:if="defined('participant')" class="row">
       <div class="column small-12" data-sticky-container="">
         <header class="sticky" data-sticky="" data-margin-top="0">
           <div class="row collapse">
