@@ -28,6 +28,7 @@ def init(config):
     config.add_route('experiment.page.transition.edit', '/experiments/{eid}/pages/{pid}/transitions/{tid}/edit')
     config.add_route('experiment.page.transition.delete', '/experiments/{eid}/pages/{pid}/transitions/{tid}/delete')
     config.add_route('experiment.page.data', '/experiments/{eid}/pages/{pid}/data')
+    config.add_route('experiment.page.settings', '/experiments/{eid}/pages/{pid}/settings')
 
 
 @view_config(route_name='experiment.page', renderer='ess:templates/page/list.kajiki')
@@ -155,6 +156,8 @@ def edit_question(request):
             params = QuestionEditSchema(question['backend', 'fields']).to_python(request.params, State(request=request,
                                                                                   dbsession=dbsession))
             with transaction.manager:
+                dbsession.add(question)
+                # Update question parameters
                 for key, value in params.items():
                     if isinstance(value, list):
                         new_value = []
@@ -168,7 +171,13 @@ def edit_question(request):
                         value = new_value
                     if key != 'csrf_token':
                         question[key] = value
-                dbsession.add(question)
+                # Update all question numbering
+                dbsession.add(page)
+                visible_idx = 1
+                for q in page.questions:
+                    if q['frontend', 'visible'] and q['frontend', 'title']:
+                        q['frontend', 'question_number'] = visible_idx
+                        visible_idx = visible_idx + 1
             dbsession.add(experiment)
             dbsession.add(page)
             dbsession.add(question)
@@ -207,11 +216,16 @@ def reorder_page(request):
         try:
             params = ReorderSchema().to_python(request.params, State(request=request))
             with transaction.manager:
+                visible_idx = 1
                 for idx, qid in enumerate(params['item']):
                     question = dbsession.query(Question).filter(and_(Question.id == qid,
                                                                      Question.page == page)).first()
                     if question is not None:
+                        dbsession.add(question.q_type)
                         question.order = idx
+                        if question['frontend', 'visible'] and question['frontend', 'title']:
+                            question['frontend', 'question_number'] = visible_idx
+                            visible_idx = visible_idx + 1
             return {'status': 'ok'}
         except formencode.Invalid:
             return {'status': 'error'}
@@ -247,6 +261,13 @@ def add_question(request):
                 question = Question(q_type=qtype,
                                     page=page,
                                     order=params['order'])
+                if question['frontend', 'visible']:
+                    visible_idx = [q['frontend', 'question_number'] for q in page.questions if q['frontend', 'visible'] and q['frontend', 'title'] and q['frontend', 'question_number']]
+                    if visible_idx:
+                        visible_idx = max(visible_idx) + 1
+                    else:
+                        visible_idx = 1
+                    question['frontend', 'question_number'] = visible_idx
                 dbsession.add(question)
             dbsession.add(experiment)
             dbsession.add(page)
@@ -548,5 +569,75 @@ def data(request):
                             'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
                            {'title': 'Data',
                             'url': request.route_url('experiment.page.data', eid=experiment.id, pid=page.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+class PageSettingsSchema(CSRFSchema):
+
+    name = formencode.Pipe(formencode.validators.UnicodeString(not_empty=True,
+                                                               messages={'empty': 'Please provide a unique name'}),
+                           PageNameUniqueValidator())
+    title = formencode.validators.UnicodeString()
+    number_questions = formencode.validators.StringBool(if_missing=False, if_empty=False)
+    styles = formencode.validators.UnicodeString()
+    scripts = formencode.validators.UnicodeString()
+
+
+@view_config(route_name='experiment.page.settings', renderer='ess:templates/page/settings.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+def settings(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                             Page.experiment_id == request.matchdict['eid'])).first()
+    if experiment and page:
+        if request.method == 'POST':
+            try:
+                params = PageSettingsSchema().to_python(request.params,
+                                                        State(request=request,
+                                                              dbsession=dbsession,
+                                                              experiment=experiment,
+                                                              page_id=request.matchdict['pid']))
+                with transaction.manager:
+                    dbsession.add(page)
+                    page.name = params['name']
+                    page.title = params['title']
+                    page.styles = params['styles']
+                    page.scripts = params['scripts']
+                    page['number_questions'] = params['number_questions']
+                dbsession.add(page)
+                dbsession.add(experiment)
+                raise HTTPFound(request.route_url('experiment.page.settings', eid=experiment.id, pid=page.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'page': page,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Pages',
+                                    'url': request.route_url('experiment.page', eid=experiment.id)},
+                                   {'title': '%s (%s)' % (page.title, page.name)
+                                    if page.title else 'No title (%s)' % page.name,
+                                    'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
+                                   {'title': 'Settings',
+                                    'url': request.route_url('experiment.page.settings', eid=experiment.id, pid=page.id)}],
+                        'values': request.params,
+                        'errors': e.error_dict}
+        return {'experiment': experiment,
+                'page': page,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Pages',
+                            'url': request.route_url('experiment.page', eid=experiment.id)},
+                           {'title': '%s (%s)' % (page.title, page.name)
+                            if page.title else 'No title (%s)' % page.name,
+                            'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
+                           {'title': 'Settings',
+                            'url': request.route_url('experiment.page.settings', eid=experiment.id, pid=page.id)}]}
     else:
         raise HTTPNotFound()

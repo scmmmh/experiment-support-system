@@ -7,7 +7,7 @@
       <div class="row">
         <div class="column small-12">
           <div py:if="('frontend', 'help') in question and question['frontend', 'help'].strip()" class="float-right"><a href="#" title="Show help" class="toggle-question-help"><span class="mdi mdi-18">help_outline</span></a></div>
-          <h2 py:if="replace_variables(question['frontend', 'title'], question, data_item['values'])">${replace_variables(question['frontend', 'title'], question, data_item['values'])}</h2>
+          <h2 py:if="replace_variables(question['frontend', 'title'], question, data_item['values'])"><py:if test="question.page['number_questions'] and question['frontend', 'question_number']">${question['frontend', 'question_number']}. </py:if>${replace_variables(question['frontend', 'title'], question, data_item['values'])}</h2>
           <p py:if="('frontend', 'help') in question and question['frontend', 'help'].strip()" class="question-help hidden">${replace_variables(question['frontend', 'help'], question, data_item['values'])}</p>
         </div>
         <div class="column ${question['frontend', 'width']} end">

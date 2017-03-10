@@ -39,8 +39,14 @@ class PageNameUniqueValidator(formencode.FancyValidator):
     def _validate_python(self, value, state):
         if hasattr(state, 'dbsession'):
             if hasattr(state, 'experiment'):
-                if state.dbsession.query(Page).filter(and_(Page.experiment == state.experiment,
-                                                           Page.name == value)).first():
+                if hasattr(state, 'page_id'):
+                    page = state.dbsession.query(Page).filter(and_(Page.id != state.page_id,
+                                                                   Page.experiment == state.experiment,
+                                                                   Page.name == value)).first()
+                else:
+                    page = state.dbsession.query(Page).filter(and_(Page.experiment == state.experiment,
+                                                                   Page.name == value)).first()
+                if page:
                     raise formencode.Invalid(self.message('page_exists', state), value, state)
             else:
                 raise formencode.Invalid(self.message('no_experiment', state), value, state)
