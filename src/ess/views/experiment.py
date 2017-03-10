@@ -19,6 +19,7 @@ def init(config):
     config.add_route('experiment.view', '/experiments/{eid}')
     config.add_route('experiment.settings.general', '/experiments/{eid}/settings/general')
     config.add_route('experiment.settings.display', '/experiments/{eid}/settings/display')
+    config.add_route('experiment.settings.delete', '/experiments/{eid}/settings/delete')
     config.add_route('experiment.status', '/experiments/{eid}/status')
 
 
@@ -175,6 +176,47 @@ def settings_display(request):
                     dbsession.add(experiment)
                 dbsession.add(experiment)
                 raise HTTPFound(request.route_url('experiment.settings.display', eid=experiment.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Display Settings',
+                                    'url': request.route_url('experiment.settings.display', eid=experiment.id)}],
+                        'errors': e.error_dict,
+                        'values': request.params}
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Display Settings',
+                            'url': request.route_url('experiment.settings.display', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+class DeleteSchema(CSRFSchema):
+
+    confirm = formencode.validators.OneOf(['true'],
+                                          messages={'notIn': 'Please confirm that you wish to delete this experiment.',
+                                                    'missing': 'Please confirm that you wish to delete this experiment.'})
+
+
+@view_config(route_name='experiment.settings.delete', renderer='ess:templates/experiment/settings/delete.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='delete')
+def settings_delete(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        if request.method == 'POST':
+            try:
+                DeleteSchema().to_python(request.params, State(request=request))
+                with transaction.manager:
+                    dbsession.delete(experiment)
+                raise HTTPFound(request.route_url('dashboard'))
             except formencode.Invalid as e:
                 return {'experiment': experiment,
                         'crumbs': [{'title': 'Experiments',

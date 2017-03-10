@@ -200,6 +200,9 @@ class Experiment(Base):
         elif action == 'edit':
             if user.id == self.owned_by or user.has_permission('experiment.edit'):
                 return True
+        elif action == 'delete':
+            if user.id == self.owned_by or user.has_permission('experiment.delete'):
+                return True
         return False
 
 

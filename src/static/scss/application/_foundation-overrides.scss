@@ -97,6 +97,26 @@ tbody, tfoot {
     margin-left: 0;
 }
 
+/* Menu */
+.menu {
+    .alert {
+        a:link, a:visited {
+            color: $alert-color;
+        }
+        a:hover {
+            color: scale-color($alert-color, $lightness: -14%);
+        }
+    
+        &.active {
+            a {
+                color: $white;
+                background: $alert-color;
+            }
+        }
+    }
+}
+
+/* Other small fixes */
 small.alert {
     color: $alert-color;
 }

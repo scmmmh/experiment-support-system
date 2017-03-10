@@ -2,5 +2,6 @@
   <ul class="menu">
     <li class="${'active' if request.matched_route.name == 'experiment.settings.general' else ''}"><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}">General</a></li>
     <li class="${'active' if request.matched_route.name == 'experiment.settings.display' else ''}"><a href="${request.route_url('experiment.settings.display', eid=experiment.id)}">Display</a></li>
+    <li py:if="experiment.allow('delete', request.current_user)" class="${'active' if request.matched_route.name == 'experiment.settings.delete' else ''} alert"><a href="${request.route_url('experiment.settings.delete', eid=experiment.id)}">Delete</a></li>
   </ul>
 </nav>
