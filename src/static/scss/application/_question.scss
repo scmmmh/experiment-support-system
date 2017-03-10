@@ -44,6 +44,10 @@
         }
     }
 
+    textarea {
+        min-height: 8rem;
+    }
+
     &.error {
         h2:after {
             font-family: 'Material Icons';
