@@ -10,7 +10,7 @@ from pywebtools.pyramid.auth.views import current_user, require_permission
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import func, and_
 
-from ess.models import Experiment, Participant, Answer
+from ess.models import Experiment, Participant
 from ess.validators import PageExistsValidator
 
 
@@ -168,7 +168,7 @@ def settings_display(request):
     if experiment:
         if request.method == 'POST':
             try:
-                params = SettingsGeneralSchema().to_python(request.params, State(request=request))
+                params = SettingsDisplaySchema().to_python(request.params, State(request=request))
                 with transaction.manager:
                     experiment.styles = params['styles']
                     experiment.scripts = params['scripts']
