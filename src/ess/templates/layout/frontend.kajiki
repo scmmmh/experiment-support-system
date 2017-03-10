@@ -9,7 +9,7 @@
     <py:block name="title_link"></py:block>
     <py:block name="title_script"></py:block>
     <style py:if="experiment.styles">${experiment.styles}</style>
-    <style py:if="page.styles">${page.styles}</style>
+    <style py:if="defined('page') and page.styles">${page.styles}</style>
   </head>
   <body class="frontend">
     <div py:if="defined('participant')" class="row">
@@ -34,6 +34,6 @@
     <script src="${request.static_url('ess:static/js/frontend.js')}"></script>
     <py:block name="body_script"></py:block>
     <script py:if="experiment.scripts">${experiment.scripts}</script>
-    <script py:if="page.scripts">${page.scripts}</script>
+    <script py:if="defined('page') and page.scripts">${page.scripts}</script>
   </body>
 </html>
