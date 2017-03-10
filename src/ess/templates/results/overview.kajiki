@@ -88,7 +88,7 @@
         <div class="column small-12">
           <h3>${page.title_name}</h3>
           <div class="row">
-            <div py:for="question in page.questions" py:if="question['frontend', 'display_as'] != 'text'" class="column small-12 medium-6 end">
+            <div py:for="question in page.questions" py:if="question['frontend', 'generates_response']" class="column small-12 medium-6 end">
               <h4>${question['name']}</h4>
               <py:if test="page.id in summary and question.id in summary[page.id]['questions']">
                 <py:switch test="question['frontend', 'display_as']">

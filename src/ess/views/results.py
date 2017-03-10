@@ -119,7 +119,7 @@ def export_settings(request):
         if request.method == 'POST':
             try:
                 schema = ExportSchema()
-                questions = [str(q.id) for p in experiment.pages for q in p.questions if q['frontend', 'display_as'] != 'text']
+                questions = [str(q.id) for p in experiment.pages for q in p.questions if q['frontend', 'generates_response']]
                 schema.add_field('question', formencode.ForEach(formencode.validators.OneOf(questions, not_empty=True)))
                 for data_set in experiment.data_sets:
                     schema.add_field('data_set_identifier_%s' % data_set.id, formencode.validators.OneOf(['_id'] + [str(c) for c in data_set['columns']]))

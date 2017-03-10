@@ -17,7 +17,7 @@
             <ul class="no-bullet">
               <li py:for="page in experiment.pages">${page.title_name}
                 <ul class="no-bullet">
-                  <li py:for="question in page.questions" py:if="question['frontend', 'display_as'] != 'text'">${form.field('checkbox', 'question', question['name'], value=question.id, checked=True)}</li>
+                  <li py:for="question in page.questions" py:if="question['frontend', 'generates_response']">${form.field('checkbox', 'question', question['name'], value=question.id, checked=True)}</li>
                 </ul>
               </li>
             </ul>
