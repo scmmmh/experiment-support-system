@@ -21,10 +21,10 @@
             </ul>
             &nbsp;
           </nav>
-          <div class="column small-11 hide-edit">
+          <div class="column small-10 hide-edit">
             <div class="preview">${questions.render(question, DataItem(id=None))}<section class="question ${'hidden' if question['frontend', 'visible'] else ''}"><div class="row"><div class="column small-12"><h2>${question['name']}</h2></div></div></section></div>
           </div>
-          <div class="column small-11 show-edit">
+          <div class="column small-10 show-edit">
             <form action="${request.route_url('experiment.page.edit.question', eid=experiment.id, pid=page.id, qid=question.id)}" method="post" class="question-form">
               ${form.csrf_field()}
               <div class="row"> 
@@ -64,9 +64,9 @@
               </div>
             </form>
           </div>
-          <div class="column small-12">
+          <div class="column small-1">
             <nav>
-              <ul class="menu align-right">
+              <ul class="menu align-right show-for-hover">
                 <li class="hide-edit"><a href="#" data-action="edit">${icon.md('edit', 'Edit')}</a></li>
                 <li class="hide-edit"><a href="${request.route_url('experiment.page.delete.question', eid=experiment.id, pid=page.id, qid=question.id, _query=[('csrf_token', request.session.get_csrf_token())])}" data-action="delete" class="alert post-link">${icon.md('delete', 'Delete')}</a></li>
                 <li class="show-edit"><a href="#" data-action="save" class="success">${icon.md('check', 'Save Changes')}</a></li>
