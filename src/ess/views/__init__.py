@@ -31,7 +31,7 @@ def root(request):
 @current_user()
 def dashboard(request):
     dbsession = DBSession()
-    experiments = dbsession.query(Experiment).filter(Experiment.owned_by == request.current_user.id)
+    experiments = dbsession.query(Experiment).filter(Experiment.owned_by == request.current_user.id).order_by(Experiment.title)
     return {'experiments': experiments,
             'crumbs': [{'title': 'Experiments',
                         'url': request.route_url('dashboard')}]}

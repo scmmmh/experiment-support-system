@@ -123,3 +123,6 @@ tbody, tfoot {
 small.alert {
     color: $alert-color;
 }
+[data-equalizer-watch=''] .callout {
+    height: calc(100% - 1rem);
+}

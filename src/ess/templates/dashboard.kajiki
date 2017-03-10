@@ -9,8 +9,8 @@
           <a py:if="request.current_user.has_permission('experiment.create')" href="${request.route_url('experiment.create')}" class="button">${icon.md('add', 'Create a new Experiment')}</a>
         </div>
         <h1>Experiments</h1>
-        <div class="row expanded" style="margin-top: 2rem;">
-          <div py:for="experiment in experiments" class="column small-12 medium-6 large-4 end">
+        <div class="row expanded" style="margin-top: 2rem;" data-equalizer="" data-equalize-on="medium">
+          <div py:for="experiment in experiments" class="column small-12 medium-6 large-4 end" data-equalizer-watch="">
             <div class="callout">
               <h2><a href="${request.route_url('experiment.view', eid=experiment.id)}">${experiment.title}</a> <small>${experiment_status(experiment.status)}</small></h2>
               <p>${experiment.summary}</p>
