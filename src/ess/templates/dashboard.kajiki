@@ -2,15 +2,28 @@
   <py:block name="title">Experiments</py:block>
   <py:block name="content">
     <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <?py from ess.human_readable import experiment_status ?>
     <div class="row expanded">
       <article class="column small-12">
         <div class="float-right">
           <a py:if="request.current_user.has_permission('experiment.create')" href="${request.route_url('experiment.create')}" class="button">${icon.md('add', 'Create a new Experiment')}</a>
         </div>
         <h1>Experiments</h1>
-        <ul>
-          <li py:for="experiment in experiments"><a href="${request.route_url('experiment.view', eid=experiment.id)}">${experiment.title}</a></li>
-        </ul>
+        <div class="row expanded" style="margin-top: 2rem;">
+          <div py:for="experiment in experiments" class="column small-12 medium-6 large-4 end">
+            <div class="callout">
+              <h2><a href="${request.route_url('experiment.view', eid=experiment.id)}">${experiment.title}</a> <small>${experiment_status(experiment.status)}</small></h2>
+              <p>${experiment.summary}</p>
+              <div class="clearfix">
+                <ul class="menu simple float-right">
+                  <li><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}">${icon.md('settings', 'Settings')} Settings</a></li>
+                  <li><a href="${request.route_url('experiment.page', eid=experiment.id)}">${icon.md('content_copy', 'Pages')} Pages</a></li>
+                  <li><a href="${request.route_url('experiment.results', eid=experiment.id)}">${icon.md('pie_chart', 'Results')} Results</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </article>
     </div>
   </py:block>
