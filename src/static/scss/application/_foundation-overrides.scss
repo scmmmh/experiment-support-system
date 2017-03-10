@@ -27,6 +27,9 @@
                 }
             }
         }
+        .divider {
+            border-top: 1px solid;
+        }
         .is-dropdown-submenu, .divider {
             border-color: $black;
             background-color: $topbar-background;

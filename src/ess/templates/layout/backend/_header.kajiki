@@ -11,6 +11,7 @@
         <py:if test="request.current_user.logged_in">
           <li><a href="${request.route_url('dashboard')}">${request.current_user.display_name}</a>
             <ul class="menu">
+              <li><a href="${request.route_url('dashboard')}">Your Experiments</a></li>
               <li><a href="${request.route_url('user.edit', uid=request.current_user.id)}">Edit your Profile</a></li>
               <li class="divider"></li>
               <li><a href="${request.route_url('user.logout', _query={'csrf_token': request.session.get_csrf_token()})}" class="post-link">Log out</a></li>
