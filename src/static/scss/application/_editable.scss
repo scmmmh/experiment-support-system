@@ -17,5 +17,10 @@
                 display: none;
             }
         }
+        &.hover-parent:hover, .hover-parent:hover {
+            .show-for-hover.show-edit {
+                display: block;
+            }
+        }
     }
 }

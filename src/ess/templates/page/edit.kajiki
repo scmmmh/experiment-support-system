@@ -67,7 +67,7 @@
           </div>
           <div class="column small-1">
             <nav>
-              <ul class="menu align-right show-for-hover">
+              <ul class="menu align-right show-for-hover show-edit">
                 <li class="hide-edit"><a href="#" data-action="edit">${icon.md('edit', 'Edit')}</a></li>
                 <li class="hide-edit"><a href="${request.route_url('experiment.page.delete.question', eid=experiment.id, pid=page.id, qid=question.id, _query=[('csrf_token', request.session.get_csrf_token())])}" data-action="delete" data-ess-confirm="${confirm_delete('question', question['frontend', 'title'] if question['frontend', 'title'] else question['frontend', 'name'])}" class="alert post-link">${icon.md('delete', 'Delete')}</a></li>
                 <li class="show-edit"><a href="#" data-action="save" class="success">${icon.md('check', 'Save Changes')}</a></li>
