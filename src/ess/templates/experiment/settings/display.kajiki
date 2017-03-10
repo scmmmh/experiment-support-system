@@ -10,7 +10,7 @@
           ${form.csrf_field()}
           <div class="row expanded">
             <div class="column small-12 medium-8 end">
-              ${form.field('textarea', 'styles', 'Experiment-wide CSS Styles', value=experiment.summary, extra_attrs={'style': 'height: 8rem;'})}
+              ${form.field('textarea', 'styles', 'Experiment-wide CSS Styles', value=experiment.styles, extra_attrs={'style': 'height: 8rem;'})}
             </div>
           </div>
           <div class="row expanded">

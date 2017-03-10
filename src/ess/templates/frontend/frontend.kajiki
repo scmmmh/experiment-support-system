@@ -4,7 +4,7 @@
     <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
     <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
     <py:import href="ess:templates/helpers/question.kajiki" alias="qs"/>
-    <form action="${request.route_url(request.matched_route.name, ueid=experiment.id)}" class="row" novalidate="novalidate" method="post">
+    <form action="${request.route_url(request.matched_route.name, ueid=experiment.external_id)}" class="row" novalidate="novalidate" method="post">
       ${form.csrf_field()}
       ${form.field('hidden', '_action', '', value='')}
       <div class="column small-12">
