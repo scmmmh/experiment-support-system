@@ -2,5 +2,5 @@
   <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
   <py:import href="ess:templates/helpers/question.kajiki" alias="questions"/>
   <?py from ess.models import DataItem ?>
-  ${questions.render(question, DataItem(id=None))}
+  ${questions.render(question, DataItem(id=None))}<section class="question ${'hidden' if question['frontend', 'visible'] else ''}"><div class="row"><div class="column small-12"><h2>${question['name']}</h2></div></div></section>
 </div>

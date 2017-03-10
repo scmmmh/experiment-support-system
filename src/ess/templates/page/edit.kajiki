@@ -6,6 +6,7 @@
     <py:import href="ess:templates/helpers/question.kajiki" alias="questions"/>
     <py:import href="ess:templates/page/_question_types.kajiki" alias="qtypes"/>
     <?py from ess.models import DataItem ?>
+    <?py from pywebtools.pyramid.util import confirm_delete ?>
     <div class="row expanded">
       <div class="column small-12">
         <h1>${page.title if page.title else 'No title'} <small>${page.name}</small></h1>
@@ -68,7 +69,7 @@
             <nav>
               <ul class="menu align-right show-for-hover">
                 <li class="hide-edit"><a href="#" data-action="edit">${icon.md('edit', 'Edit')}</a></li>
-                <li class="hide-edit"><a href="${request.route_url('experiment.page.delete.question', eid=experiment.id, pid=page.id, qid=question.id, _query=[('csrf_token', request.session.get_csrf_token())])}" data-action="delete" class="alert post-link">${icon.md('delete', 'Delete')}</a></li>
+                <li class="hide-edit"><a href="${request.route_url('experiment.page.delete.question', eid=experiment.id, pid=page.id, qid=question.id, _query=[('csrf_token', request.session.get_csrf_token())])}" data-action="delete" data-ess-confirm="${confirm_delete('question', question['frontend', 'title'] if question['frontend', 'title'] else question['frontend', 'name'])}" class="alert post-link">${icon.md('delete', 'Delete')}</a></li>
                 <li class="show-edit"><a href="#" data-action="save" class="success">${icon.md('check', 'Save Changes')}</a></li>
                 <li class="show-edit"><a href="#" data-action="cancel" class="alert">${icon.md('close', 'Discard Changes')}</a></li>
               </ul>
