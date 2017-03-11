@@ -126,3 +126,6 @@ small.alert {
 [data-equalizer-watch=''] .callout {
     height: calc(100% - 1rem);
 }
+.button.alert {
+    color: $white;
+}
