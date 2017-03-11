@@ -7,10 +7,10 @@
         <h1>${get_config_setting(request, 'app.title', default='Experiment Support System')}</h1>
         <div class="row expanded" data-equalizer="" data-equalize-on="medium">
           <div py:for="experiment in experiments" class="column small-12 medium-6 large-4 end" data-equalizer-watch="">
-            <div class="callout">
+            <div class="callout" style="padding-bottom:3rem;">
               <h2><a href="${request.route_url('experiment.run', ueid=experiment.external_id)}">${experiment.title}</a></h2>
               <p>${experiment.summary}</p>
-              <div class="text-right"><a href="${request.route_url('experiment.run', ueid=experiment.external_id)}">Participate in this experiment</a></div>
+              <div class="pos-right pos-bottom padding-bottom padding-right"><a href="${request.route_url('experiment.run', ueid=experiment.external_id)}">Participate in this experiment</a></div>
             </div>
           </div>
         </div>

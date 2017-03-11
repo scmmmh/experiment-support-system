@@ -15,3 +15,17 @@
 .ui-sortable-handle {
     cursor: move;
 }
+.padding-bottom {
+    padding-bottom: $global-padding;
+}
+.padding-right {
+    padding-right: $global-padding;
+}
+.pos-bottom {
+    position: absolute;
+    bottom: 0;
+}
+.pos-right {
+    position: absolute;
+    right: 0;
+}

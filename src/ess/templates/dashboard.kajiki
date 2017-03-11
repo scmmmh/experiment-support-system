@@ -11,11 +11,11 @@
         <h1>Experiments</h1>
         <div class="row expanded" style="margin-top: 2rem;" data-equalizer="" data-equalize-on="medium">
           <div py:for="experiment in experiments" class="column small-12 medium-6 large-4 end" data-equalizer-watch="">
-            <div class="callout">
+            <div class="callout" style="padding-bottom:3rem;">
               <h2><a href="${request.route_url('experiment.view', eid=experiment.id)}">${experiment.title}</a> <small>${experiment_status(experiment.status)}</small></h2>
               <p>${experiment.summary}</p>
-              <div class="clearfix">
-                <ul class="menu simple float-right">
+              <div class="pos-bottom pos-right padding-bottom">
+                <ul class="menu simple">
                   <li><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}">${icon.md('settings', 'Settings')} Settings</a></li>
                   <li><a href="${request.route_url('experiment.page', eid=experiment.id)}">${icon.md('content_copy', 'Pages')} Pages</a></li>
                   <li><a href="${request.route_url('experiment.results', eid=experiment.id)}">${icon.md('pie_chart', 'Results')} Results</a></li>
