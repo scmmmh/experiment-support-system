@@ -10,6 +10,7 @@ from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_
 
+from ess.importexport import PageIOSchema
 from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition, DataSet
 from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator, DataSetExistsValidator
 
@@ -29,6 +30,7 @@ def init(config):
     config.add_route('experiment.page.transition.delete', '/experiments/{eid}/pages/{pid}/transitions/{tid}/delete')
     config.add_route('experiment.page.data', '/experiments/{eid}/pages/{pid}/data')
     config.add_route('experiment.page.settings', '/experiments/{eid}/pages/{pid}/settings')
+    config.add_route('experiment.page.export', '/experiments/{eid}/pages/{pid}/export')
 
 
 @view_config(route_name='experiment.page', renderer='ess:templates/page/list.kajiki')
@@ -511,7 +513,7 @@ class DataAttachmentSchema(CSRFSchema):
 
 @view_config(route_name='experiment.page.data', renderer='ess:templates/page/data.kajiki')
 @current_user()
-@require_permission(class_=Experiment, request_key='eid', action='view')
+@require_permission(class_=Experiment, request_key='eid', action='edit')
 def data(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
@@ -586,7 +588,7 @@ class PageSettingsSchema(CSRFSchema):
 
 @view_config(route_name='experiment.page.settings', renderer='ess:templates/page/settings.kajiki')
 @current_user()
-@require_permission(class_=Experiment, request_key='eid', action='view')
+@require_permission(class_=Experiment, request_key='eid', action='edit')
 def settings(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
@@ -639,5 +641,25 @@ def settings(request):
                             'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
                            {'title': 'Settings',
                             'url': request.route_url('experiment.page.settings', eid=experiment.id, pid=page.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.page.export', renderer='json')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+@require_method('POST')
+def export(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                             Page.experiment_id == request.matchdict['eid'])).first()
+    if experiment and page:
+        try:
+            CSRFSchema().to_python(request.params, State(request=request))
+            request.response.headers['Content-Disposition'] = 'attachment; filename=%s.json' % page.name
+            return PageIOSchema().dump(page.as_dict()).data
+        except formencode.Invalid:
+            raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
     else:
         raise HTTPNotFound()

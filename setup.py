@@ -26,7 +26,8 @@ requires = [
     'nine',
     'pycrypto',
     'asset',
-    'pywebtools>=1.1.3'
+    'pywebtools>=1.1.3',
+    'marshmallow_jsonapi'
     ]
 
 setup(name='ExperimentSupportSystem',

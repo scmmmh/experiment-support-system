@@ -99,7 +99,7 @@ class ParentedAttributesMixin(object):
             return getattr(self, 'attributes'), key
 
     def __get_attr_parent__(self):
-        if hasattr(self, self.__parent_attr__):
+        if hasattr(self, '__parent_attr__') and hasattr(self, self.__parent_attr__):
             return getattr(self, self.__parent_attr__)
         else:
             return None
@@ -138,6 +138,31 @@ class ParentedAttributesMixin(object):
                 setattr(self, 'attributes', {})
             attr, sub_key = self.__split_attr_key__(key)
         attr[sub_key] = value
+
+
+class AsDictMixin(object):
+
+    def as_dict(self):
+        result = {}
+        for field_name in self.__dict_fields__:
+            attr = getattr(self, field_name)
+            if callable(attr):
+                result[field_name] = attr()
+            else:
+                result[field_name] = attr
+        if hasattr(self, '__dict_relationships__'):
+            for rel_name in self.__dict_relationships__:
+                relationship = getattr(self, rel_name)
+                if relationship:
+                    if callable(relationship):
+                        relationship = relationship()
+                    if isinstance(relationship, list):
+                        result[rel_name] = [r.as_dict() for r in relationship]
+                    else:
+                        result[rel_name] = relationship.as_dict()
+                else:
+                    result[rel_name] = None
+        return result
 
 
 class Preference(Base):
@@ -206,9 +231,11 @@ class Experiment(Base):
         return False
 
 
-class Page(Base, AttributesMixin):
+class Page(Base, ParentedAttributesMixin, AsDictMixin):
     
     __tablename__ = 'pages'
+    __dict_fields__ = ('id', 'name', 'title', 'styles', 'scripts', 'attributes') 
+    __dict_relationships__ = ('questions',)
     
     id = Column(Integer, primary_key=True)
     experiment_id = Column(ForeignKey(Experiment.id, name='pages_experiments_fk'))
@@ -216,6 +243,7 @@ class Page(Base, AttributesMixin):
     title = Column(Unicode(255))
     styles = Column(UnicodeText)
     scripts = Column(UnicodeText)
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
     dataset_id = Column(ForeignKey('data_sets.id', name='pages_dataset_id_fk'))
 
     questions = relationship('Question',
@@ -244,9 +272,10 @@ class Page(Base, AttributesMixin):
         return len([q for q in self.questions if q['frontend', 'display_as'] != 'text']) > 0
 
 
-class QuestionTypeGroup(Base):
+class QuestionTypeGroup(Base, AsDictMixin):
 
     __tablename__ = 'question_type_groups'
+    __dict_fields__ = ('id', 'name', 'title', 'enabled', 'order')
 
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
@@ -260,10 +289,12 @@ class QuestionTypeGroup(Base):
                           remote_side=[id])
 
 
-class QuestionType(Base, ParentedAttributesMixin):
+class QuestionType(Base, ParentedAttributesMixin, AsDictMixin):
     
     __tablename__ = 'question_types'
     __parent_attr__ = 'parent'
+    __dict_fields__ = ('id', 'name', 'title', 'backend', 'frontend', 'attributes', 'enabled', 'order')
+    __dict_relationships__ = ('q_type_group', 'parent')
     
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
@@ -285,20 +316,19 @@ class QuestionType(Base, ParentedAttributesMixin):
     parent = relationship('QuestionType', backref='children', remote_side=[id])
 
 
-class Question(Base, ParentedAttributesMixin):
+class Question(Base, ParentedAttributesMixin, AsDictMixin):
     """The :class:`~ess.models.Question` represents a single question in
     a :class:`~ess.models.Page`.
     """
 
     __tablename__ = 'questions'
     __parent_attr__ = 'q_type'
+    __dict_fields__ = ('id', 'order', 'attributes')
+    __dict_relationships__ = ('q_type', )
     
     id = Column(Integer, primary_key=True)
     page_id = Column(ForeignKey(Page.id, name='questions_pages_fk'))
     type_id = Column(ForeignKey(QuestionType.id, name='question_types_fk'))
-    title = Column(Unicode(255))
-    required = Column(Boolean)
-    help = Column(Unicode(255))
     order = Column(Integer)
     attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
     
