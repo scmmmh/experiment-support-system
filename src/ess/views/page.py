@@ -10,7 +10,7 @@ from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_
 
-from ess.importexport import PageIOSchema
+from ess.importexport import PageIOSchema, import_jsonapi, export_jsonapi
 from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition, DataSet
 from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator, DataSetExistsValidator
 
@@ -18,6 +18,7 @@ from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExis
 def init(config):
     config.add_route('experiment.page', '/experiments/{eid}/pages')
     config.add_route('experiment.page.create', '/experiments/{eid}/pages/create')
+    config.add_route('experiment.page.import', '/experiments/{eid}/pages/import')
     config.add_route('experiment.page.edit', '/experiments/{eid}/pages/{pid}')
     config.add_route('experiment.page.edit.add_question', '/experiments/{eid}/pages/{pid}/add_question/{qtid}')
     config.add_route('experiment.page.edit.question', '/experiments/{eid}/pages/{pid}/questions/{qid}/edit')
@@ -92,6 +93,59 @@ def create(request):
                                    {'title': 'Add a Page',
                                     'url': request.route_url('experiment.page.create', eid=experiment.id)}],
                         'errors': e.error_dict,
+                        'values': request.params}
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Pages',
+                            'url': request.route_url('experiment.page', eid=experiment.id)},
+                           {'title': 'Add a Page',
+                            'url': request.route_url('experiment.page.create', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+class ImportPageSchema(CSRFSchema):
+
+    source = formencode.validators.FieldStorageUploadConverter(not_empty=True)
+
+
+@view_config(route_name='experiment.page.import', renderer='ess:templates/page/import.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+def import_page(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        if request.method == 'POST':
+            try:
+                params = ImportPageSchema().to_python(request.params, State(request=request,
+                                                                            dbsession=dbsession))
+                with transaction.manager:
+                    dbsession.add(experiment)
+                    page = import_jsonapi(params['source'].file.read().decode('utf-8'),
+                                          dbsession,
+                                          State(experiment_id=experiment.id))
+                    if not isinstance(page, Page):
+                        raise formencode.Invalid('The file does not contain a page.')
+                    page.experiment = experiment
+                    dbsession.add(page)
+                dbsession.add(experiment)
+                dbsession.add(page)
+                raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Pages',
+                                    'url': request.route_url('experiment.page', eid=experiment.id)},
+                                   {'title': 'Add a Page',
+                                    'url': request.route_url('experiment.page.create', eid=experiment.id)}],
+                        'errors': {'source': str(e)},
                         'values': request.params}
         return {'experiment': experiment,
                 'crumbs': [{'title': 'Experiments',
@@ -658,7 +712,9 @@ def export(request):
         try:
             CSRFSchema().to_python(request.params, State(request=request))
             request.response.headers['Content-Disposition'] = 'attachment; filename=%s.json' % page.name
-            return PageIOSchema().dump(page.as_dict()).data
+            return export_jsonapi(page, includes=[(Page, 'questions'), (Question, 'q_type'),
+                                                  (QuestionType, 'q_type_group'), (QuestionType, 'parent'),
+                                                  (QuestionTypeGroup, 'parent')])
         except formencode.Invalid:
             raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
     else:

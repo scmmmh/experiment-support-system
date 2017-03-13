@@ -164,6 +164,16 @@ class AsDictMixin(object):
                     result[rel_name] = None
         return result
 
+    @classmethod
+    def from_dict(cls, source):
+        inst = cls()
+        for field_name in inst.__dict_fields__:
+            if field_name == 'id':
+                continue
+            if field_name in source:
+                setattr(inst, field_name, source[field_name])
+        return inst
+
 
 class Preference(Base):
     
