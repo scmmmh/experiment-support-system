@@ -32,6 +32,7 @@ def init(config):
     config.add_route('experiment.page.data', '/experiments/{eid}/pages/{pid}/data')
     config.add_route('experiment.page.settings', '/experiments/{eid}/pages/{pid}/settings')
     config.add_route('experiment.page.export', '/experiments/{eid}/pages/{pid}/export')
+    config.add_route('experiment.page.delete', '/experiments/{eid}/pages/{pid}/delete')
 
 
 @view_config(route_name='experiment.page', renderer='ess:templates/page/list.kajiki')
@@ -79,6 +80,9 @@ def create(request):
                                 styles='',
                                 scripts='')
                     dbsession.add(page)
+                    dbsession.add(experiment)
+                    if experiment.start is None:
+                        experiment.start = page
                 dbsession.add(experiment)
                 dbsession.add(page)
                 raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
@@ -131,6 +135,8 @@ def import_page(request):
                     if not isinstance(page, Page):
                         raise formencode.Invalid('The file does not contain a page.')
                     page.experiment = experiment
+                    if experiment.start is None:
+                        experiment.start = page
                     dbsession.add(page)
                 dbsession.add(experiment)
                 dbsession.add(page)
@@ -143,8 +149,8 @@ def import_page(request):
                                     'url': request.route_url('experiment.view', eid=experiment.id)},
                                    {'title': 'Pages',
                                     'url': request.route_url('experiment.page', eid=experiment.id)},
-                                   {'title': 'Add a Page',
-                                    'url': request.route_url('experiment.page.create', eid=experiment.id)}],
+                                   {'title': 'Import a Page',
+                                    'url': request.route_url('experiment.page.import', eid=experiment.id)}],
                         'errors': {'source': str(e)},
                         'values': request.params}
         return {'experiment': experiment,
@@ -154,8 +160,8 @@ def import_page(request):
                             'url': request.route_url('experiment.view', eid=experiment.id)},
                            {'title': 'Pages',
                             'url': request.route_url('experiment.page', eid=experiment.id)},
-                           {'title': 'Add a Page',
-                            'url': request.route_url('experiment.page.create', eid=experiment.id)}]}
+                           {'title': 'Import a Page',
+                            'url': request.route_url('experiment.page.import', eid=experiment.id)}]}
     else:
         raise HTTPNotFound()
 
@@ -717,5 +723,63 @@ def export(request):
                                                   (QuestionTypeGroup, 'parent')])
         except formencode.Invalid:
             raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
+    else:
+        raise HTTPNotFound()
+
+
+class DeleteSchema(CSRFSchema):
+
+    confirm = formencode.validators.OneOf(['true'],
+                                          messages={'notIn': 'Please confirm that you wish to delete this page.',
+                                                    'missing': 'Please confirm that you wish to delete this page.'})
+
+
+@view_config(route_name='experiment.page.delete', renderer='ess:templates/page/delete.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+def delete(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    page = dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                             Page.experiment_id == request.matchdict['eid'])).first()
+    if experiment and page:
+        if request.method == 'POST':
+            try:
+                DeleteSchema().to_python(request.params,
+                                         State(request=request,
+                                               dbsession=dbsession))
+                with transaction.manager:
+                    dbsession.delete(page)
+                dbsession.add(experiment)
+                raise HTTPFound(request.route_url('experiment.page', eid=experiment.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'page': page,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Pages',
+                                    'url': request.route_url('experiment.page', eid=experiment.id)},
+                                   {'title': '%s (%s)' % (page.title, page.name)
+                                    if page.title else 'No title (%s)' % page.name,
+                                    'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
+                                   {'title': 'Delete',
+                                    'url': request.route_url('experiment.page.delete', eid=experiment.id, pid=page.id)}],
+                        'values': request.params,
+                        'errors': e.error_dict}
+        return {'experiment': experiment,
+                'page': page,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Pages',
+                            'url': request.route_url('experiment.page', eid=experiment.id)},
+                           {'title': '%s (%s)' % (page.title, page.name)
+                            if page.title else 'No title (%s)' % page.name,
+                            'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
+                           {'title': 'Delete',
+                            'url': request.route_url('experiment.page.delete', eid=experiment.id, pid=page.id)}]}
     else:
         raise HTTPNotFound()
