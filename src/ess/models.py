@@ -45,7 +45,7 @@ class AttributesMixin(object):
         """Checks whether the given key exists in the object's attributes. If ``__parent_attr__``
         is specified, will check in that property if the key does not exist in the current
         object's attributes."""
-        if key in self._attributes:
+        if self.attributes is not None and key in self.attributes:
             return True
         else:
             if hasattr(self, '__parent_attr__') and getattr(self, self.__parent_attr__) is not None:
@@ -58,8 +58,8 @@ class AttributesMixin(object):
         If ``__parent_attr__`` is specified, will retrieve the attribute value from that property.
         Unlike standard dictionaries, this will return None, if no value exists for the key, rather
         than throw an error."""
-        if key in self._attributes:
-            return self._attributes[key]
+        if self.attributes is not None and key in self.attributes:
+            return self.attributes[key]
         elif hasattr(self, '__parent_attr__') and getattr(self, self.__parent_attr__) is not None:
             return getattr(self, self.__parent_attr__)[key]
         else:
@@ -68,23 +68,10 @@ class AttributesMixin(object):
     def __setitem__(self, key, value):
         """Sets the attribute ``key`` to the given ``value`` and updates the backing JSON database
         property."""
-        self._attributes[key] = value
-        self.attributes = json.dumps(self._attributes)
-
-    @property
-    def _attributes(self):
-        """Helper function that handles caching of the backing JSON database property. Should only
-        be used inside the :class:`~ess.models.AttributesMixin`. External access should directly
-        use the in/get/set functionality of the object itself.
-        """
-        if hasattr(self, '_cached_attributes'):
-            return self._cached_attributes
+        if self.attributes is not None:
+            self.attributes[key] = value
         else:
-            if self.attributes:
-                self._cached_attributes = json.loads(self.attributes)
-            else:
-                self._cached_attributes = {}
-            return self._attributes
+            self.attributes = {key: value}
 
 
 class ParentedAttributesMixin(object):
@@ -178,14 +165,14 @@ class AsDictMixin(object):
 
 
 class Preference(Base):
-    
+
     __tablename__ = 'user_preferences'
-    
+
     id = Column(Integer, primary_key=True)
     user_id = Column(ForeignKey(User.id, name='user_preferences_users_fk'), index=True)
     key = Column(Unicode(255))
     value = Column(Unicode(255))
-    
+
     user = relationship('User', backref='preferences')
 
 
@@ -195,7 +182,7 @@ class Experiment(Base, AsDictMixin):
     __dict_fields__ = ('id', 'title', 'summary', 'styles', 'scripts', 'status', 'language', 'external_id',
                        'created_at', 'updated_at', 'public')
     __dict_relationships__ = ('pages', 'start', 'data_sets', 'latin_squares')
-    
+
     id = Column(Integer, primary_key=True)
     title = Column(Unicode(1024))
     summary = Column(Unicode(4096))
@@ -232,7 +219,6 @@ class Experiment(Base, AsDictMixin):
                                  primaryjoin="and_(Experiment.id==DataSet.experiment_id, DataSet.type=='latinsquare')",
                                  cascade='all, delete, delete-orphan')
 
-
     def allow(self, action, user):
         if action == 'view':
             if user.id == self.owned_by or user.has_permission('experiment.view'):
@@ -247,11 +233,11 @@ class Experiment(Base, AsDictMixin):
 
 
 class Page(Base, ParentedAttributesMixin, AsDictMixin):
-    
+
     __tablename__ = 'pages'
     __dict_fields__ = ('id', 'name', 'title', 'styles', 'scripts', 'attributes') 
     __dict_relationships__ = ('questions',)
-    
+
     id = Column(Integer, primary_key=True)
     experiment_id = Column(ForeignKey(Experiment.id, name='pages_experiments_fk'))
     name = Column(Unicode(255))
@@ -305,12 +291,12 @@ class QuestionTypeGroup(Base, AsDictMixin):
 
 
 class QuestionType(Base, ParentedAttributesMixin, AsDictMixin):
-    
+
     __tablename__ = 'question_types'
     __parent_attr__ = 'parent'
     __dict_fields__ = ('id', 'name', 'title', 'backend', 'frontend', 'attributes', 'enabled', 'order')
     __dict_relationships__ = ('q_type_group', 'parent')
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
     title = Column(Unicode(255))
@@ -340,13 +326,13 @@ class Question(Base, ParentedAttributesMixin, AsDictMixin):
     __parent_attr__ = 'q_type'
     __dict_fields__ = ('id', 'order', 'attributes')
     __dict_relationships__ = ('q_type', )
-    
+
     id = Column(Integer, primary_key=True)
     page_id = Column(ForeignKey(Page.id, name='questions_pages_fk'))
     type_id = Column(ForeignKey(QuestionType.id, name='question_types_fk'))
     order = Column(Integer)
     attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
-    
+
     answers = relationship('Answer',
                            backref='question',
                            cascade='all, delete, delete-orphan')
@@ -354,11 +340,11 @@ class Question(Base, ParentedAttributesMixin, AsDictMixin):
 
 
 class Transition(Base, AttributesMixin, AsDictMixin):
-    
+
     __tablename__ = 'transitions'
     __dict_fields__ = ('id', 'order', 'attributes')
     __dict_relationships__ = ('source', 'target')
-    
+
     id = Column(Integer, primary_key=True)
     source_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_source_fk'))
     target_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_target_fk'))
@@ -382,7 +368,7 @@ class DataSet(Base, AttributesMixin, AsDictMixin):
 
 
 class DataItem(Base, AttributesMixin, AsDictMixin):
-    
+
     __tablename__ = 'data_items'
     __dict_fields__ = ('id', 'order', 'attributes')
     __dict_relationships__ = ('data_set', )
@@ -401,9 +387,9 @@ class DataItem(Base, AttributesMixin, AsDictMixin):
 
 
 class DataItemCount(Base):
-    
+
     __tablename__ = 'data_item_counts'
-    
+
     id = Column(Integer, primary_key=True)
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_counts_data_items_fk'))
     page_id = Column(ForeignKey(Page.id, name='data_item_counts_qsheets_fk'))
@@ -411,9 +397,9 @@ class DataItemCount(Base):
 
 
 class Participant(Base, AttributesMixin):
-    
+
     __tablename__ = 'participants'
-    
+
     id = Column(Integer, primary_key=True)
     experiment_id = Column(ForeignKey(Experiment.id, name='participants_experiments_fk'))
     completed = Column(Boolean, default=False)
@@ -426,9 +412,9 @@ class Participant(Base, AttributesMixin):
 
 
 class Answer(Base, AttributesMixin):
-    
+
     __tablename__ = 'answers'
-    
+
     id = Column(Integer, primary_key=True)
     participant_id = Column(ForeignKey(Participant.id, name='answers_participants_fk'))
     question_id = Column(ForeignKey(Question.id, name='answers_questions_fk'))
@@ -438,6 +424,7 @@ class Answer(Base, AttributesMixin):
 class Notification(Base):
 
     __tablename__ = 'notifications'
+
     id = Column(Integer, primary_key=True)
     survey_id = Column(ForeignKey(Experiment.id, name='notifications_experiments_fk'))
     ntype = Column(Unicode(32))
@@ -452,9 +439,7 @@ class Notification(Base):
             time_now = int(time.time())
             if (self.timestamp == 0) or (time_now - self.timestamp) > (self.value * time_factor):
                 response['message'] = 'Experiment "%s" has had %d participants.\n' % (self.survey.title, len(participants))
-
         if self.ntype == 'pcount':
             if (len(participants) >= self.value) and (self.timestamp == 0):
                 response['message'] = 'Experiment "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.value)
-                
         return response
