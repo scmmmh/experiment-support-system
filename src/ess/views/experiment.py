@@ -7,10 +7,13 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
 from pywebtools.formencode import CSRFSchema, State
 from pywebtools.pyramid.auth.views import current_user, require_permission
+from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import func, and_
 
-from ess.models import Experiment, Participant
+from ess.importexport import export_jsonapi
+from ess.models import (Experiment, Participant, Page, Question, QuestionType, QuestionTypeGroup, Transition,
+                        DataSet)
 from ess.validators import PageExistsValidator
 
 
@@ -21,6 +24,7 @@ def init(config):
     config.add_route('experiment.settings.display', '/experiments/{eid}/settings/display')
     config.add_route('experiment.settings.delete', '/experiments/{eid}/settings/delete')
     config.add_route('experiment.status', '/experiments/{eid}/status')
+    config.add_route('experiment.export', '/experiments/{eid}/export')
 
 
 class CreateExperimentSchema(CSRFSchema):
@@ -281,5 +285,28 @@ def status(request):
                             'url': request.route_url('experiment.view', eid=experiment.id)},
                            {'title': 'Status',
                             'url': request.route_url('experiment.status', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.export', renderer='json')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+@require_method('POST')
+def export(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        try:
+            CSRFSchema().to_python(request.params, State(request=request))
+            #request.response.headers['Content-Disposition'] = 'attachment; filename=%s.json' % experiment.title
+            return export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
+                                                        (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
+                                                        (DataSet, 'items'), (Page, 'next'), (Page, 'prev'),
+                                                        (Page, 'questions'), (Question, 'q_type'),
+                                                        (QuestionType, 'q_type_group'), (QuestionType, 'parent'),
+                                                        (QuestionTypeGroup, 'parent')])
+        except formencode.Invalid:
+            raise HTTPFound(request.route_url('experiment.view', eid=experiment.id))
     else:
         raise HTTPNotFound()

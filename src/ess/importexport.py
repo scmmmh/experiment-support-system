@@ -8,7 +8,33 @@ import json
 from marshmallow_jsonapi import Schema, fields
 from sqlalchemy import and_
 
-from ess.models import (Page, Question, QuestionType, QuestionTypeGroup)
+from ess.models import (Experiment, Page, Question, QuestionType, QuestionTypeGroup, DataSet, DataItem, Transition)
+
+
+class ExperimentIOSchema(Schema):
+
+    id = fields.Int()
+    title = fields.Str()
+    summary = fields.Str()
+    styles = fields.Str()
+    scripts = fields.Str()
+    status = fields.Str()
+    language = fields.Str()
+    external_id = fields.Str()
+    created_at = fields.DateTime()
+    updated_at = fields.DateTime()
+    public = fields.Boolean()
+
+    pages = fields.Relationship(many=True,
+                                include_resource_linkage=True,
+                                type_='pages',
+                                schema='PageIOSchema')
+    start = fields.Relationship(include_resource_linkage=True,
+                                type_='pages',
+                                schema='PageIOSchema')
+
+    class Meta():
+        type_ = 'experiments'
 
 
 class PageIOSchema(Schema):
@@ -82,6 +108,42 @@ class QuestionTypeGroupIOSchema(Schema):
         type_ = 'question_type_groups'
 
 
+class DataSetIOSchema(Schema):
+
+    id = fields.Int()
+    name = fields.Str()
+    type = fields.Str()
+    attributes = fields.Dict()
+
+    items = fields.Relationship(many=True,
+                                include_resource_linkage=True,
+                                type_='data_items',
+                                schema='DataItemIOSchema')
+
+    class Meta():
+        type_ = 'data_sets'
+
+
+class DataItemIOSchema(Schema):
+
+    id = fields.Int()
+    order = fields.Int()
+    attributes = fields.Dict()
+
+    class Meta():
+        type_ = 'data_items'
+
+
+class TransitionIOSchema(Schema):
+
+    id = fields.Int()
+    order = fields.Int()
+    attributes = fields.Dict()
+
+    class Meta():
+        type_ = 'transitions'
+
+
 def instantiate_page(source, objects, dbsession, state):
     page = dbsession.query(Page).filter(and_(Page.name == source['name'],
                                              Page.experiment_id == state.experiment_id)).first()
@@ -152,11 +214,13 @@ def instantiate_question_type_group(source, objects, dbsession, state):
 
 SCHEMA_INST_PAIRS = [(PageIOSchema, instantiate_page), (QuestionIOSchema, instantiate_question),
                      (QuestionTypeIOSchema, instantiate_question_type),
-                     (QuestionTypeGroupIOSchema, instantiate_question_type_group)]
+                     (QuestionTypeGroupIOSchema, instantiate_question_type_group), (ExperimentIOSchema, None),
+                     (DataSetIOSchema, None)]
 SCHEMA_MAPPINGS = dict([(s.Meta.type_, s) for s, _ in SCHEMA_INST_PAIRS])
 INSTANTIATION_MAPPINGS = dict([(s.Meta.type_, f) for s, f in SCHEMA_INST_PAIRS])
 EXPORT_MAPPINGS = dict([(Page, PageIOSchema), (Question, QuestionIOSchema), (QuestionType, QuestionTypeIOSchema),
-                        (QuestionTypeGroup, QuestionTypeGroupIOSchema)])
+                        (QuestionTypeGroup, QuestionTypeGroupIOSchema), (Experiment, ExperimentIOSchema),
+                        (DataSet, DataSetIOSchema), (DataItem, DataItemIOSchema), (Transition, TransitionIOSchema)])
 
 
 def import_obj(source):

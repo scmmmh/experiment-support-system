@@ -38,7 +38,7 @@ class AttributesMixin(object):
     stored attributes.
     """
 
-    attributes = Column(UnicodeText)
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
 
     def __contains__(self, key):
@@ -142,7 +142,7 @@ class ParentedAttributesMixin(object):
 
 class AsDictMixin(object):
 
-    def as_dict(self):
+    def as_dict(self, seen=[]):
         result = {}
         for field_name in self.__dict_fields__:
             attr = getattr(self, field_name)
@@ -157,9 +157,11 @@ class AsDictMixin(object):
                     if callable(relationship):
                         relationship = relationship()
                     if isinstance(relationship, list):
-                        result[rel_name] = [r.as_dict() for r in relationship]
+                        result[rel_name] = [r.as_dict(seen + [(r.__class__, r.id)]) for r in relationship if (r.__class__, r.id) not in seen]
+                    elif (relationship.__class__, relationship.id) not in seen:
+                        result[rel_name] = relationship.as_dict(seen + [(relationship.__class__, relationship.id)])
                     else:
-                        result[rel_name] = relationship.as_dict()
+                        result[rel_name] = None
                 else:
                     result[rel_name] = None
         return result
@@ -187,9 +189,12 @@ class Preference(Base):
     user = relationship('User', backref='preferences')
 
 
-class Experiment(Base):
+class Experiment(Base, AsDictMixin):
 
     __tablename__ = 'experiments'
+    __dict_fields__ = ('id', 'title', 'summary', 'styles', 'scripts', 'status', 'language', 'external_id',
+                       'created_at', 'updated_at', 'public')
+    __dict_relationships__ = ('pages', 'start', 'data_sets', 'latin_squares')
     
     id = Column(Integer, primary_key=True)
     title = Column(Unicode(1024))
@@ -345,15 +350,14 @@ class Question(Base, ParentedAttributesMixin, AsDictMixin):
     answers = relationship('Answer',
                            backref='question',
                            cascade='all, delete, delete-orphan')
-    control_answers = relationship('DataItemControlAnswer',
-                                   backref='question',
-                                   cascade='all, delete, delete-orphan')
     q_type = relationship('QuestionType', backref='questions')
 
 
-class Transition(Base, AttributesMixin):
+class Transition(Base, AttributesMixin, AsDictMixin):
     
     __tablename__ = 'transitions'
+    __dict_fields__ = ('id', 'order', 'attributes')
+    __dict_relationships__ = ('source', 'target')
     
     id = Column(Integer, primary_key=True)
     source_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_source_fk'))
@@ -361,9 +365,12 @@ class Transition(Base, AttributesMixin):
     order = Column(Integer, default=0)
 
 
-class DataSet(Base, AttributesMixin):
+class DataSet(Base, AttributesMixin, AsDictMixin):
 
     __tablename__ = 'data_sets'
+    __dict_fields__ = ('id', 'name', 'type', 'attributes')
+    __dict_relationships__ = ('items', 'experiment', 'pages')
+
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
     experiment_id = Column(ForeignKey(Experiment.id, name="data_sets_experiment_id_fk"))
@@ -374,30 +381,16 @@ class DataSet(Base, AttributesMixin):
     pages = relationship('Page', backref='data_set')
 
 
-class DataSetRelation(Base, AttributesMixin):
-    
-    __tablename__ = 'data_set_relations'
-    
-    id = Column(Integer, primary_key=True)
-    subject_id = Column(ForeignKey(DataSet.id, name='data_set_relations_subject_id_fk'))
-    object_id = Column(ForeignKey(DataSet.id, name='data_set_relations_object_id_fk'))
-    rel = Column(Unicode(255))
-    
-    subject = relationship('DataSet',
-                           backref='subject_of',
-                           primaryjoin='DataSet.id==DataSetRelation.subject_id')
-    object = relationship('DataSet',
-                           backref='object_of',
-                           primaryjoin='DataSet.id==DataSetRelation.object_id')
-
-
-class DataItem(Base, AttributesMixin):
+class DataItem(Base, AttributesMixin, AsDictMixin):
     
     __tablename__ = 'data_items'
-    
+    __dict_fields__ = ('id', 'order', 'attributes')
+    __dict_relationships__ = ('data_set', )
+
     id = Column(Integer, primary_key=True)
     dataset_id = Column(ForeignKey(DataSet.id, name="data_items_dataset_id_fk"))
     order = Column(Integer)
+    control = Column(Boolean)
 
     counts = relationship('DataItemCount',
                           backref='counts',
@@ -405,9 +398,6 @@ class DataItem(Base, AttributesMixin):
     answers = relationship('Answer',
                            backref='data_item',
                            cascade='all, delete, delete-orphan')
-    control_answers = relationship('DataItemControlAnswer',
-                                   backref='data_item',
-                                   cascade='all, delete, delete-orphan')
 
 
 class DataItemCount(Base):
@@ -418,16 +408,6 @@ class DataItemCount(Base):
     data_item_id = Column(ForeignKey(DataItem.id, name='data_item_counts_data_items_fk'))
     page_id = Column(ForeignKey(Page.id, name='data_item_counts_qsheets_fk'))
     count = Column(Integer)
-
-
-class DataItemControlAnswer(Base):
-    
-    __tablename__ = 'data_item_control_answers'
-    
-    id = Column(Integer, primary_key=True)
-    data_item_id = Column(ForeignKey(DataItem.id, name='data_item_control_answers_data_items_fk'))
-    question_id = Column(ForeignKey(Question.id, name='data_item_control_answers_questions_fk'))
-    answer = Column(Unicode(4096))
 
 
 class Participant(Base, AttributesMixin):
