@@ -223,7 +223,7 @@ class Page(Base, ParentedAttributesMixin, AsDictMixin):
 
     @reify
     def has_answerable_questions(self):
-        return len([q for q in self.questions if q['frontend', 'display_as'] != 'text']) > 0
+        return len([q for q in self.questions if q['frontend', 'generates_response']]) > 0
 
 
 class QuestionTypeGroup(Base, AsDictMixin):

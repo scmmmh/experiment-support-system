@@ -84,7 +84,7 @@
           <h2>Responses</h2>
         </div>
       </div>
-      <div py:for="page in experiment.pages" class="row">
+      <div py:for="page in experiment.pages" py:if="page.has_answerable_questions" class="row">
         <div class="column small-12">
           <h3>${page.title_name}</h3>
           <div class="row">
