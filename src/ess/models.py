@@ -8,7 +8,6 @@ This module contains all the database-abstraction classes.
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
-import json
 import time
 
 from datetime import datetime
@@ -20,58 +19,8 @@ from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
 from sqlalchemy.orm import (relationship, backref)
 
 
-DB_VERSION = '7f8cc2026730'
+DB_VERSION = '43a4951d287a'
 """The currently required database version."""
-
-
-class AttributesMixin(object):
-    """The :class:`~ess.models.AttributesMixin` adds an ``attributes`` column to the object
-    it is mixed into. Additionally it provides the necessary functions so that the object
-    it is mixed into acts as a dictionary, which is backed by JSON encoded data in the
-    ``attributes`` column.
-
-    The :class:`~ess.models.AttributesMixin` also supports a parent lookup. By specifying
-    the ``__parent_attr_`` attribute with the name of an attribute that points to another
-    instance that mixes in :class:`~ess.models.AttributesMixin`, the :class:`~ess.models.AttributesMixin`
-    will look for any attribute that is not found in the current instance in the parent
-    instance. However, setting an attribute will always apply to the current instance's
-    stored attributes.
-    """
-
-    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
-
-
-    def __contains__(self, key):
-        """Checks whether the given key exists in the object's attributes. If ``__parent_attr__``
-        is specified, will check in that property if the key does not exist in the current
-        object's attributes."""
-        if self.attributes is not None and key in self.attributes:
-            return True
-        else:
-            if hasattr(self, '__parent_attr__') and getattr(self, self.__parent_attr__) is not None:
-                return key in getattr(self, self.__parent_attr__)
-            else:
-                return False
-
-    def __getitem__(self, key):
-        """Retrieves the stored value for the given key, if it exists in the object's attributes.
-        If ``__parent_attr__`` is specified, will retrieve the attribute value from that property.
-        Unlike standard dictionaries, this will return None, if no value exists for the key, rather
-        than throw an error."""
-        if self.attributes is not None and key in self.attributes:
-            return self.attributes[key]
-        elif hasattr(self, '__parent_attr__') and getattr(self, self.__parent_attr__) is not None:
-            return getattr(self, self.__parent_attr__)[key]
-        else:
-            return None
-
-    def __setitem__(self, key, value):
-        """Sets the attribute ``key`` to the given ``value`` and updates the backing JSON database
-        property."""
-        if self.attributes is not None:
-            self.attributes[key] = value
-        else:
-            self.attributes = {key: value}
 
 
 class ParentedAttributesMixin(object):
@@ -80,10 +29,14 @@ class ParentedAttributesMixin(object):
         if isinstance(key, tuple):
             if hasattr(self, key[0]):
                 return getattr(self, key[0]), key[1]
-            else:
+            elif hasattr(self, 'attributes'):
                 return getattr(self, 'attributes'), key[1]
-        else:
+            else:
+                return None, None
+        elif hasattr(self, 'attributes'):
             return getattr(self, 'attributes'), key
+        else:
+            return None, None
 
     def __get_attr_parent__(self):
         if hasattr(self, '__parent_attr__') and hasattr(self, self.__parent_attr__):
@@ -300,11 +253,8 @@ class QuestionType(Base, ParentedAttributesMixin, AsDictMixin):
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(255))
     title = Column(Unicode(255))
-    dbschema = Column(UnicodeText)
-    answer_validation = Column(UnicodeText)
     backend = Column(MutableDict.as_mutable(JSONUnicodeText))
     frontend = Column(MutableDict.as_mutable(JSONUnicodeText))
-    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
     group_id = Column(ForeignKey(QuestionTypeGroup.id, name='question_type_groups_fk'))
     parent_id = Column(ForeignKey(id, name='question_types_parent_fk'))
     enabled = Column(Boolean, default=True)
@@ -339,7 +289,7 @@ class Question(Base, ParentedAttributesMixin, AsDictMixin):
     q_type = relationship('QuestionType', backref='questions')
 
 
-class Transition(Base, AttributesMixin, AsDictMixin):
+class Transition(Base, ParentedAttributesMixin, AsDictMixin):
 
     __tablename__ = 'transitions'
     __dict_fields__ = ('id', 'order', 'attributes')
@@ -349,9 +299,10 @@ class Transition(Base, AttributesMixin, AsDictMixin):
     source_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_source_fk'))
     target_id = Column(ForeignKey(Page.id, name='qsheet_transitions_qsheets_target_fk'))
     order = Column(Integer, default=0)
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
 
-class DataSet(Base, AttributesMixin, AsDictMixin):
+class DataSet(Base, ParentedAttributesMixin, AsDictMixin):
 
     __tablename__ = 'data_sets'
     __dict_fields__ = ('id', 'name', 'type', 'attributes')
@@ -361,13 +312,14 @@ class DataSet(Base, AttributesMixin, AsDictMixin):
     name = Column(Unicode(255))
     experiment_id = Column(ForeignKey(Experiment.id, name="data_sets_experiment_id_fk"))
     type = Column(Unicode(20))
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
     experiment = relationship('Experiment')
     items = relationship('DataItem', backref='data_set', order_by='DataItem.order', cascade='all, delete, delete-orphan')
     pages = relationship('Page', backref='data_set')
 
 
-class DataItem(Base, AttributesMixin, AsDictMixin):
+class DataItem(Base, ParentedAttributesMixin, AsDictMixin):
 
     __tablename__ = 'data_items'
     __dict_fields__ = ('id', 'order', 'attributes')
@@ -377,26 +329,14 @@ class DataItem(Base, AttributesMixin, AsDictMixin):
     dataset_id = Column(ForeignKey(DataSet.id, name="data_items_dataset_id_fk"))
     order = Column(Integer)
     control = Column(Boolean)
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
-    counts = relationship('DataItemCount',
-                          backref='counts',
-                          cascade='all, delete, delete-orphan')
     answers = relationship('Answer',
                            backref='data_item',
                            cascade='all, delete, delete-orphan')
 
 
-class DataItemCount(Base):
-
-    __tablename__ = 'data_item_counts'
-
-    id = Column(Integer, primary_key=True)
-    data_item_id = Column(ForeignKey(DataItem.id, name='data_item_counts_data_items_fk'))
-    page_id = Column(ForeignKey(Page.id, name='data_item_counts_qsheets_fk'))
-    count = Column(Integer)
-
-
-class Participant(Base, AttributesMixin):
+class Participant(Base, ParentedAttributesMixin):
 
     __tablename__ = 'participants'
 
@@ -405,13 +345,14 @@ class Participant(Base, AttributesMixin):
     completed = Column(Boolean, default=False)
     started = Column(DateTime, default=datetime.now)
     updated = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
     answers = relationship('Answer',
                            backref='participant',
                            cascade='all, delete, delete-orphan')
 
 
-class Answer(Base, AttributesMixin):
+class Answer(Base, ParentedAttributesMixin):
 
     __tablename__ = 'answers'
 
@@ -419,6 +360,7 @@ class Answer(Base, AttributesMixin):
     participant_id = Column(ForeignKey(Participant.id, name='answers_participants_fk'))
     question_id = Column(ForeignKey(Question.id, name='answers_questions_fk'))
     data_item_id = Column(ForeignKey(DataItem.id, name='answers_data_items_fk'))
+    attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
 
 class Notification(Base):
