@@ -80,43 +80,6 @@ class ParentedAttributesMixin(object):
         attr[sub_key] = value
 
 
-class AsDictMixin(object):
-
-    def as_dict(self, seen=[]):
-        result = {}
-        for field_name in self.__dict_fields__:
-            attr = getattr(self, field_name)
-            if callable(attr):
-                result[field_name] = attr()
-            else:
-                result[field_name] = attr
-        if hasattr(self, '__dict_relationships__'):
-            for rel_name in self.__dict_relationships__:
-                relationship = getattr(self, rel_name)
-                if relationship:
-                    if callable(relationship):
-                        relationship = relationship()
-                    if isinstance(relationship, list):
-                        result[rel_name] = [r.as_dict(seen + [(r.__class__, r.id)]) for r in relationship if (r.__class__, r.id) not in seen]
-                    elif (relationship.__class__, relationship.id) not in seen:
-                        result[rel_name] = relationship.as_dict(seen + [(relationship.__class__, relationship.id)])
-                    else:
-                        result[rel_name] = None
-                else:
-                    result[rel_name] = None
-        return result
-
-    @classmethod
-    def from_dict(cls, source):
-        inst = cls()
-        for field_name in inst.__dict_fields__:
-            if field_name == 'id':
-                continue
-            if field_name in source:
-                setattr(inst, field_name, source[field_name])
-        return inst
-
-
 class Preference(Base):
 
     __tablename__ = 'user_preferences'
@@ -129,7 +92,7 @@ class Preference(Base):
     user = relationship('User', backref='preferences')
 
 
-class Experiment(Base, AsDictMixin):
+class Experiment(Base):
 
     __tablename__ = 'experiments'
     __dict_fields__ = ('id', 'title', 'summary', 'styles', 'scripts', 'status', 'language', 'external_id',
@@ -185,7 +148,7 @@ class Experiment(Base, AsDictMixin):
         return False
 
 
-class Page(Base, ParentedAttributesMixin, AsDictMixin):
+class Page(Base, ParentedAttributesMixin):
 
     __tablename__ = 'pages'
     __dict_fields__ = ('id', 'name', 'title', 'styles', 'scripts', 'attributes') 
@@ -226,7 +189,7 @@ class Page(Base, ParentedAttributesMixin, AsDictMixin):
         return len([q for q in self.questions if q['frontend', 'generates_response']]) > 0
 
 
-class QuestionTypeGroup(Base, AsDictMixin):
+class QuestionTypeGroup(Base):
 
     __tablename__ = 'question_type_groups'
     __dict_fields__ = ('id', 'name', 'title', 'enabled', 'order')
@@ -243,11 +206,11 @@ class QuestionTypeGroup(Base, AsDictMixin):
                           remote_side=[id])
 
 
-class QuestionType(Base, ParentedAttributesMixin, AsDictMixin):
+class QuestionType(Base, ParentedAttributesMixin):
 
     __tablename__ = 'question_types'
     __parent_attr__ = 'parent'
-    __dict_fields__ = ('id', 'name', 'title', 'backend', 'frontend', 'attributes', 'enabled', 'order')
+    __dict_fields__ = ('id', 'name', 'title', 'backend', 'frontend', 'enabled', 'order')
     __dict_relationships__ = ('q_type_group', 'parent')
 
     id = Column(Integer, primary_key=True)
@@ -267,7 +230,7 @@ class QuestionType(Base, ParentedAttributesMixin, AsDictMixin):
     parent = relationship('QuestionType', backref='children', remote_side=[id])
 
 
-class Question(Base, ParentedAttributesMixin, AsDictMixin):
+class Question(Base, ParentedAttributesMixin):
     """The :class:`~ess.models.Question` represents a single question in
     a :class:`~ess.models.Page`.
     """
@@ -289,7 +252,7 @@ class Question(Base, ParentedAttributesMixin, AsDictMixin):
     q_type = relationship('QuestionType', backref='questions')
 
 
-class Transition(Base, ParentedAttributesMixin, AsDictMixin):
+class Transition(Base, ParentedAttributesMixin):
 
     __tablename__ = 'transitions'
     __dict_fields__ = ('id', 'order', 'attributes')
@@ -302,7 +265,7 @@ class Transition(Base, ParentedAttributesMixin, AsDictMixin):
     attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
 
-class DataSet(Base, ParentedAttributesMixin, AsDictMixin):
+class DataSet(Base, ParentedAttributesMixin):
 
     __tablename__ = 'data_sets'
     __dict_fields__ = ('id', 'name', 'type', 'attributes')
@@ -319,7 +282,7 @@ class DataSet(Base, ParentedAttributesMixin, AsDictMixin):
     pages = relationship('Page', backref='data_set')
 
 
-class DataItem(Base, ParentedAttributesMixin, AsDictMixin):
+class DataItem(Base, ParentedAttributesMixin):
 
     __tablename__ = 'data_items'
     __dict_fields__ = ('id', 'order', 'attributes')

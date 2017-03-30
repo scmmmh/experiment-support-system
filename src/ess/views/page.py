@@ -10,7 +10,7 @@ from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_
 
-from ess.importexport import PageIOSchema, import_jsonapi, export_jsonapi
+from ess.importexport import import_jsonapi, export_jsonapi
 from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition, DataSet
 from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator, DataSetExistsValidator
 

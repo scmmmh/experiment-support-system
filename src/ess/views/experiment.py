@@ -299,11 +299,11 @@ def export(request):
     if experiment:
         try:
             CSRFSchema().to_python(request.params, State(request=request))
-            #request.response.headers['Content-Disposition'] = 'attachment; filename=%s.json' % experiment.title
+            request.response.headers['Content-Disposition'] = 'attachment; filename=%s.json' % experiment.title
             return export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
                                                         (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
-                                                        (DataSet, 'items'), (Page, 'next'), (Page, 'prev'),
-                                                        (Page, 'questions'), (Question, 'q_type'),
+                                                        (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
+                                                        (Page, 'prev'), (Page, 'questions'), (Question, 'q_type'),
                                                         (QuestionType, 'q_type_group'), (QuestionType, 'parent'),
                                                         (QuestionTypeGroup, 'parent')])
         except formencode.Invalid:

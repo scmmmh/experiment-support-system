@@ -4,6 +4,7 @@
 """
 import formencode
 import json
+import sys
 
 from marshmallow_jsonapi import Schema, fields
 from sqlalchemy import and_
@@ -11,7 +12,18 @@ from sqlalchemy import and_
 from ess.models import (Experiment, Page, Question, QuestionType, QuestionTypeGroup, DataSet, DataItem, Transition)
 
 
-class ExperimentIOSchema(Schema):
+class BaseSchema(Schema):
+
+    def get_attribute(self, attr, obj, default):
+        if hasattr(obj, attr):
+            return getattr(obj, attr)
+        try:
+            return obj[attr]
+        except:
+            return default
+
+
+class ExperimentIOSchema(BaseSchema):
 
     id = fields.Int()
     title = fields.Str()
@@ -20,7 +32,6 @@ class ExperimentIOSchema(Schema):
     scripts = fields.Str()
     status = fields.Str()
     language = fields.Str()
-    external_id = fields.Str()
     created_at = fields.DateTime()
     updated_at = fields.DateTime()
     public = fields.Boolean()
@@ -37,7 +48,7 @@ class ExperimentIOSchema(Schema):
         type_ = 'experiments'
 
 
-class PageIOSchema(Schema):
+class PageIOSchema(BaseSchema):
 
     id = fields.Int()
     name = fields.Str()
@@ -50,12 +61,20 @@ class PageIOSchema(Schema):
                                     include_resource_linkage=True,
                                     type_='questions',
                                     schema='QuestionIOSchema')
+    next = fields.Relationship(many=True,
+                               include_resource_linkage=True,
+                               type_='transitions',
+                               schema='TransitionIOSchema')
+    prev = fields.Relationship(many=True,
+                               include_resource_linkage=True,
+                               type_='transitions',
+                               schema='TransitionIOSchema')
 
     class Meta():
         type_ = 'pages'
 
 
-class QuestionIOSchema(Schema):
+class QuestionIOSchema(BaseSchema):
 
     id = fields.Int()
     order = fields.Int()
@@ -69,7 +88,7 @@ class QuestionIOSchema(Schema):
         type_ = 'questions'
 
 
-class QuestionTypeIOSchema(Schema):
+class QuestionTypeIOSchema(BaseSchema):
 
     id = fields.Int()
     name = fields.Str()
@@ -91,7 +110,7 @@ class QuestionTypeIOSchema(Schema):
         type_ = 'question_types'
 
 
-class QuestionTypeGroupIOSchema(Schema):
+class QuestionTypeGroupIOSchema(BaseSchema):
 
     id = fields.Int()
     name = fields.Str()
@@ -108,7 +127,7 @@ class QuestionTypeGroupIOSchema(Schema):
         type_ = 'question_type_groups'
 
 
-class DataSetIOSchema(Schema):
+class DataSetIOSchema(BaseSchema):
 
     id = fields.Int()
     name = fields.Str()
@@ -124,7 +143,7 @@ class DataSetIOSchema(Schema):
         type_ = 'data_sets'
 
 
-class DataItemIOSchema(Schema):
+class DataItemIOSchema(BaseSchema):
 
     id = fields.Int()
     order = fields.Int()
@@ -134,7 +153,7 @@ class DataItemIOSchema(Schema):
         type_ = 'data_items'
 
 
-class TransitionIOSchema(Schema):
+class TransitionIOSchema(BaseSchema):
 
     id = fields.Int()
     order = fields.Int()
@@ -218,9 +237,6 @@ SCHEMA_INST_PAIRS = [(PageIOSchema, instantiate_page), (QuestionIOSchema, instan
                      (DataSetIOSchema, None)]
 SCHEMA_MAPPINGS = dict([(s.Meta.type_, s) for s, _ in SCHEMA_INST_PAIRS])
 INSTANTIATION_MAPPINGS = dict([(s.Meta.type_, f) for s, f in SCHEMA_INST_PAIRS])
-EXPORT_MAPPINGS = dict([(Page, PageIOSchema), (Question, QuestionIOSchema), (QuestionType, QuestionTypeIOSchema),
-                        (QuestionTypeGroup, QuestionTypeGroupIOSchema), (Experiment, ExperimentIOSchema),
-                        (DataSet, DataSetIOSchema), (DataItem, DataItemIOSchema), (Transition, TransitionIOSchema)])
 
 
 def import_obj(source):
@@ -253,19 +269,27 @@ def import_jsonapi(source, dbsession, state=None):
     return instantiate_obj(root, objects, dbsession, state)
 
 
-def export_jsonapi(obj, includes=[]):
-    data = EXPORT_MAPPINGS[obj.__class__]().dump(obj.as_dict()).data
+def export_jsonapi(obj, includes=None, processed=None):
+    if processed is None:
+        processed = []
+    data = getattr(sys.modules[__name__], '%sIOSchema' % obj.__class__.__name__)().dump(obj).data
+    if (data['data']['type'], data['data']['id']) in processed:
+        return None
+    processed.append((data['data']['type'], data['data']['id']))
     included = []
-    for class_, method in includes:
-        if isinstance(obj, class_):
-            attr = getattr(obj, method)
-            if isinstance(attr, list):
-                for item in attr:
-                    tmp = export_jsonapi(item, includes)
-                    included.append(tmp['data'])
-                    included.extend(tmp['included'])
-            elif attr is not None:
-                tmp = export_jsonapi(attr, includes)
-                included.append(tmp['data'])
-                included.extend(tmp['included'])
+    if includes:
+        for class_, method in includes:
+            if isinstance(obj, class_):
+                attr = getattr(obj, method)
+                if isinstance(attr, list):
+                    for item in attr:
+                        tmp = export_jsonapi(item, includes, processed)
+                        if tmp is not None:
+                            included.append(tmp['data'])
+                            included.extend(tmp['included'])
+                elif attr is not None:
+                    tmp = export_jsonapi(attr, includes, processed)
+                    if tmp is not None:
+                        included.append(tmp['data'])
+                        included.extend(tmp['included'])
     return {'data': data['data'], 'included': included}
