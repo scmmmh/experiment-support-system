@@ -133,7 +133,7 @@ def import_page(request):
                                           dbsession,
                                           State(experiment_id=experiment.id))
                     if not isinstance(page, Page):
-                        raise formencode.Invalid('The file does not contain a page.')
+                        raise formencode.Invalid('The file does not contain a page.', None, None)
                     page.experiment = experiment
                     if experiment.start is None:
                         experiment.start = page
@@ -749,6 +749,10 @@ def delete(request):
                                          State(request=request,
                                                dbsession=dbsession))
                 with transaction.manager:
+                    dbsession.add(experiment)
+                    dbsession.add(page)
+                    if experiment.start == page:
+                        experiment.start = None
                     dbsession.delete(page)
                 dbsession.add(experiment)
                 raise HTTPFound(request.route_url('experiment.page', eid=experiment.id))

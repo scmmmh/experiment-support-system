@@ -5,6 +5,7 @@
 import json
 import sys
 
+from marshmallow import post_load
 from marshmallow_jsonapi import Schema, fields
 
 from ess.models import (Experiment, Page, Question, QuestionType, QuestionTypeGroup, DataSet, DataItem, Transition)
@@ -67,6 +68,15 @@ class PageIOSchema(BaseSchema):
                                include_resource_linkage=True,
                                type_='transitions',
                                schema='TransitionIOSchema')
+
+    @post_load
+    def make_page(self, data):
+        print(data)
+        return Page(name=data['name'],
+                    title=data['title'],
+                    styles=data['styles'],
+                    scripts=data['scripts'],
+                    attributes=data['attributes'])
 
     class Meta():
         type_ = 'pages'
@@ -188,5 +198,7 @@ def export_jsonapi(obj, includes=None, processed=None):
 
 
 def import_jsonapi(source, dbsession, state=None):
-    PageIOSchema().load(json.loads(source))
+    print(json.loads(source))
+    data, errors = PageIOSchema().load(json.loads(source))
+    return data
     
