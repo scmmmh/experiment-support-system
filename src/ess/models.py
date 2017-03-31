@@ -19,7 +19,7 @@ from sqlalchemy import (Column, Integer, Unicode, UnicodeText, ForeignKey,
 from sqlalchemy.orm import (relationship, backref)
 
 
-DB_VERSION = '43a4951d287a'
+DB_VERSION = '93591ffbbc1b'
 """The currently required database version."""
 
 
