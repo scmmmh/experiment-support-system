@@ -14,8 +14,7 @@ from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_, func
 
 from ess.models import Experiment, DataSet, DataItem
-from ess.validators import DataSetUniqueValidator, DataSetExistsValidator
-from pyquest.validation import DynamicSchema
+from ess.validators import DynamicSchema, DataSetUniqueValidator, DataSetExistsValidator
 
 
 def init(config):
