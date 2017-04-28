@@ -131,7 +131,10 @@ def import_page(request):
                     dbsession.add(experiment)
                     page = import_jsonapi(params['source'].file.read().decode('utf-8'),
                                           dbsession,
-                                          State(experiment_id=experiment.id))
+                                          includes=[(Page, 'questions'), (Question, 'q_type'),
+                                                    (QuestionType, 'q_type_group'), (QuestionType, 'parent'),
+                                                    (QuestionTypeGroup, 'parent')],
+                                          existing=[QuestionType, QuestionTypeGroup])
                     if not isinstance(page, Page):
                         raise formencode.Invalid('The file does not contain a page.', None, None)
                     page.experiment = experiment
@@ -717,7 +720,7 @@ def export(request):
     if experiment and page:
         try:
             CSRFSchema().to_python(request.params, State(request=request))
-            request.response.headers['Content-Disposition'] = 'attachment; filename=%s.json' % page.name
+            request.response.headers['Content-Disposition'] = 'attachment; filename="%s.json"' % page.name
             return export_jsonapi(page, includes=[(Page, 'questions'), (Question, 'q_type'),
                                                   (QuestionType, 'q_type_group'), (QuestionType, 'parent'),
                                                   (QuestionTypeGroup, 'parent')])

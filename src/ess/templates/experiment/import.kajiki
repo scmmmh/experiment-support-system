@@ -1,0 +1,23 @@
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
+  <py:block name="title">Import an Experiment</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row">
+      <article class="column small-12 medium-offset-3 medium-6">
+        <h1>Import an Experiment</h1>
+        <form action="${request.route_url('experiment.import')}" method="post" enctype="multipart/form-data">
+          ${form.csrf_field()}
+          <div class="row">
+            <div class="column small-12">${form.field('file', 'source', 'File to import')}</div>
+          </div>
+          <div class="row text-right">
+            <div class="column small-12">
+              <a href="${request.route_url('dashboard')}" class="button secondary">Don't Import</a>
+              <input type="submit" value="Import" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

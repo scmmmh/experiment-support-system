@@ -1,4 +1,5 @@
 import formencode
+import json
 import transaction
 import uuid
 
@@ -11,20 +12,22 @@ from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import func, and_
 
-from ess.importexport import export_jsonapi
-from ess.models import (Experiment, Participant, Page, Question, QuestionType, QuestionTypeGroup, Transition,
-                        DataSet)
+from ess.importexport import export_jsonapi, import_jsonapi
+from ess.models import (Experiment, Participant, Page, Question, QuestionType, QuestionTypeGroup,
+                        DataSet, Transition)
 from ess.validators import PageExistsValidator
 
 
 def init(config):
     config.add_route('experiment.create', '/experiments/create')
+    config.add_route('experiment.import', '/experiments/import')
     config.add_route('experiment.view', '/experiments/{eid}')
     config.add_route('experiment.settings.general', '/experiments/{eid}/settings/general')
     config.add_route('experiment.settings.display', '/experiments/{eid}/settings/display')
     config.add_route('experiment.settings.delete', '/experiments/{eid}/settings/delete')
     config.add_route('experiment.status', '/experiments/{eid}/status')
     config.add_route('experiment.export', '/experiments/{eid}/export')
+    config.add_route('experiment.duplicate', '/experiments/{eid}/duplicate')
 
 
 class CreateExperimentSchema(CSRFSchema):
@@ -55,12 +58,68 @@ def create(request):
             dbsession.add(experiment)
             raise HTTPFound(request.route_url('experiment.view', eid=experiment.id))
         except formencode.Invalid as e:
-            return {'crumbs': [{'title': 'Create Experiment',
+            return {'crumbs': [{'title': 'Experiments',
+                                'url': request.route_url('dashboard')},
+                               {'title': 'Create',
                                 'url': request.route_url('experiment.create')}],
                     'errors': e.error_dict,
                     'values': request.params}
-    return {'crumbs': [{'title': 'Create Experiment',
+    return {'crumbs': [{'title': 'Experiments',
+                        'url': request.route_url('dashboard')},
+                       {'title': 'Create',
                         'url': request.route_url('experiment.create')}]}
+
+
+class ImportExperimentSchema(CSRFSchema):
+
+    source = formencode.validators.FieldStorageUploadConverter(not_empty=True)
+
+
+@view_config(route_name='experiment.import', renderer='ess:templates/experiment/import.kajiki')
+@current_user()
+@require_permission(permission='experiment.create')
+def import_experiment(request):
+    if request.method == 'POST':
+        try:
+            params = ImportExperimentSchema().to_python(request.params, State(request=request))
+            dbsession = DBSession()
+            with transaction.manager:
+                experiment = import_jsonapi(params['source'].file.read().decode('utf-8'),
+                                            dbsession,
+                                            includes=[(Experiment, 'pages'), (Experiment, 'start'),
+                                                      (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
+                                                      (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
+                                                      (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
+                                                      (Question, 'q_type'), (QuestionType, 'q_type_group'),
+                                                      (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
+                                                      (Transition, 'source'), (Transition, 'target')],
+                                            existing=[QuestionType, QuestionTypeGroup])
+                if not isinstance(experiment, Experiment):
+                    raise formencode.Invalid('The file does not contain an experiment.', None, None)
+                experiment.owner = request.current_user
+                experiment.external_id = uuid.uuid1().hex,
+                experiment.status = 'develop'
+                dbsession.add(experiment)
+                dbsession.flush()
+                for latin_square in experiment.latin_squares:
+                    for data_set in experiment.data_sets:
+                        if latin_square['source_a'] == data_set.name:
+                            latin_square['source_a'] = data_set.id
+                        elif latin_square['source_b'] == data_set.name:
+                            latin_square['source_b'] = data_set.id
+            dbsession.add(experiment)
+            raise HTTPFound(request.route_url('experiment.view', eid=experiment.id))
+        except formencode.Invalid as e:
+            return {'crumbs': [{'title': 'Experiments',
+                                'url': request.route_url('dashboard')},
+                               {'title': 'Import',
+                                'url': request.route_url('experiment.import')}],
+                    'errors': {'source': str(e)},
+                    'values': request.params}
+    return {'crumbs': [{'title': 'Experiments',
+                        'url': request.route_url('dashboard')},
+                       {'title': 'Import',
+                        'url': request.route_url('experiment.import')}]}
 
 
 @view_config(route_name='experiment.view', renderer='ess:templates/experiment/view.kajiki')
@@ -299,14 +358,86 @@ def export(request):
     if experiment:
         try:
             CSRFSchema().to_python(request.params, State(request=request))
-            request.response.headers['Content-Disposition'] = 'attachment; filename=%s.json' % experiment.title
+            request.response.headers['Content-Disposition'] = 'attachment; filename="%s.json"' % experiment.title
             return export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
                                                         (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
                                                         (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
-                                                        (Page, 'prev'), (Page, 'questions'), (Question, 'q_type'),
-                                                        (QuestionType, 'q_type_group'), (QuestionType, 'parent'),
-                                                        (QuestionTypeGroup, 'parent')])
+                                                        (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
+                                                        (Question, 'q_type'), (QuestionType, 'q_type_group'),
+                                                        (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
+                                                        (Transition, 'source'), (Transition, 'target')])
         except formencode.Invalid:
             raise HTTPFound(request.route_url('experiment.view', eid=experiment.id))
     else:
         raise HTTPNotFound()
+
+
+class DuplicateSchema(CSRFSchema):
+
+    title = formencode.validators.UnicodeString(not_empty=True)
+
+
+@view_config(route_name='experiment.duplicate', renderer='ess:templates/experiment/duplicate.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='edit')
+def duplicate(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        if request.method == 'POST':
+            try:
+                params = DuplicateSchema().to_python(request.params, State(request=request))
+                with transaction.manager:
+                    dbsession.add(experiment)
+                    data = export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
+                                                                (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
+                                                                (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
+                                                                (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
+                                                                (Question, 'q_type'), (QuestionType, 'q_type_group'),
+                                                                (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
+                                                                (Transition, 'source'), (Transition, 'target')])
+                    new_experiment = import_jsonapi(json.dumps(data),
+                                                    dbsession,
+                                                    includes=[(Experiment, 'pages'), (Experiment, 'start'),
+                                                              (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
+                                                              (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
+                                                              (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
+                                                              (Question, 'q_type'), (QuestionType, 'q_type_group'),
+                                                              (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
+                                                              (Transition, 'source'), (Transition, 'target')],
+                                                    existing=[QuestionType, QuestionTypeGroup])
+                    new_experiment.title = params['title']
+                    new_experiment.owner = request.current_user
+                    new_experiment.external_id = uuid.uuid1().hex,
+                    new_experiment.status = 'develop'
+                    dbsession.add(new_experiment)
+                    dbsession.flush()
+                    for latin_square in new_experiment.latin_squares:
+                        for data_set in new_experiment.data_sets:
+                            if latin_square['source_a'] == data_set.name:
+                                latin_square['source_a'] = data_set.id
+                            if latin_square['source_b'] == data_set.name:
+                                latin_square['source_b'] = data_set.id
+                dbsession.add(new_experiment)
+                raise HTTPFound(request.route_url('experiment.view', eid=new_experiment.id))
+            except formencode.Invalid as e:
+                return {'experiment': experiment,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Duplicate',
+                                    'url': request.route_url('experiment.duplicate', eid=experiment.id)}],
+                        'errors': e.error_dict if e.error_dict else {'title': str(e)},
+                        'values': request.params}
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Duplicate',
+                            'url': request.route_url('experiment.duplicate', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+

@@ -128,4 +128,8 @@ small.alert {
 }
 .button.alert {
     color: $white;
+    
+    &:hover, &:focus {
+        color: $white;
+    }
 }

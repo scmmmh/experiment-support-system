@@ -33,6 +33,7 @@
               <li py:if="experiment.status == 'paused'" class="${'current' if request.matched_route.name == 'experiment.status' else ''}"><a href="${request.route_url('experiment.status', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">play_arrow</span> Re-start</a></li>
               <li class="${'current' if request.matched_route.name.startswith('experiment.settings') else ''}"><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">settings</span> Settings</a></li>
               <li><a href="${request.route_url('experiment.export', eid=experiment.id, _query=[('csrf_token', request.session.get_csrf_token())])}" class="post-link"><span class="mdi mdi-24" aria-hidden="true">archive</span> Export</a></li>
+              <li class="${'current' if request.matched_route.name == 'experiment.duplicate' else ''}"><a href="${request.route_url('experiment.duplicate', eid=experiment.id)}"><span class="mdi mdi-24" aria-hidden="true">control_point_duplicate</span> Duplicate</a></li>
             </ul>
           </dd>
           <dt>Pages</dt>

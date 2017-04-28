@@ -1,0 +1,23 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Duplicate</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row expanded">
+      <article class="column small-12 medium-6 end">
+        <h1>Duplicate Experiment</h1>
+        <form action="${request.route_url('experiment.duplicate', eid=experiment.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row expanded">
+            <div class="column small-12">${form.field('text', 'title', 'Duplicate Title')}</div>
+          </div>
+          <div class="row expanded text-right">
+            <div class="column small-12">
+              <a href="${request.route_url('experiment.view', eid=experiment.id)}" class="button secondary">Don't Duplicate</a>
+              <input type="submit" value="Duplicate" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>
