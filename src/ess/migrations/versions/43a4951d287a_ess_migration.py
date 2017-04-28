@@ -20,6 +20,9 @@ revision = '43a4951d287a'
 down_revision = '7f8cc2026730'
 
 metadata = sa.MetaData()
+experiments = sa.Table('experiments', metadata,
+                       sa.Column('id', sa.Integer(), primary_key=True),
+                       sa.Column('status', sa.Unicode(255)))
 transitions = sa.Table('transitions', metadata,
                        sa.Column('id', sa.Integer(), primary_key=True),
                        sa.Column('source_id', sa.Integer()),
@@ -312,6 +315,13 @@ def upgrade():
         op.drop_constraint('surveys_owned_by_fkey', 'experiments')
     if 'experiments_users_owner_fk' not in [v['name'] for v in insp.get_foreign_keys('experiments')]:
         op.create_foreign_key('experiments_users_owner_fk', 'experiments', 'users', ['owned_by'], ['id'])
+    for experiment in op.get_bind().execute(experiments.select()):
+        if experiment[1] == 'testing':
+            op.get_bind().execute(experiments.update().values(status='develop').where(experiments.c.id == experiment[0]))
+        elif experiment[1] == 'running':
+            op.get_bind().execute(experiments.update().values(status='live').where(experiments.c.id == experiment[0]))
+        elif experiment[1] == 'finished':
+            op.get_bind().execute(experiments.update().values(status='completed').where(experiments.c.id == experiment[0]))
     # Update to the new Pages model I
     if 'qsheets' in insp.get_table_names():
         op.rename_table('qsheets', 'pages')
