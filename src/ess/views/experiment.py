@@ -24,10 +24,11 @@ def init(config):
     config.add_route('experiment.view', '/experiments/{eid}')
     config.add_route('experiment.settings.general', '/experiments/{eid}/settings/general')
     config.add_route('experiment.settings.display', '/experiments/{eid}/settings/display')
-    config.add_route('experiment.settings.delete', '/experiments/{eid}/settings/delete')
+    config.add_route('experiment.actions', '/experiments/{eid}/actions')
+    config.add_route('experiment.actions.export', '/experiments/{eid}/actions/export')
+    config.add_route('experiment.actions.duplicate', '/experiments/{eid}/actions/duplicate')
+    config.add_route('experiment.actions.delete', '/experiments/{eid}/actions/delete')
     config.add_route('experiment.status', '/experiments/{eid}/status')
-    config.add_route('experiment.export', '/experiments/{eid}/export')
-    config.add_route('experiment.duplicate', '/experiments/{eid}/duplicate')
 
 
 class CreateExperimentSchema(CSRFSchema):
@@ -260,6 +261,24 @@ def settings_display(request):
         raise HTTPNotFound()
 
 
+@view_config(route_name='experiment.actions', renderer='ess:templates/experiment/actions/index.kajiki')
+@current_user()
+@require_permission(class_=Experiment, request_key='eid', action='view')
+def actions(request):
+    dbsession = DBSession()
+    experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Actions',
+                            'url': request.route_url('experiment.actions', eid=experiment.id)}]}
+    else:
+        raise HTTPNotFound()
+
+
 class DeleteSchema(CSRFSchema):
 
     confirm = formencode.validators.OneOf(['true'],
@@ -267,10 +286,10 @@ class DeleteSchema(CSRFSchema):
                                                     'missing': 'Please confirm that you wish to delete this experiment.'})
 
 
-@view_config(route_name='experiment.settings.delete', renderer='ess:templates/experiment/settings/delete.kajiki')
+@view_config(route_name='experiment.actions.delete', renderer='ess:templates/experiment/actions/delete.kajiki')
 @current_user()
 @require_permission(class_=Experiment, request_key='eid', action='delete')
-def settings_delete(request):
+def actions_delete(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     if experiment:
@@ -286,8 +305,10 @@ def settings_delete(request):
                                     'url': request.route_url('dashboard')},
                                    {'title': experiment.title,
                                     'url': request.route_url('experiment.view', eid=experiment.id)},
-                                   {'title': 'Display Settings',
-                                    'url': request.route_url('experiment.settings.display', eid=experiment.id)}],
+                                   {'title': 'Actions',
+                                    'url': request.route_url('experiment.actions', eid=experiment.id)},
+                                   {'title': 'Delete',
+                                    'url': request.route_url('experiment.actions.delete', eid=experiment.id)}],
                         'errors': e.error_dict,
                         'values': request.params}
         return {'experiment': experiment,
@@ -295,8 +316,10 @@ def settings_delete(request):
                             'url': request.route_url('dashboard')},
                            {'title': experiment.title,
                             'url': request.route_url('experiment.view', eid=experiment.id)},
-                           {'title': 'Display Settings',
-                            'url': request.route_url('experiment.settings.display', eid=experiment.id)}]}
+                           {'title': 'Actions',
+                            'url': request.route_url('experiment.actions', eid=experiment.id)},
+                           {'title': 'Delete',
+                            'url': request.route_url('experiment.actions.delete', eid=experiment.id)}]}
     else:
         raise HTTPNotFound()
 
@@ -348,26 +371,44 @@ def status(request):
         raise HTTPNotFound()
 
 
-@view_config(route_name='experiment.export', renderer='json')
+@view_config(route_name='experiment.actions.export', renderer='ess:templates/experiment/actions/export.kajiki')
 @current_user()
 @require_permission(class_=Experiment, request_key='eid', action='view')
-@require_method('POST')
-def export(request):
+def actions_export(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     if experiment:
-        try:
-            CSRFSchema().to_python(request.params, State(request=request))
-            request.response.headers['Content-Disposition'] = 'attachment; filename="%s.json"' % experiment.title
-            return export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
-                                                        (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
-                                                        (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
-                                                        (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
-                                                        (Question, 'q_type'), (QuestionType, 'q_type_group'),
-                                                        (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
-                                                        (Transition, 'source'), (Transition, 'target')])
-        except formencode.Invalid:
-            raise HTTPFound(request.route_url('experiment.view', eid=experiment.id))
+        if request.method == 'POST':
+            try:
+                CSRFSchema().to_python(request.params, State(request=request))
+                request.response.headers['Content-Disposition'] = 'attachment; filename="%s.json"' % experiment.title
+                request.override_renderer = 'json'
+                return export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
+                                                            (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
+                                                            (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
+                                                            (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
+                                                            (Question, 'q_type'), (QuestionType, 'q_type_group'),
+                                                            (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
+                                                            (Transition, 'source'), (Transition, 'target')])
+            except formencode.Invalid:
+                return {'experiment': experiment,
+                        'crumbs': [{'title': 'Experiments',
+                                    'url': request.route_url('dashboard')},
+                                   {'title': experiment.title,
+                                    'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Actions',
+                                    'url': request.route_url('experiment.actions', eid=experiment.id)},
+                                   {'title': 'Export',
+                                    'url': request.route_url('experiment.actions.export', eid=experiment.id)}]}
+        return {'experiment': experiment,
+                'crumbs': [{'title': 'Experiments',
+                            'url': request.route_url('dashboard')},
+                           {'title': experiment.title,
+                            'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Actions',
+                            'url': request.route_url('experiment.actions', eid=experiment.id)},
+                           {'title': 'Export',
+                            'url': request.route_url('experiment.actions.export', eid=experiment.id)}]}
     else:
         raise HTTPNotFound()
 
@@ -377,10 +418,10 @@ class DuplicateSchema(CSRFSchema):
     title = formencode.validators.UnicodeString(not_empty=True)
 
 
-@view_config(route_name='experiment.duplicate', renderer='ess:templates/experiment/duplicate.kajiki')
+@view_config(route_name='experiment.actions.duplicate', renderer='ess:templates/experiment/actions/duplicate.kajiki')
 @current_user()
 @require_permission(class_=Experiment, request_key='eid', action='edit')
-def duplicate(request):
+def actions_duplicate(request):
     dbsession = DBSession()
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     if experiment:
@@ -426,8 +467,10 @@ def duplicate(request):
                                     'url': request.route_url('dashboard')},
                                    {'title': experiment.title,
                                     'url': request.route_url('experiment.view', eid=experiment.id)},
+                                   {'title': 'Actions',
+                                    'url': request.route_url('experiment.actions', eid=experiment.id)},
                                    {'title': 'Duplicate',
-                                    'url': request.route_url('experiment.duplicate', eid=experiment.id)}],
+                                    'url': request.route_url('experiment.actions.duplicate', eid=experiment.id)}],
                         'errors': e.error_dict if e.error_dict else {'title': str(e)},
                         'values': request.params}
         return {'experiment': experiment,
@@ -435,8 +478,10 @@ def duplicate(request):
                             'url': request.route_url('dashboard')},
                            {'title': experiment.title,
                             'url': request.route_url('experiment.view', eid=experiment.id)},
+                           {'title': 'Actions',
+                            'url': request.route_url('experiment.actions', eid=experiment.id)},
                            {'title': 'Duplicate',
-                            'url': request.route_url('experiment.duplicate', eid=experiment.id)}]}
+                            'url': request.route_url('experiment.actions.duplicate', eid=experiment.id)}]}
     else:
         raise HTTPNotFound()
 

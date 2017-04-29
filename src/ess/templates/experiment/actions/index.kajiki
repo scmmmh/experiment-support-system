@@ -1,0 +1,11 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Actions</py:block>
+  <py:block name="content">
+    <div class="row expanded">
+      <article class="column small-12">
+        <h1>Actions</h1>
+        <py:include href="ess:templates/experiment/actions/_menubar.kajiki"/>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

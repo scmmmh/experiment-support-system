@@ -1,0 +1,7 @@
+<nav class="menubar">
+  <ul class="menu">
+    <li py:if="experiment.allow('view', request.current_user)" class="${'active' if request.matched_route.name == 'experiment.actions.export' else ''}"><a href="${request.route_url('experiment.actions.export', eid=experiment.id)}">Export</a></li>
+    <li py:if="experiment.allow('edit', request.current_user)" class="${'active' if request.matched_route.name == 'experiment.actions.duplicate' else ''}"><a href="${request.route_url('experiment.actions.duplicate', eid=experiment.id)}">Duplicate</a></li>
+    <li py:if="experiment.allow('delete', request.current_user)" class="${'active' if request.matched_route.name == 'experiment.actions.delete' else ''} alert"><a href="${request.route_url('experiment.actions.delete', eid=experiment.id)}">Delete</a></li>
+  </ul>
+</nav>

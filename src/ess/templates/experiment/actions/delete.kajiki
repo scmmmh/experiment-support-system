@@ -5,8 +5,8 @@
     <div class="row expanded">
       <article class="column small-12">
         <h1>Delete</h1>
-        <py:include href="ess:templates/experiment/settings/_menubar.kajiki"/>
-        <form action="${request.route_url('experiment.settings.delete', eid=experiment.id)}" method="post">
+        <py:include href="ess:templates/experiment/actions/_menubar.kajiki"/>
+        <form action="${request.route_url('experiment.actions.delete', eid=experiment.id)}" method="post">
           ${form.csrf_field()}
           <div class="row expanded">
             <div class="column small-12 medium-8 end">
@@ -15,7 +15,7 @@
           </div>
           <div class="row expanded">
             <div class="column small-12 medium-8 end text-right">
-              <a href="${request.route_url('experiment.settings.general', eid=experiment.id)}" class="button secondary">Don't Delete</a>
+              <a href="${request.route_url('experiment.actions', eid=experiment.id)}" class="button secondary">Don't Delete</a>
               <input type="submit" value="Delete" class="button alert"/>
             </div>
           </div>
