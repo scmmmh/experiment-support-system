@@ -78,23 +78,26 @@ class ExperimentIOSchema(BaseSchema):
     def fix_relationships(self, experiment, data):
         if experiment.__import_relationships['pages']:
             for pid in experiment.__import_relationships['pages']:
-                pid = int(pid)
-                if 'pages' in data and pid in data['pages']:
-                    experiment.pages.append(data['pages'][pid])
-        if experiment.__import_relationships['start']:
+                if pid is not None:
+                    pid = int(pid)
+                    if 'pages' in data and pid in data['pages']:
+                        experiment.pages.append(data['pages'][pid])
+        if experiment.__import_relationships['start'] is not None:
             pid = int(experiment.__import_relationships['start'])
             if 'pages' in data and pid in data['pages']:
                 experiment.start = data['pages'][pid]
         if experiment.__import_relationships['data_sets']:
             for dsid in experiment.__import_relationships['data_sets']:
-                dsid = int(dsid)
-                if 'data_sets' in data and dsid in data['data_sets']:
-                    experiment.data_sets.append(data['data_sets'][dsid])
+                if dsid is not None:
+                    dsid = int(dsid)
+                    if 'data_sets' in data and dsid in data['data_sets']:
+                        experiment.data_sets.append(data['data_sets'][dsid])
         if experiment.__import_relationships['latin_squares']:
             for dsid in experiment.__import_relationships['latin_squares']:
-                dsid = int(dsid)
-                if 'data_sets' in data and dsid in data['data_sets']:
-                    experiment.latin_squares.append(data['data_sets'][dsid])
+                if dsid is not None:
+                    dsid = int(dsid)
+                    if 'data_sets' in data and dsid in data['data_sets']:
+                        experiment.latin_squares.append(data['data_sets'][dsid])
         
 
     def clear_relationships(self, experiment):
@@ -149,20 +152,23 @@ class PageIOSchema(BaseSchema):
     def fix_relationships(self, page, data):
         if page.__import_relationships['questions']:
             for qid in page.__import_relationships['questions']:
-                qid = int(qid)
-                if 'questions' in data and qid in data['questions']:
-                    page.questions.append(data['questions'][qid])
+                if qid is not None:
+                    qid = int(qid)
+                    if 'questions' in data and qid in data['questions']:
+                        page.questions.append(data['questions'][qid])
         if page.__import_relationships['next']:
             for tid in page.__import_relationships['next']:
-                tid = int(tid)
-                if 'transitions' in data and tid in data['transitions']:
-                    page.next.append(data['transitions'][tid])
+                if tid is not None:
+                    tid = int(tid)
+                    if 'transitions' in data and tid in data['transitions']:
+                        page.next.append(data['transitions'][tid])
         if page.__import_relationships['prev']:
             for tid in page.__import_relationships['prev']:
-                tid = int(tid)
-                if 'transitions' in data and tid in data['transitions']:
-                    page.prev.append(data['transitions'][tid])
-        if page.__import_relationships['data_set']:
+                if tid is not None:
+                    tid = int(tid)
+                    if 'transitions' in data and tid in data['transitions']:
+                        page.prev.append(data['transitions'][tid])
+        if page.__import_relationships['data_set'] is not None:
             dsid = int(page.__import_relationships['data_set'])
             if 'data_sets' in data and dsid in data['data_sets']:
                 page.data_set = data['data_sets'][dsid]
@@ -194,7 +200,7 @@ class QuestionIOSchema(BaseSchema):
         return question
 
     def fix_relationships(self, question, data):
-        if 'q_type' in question.__import_relationships:
+        if question.__import_relationships['q_type'] is not None:
             qtid = int(question.__import_relationships['q_type'])
             if 'question_types' in data and qtid in data['question_types']:
                 question.q_type = data['question_types'][qtid]
@@ -238,11 +244,11 @@ class QuestionTypeIOSchema(BaseSchema):
         return question_type
 
     def fix_relationships(self, question_type, data):
-        if question_type.__import_relationships['parent']:
+        if question_type.__import_relationships['parent'] is not None:
             qtid = int(question_type.__import_relationships['parent'])
             if qtid in data['question_types']:
                 question_type.parent = data['question_types'][qtid]
-        if question_type.__import_relationships['q_type_group']:
+        if question_type.__import_relationships['q_type_group'] is not None:
             qtgid = int(question_type.__import_relationships['q_type_group'])
             if qtgid in data['question_type_groups']:
                 question_type.q_type_group = data['question_type_groups'][qtgid]
@@ -309,7 +315,7 @@ class QuestionTypeGroupIOSchema(BaseSchema):
         return question_type_group
 
     def fix_relationships(self, question_type_group, data):
-        if question_type_group.__import_relationships['parent']:
+        if question_type_group.__import_relationships['parent'] is not None:
             qtgid = int(question_type_group.__import_relationships['parent'])
             if qtgid in data['question_type_groups']:
                 question_type_group.parent = data['question_type_groups'][qtgid]
@@ -360,7 +366,7 @@ class DataSetIOSchema(BaseSchema):
         return data_set
 
     def fix_relationships(self, data_set, data):
-        if data_set.__import_relationships['items']:
+        if data_set.__import_relationships['items'] is not None:
             for diid in data_set.__import_relationships['items']:
                 diid = int(diid)
                 if diid in data['data_items']:
@@ -407,7 +413,7 @@ class DataItemIOSchema(BaseSchema):
 class TransitionIOSchema(BaseSchema):
 
     id = fields.Int()
-    order = fields.Int()
+    order = fields.Int(allow_none=True, missing=1)
     attributes = fields.Dict()
 
     source = fields.Relationship(include_resource_linkage=True,
@@ -426,11 +432,11 @@ class TransitionIOSchema(BaseSchema):
         return transition
 
     def fix_relationships(self, transition, data):
-        if transition.__import_relationships['source']:
+        if transition.__import_relationships['source'] is not None:
             pid = int(transition.__import_relationships['source'])
             if 'pages' in data and pid in data['pages']:
                 transition.source = data['pages'][pid]
-        if transition.__import_relationships['target']:
+        if transition.__import_relationships['target'] is not None:
             pid = int(transition.__import_relationships['target'])
             if 'pages' in data and pid in data['pages']:
                 transition.target = data['pages'][pid]
