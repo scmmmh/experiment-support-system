@@ -1,0 +1,35 @@
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
+  <py:block name="title">${user.display_name} - Edit</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row">
+      <div class="column small-12">
+        <h1>${user.display_name} - Edit</h1>
+      </div>
+    </div>
+    <form action="${request.route_url('user.edit', uid=user.id)}" method="post">
+      ${form.csrf_field()}
+      <div class="row">
+        <div class="column small-12 medium-8 large-6 end">
+          ${form.field('email', 'email', 'E-Mail Address', value=user.email)}
+        </div>
+      </div>
+      <div class="row">
+        <div class="column small-12 medium-8 large-6 end">
+          ${form.field('text', 'display_name', 'Your Name', value=user.display_name)}
+        </div>
+      </div>
+      <div class="row">
+        <div class="column small-12 medium-8 large-6 end">
+          ${form.field('password', 'password', 'New Password (leave empty to leave unchanged)')}
+        </div>
+      </div>
+      <div class="row">
+        <div class="column small-12 medium-8 large-6 end text-right">
+          <a href="${request.route_url('user.view', uid=user.id)}" class="button secondary">Don't Update</a>
+          <input type="submit" value="Update" class="button"/>
+        </div>
+      </div>
+    </form>
+  </py:block>
+</py:extends>

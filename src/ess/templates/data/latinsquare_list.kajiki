@@ -1,0 +1,17 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Latin Squares</py:block>
+  <py:block name="content">
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <div class="row expanded">
+      <article class="column small-12">
+        <div class="float-right">
+          <a py:if="experiment.allow('edit', request.current_user)" href="${request.route_url('experiment.latinsquare.create', eid=experiment.id)}" class="button">${icon.md('add', 'Create a new Data Set')}</a>
+        </div>
+        <h1>Latin Squares</h1>
+        <ul>
+          <li py:for="data_set in experiment.latin_squares"><a href="${request.route_url('experiment.latinsquare.view', eid=experiment.id, did=data_set.id)}">${data_set.name}</a></li>
+        </ul>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

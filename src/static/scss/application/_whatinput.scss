@@ -1,0 +1,16 @@
+.mouse-only, .touch-only, .keyboard-only {
+    display: none;
+}
+.whatinput-types-mouse {
+    .mouse-only {
+        display: block;
+        display: unset;
+    }
+    .not-mouse {
+        display: none;
+    }
+}
+.whatinput-types-touch .touch-only {
+    display: block;
+    display: unset;
+}

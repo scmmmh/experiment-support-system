@@ -1,0 +1,63 @@
+<py:extends href="ess:templates/layout/frontend.kajiki">
+  <py:block name="title">${experiment.title} - ${page.title}</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <py:import href="ess:templates/helpers/question.kajiki" alias="qs"/>
+    <form action="${request.route_url(request.matched_route.name, ueid=experiment.external_id)}" class="row" novalidate="novalidate" method="post">
+      ${form.csrf_field()}
+      ${form.field('hidden', '_action', '', value='')}
+      <div class="column small-12">
+        <h1>${page.title}</h1>
+        <py:for each="data_item in data_items">
+          <py:for each="question in page.questions">
+            ${qs.render(question, data_item)}
+          </py:for>
+        </py:for>
+        <ul class="menu simple align-right">
+          <li py:for="action in actions"><button class="button action" data-action="${action[0]}">${action[1]}</button></li>
+        </ul>
+      </div>
+    </form>
+  </py:block>
+  <py:block name="body_script">
+    <?py from ess.util import replace_variables ?>
+    <script>
+    <![CDATA[
+        $(document).foundation();
+        $('.toggle-question-help').toggle_question_help();
+        var jq_window = $(window);
+        var action = $('input[name=_action]');
+        action.val('');
+        var form = $('form');
+        form.on('submit', function(ev) {
+            if(action.val() === '') {
+                ev.preventDefault();
+            }
+            var input_types = whatInput.types();
+            for(var idx = 0; idx < input_types.length; idx++) {
+                if(input_types[idx] != 'initial') {
+                    form.append('<input type="hidden" name="_user_agent.input_type" value="' + input_types[idx] + '"/>');
+                }
+            }
+        });
+        form.append('<input type="hidden" name="_user_agent.screen_size" value="' + jq_window.innerWidth() + 'x' + jq_window.innerHeight() + '"/>');
+        $('button.action').on('click', function() {
+            action.val($(this).data('action'));
+            form.trigger('submit');
+        });
+        // Re-init the interaction types from the previous page
+        $('html').addClass('${' '.join(['whatinput-types-%s' % it for it in participant['user_agent']['input_types']]) if 'user_agent' in participant and 'input_types' in participant['user_agent'] else '')');
+    ]]>
+    </script>
+    <py:for each="data_item in data_items">
+      <script py:for="question in page.questions" py:if="('frontend', 'javascript') in question">
+      <![CDATA[
+          (function (question) {
+              ${literal(replace_variables(question['frontend', 'javascript'], question, data_item['values'], question.q_type.frontend))}
+          })($('#question-${question.id}'));
+      ]]>
+      </script>
+    </py:for>
+  </py:block>
+</py:extends>

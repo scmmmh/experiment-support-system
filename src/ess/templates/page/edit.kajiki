@@ -1,0 +1,102 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - ${page.title if page.title else 'No title'} (${page.name})</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <py:import href="ess:templates/helpers/question.kajiki" alias="questions"/>
+    <py:import href="ess:templates/page/_question_types.kajiki" alias="qtypes"/>
+    <?py from ess.models import DataItem ?>
+    <?py from pywebtools.pyramid.util import confirm_delete ?>
+    <div class="row expanded">
+      <div class="column small-12">
+        <h1>${page.title if page.title else 'No title'} <small>${page.name}</small></h1>
+        <py:include href="ess:templates/page/_menubar.kajiki"/>
+      </div>
+    </div>
+    <div class="row expanded">
+      <article class="column small-12 medium-8 large-9 editable">
+        <div py:for="question in page.questions" id="question-${question.id}" data-item-id="${question.id}" class="row collapse expanded editable-container hover-parent">
+          <nav class="column small-1">
+            <ul class="menu vertical text-right show-for-hover">
+              <li class="hide-edit"><a href="#" data-action="reorder">${icon.md('swap_vert', 'Re-order')}</a></li>
+            </ul>
+            &nbsp;
+          </nav>
+          <div class="column small-10 hide-edit">
+            <div class="preview">${questions.render(question, DataItem(id=None))}<section class="question ${'hidden' if question['frontend', 'visible'] else ''}"><div class="row"><div class="column small-12"><h2>${question['name']}</h2></div></div></section></div>
+          </div>
+          <div class="column small-10 show-edit">
+            <form action="${request.route_url('experiment.page.edit.question', eid=experiment.id, pid=page.id, qid=question.id)}" method="post" class="question-form">
+              ${form.csrf_field()}
+              <div class="row"> 
+                <div class="column small-12">
+                  <h2>${question.q_type.title}</h2>
+                </div>
+              </div>
+              <div py:for="field in question['backend', 'fields']" class="row">
+                <div class="column small-12 end">
+                  <py:switch test="field['type']">
+                    <py:case value="'checkbox'">${form.field(field['type'], field['name'], field['title'], value=field['value'] if 'value' in field else 'true', checked="checked" if question[field['name']] else None, extra_attrs=field['extra_attrs'] if 'extra_attrs' in field else None)}</py:case>
+                    <py:case value="'select'">${form.field(field['type'], field['name'], field['title'], value=question['frontend', field['name']], values=field['values'] if 'values' in field else [], extra_attrs=field['extra_attrs'] if 'extra_attrs' in field else None)}</py:case>
+                    <py:case value="'table'">
+                      <label>${field['title']}</label>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th py:for="sub_field in field['fields']">${sub_field['title']}</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr py:for="idx, value in enumerate(question['frontend', field['name']])">
+                            <td py:for="sub_field in field['fields']">${form.field('text', '%s-%i.%s' % (field['name'], idx, sub_field['name']), '', value=value[sub_field['name']])}</td>
+                            <td class="text-center"><a href="" data-action="remove-row" class="alert">${icon.md('remove', 'Remove Answer')}</a></td>
+                          </tr>
+                          <tr>
+                            <td py:for="sub_field in field['fields']">${form.field('text', '%s-%i.%s' % (field['name'], len(question['fronend', field['name']]) if question['fronend', field['name']] else 0, sub_field['name']), '', extra_attrs={'class': 'hidden'})}</td>
+                            <td class="text-center"><a href="" data-action="add-row" class="success">${icon.md('add', 'Add Answer')}</a></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </py:case>
+                    <py:else>${form.field(field['type'], field['name'], field['title'], value=question['frontend', field['name']], extra_attrs=field['extra_attrs'] if 'extra_attrs' in field else None)}</py:else>
+                  </py:switch>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="column small-1">
+            <nav>
+              <ul class="menu align-right show-for-hover show-edit">
+                <li class="hide-edit"><a href="#" data-action="edit">${icon.md('edit', 'Edit')}</a></li>
+                <li class="hide-edit"><a href="${request.route_url('experiment.page.delete.question', eid=experiment.id, pid=page.id, qid=question.id, _query=[('csrf_token', request.session.get_csrf_token())])}" data-action="delete" data-ess-confirm="${confirm_delete('question', question['frontend', 'title'] if question['frontend', 'title'] else question['frontend', 'name'])}" class="alert post-link">${icon.md('delete', 'Delete')}</a></li>
+                <li class="show-edit"><a href="#" data-action="save" class="success">${icon.md('check', 'Save Changes')}</a></li>
+                <li class="show-edit"><a href="#" data-action="cancel" class="alert">${icon.md('close', 'Discard Changes')}</a></li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </article>
+      <div id="question-types" class="column small-12 medium-4 large-3">
+        ${qtypes.accordion_menu(qtgroups)}
+      </div>
+    </div>
+  </py:block>
+  <py:block name="body_script">
+  <script>
+  <![CDATA[
+      $('article').inlineEditor({
+          reorder: '${request.route_url('experiment.page.edit.reorder', eid=experiment.id, pid=page.id)}',
+          csrf_token: '${request.session.get_csrf_token()}'
+      });
+      // If there is a hash set, start editing that question
+      if(window.location.hash) {
+          $(window.location.hash).find('a[data-action=edit]').trigger('click');
+          if(window.history) {
+              history.replaceState(null, document.title, window.location.pathname + window.location.search);
+          }
+      }
+  ]]>
+  </script>
+  </py:block>
+</py:extends>

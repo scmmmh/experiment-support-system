@@ -1,0 +1,105 @@
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
+  <py:block name="title">Users</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="pywebtools:kajiki/menu.kajiki" alias="menu"/>
+    <py:import href="pywebtools:kajiki/navigation.kajiki" alias="nav"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <?py from pywebtools.pyramid.util import confirm_delete ?>
+    <div class="row">
+      <div class="column small-12">
+        <h1>Users</h1>
+      </div>
+    </div>
+    <form action="${request.route_url('users')}" class="row collapse">
+      <div class="small-12 medium-6 column">
+        <div class="row collapse">
+          <div class="small-9 medium-8 column">
+            <label><span class="show-for-sr">Search by name or e-mail</span>${form.input('text', 'q', value=request.params['q'] if 'q' in request.params else '', extra_attrs={'placeholder': 'Search by name or e-mail'})}</label>
+          </div>
+          <div class="small-3 medium-4 column">
+            <input type="submit" value="Search" class="button postfix"/>
+          </div>
+        </div>
+      </div>
+      <div class="small-12 medium-5 medium-offset-1 column">
+        <div class="row collapse">
+          <div class="small-9 medium-8 column">
+            <label><span class="show-for-sr">Filter displayed users</span>${form.input('select', 'status', value=request.params['status'] if 'status' in request.params else '', values=[('', 'All Users'), ('confirmed', 'Confirmed Users'), ('new', 'New Users')])}</label>
+          </div>
+          <div class="small-3 medium-4 column">
+            <input type="submit" value="Filter" class="button postfix"/>
+          </div>
+        </div>
+      </div>
+    </form>
+    <form action="${request.route_url('users.action')}" method="post" class="row">
+      <table class="small-12">
+        <thead>
+          <tr>
+            <th><label><span class="show-for-sr">Select all</span><input id="change_all" type="checkbox"/></label></th>
+            <th>Name</th>
+            <th>E-Mail</th>
+            <th>Status</th>
+            <th><span class="show-for-sr">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <py:if test="users.count() == 0">
+            <tr>
+              <td colspan="5">No users were found for the filter you selected.</td>
+            </tr>
+          </py:if><py:else>
+            <tr py:for="user in users">
+              <td><label><input id="user_id_${user.id}" name="user_id" type="checkbox" value="${user.id}"/><span class="show-for-sr">Select ${user.display_name}</span></label></td>
+              <td><a href="${request.route_url('user.view', uid=user.id)}" py:if="user.allow('view', request.current_user)">${user.display_name}</a><span py:if="not user.allow('view', request.current_user)">${user.display_name}</span></td>
+              <td>${user.email}</td>
+              <td>${user.status.title()}</td>
+              <td class="text-right">
+                <ul class="menu simple">
+                  <py:if test="user.status == 'active'">
+                    <li py:if="user.allow('edit', request.current_user)"><a href="${request.route_url('user.edit', uid=user.id)}">${icon.md('edit', 'Edit the User')}</a></li>
+                    <li py:if="user.allow('edit-permissions', request.current_user)"><a href="${request.route_url('user.permissions', uid=user.id)}">${icon.md('vpn_key', 'Edit the User\'s Permissions')}</a></li>
+                    <li py:if="user.allow('edit', request.current_user)"><a href="${request.route_url('user.forgotten_password', _query=[('email', user.email), ('csrf_token', request.session.get_csrf_token()), ('return_to', request.current_route_url())])}" class="post-link">${icon.md('cached', 'Resend Password')}</a></li>
+                  </py:if><py:else>
+                    <li py:if="user.allow('edit', request.current_user)"><a href="${request.route_url('users.action', _query=[('user_id', user.id), ('action', 'validate'), ('csrf_token', request.session.get_csrf_token())])}" class="success">${icon.md('check', 'Validate the User')}</a></li>
+                  </py:else>
+                  <li py:if="user.allow('delete', request.current_user)"><a href="${request.route_url('user.delete', uid=user.id, _query={'csrf_token': request.session.get_csrf_token()})}" class="alert post-link" data-ess-confirm="${confirm_delete('user', user.display_name, False)}">${icon.md('close', 'Delete the User')}</a></li>
+                </ul>
+              </td>
+            </tr>
+          </py:else>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">
+              ${nav.pagination(pages)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="row collapse">
+        <py:if test="'q' in request.params">${form.input('hidden', 'q', value=request.params['q'])}</py:if>
+        <py:if test="'status' in request.params">${form.input('hidden', 'status', value=request.params['status'])}</py:if>
+        <py:if test="'start' in request.params">${form.input('hidden', 'start', value=request.params['start'])}</py:if>
+        <div class="small-8 medium-6 large-4 column">
+          ${form.csrf_field()}
+          <label>${form.input('select', 'action', value='', values=[('', '--- Choose Action ---'), ('validate', 'Validate selected users'), ('password', 'Generate new passwords'), ('delete', 'Delete selected users')])}<span class="show-for-sr">Apply this action to all selected users</span></label>
+        </div>
+        <div class="small-4 medium-2 column end">
+          <input type="submit" value="Apply" class="button postfix"/>
+        </div>
+      </div>
+    </form>
+  </py:block>
+  <py:block name="body_script">
+    <script>
+    $('#change_all').on('click', function() {
+        var checked = $(this).is(':checked');
+        $('input[name=user_id]').each(function() {
+            $(this).prop('checked', checked);
+        });
+    });
+    </script>
+  </py:block>
+</py:extends>

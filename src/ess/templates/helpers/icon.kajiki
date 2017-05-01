@@ -1,0 +1,4 @@
+<div>
+  <!-- Output a Material Designs Icon -->
+  <py:def function="md(icon, label)"><span class="mdi mdi-18" aria-hidden="true">${icon}</span><span class="show-for-sr">${label}</span></py:def>
+</div>

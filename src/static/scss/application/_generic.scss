@@ -1,0 +1,31 @@
+.hidden {
+    display: none;
+}
+.show-for-hover {
+    display: none;
+}
+.hover-parent:hover {
+    .show-for-hover {
+        display: block;
+    }
+}
+.no-wrap {
+    white-space: nowrap;
+}
+.ui-sortable-handle {
+    cursor: move;
+}
+.padding-bottom {
+    padding-bottom: $global-padding;
+}
+.padding-right {
+    padding-right: $global-padding;
+}
+.pos-bottom {
+    position: absolute;
+    bottom: 0;
+}
+.pos-right {
+    position: absolute;
+    right: 0;
+}

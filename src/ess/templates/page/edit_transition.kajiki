@@ -1,0 +1,5 @@
+<div>
+  <py:import href="ess:templates/helpers/page.kajiki" alias="page_helper"/>
+  <p>Transition to <py:if test="transition.target">page ${page_helper.backend_link(transition.target)}</py:if><py:else>the end</py:else></p>
+  <p py:if="'condition' in transition and transition['condition']['type'] == 'dataset'"><py:if test="page.dataset_id is not None">Conditional on further unanswered items available in the data set <a href="${request.route_url('experiment.data.view', eid=experiment.id, did=page.dataset_id)}">${page.data_set.name}</a> and the user selects to answer more items. Following this transition will automatically select a new set of ${page['data']['item_count']} items for the user.</py:if><py:else>Never used as no data set is <a href="${request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id)}">linked</a>.</py:else></p>
+</div>

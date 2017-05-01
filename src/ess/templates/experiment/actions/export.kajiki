@@ -1,0 +1,26 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Export</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row expanded">
+      <article class="column small-12">
+        <h1>Export</h1>
+        <py:include href="ess:templates/experiment/actions/_menubar.kajiki"/>
+        <form action="${request.route_url('experiment.actions.export', eid=experiment.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              This will export your experiment, including all pages, questions, data sets, and latin squares.
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end text-right">
+              <a href="${request.route_url('experiment.actions', eid=experiment.id)}" class="button secondary">Don't Export</a>
+              <input type="submit" value="Export" class="button alert"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

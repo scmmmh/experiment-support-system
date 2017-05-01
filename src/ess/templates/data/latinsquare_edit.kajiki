@@ -1,0 +1,72 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Edit ${data_set.name}</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <div class="row left">
+      <article class="column small-12 medium-6 end">
+        <h1>Edit ${data_set.name}</h1>
+        <form action="${request.route_url('experiment.latinsquare.edit', eid=experiment.id, did=data_set.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row">
+            <div class="column small-12">${form.field('text', 'name', 'Unique Name', value=data_set.name)}</div>
+          </div>
+          <div class="row">
+            <div class="column small-12">
+              <div class="row collapse">
+                <div class="column small-6 medium-8">${form.field('select', 'source_a', 'Data Set A', values=[(-1, '--- Please select a data-set ---')] + [(str(ds.id), ds.name) for ds in experiment.data_sets], value=str(data_set['source_a']))}</div>
+                <div class="column small-6 medium-4">${form.field('select', 'mode_a', 'Mode', values=[('within', 'Within Participants'), ('between', 'Between Participants')], value=data_set['mode_a'])}</div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="column small-12">
+              <div class="row collapse">
+                <div class="column small-6 medium-8">${form.field('select', 'source_b', 'Data Set B', values=[(-1, '--- Please select a data-set ---')] + [(str(ds.id), ds.name) for ds in experiment.data_sets], value=str(data_set['source_b']))}</div>
+                <div class="column small-6 medium-4">${form.field('select', 'mode_b', 'Mode', values=[('within', 'Within Participants'), ('between', 'Between Participants')], value=data_set['mode_b'])}</div>
+              </div>
+              <p id="permutation_estimate"></p>
+            </div>
+          </div>
+          <div class="row text-right">
+            <div class="column small-12">
+              <a href="${request.route_url('experiment.latinsquare.view', eid=experiment.id, did=data_set.id)}" class="button secondary">Don't Update</a>
+              <input type="submit" value="Update" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+  <py:block name="body_script">
+  <script>
+  <![CDATA[
+      function estimate_count() {
+          var promise = $.ajax('${request.route_url('experiment.latinsquare.edit.estimate', eid=experiment.id, did=data_set.id)}', {
+              method: 'POST',
+              data: {
+                  'csrf_token': '${request.session.get_csrf_token()}',
+                  'source_a': $('select[name=source_a]').val(),
+                  'mode_a': $('select[name=mode_a]').val(),
+                  'source_b': $('select[name=source_b]').val(),
+                  'mode_b': $('select[name=mode_b]').val()
+              }
+          });
+          promise.then(function(data) {
+              if(data.count === '') {
+                  $('#permutation_estimate').hide();
+              } else {
+                  if(data.count > 10000) {
+                      $('#permutation_estimate').show().html('<small class="alert">These settings will generate a latin square with ' + data.count + ' combinations.</small>');
+                  } else {
+                      $('#permutation_estimate').show().html('<small>These settings will generate a latin square with ' + data.count + ' combinations.</small>');
+                  }
+              }
+          });
+      }
+      $('select').on('change', estimate_count);
+      estimate_count();
+  ]]>
+  </script>
+  </py:block>
+</py:extends>

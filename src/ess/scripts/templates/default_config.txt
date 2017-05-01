@@ -1,0 +1,92 @@
+# #######################################
+# Experiment Support System configuration
+# #######################################
+
+[app:main]
+
+# ********************
+# Application settings
+# ********************
+app.title = Experiment Support System
+
+# *************************************
+# SQLAlchemy database connection string
+# *************************************
+sqlalchemy.url = ${sqlalchemy_url}
+
+# ***************
+# E-Mail settings
+# ***************
+email.smtp_host = 
+
+# ******************************
+# Session handling configuration
+# ******************************
+beaker.session.lock_dir = %(here)s/tmp
+beaker.session.type = cookie
+beaker.session.key = ess
+beaker.session.encrypt_key = ${encrypt_key}
+beaker.session.validate_key = ${validate_key}
+
+# *******************************
+# Pyramid framework configuration
+# *******************************
+pyramid.reload_templates = false
+pyramid.debug_authorization = false
+pyramid.debug_notfound = false
+pyramid.debug_routematch = false
+pyramid.debug_templates = false
+pyramid.default_locale_name = en
+pyramid.includes = pyramid_tm
+{%if debug %}\
+    pyramid_debugtoolbar
+{%end%}\
+kajiki.mode = xml
+
+# DON'T CHANGE THIS
+use = egg:ExperimentSupportSystem
+
+# ############################
+# Default server configuration
+# ############################
+
+[server:main]
+use = egg:waitress#main
+host = 0.0.0.0
+port = 6543
+
+# #####################
+# Logging configuration
+# #####################
+
+[loggers]
+keys = root, ess, sqlalchemy
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = ERROR
+handlers = console
+
+[logger_ess]
+level = ERROR
+handlers =
+qualname = ess
+
+[logger_sqlalchemy]
+level = ERROR
+handlers =
+qualname = sqlalchemy.engine
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s

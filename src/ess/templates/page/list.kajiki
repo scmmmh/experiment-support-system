@@ -1,0 +1,18 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Pages</py:block>
+  <py:block name="content">
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <div class="row expanded">
+      <article class="column small-12">
+        <div class="float-right">
+          <a py:if="experiment.allow('edit', request.current_user)" href="${request.route_url('experiment.page.create', eid=experiment.id)}" class="button">${icon.md('add', 'Add a new page')}</a>
+          <a py:if="experiment.allow('edit', request.current_user)" href="${request.route_url('experiment.page.import', eid=experiment.id)}" class="button">${icon.md('unarchive', 'Import a page')}</a>
+        </div>
+        <h1>Pages</h1>
+        <ul>
+          <li py:for="page in experiment.pages"><a href="${request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)}">${page.title if page.title else 'No title'} (${page.name})</a></li>
+        </ul>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

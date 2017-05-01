@@ -1,0 +1,49 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Results Overview</py:block>
+  <py:block name="content">
+    <?py import json ?>
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <article>
+      <div class="row expanded">
+        <div class="column small-12">
+          <h1>${experiment.title} - Export Results</h1>
+        </div>
+      </div>
+      <form action="" method="post">
+        ${form.csrf_field()}
+        <div class="row expanded">
+          <div class="column small-12 medium-6">
+            <h2>Questions to export</h2>
+            <ul class="no-bullet">
+              <li py:for="page in experiment.pages">${page.title_name}
+                <ul class="no-bullet">
+                  <li py:for="question in page.questions" py:if="question['frontend', 'generates_response']">${form.field('checkbox', 'question', question['name'], value=question.id, checked=True)}</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="column small-12 medium-6">
+            <h2>Settings</h2>
+            <py:for each="data_set in experiment.data_sets">
+              ${form.field('select', 'data_set_identifier_%s' % data_set.id, 'Field to use to identify items in the data set %s' % data_set.name, values=[('_id', 'Unique number')] + [(c, c) for c in data_set['columns']])}
+            </py:for>
+            ${form.field('text', 'na_value', 'Value to use for missing responses', value='NA')}
+            ${form.field('checkbox', 'include_incomplete', 'Include incomplete responses', value='true')}
+            ${form.field('checkbox', 'include_useragent', 'Include user browser information', value='true')}
+          </div>
+        </div>
+        <div class="row expanded">
+          <div class="column small-12 text-right">
+            <input type="submit" value="Export" class="button"/>
+          </div>
+        </div>
+      </form>
+    </article>
+  </py:block>
+  <py:block name="body_script">
+  <script>
+  <![CDATA[
+  ]]>
+  </script>
+  </py:block>
+</py:extends>

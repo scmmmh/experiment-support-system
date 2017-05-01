@@ -1,0 +1,28 @@
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
+  <py:block name="title">${user.display_name} - Permissions</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <h1>${user.display_name} - Permissions</h1>
+    <form action="${request.route_url('user.permissions', uid=user.id)}" method="post" class="row">
+      ${form.csrf_field()}
+      <div class="column small-12 medium-6">
+        <h2>Permission Groups</h2>
+        <ul class="no-symbol">
+          <li py:for="permission_group in permission_groups">${form.field('checkbox', 'permission_group', permission_group.title, value=permission_group.id, checked=permission_group in user.permission_groups)}</li>
+        </ul>
+      </div>
+      <div class="column small-12 medium-6">
+        <h2>Individual Permissions</h2>
+        <ul class="no-symbol">
+          <li py:for="permission in permissions">${form.field('checkbox', 'permission', permission.title, value=permission.id, checked=permission in user.permissions)}</li>
+        </ul>
+      </div>
+      <div class="row">
+        <div class="small-12 text-right">
+          <a href="${request.route_url('user.view', uid=user.id)}" class="button secondary">Don't Update</a>
+          <input type="submit" value="Update" class="button"/>
+        </div>
+      </div>
+    </form>
+  </py:block>
+</py:extends>

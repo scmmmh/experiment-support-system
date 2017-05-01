@@ -1,0 +1,26 @@
+<py:extends href="ess:templates/layout/frontend.kajiki">
+  <py:block name="title">${experiment.title} - Unavailable</py:block>
+  <py:block name="content">
+    <div class="row">
+      <div class="column small-12">
+        <py:if test="experiment.status == 'live'">
+          <h1>This experiment is unavailable for testing</h1>
+          <p>This experiment is now live and thus no longer available for testing.</p>
+        </py:if>
+        <py:if test="experiment.status == 'paused'">
+          <h1>This experiment is currently paused</h1>
+          <p>This experiment is currently paused. The page will automatically refresh and you will be re-directed to the experiment when it is restarted.</p>
+        </py:if>
+        <py:if test="experiment.status == 'completed'">
+          <h1>This experiment has completed</h1>
+          <p>This experiment has completed and you can no longer provide responses to it.</p>
+        </py:if>
+      </div>
+    </div>
+  </py:block>
+  <py:block name="body_script">
+    <script py:if="experiment.status == 'paused'">
+    setTimeout(function() {window.location = '${request.route_url('experiment.run', ueid=experiment.external_id)}'}, 10000);
+    </script>
+  </py:block>
+</py:extends>

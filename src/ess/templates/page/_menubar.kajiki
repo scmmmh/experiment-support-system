@@ -1,0 +1,10 @@
+<nav class="menubar">
+  <ul class="menu">
+    <li class="${'active' if request.matched_route.name == 'experiment.page.edit' else ''}"><a href="${request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)}"><span class="mdi mdi-18" aria-hidden="true">edit</span> Edit</a></li>
+    <li class="${'active' if request.matched_route.name == 'experiment.page.transition' else ''}"><a href="${request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id)}"><span class="mdi mdi-18" aria-hidden="true">call_split</span> Transitions</a></li>
+    <li class="${'active' if request.matched_route.name == 'experiment.page.data' else ''}"><a href="${request.route_url('experiment.page.data', eid=experiment.id, pid=page.id)}"><span class="mdi mdi-18" aria-hidden="true">view_headline</span>Data</a></li>
+    <li class="${'active' if request.matched_route.name == 'experiment.page.settings' else ''}"><a href="${request.route_url('experiment.page.settings', eid=experiment.id, pid=page.id)}"><span class="mdi mdi-18" aria-hidden="true">settings</span>Settings</a></li>
+    <li class="${'active' if request.matched_route.name == 'experiment.page.export' else ''}"><a href="${request.route_url('experiment.page.export', eid=experiment.id, pid=page.id, _query=[('csrf_token', request.session.get_csrf_token())])}" class="post-link"><span class="mdi mdi-18" aria-hidden="true">archive</span>Export</a></li>
+    <li class="${'active' if request.matched_route.name == 'experiment.page.delete' else ''} alert"><a href="${request.route_url('experiment.page.delete', eid=experiment.id, pid=page.id)}">Delete</a></li>
+  </ul>
+</nav>

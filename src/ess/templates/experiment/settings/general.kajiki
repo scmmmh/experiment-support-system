@@ -1,0 +1,46 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - General Settings</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row expanded">
+      <article class="column small-12">
+        <h1>Settings</h1>
+        <py:include href="ess:templates/experiment/settings/_menubar.kajiki"/>
+        <form action="${request.route_url('experiment.settings.general', eid=experiment.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('text', 'title', 'Title', value=experiment.title)}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('textarea', 'summary', 'Summary', value=experiment.summary, extra_attrs={'style': 'height: 8rem;'})}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('select', 'start', 'First Page', value=str(experiment.start.id) if experiment.start else '', values=[('', '--- Please select a starting page ---')] + [(str(p.id), '%s (%s)' % (p.title, p.name) if p.title else 'Untitled (%s)' % (p.name)) for p in experiment.pages])}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('select', 'language', 'Interface Language', values=[('en', 'English')], value=experiment.language)}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('checkbox', 'public', 'Public Experiment', value='true', checked=experiment.public)}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end text-right">
+              <a href="${request.route_url('experiment.settings.general', eid=experiment.id)}" class="button secondary">Don't Update</a>
+              <input type="submit" value="Update" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

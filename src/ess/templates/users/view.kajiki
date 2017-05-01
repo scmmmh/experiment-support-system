@@ -1,0 +1,23 @@
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
+  <py:block name="title">${user.display_name}</py:block>
+  <py:block name="content">
+    <?py from pywebtools.pyramid.util import confirm_action ?>
+    <div class="row">
+      <div class="column small-12">
+        <h1>${user.display_name}</h1>
+        <p>${user.email}</p>
+        <p>
+          <a py:if="user.allow('delete', request.current_user)" href="${request.route_url('user.delete', uid=user.id, _query={'csrf_token': request.session.get_csrf_token()})}" class="button alert post-link" data-wte-confirm="${confirm_action('Confirm Delete', 'Please confirm that you wish to delete your account.' if request.current_user.id == user.id else 'Please confirm that you wish to delete the user %s.' % user.display_name, {'label': 'Don\'t Delete', 'class_': 'secondary'}, {'label': 'Delete', 'class_': 'alert'})}">
+            <py:if test="request.current_user.id == user.id">Delete your account</py:if>
+            <py:if test="request.current_user.id != user.id">Delete this user</py:if>
+          </a>
+          <a py:if="request.current_user.has_permission('admin.users.permissions')" href="${request.route_url('user.permissions', uid=user.id)}" class="button secondary">Edit Permissions</a>
+          <a py:if="user.allow('edit', request.current_user)" href="${request.route_url('user.edit', uid=user.id)}" class="button">
+            <py:if test="request.current_user.id == user.id">Edit your profile</py:if>
+            <py:if test="request.current_user.id != user.id">Edit this profile</py:if>
+          </a>
+        </p>
+      </div>
+    </div>
+  </py:block>
+</py:extends>

@@ -1,0 +1,26 @@
+.editable {
+    .editable-container {
+        a[data-action=reorder] {
+            cursor: move;
+        }
+        .show-edit {
+            display: none;
+        }
+        &.editing {
+            a.show-edit, span.show-edit {
+                display: inline;
+            }
+            .show-edit {
+                display: block;
+            }
+            .hide-edit {
+                display: none;
+            }
+        }
+        &.hover-parent:hover, .hover-parent:hover {
+            .show-for-hover.show-edit {
+                display: block;
+            }
+        }
+    }
+}

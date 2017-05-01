@@ -1,0 +1,26 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Add a Page</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row left">
+      <article class="column small-12 medium-6 end">
+        <h1>Add a Page</h1>
+        <form action="${request.route_url('experiment.page.create', eid=experiment.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row">
+            <div class="column small-12">${form.field('text', 'name', 'Unique Name')}</div>
+          </div>
+          <div class="row">
+            <div class="column small-12">${form.field('text', 'title', 'Title')}</div>
+          </div>
+          <div class="row text-right">
+            <div class="column small-12">
+              <a href="${request.route_url('experiment.page', eid=experiment.id)}" class="button secondary">Don't Add</a>
+              <input type="submit" value="Add" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

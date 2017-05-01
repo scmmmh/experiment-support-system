@@ -1,0 +1,14 @@
+.frontend {
+    header {
+        background: #ffffff;
+        padding: 0 0 1em 0;
+        width: 100%;
+        box-shadow: 0 0 20px 0 #ffffff;
+    }
+    h1 {
+        font-size: rem-calc(28);
+    }
+    form {
+        margin-bottom: $global-margin;
+    }
+}

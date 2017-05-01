@@ -1,0 +1,99 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title}</py:block>
+  <py:block name="content">
+    <?py import json ?>
+    <?py from ess.human_readable import experiment_status ?>
+    <article>
+      <div class="row expanded">
+        <div class="column small-12">
+          <h1>${experiment.title} <small>${experiment_status(experiment.status)}</small></h1>
+        </div>
+      </div>
+      <div py:if="experiment.status in ['live', 'paused', 'completed']" class="row expanded">
+        <div class="column small-12">
+          <h2>Results Overview</h2>
+          <table>
+            <thead>
+              <tr>
+                <th class="text-center">Total</th>
+                <th class="text-center">Completed</th>
+                <th py:if="experiment.status in ['live', 'paused']" class="text-center">In Progress*</th>
+                <th class="text-center">Abandoned*</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-center">${overall['total']}</td>
+                <td class="text-center">${overall['completed']} <py:if test="overall['total'] > 0">(${'%.0f' % (100 / overall['total'] * overall['completed'])}%)</py:if></td>
+                <td py:if="experiment.status in ['live', 'paused']" class="text-center">${overall['in_progress']} <py:if test="overall['total'] > 0">(${'%.0f' % (100 / overall['total'] * overall['in_progress'])}%)</py:if></td>
+                <td class="text-center">${overall['abandoned']} <py:if test="overall['total'] > 0">(${'%.0f' % (100 / overall['total'] * overall['abandoned'])}%)</py:if></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="text-right"><small>* these are estimated based on the participant's last interaction.</small></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div py:if="experiment.status in ['live', 'paused', 'completed']" class="row expanded">
+        <div py:if="experiment.status in ['live', 'paused']" class="column small-6">
+          <h3>In Progress</h3>
+        </div>
+        <div class="column small-${'6' if experiment.status in ['live', 'paused'] else '12'}">
+          <h3>Abandoned</h3>
+        </div>
+      </div>
+      <div py:if="experiment.status in ['live', 'paused', 'completed']" class="row expanded">
+        <div py:if="experiment.status in ['live', 'paused']" class="column small-6 medium-3">
+          <canvas data-chart-type="doughnut" data-chart-labels="${json.dumps([page.title_name for page in experiment.pages if page.id in in_progress])}" data-chart-data="${json.dumps([in_progress[page.id] for page in experiment.pages if page.id in in_progress])}" data-chart-color-idxs="${json.dumps([idx for idx, page in enumerate(experiment.pages) if page.id in in_progress])}"></canvas>
+        </div>
+        <div py:if="experiment.status in ['live', 'paused']" class="column small-6 medium-3">
+          <table>
+            <thead>
+              <tr>
+                <th>Page</th>
+                <th>#</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr py:for="page in experiment.pages">
+                <td>${page.title_name}</td>
+                <td>${in_progress[page.id] if page.id in in_progress else 0}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="column small-6 medium-${'3' if experiment.status in ['live', 'paused'] else '6'}">
+          <canvas data-chart-type="doughnut" data-chart-labels="${json.dumps([page.title_name for page in experiment.pages if page.id in abandoned])}" data-chart-data="${json.dumps([abandoned[page.id] for page in experiment.pages if page.id in abandoned])}" data-chart-color-idxs="${json.dumps([idx for idx, page in enumerate(experiment.pages) if page.id in abandoned])}"></canvas>
+        </div>
+        <div class="column small-6 medium-${'3' if experiment.status in ['live', 'paused'] else '6'}">
+          <table>
+            <thead>
+              <tr>
+                <th>Page</th>
+                <th>#</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr py:for="page in experiment.pages">
+                <td>${page.title_name}</td>
+                <td>${abandoned[page.id] if page.id in abandoned else 0}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  </py:block>
+  <py:block name="body_script">
+  <script py:if="experiment.status in ['live', 'paused', 'completed']">
+  <![CDATA[
+      $('canvas').chart({
+          colors: palette(['qualitative'], ${len(experiment.pages)})
+      })
+  ]]>
+  </script>
+  </py:block>
+</py:extends>

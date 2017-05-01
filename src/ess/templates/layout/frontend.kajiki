@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><py:block name="title"></py:block></title>
+    <script src="${request.static_url('ess:static/js/modernizr.js')}"></script>
+    <link rel="stylesheet" href="${request.static_url('ess:static/css/frontend.min.css')}"/>
+    <py:block name="title_link"></py:block>
+    <py:block name="title_script"></py:block>
+    <style py:if="experiment.styles">${experiment.styles}</style>
+    <style py:if="defined('page') and page.styles">${page.styles}</style>
+  </head>
+  <body class="frontend">
+    <div py:if="defined('participant')" class="row">
+      <div class="column small-12" data-sticky-container="">
+        <header class="sticky" data-sticky="" data-margin-top="0">
+          <div class="row collapse">
+            <div class="column small-12 text-center">
+               <div class="progress" role="progressbar" tabindex="0" aria-valuenow="${participant['progress'][0]}" aria-valuemin="0" aria-valuemax="${participant['progress'][1]}" style="height:5px;">
+                 <div class="progress-meter" style="width: ${participant['progress'][0] * 100 / participant['progress'][1]}%;"></div>
+               </div>
+            </div>
+          </div>
+        </header>
+      </div>
+    </div>
+    <py:block name="content"></py:block>
+    <py:block name="body_preinit_script"></py:block>
+    <script src="${request.static_url('ess:static/js/jquery.js')}"></script>
+    <script src="${request.static_url('ess:static/js/what-input.js')}"></script>
+    <script src="${request.static_url('ess:static/js/jquery-ui.js')}"></script>
+    <script src="${request.static_url('ess:static/js/foundation.js')}"></script>
+    <script src="${request.static_url('ess:static/js/frontend.js')}"></script>
+    <py:block name="body_script"></py:block>
+    <script py:if="experiment.scripts">${experiment.scripts}</script>
+    <script py:if="defined('page') and page.scripts">${page.scripts}</script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><py:block name="title"></py:block></title>
+    <script src="${request.static_url('ess:static/js/modernizr.js')}"></script>
+    <link rel="stylesheet" href="${request.static_url('ess:static/css/backend.min.css')}" />
+    <py:block name="title_link"></py:block>
+    <py:block name="title_script"></py:block>
+  </head>
+  <body>
+    <py:include href="ess:templates/layout/backend/_header.kajiki"/>
+    <py:include href="ess:templates/layout/backend/_breadcrumbs.kajiki"/>
+    <py:include href="ess:templates/layout/backend/_flash.kajiki"/>
+    <py:block name="content"></py:block>
+    <py:include href="ess:templates/layout/backend/_footer.kajiki"/>
+    <py:include href="ess:templates/layout/backend/_scripts.kajiki"/>
+    <py:block name="body_preinit_script"></py:block>
+    <py:include href="ess:templates/layout/backend/_init.kajiki"/>
+    <py:block name="body_script"></py:block>
+  </body>
+</html>

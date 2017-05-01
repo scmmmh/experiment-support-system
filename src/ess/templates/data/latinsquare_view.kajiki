@@ -1,0 +1,31 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - ${data_set.name}</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <div class="row expanded">
+      <article class="column small-12">
+        <div class="float-right">
+          <a py:if="experiment.allow('edit', request.current_user)" href="${request.route_url('experiment.latinsquare.edit', eid=experiment.id, did=data_set.id)}" class="button">${icon.md('edit', 'Edit Data Set')}</a>
+          <a py:if="experiment.allow('edit', request.current_user)" href="${request.route_url('experiment.latinsquare.delete', eid=experiment.id, did=data_set.id, _query=[('csrf_token', request.session.get_csrf_token())])}" class="alert button post-link">${icon.md('delete', 'Delete Data Set')}</a>
+        </div>
+        <h1>${data_set.name}</h1>
+        <p py:if="sources['a'] is not None and sources['b'] is not None">Sourced from <a href="${request.route_url('experiment.data.view', eid=experiment.id, did=sources['a'].id)}">${sources['a'].name}</a> (${data_set['mode_a']} participants) and <a href="${request.route_url('experiment.data.view', eid=experiment.id, did=sources['b'].id)}">${sources['b'].name}</a> (${data_set['mode_b']} participants). ${len(data_set['combinations'])} combinations.</p>
+        <table>
+          <thead>
+            <tr>
+              <th py:for="col in data_set['columns']">${col}</th>
+            </tr>
+          </thead>
+          <tbody class="editable">
+            <tr py:for="item in data_set.items">
+              <td py:for="col in data_set['columns']">
+                <py:if test="col in item['values']">${item['values'][col]}</py:if>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

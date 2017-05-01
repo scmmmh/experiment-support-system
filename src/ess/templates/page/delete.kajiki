@@ -1,0 +1,30 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${page.title_name} - Delete</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row expanded">
+      <div class="column small-12">
+        <h1>${page.title if page.title else 'No title'} <small>${page.name}</small></h1>
+        <py:include href="ess:templates/page/_menubar.kajiki"/>
+      </div>
+    </div>
+    <div class="row expanded">
+      <article class="column small-12">
+        <form action="${request.route_url('experiment.page.delete', eid=experiment.id, pid=page.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('checkbox', 'confirm', 'Delete this page. This step cannot be undone and will also delete all collected data for this page.', value='true')}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end text-right">
+              <a href="${request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)}" class="button secondary">Don't Delete</a>
+              <input type="submit" value="Delete" class="button alert"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

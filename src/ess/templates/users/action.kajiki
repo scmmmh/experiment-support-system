@@ -1,0 +1,25 @@
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
+  <py:block name="title">Delete Users</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <h1>Delete Users</h1>
+    <form action="${request.route_url('users.action')}" method="post">
+      ${form.csrf_field()}
+      <input type="hidden" name="action" value="${params['action']}"/>
+      <input type="hidden" name="confirm" value="true"/>
+      <input py:if="'q' in params and params['q']" type="hidden" name="q" value="${params['q']}"/>
+      <input py:if="'status' in params and params['status']" type="hidden" name="status" value="${params['status']}"/>
+      <input py:if="'start' in params and params['start']" type="hidden" name="start" value="${params['start']}"/>
+      <py:if test="'user_id' in params and params['user_id']">
+        <input py:for="uid in params['user_id']" type="hidden" name="user_id" value="${uid}"/>
+      </py:if>
+      <section py:if="params['action'] == 'delete'">
+        <p>The following users will be delete from the system: ${', '.join([user.display_name for user in users])}.</p>
+      </section>
+      <section class="text-right">
+        <a href="${request.route_url('users', _query=query_params)}" class="button secondary">Don't Apply</a>
+        <input type="submit" value="Apply Changes" class="button"/>
+      </section>
+    </form>
+  </py:block>
+</py:extends>

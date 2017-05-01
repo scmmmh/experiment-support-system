@@ -1,0 +1,18 @@
+<py:extends href="ess:templates/layout/frontend.kajiki">
+  <py:block name="title">${experiment.title} - Completed</py:block>
+  <py:block name="content">
+    <div class="row">
+      <div class="column small-12">
+        <h1>${experiment.title}</h1>
+        <p>Thank you for completing the experiment "${experiment.title}". Your responses have been saved.</p>
+      </div>
+    </div>
+  </py:block>
+  <py:block name="body_script">
+    <script>
+    <![CDATA[
+        $(document).foundation();
+    ]]>
+    </script>
+  </py:block>
+</py:extends>

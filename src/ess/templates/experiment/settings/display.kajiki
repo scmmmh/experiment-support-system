@@ -1,0 +1,31 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Display Settings</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row expanded">
+      <article class="column small-12">
+        <h1>Settings</h1>
+        <py:include href="ess:templates/experiment/settings/_menubar.kajiki"/>
+        <form action="${request.route_url('experiment.settings.display', eid=experiment.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('textarea', 'styles', 'Experiment-wide CSS Styles', value=experiment.styles, extra_attrs={'style': 'height: 8rem;'})}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('textarea', 'scripts', 'Experiment-wide JavaScript Code', value=experiment.scripts, extra_attrs={'style': 'height: 8rem;'})}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end text-right">
+              <a href="${request.route_url('experiment.settings.display', eid=experiment.id)}" class="button secondary">Don't Update</a>
+              <input type="submit" value="Update" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

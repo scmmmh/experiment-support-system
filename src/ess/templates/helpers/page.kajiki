@@ -1,0 +1,5 @@
+<div>
+  <py:def function="title_name(page)">${page.title if page.title else page.name}</py:def>
+  <!-- Output a link to the backend page view -->
+  <py:def function="backend_link(page)"><a href="${request.route_url('experiment.page', eid=page.experiment_id, pid=page.id)}" title="Page ${page.title} [${page.name}]">${title_name(page)}</a></py:def>
+</div>

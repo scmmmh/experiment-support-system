@@ -1,0 +1,4 @@
+<script>
+$(document).foundation();
+$('.post-link').postLink();
+</script>

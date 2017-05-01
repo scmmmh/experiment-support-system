@@ -1,0 +1,60 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Edit ${data_set.name}</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <div class="row left">
+      <article class="column small-12 medium-6 end">
+        <h1>Edit ${data_set.name}</h1>
+        <form action="${request.route_url('experiment.data.edit', eid=experiment.id, did=data_set.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row">
+            <div class="column small-12">${form.field('text', 'name', 'Unique Name', value=data_set.name)}</div>
+          </div>
+          <div class="row">
+            <div class="column small-12">
+              <label>Columns</label>
+              <table>
+                <tbody>
+                  <tr py:for="col in data_set['columns']">
+                    <td>${form.field('text', 'column', '', value=col)}</td>
+                    <td class="text-center"><a href="#" data-action="remove-row" class="alert">${icon.md('remove', 'Remove Column')}</a></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td>${form.field('text', 'column', '', extra_attrs={'class': 'hidden'})}</td>
+                    <td class="text-center"><a href="#" data-action="add-row" class="success">${icon.md('add', 'Add Column')}</a></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          <div class="row text-right">
+            <div class="column small-12">
+              <a href="${request.route_url('experiment.data.view', eid=experiment.id, did=data_set.id)}" class="button secondary">Don't Update</a>
+              <input type="submit" value="Update" class="button"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+  <script>
+  <![CDATA[
+      $('table').on('click', 'a[data-action=add-row]', function(ev) {
+          ev.preventDefault();
+          var link = $(this);
+          var new_row = link.parent().parent().clone();
+          new_row.find('span.mdi').html('remove').parent().attr('data-action', 'remove-row').removeClass('success').addClass('alert');
+          new_row.find('input.hidden').removeClass('hidden');
+          link.parents('table').find('tbody').append(new_row);
+      });
+      $('table').on('click', 'a[data-action=remove-row]', function(ev) {
+          ev.preventDefault();
+          var link = $(this);
+          link.parent().parent().remove();
+      })
+  ]]>
+  </script>
+</py:extends>

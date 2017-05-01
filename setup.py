@@ -9,7 +9,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'pyramid',
     'SQLAlchemy',
-    'Alembic',
+    'alembic',
     'transaction',
     'pyramid_tm',
     'pyramid_debugtoolbar',
@@ -23,11 +23,16 @@ requires = [
     'formencode',
     'pyramid_beaker',
     'nose',
-    'pywebtools>=0.4'
+    'nine',
+    'pycrypto',
+    'asset',
+    'pywebtools>=1.1.3',
+    'marshmallow_jsonapi',
+    'marshmallow<3'
     ]
 
 setup(name='ExperimentSupportSystem',
-      version='0.10.99',
+      version='1.0.dev0',
       description='Experiment Support System',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
@@ -48,8 +53,8 @@ setup(name='ExperimentSupportSystem',
       install_requires = requires,
       entry_points = """\
       [paste.app_factory]
-      main = pyquest:main
+      main = ess:main
       [console_scripts]
-      ESS = pyquest.scripts.main:main
+      ESS = ess.scripts.main:main
       """,
       )
