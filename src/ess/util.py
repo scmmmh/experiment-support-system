@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
 .. moduleauthor:: Mark Hall <mark.hall@work.room3b.eu>

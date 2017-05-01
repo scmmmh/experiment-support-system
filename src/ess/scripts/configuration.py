@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-u"""
+"""
 Script used to generate a configuration file.
 
-.. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
+.. moduleauthor:: Mark Hall <mark.hall@work.room3b.eu>
 """
 import uuid
 
@@ -21,8 +20,8 @@ def init(subparsers):
 
 
 def generate_config(args):
-    '''Generates a configuration file based on the default_config.txt template.
-    '''
+    """Generates a configuration file based on the default_config.txt template.
+    """
     tmpl = TextTemplate(resource_string('ess', 'scripts/templates/default_config.txt').decode('utf-8'))
     params = {'encrypt_key': uuid.uuid1(),
               'validate_key': uuid.uuid1(),

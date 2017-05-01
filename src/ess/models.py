@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ###################################
 :mod:`ess.models` - Database Models
@@ -6,7 +5,7 @@
 
 This module contains all the database-abstraction classes.
 
-.. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
+.. moduleauthor:: Mark Hall <mark.hall@work.room3b.eu>
 """
 import time
 

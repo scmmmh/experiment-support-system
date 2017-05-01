@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
 from pywebtools.sqlalchemy import DBSession, check_database_version
