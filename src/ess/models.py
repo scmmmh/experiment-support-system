@@ -329,7 +329,7 @@ class Answer(Base, ParentedAttributesMixin):
     attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
 
-class Notification(Base):
+class Notification(Base):  # TODO: Needs migration / re-build
 
     __tablename__ = 'notifications'
 
