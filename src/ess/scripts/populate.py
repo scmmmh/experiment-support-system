@@ -47,7 +47,7 @@ def initialise_database(args):
         group.permissions.append(Permission(name='experiment.delete', title='Delete all experiments'))
         dbsession.add(group)
         load_question_types(dbsession,
-                            json.loads(resource_string('ess', 'scripts/templates/default_question_types.json').\
+                            json.loads(resource_string('ess', 'scripts/templates/default_question_types.json').
                                        decode('utf-8')))
     alembic_config = config.Config(args.configuration, ini_section='app:main')
     alembic_config.set_section_option('app:main', 'script_location', 'ess:migrations')

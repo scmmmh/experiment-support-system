@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-u"""
+"""
 
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
@@ -7,6 +6,7 @@ u"""
 from alembic import config, command
 
 from ess.models import DB_VERSION
+
 
 def init(subparsers):
     parser = subparsers.add_parser('update-database', help='Update the Experiment Support System database')

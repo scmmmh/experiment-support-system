@@ -23,7 +23,7 @@ def init(config):
 def root(request):
     dbsession = DBSession()
     experiments = dbsession.query(Experiment).filter(and_(Experiment.status == 'live',
-                                                          Experiment.public == True)).order_by(Experiment.title)
+                                                          Experiment.public == True)).order_by(Experiment.title)  # noqa: E712,E501
     return {'experiments': experiments}
 
 
@@ -31,7 +31,8 @@ def root(request):
 @current_user()
 def dashboard(request):
     dbsession = DBSession()
-    experiments = dbsession.query(Experiment).filter(Experiment.owned_by == request.current_user.id).order_by(Experiment.title)
+    experiments = dbsession.query(Experiment).filter(Experiment.owned_by == request.current_user.id).\
+        order_by(Experiment.title)
     return {'experiments': experiments,
             'crumbs': [{'title': 'Experiments',
                         'url': request.route_url('dashboard')}]}

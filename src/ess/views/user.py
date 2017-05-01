@@ -1,21 +1,14 @@
-# -*- coding: utf-8 -*-
 """
+#################################
+:mod:`ess.views.user - User views
+#################################
+
+View configuration for the user handling.
 
 .. moduleauthor:: Mark Hall <mark.hall@work.room3b.eu>
 """
-import formencode
-import transaction
-
-from datetime import datetime, timedelta
-from pyramid.httpexceptions import (HTTPSeeOther, HTTPNotFound)
-from pyramid.view import view_config
-from pywebtools.formencode import State, CSRFSchema, UniqueEmailValidator, EmailDomainValidator
 from pywebtools.pyramid import auth as pyramid_auth
-from pywebtools.pyramid.auth.models import (User, Permission, PermissionGroup, TimeToken)
-from pywebtools.pyramid.auth.views import current_user
 from pywebtools.pyramid.util import get_config_setting
-from pywebtools.sqlalchemy import DBSession
-from sqlalchemy import or_
 
 from ess.util import send_email
 
@@ -58,12 +51,6 @@ def init(config):
                                  'user.password_reset': password_reset,
                                  'user.password_reset_failed': password_reset_failed,
                                  'user.password_reset_complete': password_reset_complete})
-    #config.add_route('users', '/users')
-    #config.add_route('users.action', '/users/action')
-    #config.add_route('user.view', '/users/{uid}')
-    #config.add_route('user.edit', '/users/{uid}/edit')
-    #config.add_route('user.permissions', '/users/{uid}/permissions')
-    #config.add_route('user.delete', '/users/{uid}/delete')
 
 
 def new_user_created(request, user, token):

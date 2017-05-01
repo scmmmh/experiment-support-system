@@ -12,7 +12,8 @@ from sqlalchemy import and_
 
 from ess.importexport import import_jsonapi, export_jsonapi
 from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition, DataSet
-from ess.validators import PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator, DataSetExistsValidator
+from ess.validators import (PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator,
+                            DataSetExistsValidator)
 
 
 def init(config):
@@ -218,8 +219,9 @@ def edit_question(request):
         question = None
     if experiment and page and question:
         try:
-            params = QuestionEditSchema(question['backend', 'fields']).to_python(request.params, State(request=request,
-                                                                                  dbsession=dbsession))
+            params = QuestionEditSchema(question['backend', 'fields']).to_python(request.params,
+                                                                                 State(request=request,
+                                                                                       dbsession=dbsession))
             with transaction.manager:
                 dbsession.add(question)
                 # Update question parameters
@@ -247,10 +249,10 @@ def edit_question(request):
             dbsession.add(page)
             dbsession.add(question)
             data = render_to_response('ess:templates/page/edit_question.kajiki',
-                                                   {'experiment': experiment,
-                                                    'page': page,
-                                                    'question': question},
-                                                    request=request)
+                                      {'experiment': experiment,
+                                       'page': page,
+                                       'question': question},
+                                      request=request)
             return {'status': 'ok',
                     'fragment': data.body.decode('utf-8')}
         except formencode.Invalid as e:
@@ -327,7 +329,11 @@ def add_question(request):
                                     page=page,
                                     order=params['order'])
                 if question['frontend', 'visible']:
-                    visible_idx = [q['frontend', 'question_number'] for q in page.questions if q['frontend', 'visible'] and q['frontend', 'title'] and q['frontend', 'question_number']]
+                    visible_idx = [q['frontend', 'question_number']
+                                   for q in page.questions
+                                   if q['frontend', 'visible'] and
+                                   q['frontend', 'title'] and
+                                   q['frontend', 'question_number']]
                     if visible_idx:
                         visible_idx = max(visible_idx) + 1
                     else:
@@ -337,7 +343,9 @@ def add_question(request):
             dbsession.add(experiment)
             dbsession.add(page)
             dbsession.add(question)
-            raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id, _anchor='question-%i' % question.id))
+            raise HTTPFound(request.route_url('experiment.page.edit',
+                                              eid=experiment.id, pid=page.id,
+                                              _anchor='question-%i' % question.id))
         except formencode.Invalid:
             raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
     else:
@@ -435,7 +443,11 @@ def edit_transition(request):
             if 'condition' in request.params:
                 if request.params['condition'] == 'answer':
                     schema.add_field('condition_answer_page', PageExistsValidator(not_empty=True))
-                    schema.add_field('condition_answer_question', QuestionExistsValidator(request.params['condition_answer_page'] if 'condition_answer_page' in request.params else '', not_empty=True))
+                    schema.add_field('condition_answer_question',
+                                     QuestionExistsValidator(request.params['condition_answer_page']
+                                                             if 'condition_answer_page' in request.params
+                                                             else '',
+                                                             not_empty=True))
                     schema.add_field('condition_answer_value', formencode.validators.UnicodeString())
             params = schema.to_python(request.params, State(request=request,
                                                             dbsession=dbsession,
@@ -469,7 +481,7 @@ def edit_transition(request):
                                        'page': page,
                                        'transition': transition,
                                        'pages_questions': pages_questions},
-                                       request=request)
+                                      request=request)
             return {'status': 'ok',
                     'fragment': data.body.decode('utf-8')}
         except formencode.Invalid as e:
@@ -562,7 +574,9 @@ def add_transition(request):
             dbsession.add(experiment)
             dbsession.add(page)
             dbsession.add(transition)
-            raise HTTPFound(request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id, _anchor='transition-%i' % transition.id))
+            raise HTTPFound(request.route_url('experiment.page.transition',
+                                              eid=experiment.id, pid=page.id,
+                                              _anchor='transition-%i' % transition.id))
         except formencode.Invalid:
             raise HTTPFound(request.route_url('experiment.page.transition', eid=experiment.id, pid=page.id))
     else:
@@ -588,7 +602,8 @@ def data(request):
             try:
                 schema = DataAttachmentSchema()
                 mode = ''
-                if 'data_set' in request.params and request.params['data_set'] in [str(ds.id) for ds in data_sets if ds.type == 'dataset']:
+                if 'data_set' in request.params and \
+                        request.params['data_set'] in [str(ds.id) for ds in data_sets if ds.type == 'dataset']:
                     schema.add_field('data_items', formencode.validators.Int(not_empty=True))
                     mode = 'dataset'
                 params = schema.to_python(request.params, State(request=request,
@@ -686,9 +701,13 @@ def settings(request):
                                     'url': request.route_url('experiment.page', eid=experiment.id)},
                                    {'title': '%s (%s)' % (page.title, page.name)
                                     if page.title else 'No title (%s)' % page.name,
-                                    'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
+                                    'url': request.route_url('experiment.page.edit',
+                                                             eid=experiment.id,
+                                                             pid=page.id)},
                                    {'title': 'Settings',
-                                    'url': request.route_url('experiment.page.settings', eid=experiment.id, pid=page.id)}],
+                                    'url': request.route_url('experiment.page.settings',
+                                                             eid=experiment.id,
+                                                             pid=page.id)}],
                         'values': request.params,
                         'errors': e.error_dict}
         return {'experiment': experiment,
@@ -770,9 +789,13 @@ def delete(request):
                                     'url': request.route_url('experiment.page', eid=experiment.id)},
                                    {'title': '%s (%s)' % (page.title, page.name)
                                     if page.title else 'No title (%s)' % page.name,
-                                    'url': request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id)},
+                                    'url': request.route_url('experiment.page.edit',
+                                                             eid=experiment.id,
+                                                             pid=page.id)},
                                    {'title': 'Delete',
-                                    'url': request.route_url('experiment.page.delete', eid=experiment.id, pid=page.id)}],
+                                    'url': request.route_url('experiment.page.delete',
+                                                             eid=experiment.id,
+                                                             pid=page.id)}],
                         'values': request.params,
                         'errors': e.error_dict}
         return {'experiment': experiment,

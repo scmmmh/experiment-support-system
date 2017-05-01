@@ -218,7 +218,8 @@ class QuestionEditSchema(formencode.Schema):
                     elif field['validation']['sub_type'] == 'nested':
                         sub_validator = QuestionEditSchema(field['fields'], csrf_validate=False, **kwargs)
                     if sub_validator:
-                        self.add_field(field['name'], formencode.foreach.ForEach(sub_validator, convert_to_list=True, **kwargs))
+                        self.add_field(field['name'],
+                                       formencode.foreach.ForEach(sub_validator, convert_to_list=True, **kwargs))
 
 
 class UserAgentSchema(formencode.Schema):
@@ -254,11 +255,14 @@ class FrontendPageSchema(CSRFSchema):
                     if question['frontend', 'display_as'] == 'simple_input':
                         # Simple input field validation
                         if question['frontend', 'input_type'] == 'number':
-                            di_schema.add_field(question['frontend', 'name'], formencode.validators.Number(**default_attrs))
+                            di_schema.add_field(question['frontend', 'name'],
+                                                formencode.validators.Number(**default_attrs))
                         elif question['frontend', 'input_type'] == 'email':
-                            di_schema.add_field(question['frontend', 'name'], formencode.validators.Email(**default_attrs))
+                            di_schema.add_field(question['frontend', 'name'],
+                                                formencode.validators.Email(**default_attrs))
                         elif question['frontend', 'input_type'] == 'url':
-                            di_schema.add_field(question['frontend', 'name'], formencode.validators.URL(**default_attrs))
+                            di_schema.add_field(question['frontend', 'name'],
+                                                formencode.validators.URL(**default_attrs))
                         elif question['frontend', 'input_type'] == 'date':
                             di_schema.add_field(question['frontend', 'name'], DateValidator(**default_attrs))
                         elif question['frontend', 'input_type'] == 'time':
@@ -268,7 +272,8 @@ class FrontendPageSchema(CSRFSchema):
                         elif question['frontend', 'input_type'] == 'month':
                             di_schema.add_field(question['frontend', 'name'], MonthValidator(**default_attrs))
                         else:
-                            di_schema.add_field(question['frontend', 'name'], formencode.validators.UnicodeString(**default_attrs))
+                            di_schema.add_field(question['frontend', 'name'],
+                                                formencode.validators.UnicodeString(**default_attrs))
                     elif question['frontend', 'display_as'] == 'select_simple_choice':
                         # Single / multi-choice validation
                         values = [replace_variables(answer['value'], question, data_item)
@@ -279,8 +284,9 @@ class FrontendPageSchema(CSRFSchema):
                                                                            use_list=True,
                                                                            **default_attrs))
                         else:
-                            di_schema.add_field(question['frontend', 'name'], formencode.validators.OneOf(values,
-                                                                                                          **default_attrs))
+                            di_schema.add_field(question['frontend', 'name'],
+                                                formencode.validators.OneOf(values,
+                                                                            **default_attrs))
                     elif question['frontend', 'display_as'] == 'select_grid_choice':
                         # Grid-structured single / multi-choice validation
                         values = [replace_variables(answer['value'], question, data_item)

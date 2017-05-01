@@ -53,7 +53,7 @@ class ParentedAttributesMixin(object):
             if parent:
                 return key in parent
             else:
-                return False 
+                return False
 
     def __getitem__(self, key):
         attr, sub_key = self.__split_attr_key__(key)
@@ -126,12 +126,12 @@ class Experiment(Base):
                          primaryjoin='Experiment.start_id==Page.id',
                          post_update=True)
     notifications = relationship('Notification',
-                          backref='survey',
-                          cascade='all, delete, delete-orphan')
-    data_sets = relationship('DataSet', 
+                                 backref='survey',
+                                 cascade='all, delete, delete-orphan')
+    data_sets = relationship('DataSet',
                              primaryjoin="and_(Experiment.id==DataSet.experiment_id, DataSet.type=='dataset')",
                              cascade='all, delete, delete-orphan')
-    latin_squares = relationship('DataSet', 
+    latin_squares = relationship('DataSet',
                                  primaryjoin="and_(Experiment.id==DataSet.experiment_id, DataSet.type=='latinsquare')",
                                  cascade='all, delete, delete-orphan')
 
@@ -151,7 +151,7 @@ class Experiment(Base):
 class Page(Base, ParentedAttributesMixin):
 
     __tablename__ = 'pages'
-    __dict_fields__ = ('id', 'name', 'title', 'styles', 'scripts', 'attributes') 
+    __dict_fields__ = ('id', 'name', 'title', 'styles', 'scripts', 'attributes')
     __dict_relationships__ = ('questions',)
 
     id = Column(Integer, primary_key=True)
@@ -278,7 +278,10 @@ class DataSet(Base, ParentedAttributesMixin):
     attributes = Column(MutableDict.as_mutable(JSONUnicodeText))
 
     experiment = relationship('Experiment')
-    items = relationship('DataItem', backref='data_set', order_by='DataItem.order', cascade='all, delete, delete-orphan')
+    items = relationship('DataItem',
+                         backref='data_set',
+                         order_by='DataItem.order',
+                         cascade='all, delete, delete-orphan')
     pages = relationship('Page', backref='data_set')
 
 
@@ -339,12 +342,12 @@ class Notification(Base):
 
     def respond(self, dbsession, time_factor):
         response = {'message': None, 'addresses': self.recipient.split(',')}
-        participants = dbsession.query(Participant).filter(Participant.survey_id==self.survey.id).all()
+        participants = dbsession.query(Participant).filter(Participant.survey_id == self.survey.id).all()
         if self.ntype == 'interval':
             time_now = int(time.time())
             if (self.timestamp == 0) or (time_now - self.timestamp) > (self.value * time_factor):
-                response['message'] = 'Experiment "%s" has had %d participants.\n' % (self.survey.title, len(participants))
+                response['message'] = 'Experiment "%s" has had %d participants.\n' % (self.survey.title, len(participants))  # noqa: E501
         if self.ntype == 'pcount':
             if (len(participants) >= self.value) and (self.timestamp == 0):
-                response['message'] = 'Experiment "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.value)
+                response['message'] = 'Experiment "%s" has reached the required count of %d participants.\n' % (self.survey.title, self.value)  # noqa: E501
         return response

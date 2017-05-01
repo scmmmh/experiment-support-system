@@ -7,7 +7,7 @@ from sqlalchemy import engine_from_config
 
 from ess import views
 from ess.models import DB_VERSION
-#from ess.notifier import Notifier
+
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -21,6 +21,4 @@ def main(global_config, **settings):
     config.add_static_view('static', 'static', cache_max_age=3600)
     views.init(config)
     config.scan()
-    #Notifier(settings).start()
     return config.make_wsgi_app()
-

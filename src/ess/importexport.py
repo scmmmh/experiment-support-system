@@ -63,7 +63,7 @@ class ExperimentIOSchema(BaseSchema):
     @post_load
     def make_experiment(self, data):
         experiment = Experiment(title=data['title'],
-                                summary = data['summary'],
+                                summary=data['summary'],
                                 styles=data['styles'],
                                 scripts=data['scripts'],
                                 status='develop',
@@ -72,7 +72,8 @@ class ExperimentIOSchema(BaseSchema):
         experiment.__import_relationships = {'pages': data['pages'] if 'pages' in data else None,
                                              'start': data['start'] if 'start' in data else None,
                                              'data_sets': data['data_sets'] if 'data_sets' in data else None,
-                                             'latin_squares': data['latin_squares'] if 'latin_squares' in data else None}
+                                             'latin_squares': data['latin_squares']
+                                             if 'latin_squares' in data else None}
         return experiment
 
     def fix_relationships(self, experiment, data):
@@ -98,7 +99,6 @@ class ExperimentIOSchema(BaseSchema):
                     dsid = int(dsid)
                     if 'data_sets' in data and dsid in data['data_sets']:
                         experiment.latin_squares.append(data['data_sets'][dsid])
-        
 
     def clear_relationships(self, experiment):
         experiment.pages = []
@@ -177,7 +177,7 @@ class PageIOSchema(BaseSchema):
         page.questions = []
         page.next = []
         page.prev = []
-        
+
     class Meta():
         type_ = 'pages'
 
@@ -230,7 +230,6 @@ class QuestionTypeIOSchema(BaseSchema):
                                        type_='question_type_groups',
                                        schema='QuestionTypeGroupIOSchema')
 
-
     @post_load
     def make_question_type(self, data):
         question_type = QuestionType(name=data['name'],
@@ -240,7 +239,8 @@ class QuestionTypeIOSchema(BaseSchema):
                                      backend=data['backend'],
                                      frontend=data['frontend'])
         question_type.__import_relationships = {'parent': data['parent'] if 'parent' in data else None,
-                                                'q_type_group': data['q_type_group'] if 'q_type_group' in data else None}
+                                                'q_type_group': data['q_type_group'] if 'q_type_group' in data
+                                                else None}
         return question_type
 
     def fix_relationships(self, question_type, data):
@@ -284,10 +284,10 @@ class QuestionTypeIOSchema(BaseSchema):
         else:
             real_obj = dbsession.query(QuestionType).filter(QuestionType.name == obj.name).first()
         if not real_obj:
-            raise formencode.Invalid('Cannot be loaded as the question type %s does not exist in this installation.' % obj.name, None, None)
+            raise formencode.Invalid('Cannot be loaded as the question type %s does not exist in this installation.' % obj.name, None, None)  # noqa: E501
         real_obj.__import_relationships = obj.__import_relationships
         return real_obj
-    
+
     class Meta():
         type_ = 'question_types'
 
@@ -331,16 +331,17 @@ class QuestionTypeGroupIOSchema(BaseSchema):
                 real_obj = dbsession.query(QuestionTypeGroup).filter(and_(QuestionTypeGroup.name == obj.name,
                                                                           QuestionTypeGroup.parent == parent)).first()
             else:
-                real_obj = dbsession.query(QuestionTypeGroup).filter(and_(QuestionTypeGroup.name == obj.name,
-                                                                          QuestionTypeGroup.parent == obj.parent)).first()
+                real_obj = dbsession.query(QuestionTypeGroup).\
+                    filter(and_(QuestionTypeGroup.name == obj.name,
+                                QuestionTypeGroup.parent == obj.parent)).first()
         else:
             real_obj = dbsession.query(QuestionTypeGroup).filter(and_(QuestionTypeGroup.name == obj.name,
                                                                       QuestionTypeGroup.parent == None)).first()
         if not real_obj:
-            raise formencode.Invalid('Cannot be loaded as the question group %s does not exist in this installation.' % obj.name, None, None)
+            raise formencode.Invalid('Cannot be loaded as the question group %s does not exist in this installation.' % obj.name, None, None)  # noqa: E501
         real_obj.__import_relationships = obj.__import_relationships
         return real_obj
-    
+
     class Meta():
         type_ = 'question_type_groups'
 
@@ -426,7 +427,7 @@ class TransitionIOSchema(BaseSchema):
     @post_load
     def make_transition(self, data):
         transition = Transition(order=data['order'],
-                               attributes=data['attributes'])
+                                attributes=data['attributes'])
         transition.__import_relationships = {'source': data['source'] if 'source' in data else None,
                                              'target': data['target'] if 'target' in data else None}
         return transition
@@ -490,7 +491,11 @@ def import_jsonapi(source, dbsession, includes=None, existing=None):
     objs = {}
     main_obj, errors = SCHEMA_MAPPINGS[source['data']['type']].load(source)
     if errors:
-        raise formencode.Invalid(' '.join('%s: %s' % (e['source']['pointer'], e['detail']) if 'source' in e and 'pointer' in e['source'] else e['detail'] for e in errors['errors'] if 'detail' in e), None, None)
+        raise formencode.Invalid(' '.join('%s: %s' % (e['source']['pointer'], e['detail'])
+                                          if 'source' in e and 'pointer' in e['source']
+                                          else e['detail']
+                                          for e in errors['errors'] if 'detail' in e),
+                                 None, None)
     objs[source['data']['type']] = {source['data']['id']: main_obj}
     if 'included' in source:
         for include in source['included']:
@@ -500,7 +505,12 @@ def import_jsonapi(source, dbsession, includes=None, existing=None):
             objs[include['type']][include['id']] = obj
             errors.update(sub_errors)
             if errors:
-                raise formencode.Invalid('%s: %s' % (include['type'].replace('_', ' ').title(), ' '.join('%s: %s' % (e['source']['pointer'], e['detail']) if 'source' in e and 'pointer' in e['source'] else e['detail'] for e in errors['errors'] if 'detail' in e)), None, None)
+                raise formencode.Invalid('%s: %s' % (include['type'].replace('_', ' ').title(),
+                                                     ' '.join('%s: %s' % (e['source']['pointer'], e['detail'])
+                                                              if 'source' in e and 'pointer' in e['source']
+                                                              else e['detail']
+                                                              for e in errors['errors'] if 'detail' in e)),
+                                         None, None)
     for type_, items in objs.items():
         for obj in items.values():
             SCHEMA_MAPPINGS[type_].fix_relationships(obj, objs)
@@ -515,4 +525,3 @@ def import_jsonapi(source, dbsession, includes=None, existing=None):
         for obj in items.values():
             SCHEMA_MAPPINGS[type_].fix_relationships(obj, objs)
     return main_obj
-    

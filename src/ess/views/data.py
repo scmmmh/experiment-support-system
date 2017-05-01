@@ -228,9 +228,13 @@ def data_edit(request):
                                    {'title': 'Data Sets',
                                     'url': request.route_url('experiment.data', eid=experiment.id)},
                                    {'title': data_set.name,
-                                    'url': request.route_url('experiment.data.view', eid=experiment.id, did=data_set.id)},
+                                    'url': request.route_url('experiment.data.view',
+                                                             eid=experiment.id,
+                                                             did=data_set.id)},
                                    {'title': 'Edit',
-                                    'url': request.route_url('experiment.data.edit', eid=experiment.id, did=data_set.id)}],
+                                    'url': request.route_url('experiment.data.edit',
+                                                             eid=experiment.id,
+                                                             did=data_set.id)}],
                         'values': request.params,
                         'errors': e.error_dict}
         return {'experiment': experiment,
@@ -528,13 +532,22 @@ def latinsquare_edit(request):
     if experiment and data_set:
         if request.method == 'POST':
             try:
-                params = LatinSquareEditSchema().to_python(request.params, State(request=request,
-                                                                             dbsession=dbsession,
-                                                                             experiment=experiment,
-                                                                             data_set=data_set))
-                count = latinsquare_estimate_count(dbsession, params['source_a'], params['mode_a'], params['source_b'], params['mode_b'])
+                params = LatinSquareEditSchema().to_python(request.params,
+                                                           State(request=request,
+                                                                 dbsession=dbsession,
+                                                                 experiment=experiment,
+                                                                 data_set=data_set))
+                count = latinsquare_estimate_count(dbsession,
+                                                   params['source_a'],
+                                                   params['mode_a'],
+                                                   params['source_b'],
+                                                   params['mode_b'])
                 if count > 10000:
-                    raise formencode.Invalid('', None, None, error_dict={'source_a': 'These settings generate too many combinations (%s).' % count, 'source_b': 'These settings generate too many combinations (%s).' % count})
+                    raise formencode.Invalid('',
+                                             None,
+                                             None,
+                                             error_dict={'source_a': 'These settings generate too many combinations (%s).' % count,  # noqa: E501
+                                                         'source_b': 'These settings generate too many combinations (%s).' % count})  # noqa: E501
                 with transaction.manager:
                     dbsession.add(data_set)
                     source_a = dbsession.query(DataSet).filter(and_(DataSet.id == params['source_a'],
@@ -589,9 +602,13 @@ def latinsquare_edit(request):
                                    {'title': 'Latin Squares',
                                     'url': request.route_url('experiment.latinsquare', eid=experiment.id)},
                                    {'title': data_set.name,
-                                    'url': request.route_url('experiment.latinsquare.view', eid=experiment.id, did=data_set.id)},
+                                    'url': request.route_url('experiment.latinsquare.view',
+                                                             eid=experiment.id,
+                                                             did=data_set.id)},
                                    {'title': 'Edit',
-                                    'url': request.route_url('experiment.latinsquare.edit', eid=experiment.id, did=data_set.id)}],
+                                    'url': request.route_url('experiment.latinsquare.edit',
+                                                             eid=experiment.id,
+                                                             did=data_set.id)}],
                         'values': request.params,
                         'errors': e.error_dict}
         return {'experiment': experiment,
@@ -603,9 +620,13 @@ def latinsquare_edit(request):
                            {'title': 'Latin Squares',
                             'url': request.route_url('experiment.latinsquare', eid=experiment.id)},
                            {'title': data_set.name,
-                            'url': request.route_url('experiment.latinsquare.view', eid=experiment.id, did=data_set.id)},
+                            'url': request.route_url('experiment.latinsquare.view',
+                                                     eid=experiment.id,
+                                                     did=data_set.id)},
                            {'title': 'Edit',
-                            'url': request.route_url('experiment.latinsquare.edit', eid=experiment.id, did=data_set.id)}]}
+                            'url': request.route_url('experiment.latinsquare.edit',
+                                                     eid=experiment.id,
+                                                     did=data_set.id)}]}
     else:
         raise HTTPNotFound()
 
@@ -633,7 +654,11 @@ def latinsquare_estimate(request):
                                                            State(request=request,
                                                                  dbsession=dbsession,
                                                                  experiment=experiment))
-            count = latinsquare_estimate_count(dbsession, params['source_a'], params['mode_a'], params['source_b'], params['mode_b'])
+            count = latinsquare_estimate_count(dbsession,
+                                               params['source_a'],
+                                               params['mode_a'],
+                                               params['source_b'],
+                                               params['mode_b'])
             if count is None:
                 return {'count': ''}
             else:
@@ -642,6 +667,7 @@ def latinsquare_estimate(request):
             return {'count': ''}
     else:
         raise HTTPNotFound()
+
 
 def latinsquare_estimate_count(dbsession, source_a, mode_a, source_b, mode_b):
         source_a = dbsession.query(DataSet).filter(and_(DataSet.id == source_a,

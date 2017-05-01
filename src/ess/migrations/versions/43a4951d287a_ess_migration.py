@@ -9,6 +9,7 @@ Revision ID: 43a4951d287a
 Revises: 7f8cc2026730
 Create Date: 2017-03-17 09:09:51.279492
 """
+# flake8: noqa
 import json
 import sqlalchemy as sa
 

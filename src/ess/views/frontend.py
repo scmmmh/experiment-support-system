@@ -10,13 +10,13 @@ from beaker.util import coerce_session_params
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
 from pywebtools.formencode import State
-from pywebtools.pyramid.util import get_config_setting 
+from pywebtools.pyramid.util import get_config_setting
 from pywebtools.sqlalchemy import DBSession
 from random import sample
 from sqlalchemy import and_, func, asc
 
 from ess.models import (Experiment, Page, Participant, Question, Answer, DataItem,
-    DataSet)
+                        DataSet)
 from ess.validators import FrontendPageSchema
 
 
@@ -52,12 +52,15 @@ def remaining_pages(page, seen=None):  # Todo: Make this latin-square aware
 
 def current_participant(request, dbsession, experiment, allow_create=True):
     """Get the current Participant or create a new one."""
-    session = SessionObject(request.environ, **coerce_session_params({'type':'cookie',
-                                                                      'cookie_expires': 7776000,
-                                                                      'key': 'experiment.%s' % (experiment.external_id),
-                                                                      'encrypt_key': get_config_setting(request, 'beaker.session.encrypt_key'),
-                                                                      'validate_key': get_config_setting(request, 'beaker.session.validate_key'),
-                                                                      'auto': True}))
+    session = SessionObject(request.environ,
+                            **coerce_session_params({'type': 'cookie',
+                                                     'cookie_expires': 7776000,
+                                                     'key': 'experiment.%s' % (experiment.external_id),
+                                                     'encrypt_key':
+                                                     get_config_setting(request, 'beaker.session.encrypt_key'),
+                                                     'validate_key':
+                                                     get_config_setting(request, 'beaker.session.validate_key'),
+                                                     'auto': True}))
     if 'pid' in session:
         participant = dbsession.query(Participant).filter(and_(Participant.id == session['pid'],
                                                                Participant.experiment_id == experiment.id)).first()
@@ -102,15 +105,19 @@ def next_page(dbsession, participant, page, action):
             if transition.target:
                 if 'condition' in transition:
                     if transition['condition']['type'] == 'answer':
-                        question = dbsession.query(Question).filter(and_(Question.id == transition['condition']['question'],
-                                                                         Question.page_id == transition['condition']['page'])).first()
-                        answer = dbsession.query(Answer).filter(and_(Answer.question_id == transition['condition']['question'],
-                                                                     Answer.participant_id == participant.id)).first()
+                        question = dbsession.query(Question).\
+                            filter(and_(Question.id == transition['condition']['question'],
+                                        Question.page_id == transition['condition']['page'])).first()
+                        answer = dbsession.query(Answer).\
+                            filter(and_(Answer.question_id == transition['condition']['question'],
+                                        Answer.participant_id == participant.id)).first()
                         if question and answer:
                             answer = answer['response']
                             if isinstance(answer, list) and transition['condition']['value'] in answer:
                                 return transition.target.id
-                            elif isinstance(answer, dict) and transition['condition']['subquestion'] in answer and str(answer[transition['condition']['subquestion']]) == transition['condition']['value']:
+                            elif isinstance(answer, dict) and transition['condition']['subquestion'] in answer and \
+                                    str(answer[transition['condition']['subquestion']]) == \
+                                    transition['condition']['value']:
                                 return transition.target.id
                             elif str(answer) == transition['condition']['value']:
                                 return transition.target.id
@@ -124,8 +131,10 @@ def next_page(dbsession, participant, page, action):
                     elif transition['condition']['type'] == 'latinsquare':
                         if page.dataset_id is not None:
                             if str(page.dataset_id) in participant['data']:
-                                participant['data'][str(page.dataset_id)]['seen'].append(participant['data'][str(page.dataset_id)]['iids'][0])
-                                participant['data'][str(page.dataset_id)]['iids'] = participant['data'][str(page.dataset_id)]['iids'][1:]
+                                participant['data'][str(page.dataset_id)]['seen'].\
+                                    append(participant['data'][str(page.dataset_id)]['iids'][0])
+                                participant['data'][str(page.dataset_id)]['iids'] = \
+                                    participant['data'][str(page.dataset_id)]['iids'][1:]
                                 if len(participant['data'][str(page.dataset_id)]['iids']) > 0:
                                     return transition.target.id
                 else:
@@ -158,13 +167,19 @@ def select_data_items(dbsession, participant, page):
             data_set = dbsession.query(DataSet).filter(DataSet.id == page.dataset_id).first()
             if data_set.type == 'dataset':
                 if str(page.dataset_id) not in participant['data']:
-                    data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).outerjoin(Answer).filter(DataItem.dataset_id == page.dataset_id).group_by(DataItem.id).order_by(asc('count'), DataItem.id)
-                    seen_items = [t[0] for t in dbsession.query(DataItem.id).join(Answer).join(Participant).filter(Participant.id == participant.id)]
+                    data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).\
+                        outerjoin(Answer).\
+                        filter(DataItem.dataset_id == page.dataset_id).\
+                        group_by(DataItem.id).\
+                        order_by(asc('count'), DataItem.id)
+                    seen_items = [t[0] for t in dbsession.query(DataItem.id).join(Answer).join(Participant).
+                                  filter(Participant.id == participant.id)]
                     item_ids = []
                     limit_count = None
                     for item_id, count in data_items:
                         if item_id not in seen_items:
-                            if limit_count is not None and limit_count != count and len(item_ids) > page['data']['item_count']:
+                            if limit_count is not None and limit_count != count and \
+                                    len(item_ids) > page['data']['item_count']:
                                 break
                             item_ids.append(item_id)
                             limit_count = count
@@ -177,8 +192,11 @@ def select_data_items(dbsession, participant, page):
             elif data_set.type == 'latinsquare':
                 if str(page.dataset_id) not in participant['data']:
                     dids = [c[0] for c in data_set['combinations']]
-                    data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).outerjoin(Answer).filter(and_(DataItem.dataset_id == page.dataset_id,
-                                                                                                                                  DataItem.id.in_(dids))).group_by(DataItem.id).order_by(asc('count'), DataItem.id)
+                    data_items = dbsession.query(DataItem.id, func.count(Answer.id).label('count')).\
+                        outerjoin(Answer).\
+                        filter(and_(DataItem.dataset_id == page.dataset_id, DataItem.id.in_(dids))).\
+                        group_by(DataItem.id).\
+                        order_by(asc('count'), DataItem.id)
                     item_ids = []
                     limit_count = None
                     for item_id, count in data_items:
@@ -196,7 +214,8 @@ def select_data_items(dbsession, participant, page):
                     else:
                         participant['data'][str(page.dataset_id)] = None
                         return None
-                return dbsession.query(DataItem).filter(DataItem.id == participant['data'][str(page.dataset_id)]['iids'][0])
+                return dbsession.query(DataItem).\
+                    filter(DataItem.id == participant['data'][str(page.dataset_id)]['iids'][0])
             else:
                 return [DataItem(id=None)]
 
@@ -245,14 +264,17 @@ def run(request):
                 dbsession.add(experiment)
                 dbsession.add(page)
                 dbsession.add(participant)
-                params = FrontendPageSchema(page.questions, data_items, [a[0] for a in actions]).to_python(request.params, State(request=request))
+                params = FrontendPageSchema(page.questions, data_items,
+                                            [a[0] for a in actions]).to_python(request.params,
+                                                                               State(request=request))
                 # UserAgent Settings
                 if 'user_agent' not in participant:
                     participant['user_agent'] = {}
                 if 'input_type' in params['_user_agent']:
                     if 'input_types' not in participant['user_agent']:
                         participant['user_agent']['input_types'] = []
-                    participant['user_agent']['input_types'] = list(set(participant['user_agent']['input_types'] + params['_user_agent']['input_type']))
+                    participant['user_agent']['input_types'] = list(set(participant['user_agent']['input_types'] +
+                                                                        params['_user_agent']['input_type']))
                 if 'screen_size' in params['_user_agent'] and params['_user_agent']['screen_size']:
                     participant['user_agent']['screen_size'] = params['_user_agent']['screen_size']
                 if 'User-Agent' in request.headers:
@@ -312,12 +334,15 @@ def completed(request):
     dbsession.add(experiment)
     dbsession.add(participant)
     if experiment.status == 'develop':
-        session = SessionObject(request.environ, **coerce_session_params({'type':'cookie',
-                                                                          'cookie_expires': 7776000,
-                                                                          'key': 'experiment.%s' % (experiment.external_id),
-                                                                          'encrypt_key': get_config_setting(request, 'beaker.session.encrypt_key'),
-                                                                          'validate_key': get_config_setting(request, 'beaker.session.validate_key'),
-                                                                          'auto': True}))
+        session = SessionObject(request.environ,
+                                **coerce_session_params({'type': 'cookie',
+                                                         'cookie_expires': 7776000,
+                                                         'key': 'experiment.%s' % (experiment.external_id),
+                                                         'encrypt_key':
+                                                         get_config_setting(request, 'beaker.session.encrypt_key'),
+                                                         'validate_key':
+                                                         get_config_setting(request, 'beaker.session.validate_key'),
+                                                         'auto': True}))
         session['pid'] = -1
         session.persist()
         request.response.headerlist.append(('Set-Cookie', session.__dict__['_headers']['cookie_out']))

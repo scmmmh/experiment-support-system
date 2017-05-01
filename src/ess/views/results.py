@@ -28,20 +28,23 @@ def overview(request):
     experiment = dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
     if experiment:
         time_boundary = datetime.now() - timedelta(minutes=20)
-        overall = {'total': dbsession.query(func.count(Participant.id.unique)).filter(Participant.experiment_id == experiment.id).first()[0],
-                   'completed': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
-                                                                                               Participant.completed == True)).first()[0],
-                   'in_progress': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
-                                                                                                 Participant.completed == False,
-                                                                                                 Participant.updated >= time_boundary)).first()[0],
-                   'abandoned': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
-                                                                                               Participant.completed == False,
-                                                                                               Participant.updated < time_boundary)).first()[0]}
-        
+        overall = {'total': dbsession.query(func.count(Participant.id.unique)).
+                   filter(Participant.experiment_id == experiment.id).first()[0],
+                   'completed': dbsession.query(func.count(Participant.id.unique)).
+                   filter(and_(Participant.experiment_id == experiment.id,
+                               Participant.completed == True)).first()[0],
+                   'in_progress': dbsession.query(func.count(Participant.id.unique)).
+                   filter(and_(Participant.experiment_id == experiment.id,
+                               Participant.completed == False,
+                               Participant.updated >= time_boundary)).first()[0],
+                   'abandoned': dbsession.query(func.count(Participant.id.unique)).
+                   filter(and_(Participant.experiment_id == experiment.id,
+                               Participant.completed == False,
+                               Participant.updated < time_boundary)).first()[0]}  # noqa: E712
         in_progress = {}
         abandoned = {}
         for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
-                                                                    Participant.completed == False)):
+                                                                    Participant.completed == False)):  # noqa: E712
             if participant.updated >= time_boundary:
                 if participant['current'] in in_progress:
                     in_progress[participant['current']] = in_progress[participant['current']] + 1
@@ -53,8 +56,9 @@ def overview(request):
                 else:
                     abandoned[participant['current']] = 1
         summary = {}
-        for answer in dbsession.query(Answer).join(Participant).join(Question).join(Page).filter(and_(Participant.experiment_id == experiment.id,
-                                                                                                      Participant.completed == True)):
+        for answer in dbsession.query(Answer).join(Participant).join(Question).join(Page).\
+                filter(and_(Participant.experiment_id == experiment.id,
+                            Participant.completed == True)):  # noqa: E712
             if answer.question.page.id not in summary:
                 summary[answer.question.page.id] = {'questions': {}}
             if answer.question['frontend', 'display_as'] == 'simple_input':
@@ -82,7 +86,8 @@ def overview(request):
             elif answer.question['frontend', 'display_as'] == 'ranking':
                 if answer.question.id not in summary[answer.question.page.id]['questions']:
                     summary[answer.question.page.id]['questions'][answer.question.id] = Counter()
-                summary[answer.question.page.id]['questions'][answer.question.id].update([' - '.join(answer['response'])])
+                summary[answer.question.page.id]['questions'][answer.question.id].\
+                    update([' - '.join(answer['response'])])
             if answer.question.page.dataset_id is not None:
                 if 'dataset' not in summary[answer.question.page.id]:
                     summary[answer.question.page.id]['dataset'] = Counter()
@@ -119,11 +124,17 @@ def export_settings(request):
         if request.method == 'POST':
             try:
                 schema = ExportSchema()
-                questions = [str(q.id) for p in experiment.pages for q in p.questions if q['frontend', 'generates_response']]
-                schema.add_field('question', formencode.ForEach(formencode.validators.OneOf(questions, not_empty=True)))
+                questions = [str(q.id)
+                             for p in experiment.pages
+                             for q in p.questions
+                             if q['frontend', 'generates_response']]
+                schema.add_field('question', formencode.ForEach(formencode.validators.OneOf(questions,
+                                                                                            not_empty=True)))
                 for data_set in experiment.data_sets:
-                    schema.add_field('data_set_identifier_%s' % data_set.id, formencode.validators.OneOf(['_id'] + [str(c) for c in data_set['columns']]))
+                    schema.add_field('data_set_identifier_%s' % data_set.id,
+                                     formencode.validators.OneOf(['_id'] + [str(c) for c in data_set['columns']]))
                 params = schema.to_python(request.params, State(request=request))
+
                 def data_item_column_mapper(data_item):
                     if params['data_set_identifier_%s' % data_item.dataset_id] == '_id':
                         return data_item.id
@@ -135,7 +146,7 @@ def export_settings(request):
                     columns.add('_completed')
                 else:
                     query = dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
-                                                                            Participant.completed == True))
+                                                                     Participant.completed == True))  # noqa: 712
                 if params['include_useragent']:
                     columns.add('_user_agent.screen_size')
                     columns.add('_user_agent.string')
@@ -143,7 +154,8 @@ def export_settings(request):
                     if params['include_useragent']:
                         if 'user_agent' in participant:
                             if 'input_types' in participant['user_agent']:
-                                columns.update(['_user_agent.input_type.%s' % input_type for input_type in participant['user_agent']['input_types']])
+                                columns.update(['_user_agent.input_type.%s' % input_type
+                                                for input_type in participant['user_agent']['input_types']])
                     for answer in participant.answers:
                         if str(answer.question.id) not in params['question']:
                             continue
@@ -161,7 +173,8 @@ def export_settings(request):
                                     sub_column = [sub_column]
                                 new_columns.extend(sub_column)
                         elif answer.question['frontend', 'display_as'] == 'ranking':
-                            new_columns.extend(['%s.%s' % (column, a['value']) for a in answer.question['frontend', 'answers']])
+                            new_columns.extend(['%s.%s' % (column, a['value'])
+                                                for a in answer.question['frontend', 'answers']])
                         else:
                             if answer.question['frontend', 'allow_multiple']:
                                 if isinstance(answer['response'], list):
@@ -171,7 +184,9 @@ def export_settings(request):
                             else:
                                 new_columns = [column]
                         if answer.question.page.dataset_id is not None:
-                            new_columns = ['%s.%s' % (c, data_item_column_mapper(di)) for c in new_columns for di in answer.question.page.data_set.items]
+                            new_columns = ['%s.%s' % (c, data_item_column_mapper(di))
+                                           for c in new_columns
+                                           for di in answer.question.page.data_set.items]
                         columns.update(new_columns)
                 columns = list(columns)
                 columns.sort(key=lambda k: k.split('.'))
@@ -208,23 +223,29 @@ def export_settings(request):
                                             if answer.data_item_id is None:
                                                 responses['%s.%s' % (sub_column, sub_answer)] = 1
                                             else:
-                                                responses['%s.%s.%s' % (sub_column, sub_answer, data_item_column_mapper(answer.data_item))] = 1
+                                                responses['%s.%s.%s' % (sub_column,
+                                                                        sub_answer,
+                                                                        data_item_column_mapper(answer.data_item))] = 1
                                     else:
                                         if answer.data_item_id is None:
                                             responses['%s.%s' % (sub_column, value)] = 1
                                         else:
-                                            responses['%s.%s.%s' % (sub_column, value, data_item_column_mapper(answer.data_item))] = 1
+                                            responses['%s.%s.%s' % (sub_column,
+                                                                    value,
+                                                                    data_item_column_mapper(answer.data_item))] = 1
                                 else:
                                     if answer.data_item_id is None:
                                         responses[sub_column] = value
                                     else:
-                                        responses['%s.%s' % (sub_column, data_item_column_mapper(answer.data_item))] = value
+                                        responses['%s.%s' % (sub_column,
+                                                             data_item_column_mapper(answer.data_item))] = value
                         elif answer.question['frontend', 'display_as'] == 'ranking':
                             for idx, sub_answer in enumerate(answer['response']):
                                 if answer.data_item_id is None:
                                     responses['%s.%s' % (column, sub_answer)] = idx
                                 else:
-                                    responses['%s.%s.%s' % (column, sub_answer, data_item_column_mapper(answer.data_item))] = idx
+                                    responses['%s.%s.%s' % (column, sub_answer,
+                                                            data_item_column_mapper(answer.data_item))] = idx
                         else:
                             if answer.question['frontend', 'allow_multiple']:
                                 for c in columns:
@@ -235,17 +256,20 @@ def export_settings(request):
                                         if answer.data_item_id is None:
                                             responses['%s.%s' % (column, sub_answer)] = 1
                                         else:
-                                            responses['%s.%s.%s' % (column, sub_answer, data_item_column_mapper(answer.data_item))] = 1
+                                            responses['%s.%s.%s' % (column, sub_answer,
+                                                                    data_item_column_mapper(answer.data_item))] = 1
                                 else:
                                     if answer.data_item_id is None:
                                         responses['%s.%s' % (column, answer['response'])] = 1
                                     else:
-                                        responses['%s.%s.%s' % (column, answer['response'], data_item_column_mapper(answer.data_item))] = 1
+                                        responses['%s.%s.%s' % (column, answer['response'],
+                                                                data_item_column_mapper(answer.data_item))] = 1
                             else:
                                 if answer.data_item_id is None:
                                     responses[column] = answer['response']
                                 else:
-                                    responses['%s.%s' % (column, data_item_column_mapper(answer.data_item))] = answer['response']
+                                    responses['%s.%s' % (column, data_item_column_mapper(answer.data_item))] = \
+                                        answer['response']
                     writer.writerow(responses)
                 return Response(body=io.getvalue().encode('utf8'),
                                 headers=[('Content-Type', 'text/csv'),
@@ -261,7 +285,7 @@ def export_settings(request):
                                    {'title': 'Results',
                                     'url': request.route_url('experiment.results', eid=experiment.id)},
                                    {'title': 'Export',
-                                    'url': request.route_url('experiment.results.export', eid=experiment.id)}]}                
+                                    'url': request.route_url('experiment.results.export', eid=experiment.id)}]}
         return {'experiment': experiment,
                 'crumbs': [{'title': 'Experiments',
                             'url': request.route_url('dashboard')},

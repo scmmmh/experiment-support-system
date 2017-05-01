@@ -8,7 +8,6 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
 from pywebtools.formencode import CSRFSchema, State
 from pywebtools.pyramid.auth.views import current_user, require_permission
-from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import func, and_
 
@@ -137,23 +136,28 @@ def view(request):
                               'url': request.route_url('experiment.view', eid=experiment.id)}]}
         if experiment.status in ['live', 'paused', 'completed']:
             time_boundary = datetime.now() - timedelta(minutes=20)
-            overall = {'total': dbsession.query(func.count(Participant.id.unique)).filter(Participant.experiment_id == experiment.id).first()[0],
-                       'completed': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
-                                                                                                   Participant.completed == True)).first()[0],
-                       'in_progress': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
-                                                                                                     Participant.completed == False,
-                                                                                                     Participant.updated >= time_boundary)).first()[0],
-                       'abandoned': dbsession.query(func.count(Participant.id.unique)).filter(and_(Participant.experiment_id == experiment.id,
-                                                                                                   Participant.completed == False,
-                                                                                                   Participant.updated < time_boundary)).first()[0]}
+            overall = {'total': dbsession.query(func.count(Participant.id.unique)).
+                       filter(Participant.experiment_id == experiment.id).first()[0],
+                       'completed': dbsession.query(func.count(Participant.id.unique)).
+                       filter(and_(Participant.experiment_id == experiment.id,
+                                   Participant.completed == True)).first()[0],  # noqa: E712
+                       'in_progress': dbsession.query(func.count(Participant.id.unique)).
+                       filter(and_(Participant.experiment_id == experiment.id,
+                                   Participant.completed == False,
+                                   Participant.updated >= time_boundary)).first()[0],
+                       'abandoned': dbsession.query(func.count(Participant.id.unique)).
+                       filter(and_(Participant.experiment_id == experiment.id,
+                                   Participant.completed == False,
+                                   Participant.updated < time_boundary)).first()[0]}
             result['overall'] = overall
             result['in_progress'] = {}
             result['abandoned'] = {}
             for participant in dbsession.query(Participant).filter(and_(Participant.experiment_id == experiment.id,
-                                                                        Participant.completed == False)):
+                                                                        Participant.completed == False)):  # noqa: E712
                 if participant.updated >= time_boundary:
                     if participant['current'] in result['in_progress']:
-                        result['in_progress'][participant['current']] = result['in_progress'][participant['current']] + 1
+                        result['in_progress'][participant['current']] = \
+                            result['in_progress'][participant['current']] + 1
                     else:
                         result['in_progress'][participant['current']] = 1
                 else:
@@ -283,7 +287,7 @@ class DeleteSchema(CSRFSchema):
 
     confirm = formencode.validators.OneOf(['true'],
                                           messages={'notIn': 'Please confirm that you wish to delete this experiment.',
-                                                    'missing': 'Please confirm that you wish to delete this experiment.'})
+                                                    'missing': 'Please confirm that you wish to delete this experiment.'})  # noqa: E501
 
 
 @view_config(route_name='experiment.actions.delete', renderer='ess:templates/experiment/actions/delete.kajiki')
@@ -342,7 +346,8 @@ def status(request):
                 with transaction.manager:
                     dbsession.add(experiment)
                     if experiment.status == 'develop' and params['status'] == 'live':
-                        for participant in dbsession.query(Participant).filter(Participant.experiment_id == experiment.id):
+                        for participant in dbsession.query(Participant).\
+                                filter(Participant.experiment_id == experiment.id):
                             dbsession.delete(participant)
                     experiment.status = params['status']
                 dbsession.add(experiment)
@@ -431,12 +436,14 @@ def actions_duplicate(request):
                 with transaction.manager:
                     dbsession.add(experiment)
                     data = export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
-                                                                (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
-                                                                (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
-                                                                (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
+                                                                (Experiment, 'data_sets'),
+                                                                (Experiment, 'latin_squares'), (Experiment, 'pages'),
+                                                                (DataSet, 'items'), (Page, 'next'), (Page, 'prev'),
+                                                                (Page, 'questions'), (Page, 'data_set'),
                                                                 (Question, 'q_type'), (QuestionType, 'q_type_group'),
-                                                                (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
-                                                                (Transition, 'source'), (Transition, 'target')])
+                                                                (QuestionType, 'parent'),
+                                                                (QuestionTypeGroup, 'parent'), (Transition, 'source'),
+                                                                (Transition, 'target')])
                     new_experiment = import_jsonapi(json.dumps(data),
                                                     dbsession,
                                                     includes=[(Experiment, 'pages'), (Experiment, 'start'),
@@ -484,5 +491,3 @@ def actions_duplicate(request):
                             'url': request.route_url('experiment.actions.duplicate', eid=experiment.id)}]}
     else:
         raise HTTPNotFound()
-
-

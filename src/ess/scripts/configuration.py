@@ -19,7 +19,7 @@ def init(subparsers):
     parser.add_argument('--debug', default=False, action='store_true', help='Set the debug flags in the configuration')
     parser.set_defaults(func=generate_config)
 
-    
+
 def generate_config(args):
     '''Generates a configuration file based on the default_config.txt template.
     '''
@@ -35,4 +35,3 @@ def generate_config(args):
 
     with open(args.filename, 'w') as out_f:
         out_f.write(tmpl(params).render())
-    
