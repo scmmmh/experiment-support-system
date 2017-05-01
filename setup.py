@@ -15,7 +15,7 @@ requires = [
     'pyramid_debugtoolbar',
     'zope.sqlalchemy',
     'waitress',
-    'genshi',
+    'kajiki',
     'babel',
     'decorator',
     'mimeparse',
@@ -32,7 +32,7 @@ requires = [
     ]
 
 setup(name='ExperimentSupportSystem',
-      version='1.0.dev0',
+      version='1.0.0a1',
       description='Experiment Support System',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
