@@ -185,8 +185,8 @@ class PageIOSchema(BaseSchema):
 class QuestionIOSchema(BaseSchema):
 
     id = fields.Int()
-    order = fields.Int()
-    attributes = fields.Dict()
+    order = fields.Int(allow_none=True, missing=1)
+    attributes = fields.Dict(allow_none=True)
 
     q_type = fields.Relationship(include_resource_linkage=True,
                                  type_='question_types',
@@ -351,7 +351,7 @@ class DataSetIOSchema(BaseSchema):
     id = fields.Int()
     name = fields.Str()
     type = fields.Str()
-    attributes = fields.Dict()
+    attributes = fields.Dict(allow_none=True)
 
     items = fields.Relationship(many=True,
                                 include_resource_linkage=True,
@@ -399,7 +399,7 @@ class DataItemIOSchema(BaseSchema):
 
     id = fields.Int()
     order = fields.Int(allow_none=True, missing=1)
-    attributes = fields.Dict()
+    attributes = fields.Dict(allow_none=True)
 
     @post_load
     def make_data_item(self, data):
@@ -415,7 +415,7 @@ class TransitionIOSchema(BaseSchema):
 
     id = fields.Int()
     order = fields.Int(allow_none=True, missing=1)
-    attributes = fields.Dict()
+    attributes = fields.Dict(allow_none=True)
 
     source = fields.Relationship(include_resource_linkage=True,
                                  type_='pages',
