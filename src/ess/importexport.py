@@ -117,7 +117,7 @@ class PageIOSchema(BaseSchema):
     title = fields.Str(allow_none=True)
     scripts = fields.Str(allow_none=True)
     styles = fields.Str(allow_none=True)
-    attributes = fields.Dict(allow_none=False)
+    attributes = fields.Dict(allow_none=True)
 
     questions = fields.Relationship(many=True,
                                     include_resource_linkage=True,

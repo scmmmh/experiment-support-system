@@ -1,3 +1,8 @@
+1.0.0a2
+-------
+
+- BUGFIX: Fix a bug with importing pages that have no attributes
+
 1.0.0a1
 --------
 
