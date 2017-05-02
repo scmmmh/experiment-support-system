@@ -422,7 +422,8 @@ class TransitionIOSchema(BaseSchema):
                                  schema='PageIOSchema')
     target = fields.Relationship(include_resource_linkage=True,
                                  type_='pages',
-                                 schema='PageIOSchema')
+                                 schema='PageIOSchema',
+                                 allow_none=True)
 
     @post_load
     def make_transition(self, data):
