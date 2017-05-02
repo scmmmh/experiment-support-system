@@ -252,6 +252,9 @@ def run(request):
         data_items = select_data_items(dbsession, participant, page)
         participant['progress'] = determine_progress(participant, page)
         actions = page_actions(participant, page)
+    dbsession.add(experiment)
+    dbsession.add(page)
+    dbsession.add(participant)
     if page is None:
         if participant['current'] is None:
             dbsession.add(experiment)

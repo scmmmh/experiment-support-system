@@ -1,3 +1,8 @@
+1.0.0a4
+-------
+
+- BUGFIX: Fixed a bug that caused the frontend to die
+
 1.0.0a3
 -------
 
