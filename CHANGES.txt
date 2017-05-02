@@ -1,3 +1,8 @@
+1.0.0a5
+-------
+
+- BUGFIX: Properly fix the bug from 1.0.0a4
+
 1.0.0a4
 -------
 

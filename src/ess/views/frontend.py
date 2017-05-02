@@ -252,10 +252,8 @@ def run(request):
         data_items = select_data_items(dbsession, participant, page)
         participant['progress'] = determine_progress(participant, page)
         actions = page_actions(participant, page)
-    dbsession.add(experiment)
-    dbsession.add(page)
-    dbsession.add(participant)
     if page is None:
+        dbsession.add(participant)
         if participant['current'] is None:
             dbsession.add(experiment)
             raise HTTPFound(request.route_url('experiment.completed', ueid=experiment.external_id))
