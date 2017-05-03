@@ -265,8 +265,10 @@ def run(request):
                 dbsession.add(experiment)
                 dbsession.add(page)
                 dbsession.add(participant)
-                params = FrontendPageSchema(page.questions, data_items,
-                                            [a[0] for a in actions]).to_python(request.params,
+                params = FrontendPageSchema(page.questions,
+                                            data_items,
+                                            [a[0] for a in actions],
+                                            participant).to_python(request.params,
                                                                                State(request=request))
                 # UserAgent Settings
                 if 'user_agent' not in participant:

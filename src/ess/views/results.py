@@ -311,7 +311,7 @@ def export_settings(request):
                                         if answer.data_item_id is None:
                                             responses['%s.other_response' % column] = answer['response']['other']
                                         else:
-                                            responses['%s.other_response' %
+                                            responses['%s.other_response.%s' %
                                                       (column, data_item_column_mapper(answer.data_item))] = \
                                                 answer['response']['other']
                                 else:

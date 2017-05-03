@@ -236,7 +236,7 @@ class FrontendPageSchema(CSRFSchema):
     pre_validators = [formencode.variabledecode.NestedVariables()]
     messages = {'missingValue': 'Please answer this question'}
 
-    def __init__(self, questions, data_items, actions, *args, **kwargs):
+    def __init__(self, questions, data_items, actions, participant, *args, **kwargs):
         formencode.Schema.__init__(self, *args, **kwargs)
         self.add_field('_action', formencode.validators.OneOf(actions, not_empty=True))
         if [True for q in questions if q['frontend', 'generates_response']]:

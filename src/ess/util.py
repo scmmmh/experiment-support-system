@@ -139,7 +139,7 @@ def paginate(request, query, start, rows, query_params=None):
 VARIABLE_PATTERN = re.compile('\${([a-z0-9.]+)}', re.IGNORECASE)
 
 
-def replace_variables(text, *sources):
+def replace_variables(text, participant, *sources):
     if isinstance(text, str):
         match = re.search(VARIABLE_PATTERN, text)
         while match is not None:
@@ -150,6 +150,9 @@ def replace_variables(text, *sources):
                     replaced = True
                     break
             if not replaced:
-                text = text.replace(match.group(0), match.group(1))
+                if match.group(1) == 'participant':
+                    text = text.replace(match.group(1), str(participant.id))
+                else:
+                    text = text.replace(match.group(0), match.group(1))
             match = re.search(VARIABLE_PATTERN, text)
     return text

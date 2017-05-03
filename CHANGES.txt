@@ -2,6 +2,7 @@
 -------
 
 - BUGFIX: Fixed handling of "other" options on simple choice questions
+- BUGFIX: Fixed the missing ${participant} replacement
 
 1.0.0a5
 -------
