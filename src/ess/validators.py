@@ -279,14 +279,34 @@ class FrontendPageSchema(CSRFSchema):
                         values = [replace_variables(answer['value'], question, data_item)
                                   for answer in question['frontend', 'answers']]
                         if question['frontend', 'allow_multiple']:
-                            di_schema.add_field(question['frontend', 'name'],
-                                                formencode.foreach.ForEach(formencode.validators.OneOf(values),
-                                                                           use_list=True,
-                                                                           **default_attrs))
+                            if question['frontend', 'allow_other']:
+                                di_schema.add_field(question['frontend', 'name'],
+                                                    formencode.compound.Any(DynamicSchema([('response',
+                                                                                            formencode.foreach.ForEach(formencode.validators.OneOf(values + ['other']),  # noqa: E501
+                                                                                                                       use_list=True,  # noqa: E501
+                                                                                                                       **default_attrs)),  # noqa: E501
+                                                                                           ('other', formencode.validators.UnicodeString(**default_attrs))]),  # noqa: E501
+                                                                            DynamicSchema([('response',
+                                                                                            formencode.foreach.ForEach(formencode.validators.OneOf(values),  # noqa: E501
+                                                                                                                       use_list=True,  # noqa: E501
+                                                                                                                       **default_attrs)),  # noqa: E501
+                                                                                           ('other', formencode.validators.OneOf(['']))])))  # noqa: E501
+                            else:
+                                di_schema.add_field(question['frontend', 'name'],
+                                                    formencode.foreach.ForEach(formencode.validators.OneOf(values),
+                                                                               use_list=True,
+                                                                               **default_attrs))
                         else:
-                            di_schema.add_field(question['frontend', 'name'],
-                                                formencode.validators.OneOf(values,
-                                                                            **default_attrs))
+                            if question['frontend', 'allow_other']:
+                                di_schema.add_field(question['frontend', 'name'],
+                                                    formencode.compound.Any(DynamicSchema([('response', formencode.validators.OneOf(values + ['other'])),  # noqa: E501
+                                                                                           ('other', formencode.validators.UnicodeString(**default_attrs))]),  # noqa: E501
+                                                                            DynamicSchema([('response', formencode.validators.OneOf(values)),  # noqa: E501
+                                                                                           ('other', formencode.validators.OneOf(''))])))  # noqa: E501
+                            else:
+                                di_schema.add_field(question['frontend', 'name'],
+                                                    formencode.validators.OneOf(values,
+                                                                                **default_attrs))
                     elif question['frontend', 'display_as'] == 'select_grid_choice':
                         # Grid-structured single / multi-choice validation
                         values = [replace_variables(answer['value'], question, data_item)

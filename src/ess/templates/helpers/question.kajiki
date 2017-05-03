@@ -71,10 +71,14 @@
         <ul class="no-bullet">
           <li py:if="question['frontend', 'before_label']" class="question_label">${replace_variables(question['frontend', 'before_label'], question, data_item['values'])}</li>
           <li py:for="answer in question['frontend', 'answers']">
-            ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), replace_variables(answer['label'], question, data_item['values']), value=replace_variables(answer['value'], question, data_item['values']), error_msg='')}
+            <py:if test="question['frontend', 'allow_other']">
+              ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']), replace_variables(answer['label'], question, data_item['values']), value=replace_variables(answer['value'], question, data_item['values']), error_msg='')}
+            </py:if><py:else>
+              ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), replace_variables(answer['label'], question, data_item['values']), value=replace_variables(answer['value'], question, data_item['values']), error_msg='')}
+            </py:else>
           </li>
           <li py:if="question['frontend', 'after_label']" class="question_label">${replace_variables(question['frontend', 'after_label'], question, data_item['values'])}</li>
-          <li py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), 'Other', value='_other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}</li>
+          <li py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']) if question['frontend', 'allow_other'] else 'd%s.%s' % (data_item.id, question['name']), 'Other', value='other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}</li>
         </ul>
       </py:else>
     </py:switch>

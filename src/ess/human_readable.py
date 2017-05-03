@@ -25,5 +25,16 @@ def question_error(question, data_item, errors, sub_question=None):
                     if sub_question in errors[did][qname]:
                         return errors[did][qname][sub_question]
                 else:
-                    return '. '.join(set(errors[did][qname].values()))
+                    if isinstance(errors[did][qname], dict):
+                        tmp_errors = []
+                        for tmp_error in errors[did][qname].values():
+                            if isinstance(tmp_error, list):
+                                tmp_errors.extend([te for te in tmp_error if te])
+                            else:
+                                tmp_errors.append(tmp_error)
+                        return '. '.join(set(tmp_errors))
+                    elif isinstance(errors[did][qname], list):
+                        return '. '.join(set([e for e in errors[did][qname] if e]))
+                    else:
+                        return errors[did][qname]
     return None

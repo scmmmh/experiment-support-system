@@ -1,0 +1,25 @@
+<py:extends href="ess:templates/layout/backend/with_sidebar.kajiki">
+  <py:block name="title">${experiment.title} - Clear Participants</py:block>
+  <py:block name="content">
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <div class="row expanded">
+      <article class="column small-12">
+        <h1>Clear Participants</h1>
+        <form action="${request.route_url('experiment.results.reset', eid=experiment.id)}" method="post">
+          ${form.csrf_field()}
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end">
+              ${form.field('checkbox', 'confirm', 'Clear all participants and their responses. This step cannot be undone.', value='true', checked=True if experiment.status == 'develop' else False)}
+            </div>
+          </div>
+          <div class="row expanded">
+            <div class="column small-12 medium-8 end text-right">
+              <a href="${request.route_url('experiment.results', eid=experiment.id)}" class="button secondary">Don't Clear</a>
+              <input type="submit" value="Clear Participants" class="button alert"/>
+            </div>
+          </div>
+        </form>
+      </article>
+    </div>
+  </py:block>
+</py:extends>

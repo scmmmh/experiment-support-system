@@ -2,9 +2,13 @@
   <py:block name="title">${experiment.title} - Results Overview</py:block>
   <py:block name="content">
     <?py import json ?>
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
     <article>
       <div class="row expanded">
         <div class="column small-12">
+          <div class="float-right">
+            <a href="${request.route_url('experiment.results.reset', eid=experiment.id)}" class="button alert">${icon.md('delete', 'Clear Participants')}</a>
+          </div>
           <h1>${experiment.title} - Results Overview</h1>
           <table>
             <thead>

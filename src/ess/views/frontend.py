@@ -283,7 +283,7 @@ def run(request):
                 # Experiment Responses
                 for data_item in data_items:
                     for question in page.questions:
-                        if question['frontend', 'display_as'] != 'text':
+                        if question['frontend', 'generates_response']:
                             answer = Answer(participant_id=participant.id,
                                             question_id=question.id,
                                             data_item_id=data_item.id if data_item.id != -1 else None)

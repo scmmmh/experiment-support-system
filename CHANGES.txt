@@ -1,3 +1,8 @@
+1.0.0a6
+-------
+
+- BUGFIX: Fixed handling of "other" options on simple choice questions
+
 1.0.0a5
 -------
 
