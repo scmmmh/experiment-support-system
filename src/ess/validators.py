@@ -276,7 +276,7 @@ class FrontendPageSchema(CSRFSchema):
                                                 formencode.validators.UnicodeString(**default_attrs))
                     elif question['frontend', 'display_as'] == 'select_simple_choice':
                         # Single / multi-choice validation
-                        values = [replace_variables(answer['value'], question, data_item)
+                        values = [replace_variables(answer['value'], participant, question, data_item)
                                   for answer in question['frontend', 'answers']]
                         if question['frontend', 'allow_multiple']:
                             if question['frontend', 'allow_other']:
@@ -309,7 +309,7 @@ class FrontendPageSchema(CSRFSchema):
                                                                                 **default_attrs))
                     elif question['frontend', 'display_as'] == 'select_grid_choice':
                         # Grid-structured single / multi-choice validation
-                        values = [replace_variables(answer['value'], question, data_item)
+                        values = [replace_variables(answer['value'], participant, question, data_item)
                                   for answer in question['frontend', 'answers']]
                         sub_schema = DynamicSchema(messages={'missingValue': 'Please answer this question'},
                                                    **default_attrs)
@@ -325,7 +325,7 @@ class FrontendPageSchema(CSRFSchema):
                         di_schema.add_field(question['frontend', 'name'], sub_schema)
                     elif question['frontend', 'display_as'] == 'ranking':
                         # Ranking validation
-                        values = [replace_variables(answer['value'], question, data_item)
+                        values = [replace_variables(answer['value'], participant, question, data_item)
                                   for answer in question['frontend', 'answers']]
                         di_schema.add_field(question['frontend', 'name'],
                                             formencode.validators.OneOf(values,

@@ -151,7 +151,7 @@ def replace_variables(text, participant, *sources):
                     break
             if not replaced:
                 if match.group(1) == 'participant':
-                    text = text.replace(match.group(1), str(participant.id))
+                    text = text.replace(match.group(0), str(participant.id))
                 else:
                     text = text.replace(match.group(0), match.group(1))
             match = re.search(VARIABLE_PATTERN, text)

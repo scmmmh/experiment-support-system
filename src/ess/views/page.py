@@ -11,7 +11,8 @@ from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_
 
 from ess.importexport import import_jsonapi, export_jsonapi
-from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition, DataSet
+from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition, DataSet,\
+    Participant
 from ess.validators import (PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator,
                             DataSetExistsValidator)
 
@@ -186,6 +187,7 @@ def edit(request):
             order_by(QuestionTypeGroup.order)
         return {'experiment': experiment,
                 'page': page,
+                'participant': Participant(id=-1),
                 'qtgroups': qtgroups,
                 'crumbs': [{'title': 'Experiments',
                             'url': request.route_url('dashboard')},
@@ -251,7 +253,8 @@ def edit_question(request):
             data = render_to_response('ess:templates/page/edit_question.kajiki',
                                       {'experiment': experiment,
                                        'page': page,
-                                       'question': question},
+                                       'question': question,
+                                       'participant': Participant(id=-1)},
                                       request=request)
             return {'status': 'ok',
                     'fragment': data.body.decode('utf-8')}
