@@ -1,3 +1,8 @@
+1.0.0a9
+-------
+
+- BUGFIX: Fixed a name bug in the initial question loading
+
 1.0.0a8
 -------
 

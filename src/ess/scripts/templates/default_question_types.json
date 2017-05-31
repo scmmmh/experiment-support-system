@@ -246,7 +246,7 @@
 "included": [
     {"type": "question_type_groups",
      "id": 1,
-     "attributes": {"name": "ess:builtin", "title": "Builtin Questions", "enabled": true, "order": 1}},
+     "attributes": {"name": "ess:builtins", "title": "Builtin Questions", "enabled": true, "order": 1}},
     {"type": "question_type_groups",
      "id": 2,
      "attributes": {"name": "ess:core", "title": "General", "enabled": true, "order": 1},
