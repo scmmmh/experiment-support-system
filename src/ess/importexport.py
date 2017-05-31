@@ -69,6 +69,10 @@ class ExperimentIOSchema(BaseSchema):
                                 status='develop',
                                 language=data['language'],
                                 public=data['public'])
+        if 'id' in data:
+            experiment.import_id = data['id']
+        else:
+            experiment.import_id = None
         experiment.__import_relationships = {'pages': data['pages'] if 'pages' in data else None,
                                              'start': data['start'] if 'start' in data else None,
                                              'data_sets': data['data_sets'] if 'data_sets' in data else None,
@@ -143,6 +147,10 @@ class PageIOSchema(BaseSchema):
                     styles=data['styles'],
                     scripts=data['scripts'],
                     attributes=data['attributes'])
+        if 'id' in data:
+            page.import_id = data['id']
+        else:
+            page.import_id = None
         page.__import_relationships = {'questions': data['questions'] if 'questions' in data else None,
                                        'next': data['next'] if 'next' in data else None,
                                        'prev': data['prev'] if 'prev' in data else None,
@@ -196,6 +204,10 @@ class QuestionIOSchema(BaseSchema):
     def make_question(self, data):
         question = Question(order=data['order'],
                             attributes=data['attributes'])
+        if 'id' in data:
+            question.import_id = data['id']
+        else:
+            question.import_id = None
         question.__import_relationships = {'q_type': data['q_type'] if 'q_type' in data else None}
         return question
 
@@ -238,6 +250,10 @@ class QuestionTypeIOSchema(BaseSchema):
                                      title=data['title'],
                                      backend=data['backend'],
                                      frontend=data['frontend'])
+        if 'id' in data:
+            question_type.import_id = data['id']
+        else:
+            question_type.import_id = None
         question_type.__import_relationships = {'parent': data['parent'] if 'parent' in data else None,
                                                 'q_type_group': data['q_type_group'] if 'q_type_group' in data
                                                 else None}
@@ -311,6 +327,10 @@ class QuestionTypeGroupIOSchema(BaseSchema):
                                                 order=data['order'],
                                                 enabled=data['enabled'],
                                                 name=data['name'])
+        if 'id' in data:
+            question_type_group.import_id = data['id']
+        else:
+            question_type_group.import_id = None
         question_type_group.__import_relationships = {'parent': data['parent'] if 'parent' in data else None}
         return question_type_group
 
@@ -363,6 +383,10 @@ class DataSetIOSchema(BaseSchema):
         data_set = DataSet(name=data['name'],
                            type=data['type'],
                            attributes=data['attributes'])
+        if 'id' in data:
+            data_set.import_id = data['id']
+        else:
+            data_set.import_id = None
         data_set.__import_relationships = {'items': data['items'] if 'items' in data else None}
         return data_set
 
@@ -405,6 +429,10 @@ class DataItemIOSchema(BaseSchema):
     def make_data_item(self, data):
         data_item = DataItem(order=data['order'],
                              attributes=data['attributes'])
+        if 'id' in data:
+            data_item.import_id = data['id']
+        else:
+            data_item.import_id = None
         return data_item
 
     class Meta():
@@ -429,6 +457,10 @@ class TransitionIOSchema(BaseSchema):
     def make_transition(self, data):
         transition = Transition(order=data['order'],
                                 attributes=data['attributes'])
+        if 'id' in data:
+            transition.import_id = data['id']
+        else:
+            transition.import_id = None
         transition.__import_relationships = {'source': data['source'] if 'source' in data else None,
                                              'target': data['target'] if 'target' in data else None}
         return transition
@@ -488,16 +520,26 @@ SCHEMA_MAPPINGS = {'experiments': ExperimentIOSchema(),
 
 
 def import_jsonapi(source, dbsession, includes=None, existing=None):
+    if not includes:
+        includes = []
+    if not existing:
+        existing = []
     source = json.loads(source)
     objs = {}
-    main_obj, errors = SCHEMA_MAPPINGS[source['data']['type']].load(source)
+    if isinstance(source['data'], list) and len(source['data']) > 0:
+        objs[source['data'][0]['type']] = {}
+        main_obj, errors = SCHEMA_MAPPINGS[source['data'][0]['type']].load(source, many=True)
+        for part in main_obj:
+            objs[source['data'][0]['type']][part.import_id] = part
+    else:
+        main_obj, errors = SCHEMA_MAPPINGS[source['data']['type']].load(source)
+        objs[source['data']['type']] = {source['data']['id']: main_obj}
     if errors:
         raise formencode.Invalid(' '.join('%s: %s' % (e['source']['pointer'], e['detail'])
                                           if 'source' in e and 'pointer' in e['source']
                                           else e['detail']
                                           for e in errors['errors'] if 'detail' in e),
                                  None, None)
-    objs[source['data']['type']] = {source['data']['id']: main_obj}
     if 'included' in source:
         for include in source['included']:
             obj, sub_errors = SCHEMA_MAPPINGS[include['type']].load({'data': include})

@@ -1,4 +1,3 @@
-import json
 import transaction
 
 from alembic import config, command
@@ -46,13 +45,14 @@ def initialise_database(args):
         group.permissions.append(Permission(name='experiment.edit', title='Edit all experiments'))
         group.permissions.append(Permission(name='experiment.delete', title='Delete all experiments'))
         dbsession.add(group)
-        import_jsonapi(resource_string('ess', 'scripts/templates/default_question_types.json').decode('utf-8'),
-                       dbsession,
-                       includes=[(QuestionType, 'q_type_group'), (QuestionType, 'parent'),
-                                 (QuestionTypeGroup, 'parent')])
-        #load_question_types(dbsession,
-        #                    json.loads(resource_string('ess', 'scripts/templates/default_question_types.json').
-        #                               decode('utf-8')))
+        question_types = import_jsonapi(resource_string('ess',
+                                                        'scripts/templates/default_question_types.json').
+                                        decode('utf-8'),
+                                        dbsession,
+                                        includes=[(QuestionType, 'q_type_group'), (QuestionType, 'parent'),
+                                                  (QuestionTypeGroup, 'parent')])
+        for question_type in question_types:
+            dbsession.add(question_type)
     alembic_config = config.Config(args.configuration, ini_section='app:main')
     alembic_config.set_section_option('app:main', 'script_location', 'ess:migrations')
     command.stamp(alembic_config, "head")

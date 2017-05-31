@@ -243,7 +243,7 @@
      "relationships": {"q_type_group": {"data": {"type": "question_type_groups", "id": 4}},
                        "parent": {"data": {"type": "question_types", "id": 3}}}}
 ],
-"include": [
+"included": [
     {"type": "question_type_groups",
      "id": 1,
      "attributes": {"name": "ess:builtin", "title": "Builtin Questions", "enabled": true, "order": 1}},
