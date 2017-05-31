@@ -269,7 +269,7 @@ def run(request):
                                             data_items,
                                             [a[0] for a in actions],
                                             participant).to_python(request.params,
-                                                                               State(request=request))
+                                                                   State(request=request))
                 # UserAgent Settings
                 if 'user_agent' not in participant:
                     participant['user_agent'] = {}
