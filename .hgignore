@@ -31,3 +31,4 @@ syntax: regexp
 syntax: glob
 .tox
 .cache
+build
