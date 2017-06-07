@@ -1,12 +1,8 @@
-1.0.0a10
---------
-
-- BUGFIX: Correctly escape experiment and page scripts in the frontend
-
 1.0.0a9
 -------
 
 - BUGFIX: Fixed a name bug in the initial question loading
+- BUGFIX: Correctly escape experiment and page scripts in the frontend
 
 1.0.0a8
 -------
