@@ -1,3 +1,8 @@
+1.0.0a10
+--------
+
+- BUGFIX: Correctly escape experiment and page scripts in the frontend
+
 1.0.0a9
 -------
 

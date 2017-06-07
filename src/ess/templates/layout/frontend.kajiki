@@ -33,7 +33,7 @@
     <script src="${request.static_url('ess:static/js/foundation.js')}"></script>
     <script src="${request.static_url('ess:static/js/frontend.js')}"></script>
     <py:block name="body_script"></py:block>
-    <script py:if="experiment.scripts">${experiment.scripts}</script>
-    <script py:if="defined('page') and page.scripts">${page.scripts}</script>
+    <script py:if="experiment.scripts"><![CDATA[${literal(experiment.scripts)}]]></script>
+    <script py:if="defined('page') and page.scripts"><![CDATA[${literal(page.scripts)}]]></script>
   </body>
 </html>
