@@ -1,3 +1,9 @@
+1.0.0a10
+--------
+
+- BUGFIX: Missing variable substitution in multi-question grids.
+- BUGFIX: Allow underscores in data substitution variables
+
 1.0.0a9
 -------
 

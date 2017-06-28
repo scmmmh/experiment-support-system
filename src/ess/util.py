@@ -136,12 +136,13 @@ def paginate(request, query, start, rows, query_params=None):
     return pages
 
 
-VARIABLE_PATTERN = re.compile('\${([a-z0-9.]+)}', re.IGNORECASE)
+VARIABLE_PATTERN = re.compile('\${([a-z0-9._]+)}', re.IGNORECASE)
 
 
 def replace_variables(text, participant, *sources):
     if isinstance(text, str):
         match = re.search(VARIABLE_PATTERN, text)
+        print(match)
         while match is not None:
             replaced = False
             for source in sources:
