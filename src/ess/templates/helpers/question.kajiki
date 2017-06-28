@@ -98,7 +98,7 @@
       </thead>
       <tbody>
         <tr py:for="idx, sub_question in enumerate(question['frontend', 'questions'])" class="${'error' if defined('errors') and question_error(question, data_item, errors, sub_question['name']) else ''}">
-          <th id="q${question.id}-question-${idx}">${sub_question['label']}</th>
+          <th id="q${question.id}-question-${idx}">${replace_variables(sub_question['label'], participant, question, data_item['values'])}</th>
           <td py:if="question['frontend', 'before_label']" class="question_label text-right" headers="q${question.id}-question-${idx} q${question.id}-before-label">${replace_variables(question['frontend', 'before_label'], participant, question, data_item['values'])}</td>
           <td py:for="idx2, answer in enumerate(question['answers'])" class="text-center" headers="q${question.id}-question-${idx} q${question.id}-value-${idx2}">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.%s' % (data_item.id, question['name'], sub_question['name']), '', value=replace_variables(answer['value'], participant, question, data_item['values']))}</td>
           <td py:if="question['frontend', 'after_label']" class="question_label text-left" headers="q${question.id}-question-${idx} q${question.id}-after-label">${replace_variables(question['frontend', 'after_label'], participant, question, data_item['values'])}</td>
