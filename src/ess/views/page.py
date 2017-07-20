@@ -10,7 +10,7 @@ from pywebtools.pyramid.decorators import require_method
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import and_
 
-from ess.importexport import import_jsonapi, export_jsonapi
+from ess.importexport import PageIOSchema, replace_questions
 from ess.models import Experiment, Page, QuestionTypeGroup, Question, QuestionType, Transition, DataSet,\
     Participant
 from ess.validators import (PageNameUniqueValidator, QuestionEditSchema, PageExistsValidator, QuestionExistsValidator,
@@ -131,18 +131,19 @@ def import_page(request):
                                                                             dbsession=dbsession))
                 with transaction.manager:
                     dbsession.add(experiment)
-                    page = import_jsonapi(params['source'].file.read().decode('utf-8'),
-                                          dbsession,
-                                          includes=[(Page, 'questions'), (Question, 'q_type'),
-                                                    (QuestionType, 'q_type_group'), (QuestionType, 'parent'),
-                                                    (QuestionTypeGroup, 'parent')],
-                                          existing=[QuestionType, QuestionTypeGroup])
-                    if not isinstance(page, Page):
-                        raise formencode.Invalid('The file does not contain a page.', None, None)
-                    page.experiment = experiment
-                    if experiment.start is None:
-                        experiment.start = page
+                    page, errors = PageIOSchema(include_data=('questions', 'questions.q_type',
+                                                              'questions.q_type.parent',
+                                                              'questions.q_type.q_type_group',
+                                                              'questions.q_type.q_type_group.parent',
+                                                              'questions.q_type.parent.q_type_group',
+                                                              'questions.q_type.parent.q_type_group.parent')).\
+                        loads(params['source'].file.read().decode('utf-8'))
+                    if errors:
+                        raise formencode.Invalid('. '.join(['%s: %s' % (e['source']['pointer'], e['detail'])
+                                                            for e in errors['errors']]), None, None)
                     dbsession.add(page)
+                    replace_questions(page, dbsession)
+                    page.experiment = experiment
                 dbsession.add(experiment)
                 dbsession.add(page)
                 raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
@@ -743,9 +744,10 @@ def export(request):
         try:
             CSRFSchema().to_python(request.params, State(request=request))
             request.response.headers['Content-Disposition'] = 'attachment; filename="%s.json"' % page.name
-            return export_jsonapi(page, includes=[(Page, 'questions'), (Question, 'q_type'),
-                                                  (QuestionType, 'q_type_group'), (QuestionType, 'parent'),
-                                                  (QuestionTypeGroup, 'parent')])
+            return PageIOSchema(include_data=('questions', 'questions.q_type', 'questions.q_type.parent',
+                                              'questions.q_type.q_type_group', 'questions.q_type.q_type_group.parent',
+                                              'questions.q_type.parent.q_type_group',
+                                              'questions.q_type.parent.q_type_group.parent')).dump(page).data
         except formencode.Invalid:
             raise HTTPFound(request.route_url('experiment.page.edit', eid=experiment.id, pid=page.id))
     else:

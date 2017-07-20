@@ -1,7 +1,8 @@
-1.0.0a10
+1.0.0a11
 --------
 
-- BUGFIX: Missing variable substitution in multi-question grids.
+- BUGFIX: Rewritten the import/export functionality
+- BUGFIX: Missing variable substitution in multi-question grids
 - BUGFIX: Allow underscores in data substitution variables
 
 1.0.0a9

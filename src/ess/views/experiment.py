@@ -1,5 +1,4 @@
 import formencode
-import json
 import transaction
 import uuid
 
@@ -11,9 +10,8 @@ from pywebtools.pyramid.auth.views import current_user, require_permission
 from pywebtools.sqlalchemy import DBSession
 from sqlalchemy import func, and_
 
-from ess.importexport import export_jsonapi, import_jsonapi
-from ess.models import (Experiment, Participant, Page, Question, QuestionType, QuestionTypeGroup,
-                        DataSet, Transition)
+from ess.importexport import ExperimentIOSchema, replace_questions
+from ess.models import (Experiment, Participant)
 from ess.validators import PageExistsValidator
 
 
@@ -84,18 +82,34 @@ def import_experiment(request):
             params = ImportExperimentSchema().to_python(request.params, State(request=request))
             dbsession = DBSession()
             with transaction.manager:
-                experiment = import_jsonapi(params['source'].file.read().decode('utf-8'),
-                                            dbsession,
-                                            includes=[(Experiment, 'pages'), (Experiment, 'start'),
-                                                      (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
-                                                      (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
-                                                      (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
-                                                      (Question, 'q_type'), (QuestionType, 'q_type_group'),
-                                                      (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
-                                                      (Transition, 'source'), (Transition, 'target')],
-                                            existing=[QuestionType, QuestionTypeGroup])
-                if not isinstance(experiment, Experiment):
-                    raise formencode.Invalid('The file does not contain an experiment.', None, None)
+                includes = ['data_sets', 'data_sets.items', 'latin_squares', 'latin_squares.items']
+                for t1 in ['pages', 'start']:
+                    includes.append('%s.questions' % (t1,))
+                    includes.append('%s.questions.q_type' % (t1,))
+                    includes.append('%s.questions.q_type.parent' % (t1,))
+                    includes.append('%s.questions.q_type.q_type_group' % (t1,))
+                    includes.append('%s.questions.q_type.q_type_group.parent' % (t1,))
+                    includes.append('%s.next' % (t1,))
+                    includes.append('%s.prev' % (t1,))
+                    includes.append('%s.data_set' % (t1,))
+                    for t2 in ['next', 'prev']:
+                        includes.append('%s.%s.source' % (t1, t2))
+                        includes.append('%s.%s.target' % (t1, t2))
+                        for t3 in ['source', 'target']:
+                            includes.append('%s.%s.%s.questions' % (t1, t2, t3))
+                            includes.append('%s.%s.%s.questions.q_type' % (t1, t2, t3))
+                            includes.append('%s.%s.%s.questions.q_type.parent' % (t1, t2, t3))
+                            includes.append('%s.%s.%s.questions.q_type.q_type_group' % (t1, t2, t3))
+                            includes.append('%s.%s.%s.questions.q_type.q_type_group.parent' % (t1, t2, t3))
+                            includes.append('%s.%s.%s.data_set' % (t1, t2, t3))
+                            includes.append('%s.%s.%s.data_set' % (t1, t2, t3))
+                experiment, errors = ExperimentIOSchema(include_data=includes).\
+                    loads(params['source'].file.read().decode('utf-8'))
+                if errors:
+                    raise formencode.Invalid('. '.join(['%s: %s' % (e['source']['pointer'], e['detail'])
+                                                        for e in errors['errors']]), None, None)
+                for page in experiment.pages:
+                    replace_questions(page, dbsession)
                 experiment.owner = request.current_user
                 experiment.external_id = uuid.uuid1().hex,
                 experiment.status = 'develop'
@@ -388,13 +402,13 @@ def actions_export(request):
                 CSRFSchema().to_python(request.params, State(request=request))
                 request.response.headers['Content-Disposition'] = 'attachment; filename="%s.json"' % experiment.title
                 request.override_renderer = 'json'
-                return export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
-                                                            (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
-                                                            (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
-                                                            (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
-                                                            (Question, 'q_type'), (QuestionType, 'q_type_group'),
-                                                            (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
-                                                            (Transition, 'source'), (Transition, 'target')])
+                return ExperimentIOSchema(include_data=('pages', 'start', 'data_sets', 'latin_squares',
+                                                        'pages.next', 'pages.prev', 'pages.questions',
+                                                        'pages.data_set', 'data_sets.items', 'latin_squares.items',
+                                                        'pages.questions.q_type', 'pages.questions.q_type.parent',
+                                                        'pages.questions.q_type.q_type_group',
+                                                        'pages.questions.q_type.q_type_group.parent',
+                                                        'pages.next.target', 'pages.prev.target')).dump(experiment).data
             except formencode.Invalid:
                 return {'experiment': experiment,
                         'crumbs': [{'title': 'Experiments',
@@ -435,25 +449,43 @@ def actions_duplicate(request):
                 params = DuplicateSchema().to_python(request.params, State(request=request))
                 with transaction.manager:
                     dbsession.add(experiment)
-                    data = export_jsonapi(experiment, includes=[(Experiment, 'pages'), (Experiment, 'start'),
-                                                                (Experiment, 'data_sets'),
-                                                                (Experiment, 'latin_squares'), (Experiment, 'pages'),
-                                                                (DataSet, 'items'), (Page, 'next'), (Page, 'prev'),
-                                                                (Page, 'questions'), (Page, 'data_set'),
-                                                                (Question, 'q_type'), (QuestionType, 'q_type_group'),
-                                                                (QuestionType, 'parent'),
-                                                                (QuestionTypeGroup, 'parent'), (Transition, 'source'),
-                                                                (Transition, 'target')])
-                    new_experiment = import_jsonapi(json.dumps(data),
-                                                    dbsession,
-                                                    includes=[(Experiment, 'pages'), (Experiment, 'start'),
-                                                              (Experiment, 'data_sets'), (Experiment, 'latin_squares'),
-                                                              (Experiment, 'pages'), (DataSet, 'items'), (Page, 'next'),
-                                                              (Page, 'prev'), (Page, 'questions'), (Page, 'data_set'),
-                                                              (Question, 'q_type'), (QuestionType, 'q_type_group'),
-                                                              (QuestionType, 'parent'), (QuestionTypeGroup, 'parent'),
-                                                              (Transition, 'source'), (Transition, 'target')],
-                                                    existing=[QuestionType, QuestionTypeGroup])
+                    data = ExperimentIOSchema(include_data=('pages', 'start', 'data_sets', 'latin_squares',
+                                                            'pages.next', 'pages.prev', 'pages.questions',
+                                                            'pages.data_set', 'data_sets.items', 'latin_squares.items',
+                                                            'pages.questions.q_type', 'pages.questions.q_type.parent',
+                                                            'pages.questions.q_type.q_type_group',
+                                                            'pages.questions.q_type.q_type_group.parent',
+                                                            'pages.next.target', 'pages.prev.target')).\
+                        dump(experiment).data
+                    includes = ['data_sets', 'data_sets.items', 'latin_squares', 'latin_squares.items']
+                    for t1 in ['pages', 'start']:
+                        includes.append('%s.questions' % (t1,))
+                        includes.append('%s.questions.q_type' % (t1,))
+                        includes.append('%s.questions.q_type.parent' % (t1,))
+                        includes.append('%s.questions.q_type.q_type_group' % (t1,))
+                        includes.append('%s.questions.q_type.q_type_group.parent' % (t1,))
+                        includes.append('%s.next' % (t1,))
+                        includes.append('%s.prev' % (t1,))
+                        includes.append('%s.data_set' % (t1,))
+                        includes.append('%s.data_set.items' % (t1,))
+                        for t2 in ['next', 'prev']:
+                            includes.append('%s.%s.source' % (t1, t2))
+                            includes.append('%s.%s.target' % (t1, t2))
+                            for t3 in ['source', 'target']:
+                                includes.append('%s.%s.%s.questions' % (t1, t2, t3))
+                                includes.append('%s.%s.%s.questions.q_type' % (t1, t2, t3))
+                                includes.append('%s.%s.%s.questions.q_type.parent' % (t1, t2, t3))
+                                includes.append('%s.%s.%s.questions.q_type.q_type_group' % (t1, t2, t3))
+                                includes.append('%s.%s.%s.questions.q_type.q_type_group.parent' % (t1, t2, t3))
+                                includes.append('%s.%s.%s.data_set' % (t1, t2, t3))
+                                includes.append('%s.%s.%s.data_set.items' % (t1, t2, t3))
+                    new_experiment, errors = ExperimentIOSchema(include_data=includes).\
+                        load(data)
+                    if errors:
+                        raise formencode.Invalid('. '.join(['%s: %s' % (e['source']['pointer'], e['detail'])
+                                                            for e in errors['errors']]), None, None)
+                    for page in experiment.pages:
+                        replace_questions(page, dbsession)
                     new_experiment.title = params['title']
                     new_experiment.owner = request.current_user
                     new_experiment.external_id = uuid.uuid1().hex,

@@ -3,12 +3,11 @@
 .. moduleauthor:: Mark Hall <mark.hall@work.room3b.eu>
 """
 import formencode
-import json
-import sys
 
 from marshmallow import post_load
 from marshmallow_jsonapi import Schema, fields
-from sqlalchemy import inspect, and_
+from pywebtools.sqlalchemy import Base
+from sqlalchemy import and_
 
 from ess.models import (Experiment, Page, Question, QuestionType, QuestionTypeGroup, DataSet, DataItem, Transition)
 
@@ -23,20 +22,22 @@ class BaseSchema(Schema):
         except:
             return default
 
-    def fix_relationships(self, obj, objs):
-        pass
-
-    def clear_relationships(self, obj):
-        pass
-
-    def load_existing(self, dbsession, obj, data):
-        return obj
+    def is_sqlalchemy_class(self, obj):
+        if obj is None:
+            return True
+        elif isinstance(obj, list):
+            for elem in obj:
+                if not isinstance(elem, Base):
+                    return False
+            return True
+        else:
+            return isinstance(obj, Base)
 
 
 class ExperimentIOSchema(BaseSchema):
 
     id = fields.Int()
-    title = fields.Str()
+    title = fields.Str(required=True)
     summary = fields.Str(allow_none=True)
     styles = fields.Str(allow_none=True)
     scripts = fields.Str(allow_none=True)
@@ -62,53 +63,18 @@ class ExperimentIOSchema(BaseSchema):
 
     @post_load
     def make_experiment(self, data):
-        experiment = Experiment(title=data['title'],
-                                summary=data['summary'],
-                                styles=data['styles'],
-                                scripts=data['scripts'],
-                                status='develop',
-                                language=data['language'],
-                                public=data['public'])
-        if 'id' in data:
-            experiment.import_id = data['id']
-        else:
-            experiment.import_id = None
-        experiment.__import_relationships = {'pages': data['pages'] if 'pages' in data else None,
-                                             'start': data['start'] if 'start' in data else None,
-                                             'data_sets': data['data_sets'] if 'data_sets' in data else None,
-                                             'latin_squares': data['latin_squares']
-                                             if 'latin_squares' in data else None}
-        return experiment
-
-    def fix_relationships(self, experiment, data):
-        if experiment.__import_relationships['pages']:
-            for pid in experiment.__import_relationships['pages']:
-                if pid is not None:
-                    pid = int(pid)
-                    if 'pages' in data and pid in data['pages']:
-                        experiment.pages.append(data['pages'][pid])
-        if experiment.__import_relationships['start'] is not None:
-            pid = int(experiment.__import_relationships['start'])
-            if 'pages' in data and pid in data['pages']:
-                experiment.start = data['pages'][pid]
-        if experiment.__import_relationships['data_sets']:
-            for dsid in experiment.__import_relationships['data_sets']:
-                if dsid is not None:
-                    dsid = int(dsid)
-                    if 'data_sets' in data and dsid in data['data_sets']:
-                        experiment.data_sets.append(data['data_sets'][dsid])
-        if experiment.__import_relationships['latin_squares']:
-            for dsid in experiment.__import_relationships['latin_squares']:
-                if dsid is not None:
-                    dsid = int(dsid)
-                    if 'data_sets' in data and dsid in data['data_sets']:
-                        experiment.latin_squares.append(data['data_sets'][dsid])
-
-    def clear_relationships(self, experiment):
-        experiment.pages = []
-        experiment.start = None
-        experiment.data_sets = []
-        experiment.latin_squares = []
+        return Experiment(title=data['title'],
+                          summary=data['summary'],
+                          styles=data['styles'],
+                          scripts=data['scripts'],
+                          status='develop',
+                          language=data['language'],
+                          public=data['public'],
+                          pages=data['pages'] if self.is_sqlalchemy_class(data['pages']) else [],
+                          start=data['start'] if self.is_sqlalchemy_class(data['start']) else None,
+                          data_sets=data['data_sets'] if self.is_sqlalchemy_class(data['data_sets']) else [],
+                          latin_squares=data['latin_squares']
+                          if self.is_sqlalchemy_class(data['latin_squares']) else [])
 
     class Meta():
         type_ = 'experiments'
@@ -117,7 +83,7 @@ class ExperimentIOSchema(BaseSchema):
 class PageIOSchema(BaseSchema):
 
     id = fields.Int()
-    name = fields.Str(allow_none=False)
+    name = fields.Str(required=True, allow_none=False)
     title = fields.Str(allow_none=True)
     scripts = fields.Str(allow_none=True)
     styles = fields.Str(allow_none=True)
@@ -142,49 +108,16 @@ class PageIOSchema(BaseSchema):
 
     @post_load
     def make_page(self, data):
-        page = Page(name=data['name'],
+        print(data)
+        return Page(name=data['name'],
                     title=data['title'],
                     styles=data['styles'],
                     scripts=data['scripts'],
-                    attributes=data['attributes'])
-        if 'id' in data:
-            page.import_id = data['id']
-        else:
-            page.import_id = None
-        page.__import_relationships = {'questions': data['questions'] if 'questions' in data else None,
-                                       'next': data['next'] if 'next' in data else None,
-                                       'prev': data['prev'] if 'prev' in data else None,
-                                       'data_set': data['data_set'] if 'data_set' in data else None}
-        return page
-
-    def fix_relationships(self, page, data):
-        if page.__import_relationships['questions']:
-            for qid in page.__import_relationships['questions']:
-                if qid is not None:
-                    qid = int(qid)
-                    if 'questions' in data and qid in data['questions']:
-                        page.questions.append(data['questions'][qid])
-        if page.__import_relationships['next']:
-            for tid in page.__import_relationships['next']:
-                if tid is not None:
-                    tid = int(tid)
-                    if 'transitions' in data and tid in data['transitions']:
-                        page.next.append(data['transitions'][tid])
-        if page.__import_relationships['prev']:
-            for tid in page.__import_relationships['prev']:
-                if tid is not None:
-                    tid = int(tid)
-                    if 'transitions' in data and tid in data['transitions']:
-                        page.prev.append(data['transitions'][tid])
-        if page.__import_relationships['data_set'] is not None:
-            dsid = int(page.__import_relationships['data_set'])
-            if 'data_sets' in data and dsid in data['data_sets']:
-                page.data_set = data['data_sets'][dsid]
-
-    def clear_relationships(self, page):
-        page.questions = []
-        page.next = []
-        page.prev = []
+                    attributes=data['attributes'],
+                    questions=data['questions'] if self.is_sqlalchemy_class(data['questions']) else [],
+                    next=data['next'] if self.is_sqlalchemy_class(data['next']) else [],
+                    prev=data['prev'] if self.is_sqlalchemy_class(data['prev']) else [],
+                    data_set=data['data_set'] if self.is_sqlalchemy_class(data['data_set']) else None)
 
     class Meta():
         type_ = 'pages'
@@ -202,23 +135,9 @@ class QuestionIOSchema(BaseSchema):
 
     @post_load
     def make_question(self, data):
-        question = Question(order=data['order'],
-                            attributes=data['attributes'])
-        if 'id' in data:
-            question.import_id = data['id']
-        else:
-            question.import_id = None
-        question.__import_relationships = {'q_type': data['q_type'] if 'q_type' in data else None}
-        return question
-
-    def fix_relationships(self, question, data):
-        if question.__import_relationships['q_type'] is not None:
-            qtid = int(question.__import_relationships['q_type'])
-            if 'question_types' in data and qtid in data['question_types']:
-                question.q_type = data['question_types'][qtid]
-
-    def clear_relationships(self, question):
-        question.q_type = None
+        return Question(order=data['order'],
+                        attributes=data['attributes'],
+                        q_type=data['q_type'] if self.is_sqlalchemy_class(data['q_type']) else None)
 
     class Meta():
         type_ = 'questions'
@@ -227,12 +146,12 @@ class QuestionIOSchema(BaseSchema):
 class QuestionTypeIOSchema(BaseSchema):
 
     id = fields.Int()
-    name = fields.Str()
-    title = fields.Str()
-    backend = fields.Dict()
+    name = fields.Str(required=True)
+    title = fields.Str(required=True)
+    backend = fields.Dict(required=True)
     frontend = fields.Dict()
-    enabled = fields.Boolean()
-    order = fields.Int()
+    enabled = fields.Boolean(required=True)
+    order = fields.Int(allow_none=True, missing=1)
 
     parent = fields.Relationship(include_resource_linkage=True,
                                  type_='question_types',
@@ -244,65 +163,15 @@ class QuestionTypeIOSchema(BaseSchema):
 
     @post_load
     def make_question_type(self, data):
-        question_type = QuestionType(name=data['name'],
-                                     order=data['order'],
-                                     enabled=data['enabled'],
-                                     title=data['title'],
-                                     backend=data['backend'],
-                                     frontend=data['frontend'])
-        if 'id' in data:
-            question_type.import_id = data['id']
-        else:
-            question_type.import_id = None
-        question_type.__import_relationships = {'parent': data['parent'] if 'parent' in data else None,
-                                                'q_type_group': data['q_type_group'] if 'q_type_group' in data
-                                                else None}
-        return question_type
-
-    def fix_relationships(self, question_type, data):
-        if question_type.__import_relationships['parent'] is not None:
-            qtid = int(question_type.__import_relationships['parent'])
-            if qtid in data['question_types']:
-                question_type.parent = data['question_types'][qtid]
-        if question_type.__import_relationships['q_type_group'] is not None:
-            qtgid = int(question_type.__import_relationships['q_type_group'])
-            if qtgid in data['question_type_groups']:
-                question_type.q_type_group = data['question_type_groups'][qtgid]
-
-    def clear_relationships(self, question_type):
-        question_type.parent = None
-        question_type.q_type_group = None
-
-    def load_existing(self, dbsession, obj, data):
-        real_obj = None
-        if obj['parent'] and obj['q_type_group']:
-            state = inspect(obj.parent)
-            if state.transient:
-                parent = QuestionType().load_existing(dbsession, obj.parent, data)
-            else:
-                parent = obj.parent
-            state = inspect(obj.q_type_group)
-            if state.transient:
-                q_type_group = QuestionTypeGroup().load_existing(dbsession, obj.q_type_group, data)
-            else:
-                q_type_group = obj.q_type_group
-            real_obj = dbsession.query(QuestionType).filter(and_(QuestionType.name == obj.name,
-                                                                 QuestionType.parent == parent,
-                                                                 QuestionType.q_type_group == q_type_group)).first()
-        elif obj['q_type_group']:
-            state = inspect(obj.q_type_group)
-            if state.transient:
-                q_type_group = QuestionTypeGroup().load_existing(dbsession, obj.q_type_group, data)
-            else:
-                q_type_group = obj.q_type_group
-            real_obj = dbsession.query(QuestionType).filter(and_(QuestionType.name == obj.name,
-                                                                 QuestionType.q_type_group == q_type_group)).first()
-        else:
-            real_obj = dbsession.query(QuestionType).filter(QuestionType.name == obj.name).first()
-        if not real_obj:
-            raise formencode.Invalid('Cannot be loaded as the question type %s does not exist in this installation.' % obj.name, None, None)  # noqa: E501
-        real_obj.__import_relationships = obj.__import_relationships
-        return real_obj
+        return QuestionType(name=data['name'],
+                            order=data['order'],
+                            enabled=data['enabled'],
+                            title=data['title'],
+                            backend=data['backend'],
+                            frontend=data['frontend'],
+                            q_type_group=data['q_type_group']
+                            if self.is_sqlalchemy_class(data['q_type_group']) else None,
+                            parent=data['parent'] if self.is_sqlalchemy_class(data['parent']) else None)
 
     class Meta():
         type_ = 'question_types'
@@ -311,10 +180,10 @@ class QuestionTypeIOSchema(BaseSchema):
 class QuestionTypeGroupIOSchema(BaseSchema):
 
     id = fields.Int()
-    name = fields.Str()
-    title = fields.Str()
-    enabled = fields.Boolean()
-    order = fields.Int()
+    name = fields.Str(required=True)
+    title = fields.Str(required=True)
+    enabled = fields.Boolean(allow_none=True, missing=True)
+    order = fields.Int(allow_none=True, missing=1)
 
     parent = fields.Relationship(include_resource_linkage=True,
                                  type_='question_type_groups',
@@ -323,44 +192,11 @@ class QuestionTypeGroupIOSchema(BaseSchema):
 
     @post_load
     def make_question_type_group(self, data):
-        question_type_group = QuestionTypeGroup(title=data['title'],
-                                                order=data['order'],
-                                                enabled=data['enabled'],
-                                                name=data['name'])
-        if 'id' in data:
-            question_type_group.import_id = data['id']
-        else:
-            question_type_group.import_id = None
-        question_type_group.__import_relationships = {'parent': data['parent'] if 'parent' in data else None}
-        return question_type_group
-
-    def fix_relationships(self, question_type_group, data):
-        if question_type_group.__import_relationships['parent'] is not None:
-            qtgid = int(question_type_group.__import_relationships['parent'])
-            if qtgid in data['question_type_groups']:
-                question_type_group.parent = data['question_type_groups'][qtgid]
-
-    def clear_relationships(self, question_type_group):
-        question_type_group.parent = None
-
-    def load_existing(self, dbsession, obj, data):
-        if obj.parent:
-            state = inspect(obj.parent)
-            if state.transient:
-                parent = QuestionTypeGroupIOSchema().load_existing(dbsession, obj.parent, data)
-                real_obj = dbsession.query(QuestionTypeGroup).filter(and_(QuestionTypeGroup.name == obj.name,
-                                                                          QuestionTypeGroup.parent == parent)).first()
-            else:
-                real_obj = dbsession.query(QuestionTypeGroup).\
-                    filter(and_(QuestionTypeGroup.name == obj.name,
-                                QuestionTypeGroup.parent == obj.parent)).first()
-        else:
-            real_obj = dbsession.query(QuestionTypeGroup).filter(and_(QuestionTypeGroup.name == obj.name,
-                                                                      QuestionTypeGroup.parent == None)).first()
-        if not real_obj:
-            raise formencode.Invalid('Cannot be loaded as the question group %s does not exist in this installation.' % obj.name, None, None)  # noqa: E501
-        real_obj.__import_relationships = obj.__import_relationships
-        return real_obj
+        return QuestionTypeGroup(title=data['title'],
+                                 order=data['order'],
+                                 enabled=data['enabled'],
+                                 name=data['name'],
+                                 parent=data['parent'] if self.is_sqlalchemy_class(data['parent']) else None)
 
     class Meta():
         type_ = 'question_type_groups'
@@ -369,8 +205,8 @@ class QuestionTypeGroupIOSchema(BaseSchema):
 class DataSetIOSchema(BaseSchema):
 
     id = fields.Int()
-    name = fields.Str()
-    type = fields.Str()
+    name = fields.Str(required=True)
+    type = fields.Str(required=True)
     attributes = fields.Dict(allow_none=True)
 
     items = fields.Relationship(many=True,
@@ -380,40 +216,10 @@ class DataSetIOSchema(BaseSchema):
 
     @post_load
     def make_data_set(self, data):
-        data_set = DataSet(name=data['name'],
-                           type=data['type'],
-                           attributes=data['attributes'])
-        if 'id' in data:
-            data_set.import_id = data['id']
-        else:
-            data_set.import_id = None
-        data_set.__import_relationships = {'items': data['items'] if 'items' in data else None}
-        return data_set
-
-    def fix_relationships(self, data_set, data):
-        if data_set.__import_relationships['items'] is not None:
-            for diid in data_set.__import_relationships['items']:
-                diid = int(diid)
-                if diid in data['data_items']:
-                    data_set.items.append(data['data_items'][diid])
-        if data_set.type == 'latinsquare':
-            if 'source_a' in data_set:
-                try:
-                    dsid = int(data_set['source_a'])
-                    if dsid in data['data_sets']:
-                        data_set['source_a'] = data['data_sets'][dsid].name
-                except:
-                    pass
-            if 'source_b' in data_set:
-                try:
-                    dsid = int(data_set['source_b'])
-                    if dsid in data['data_sets']:
-                        data_set['source_b'] = data['data_sets'][dsid].name
-                except:
-                    pass
-
-    def clear_relationships(self, question_type_group):
-        question_type_group.items = []
+        return DataSet(name=data['name'],
+                       type=data['type'],
+                       attributes=data['attributes'],
+                       items=data['items'] if self.is_sqlalchemy_class(data['items']) else [])
 
     class Meta():
         type_ = 'data_sets'
@@ -427,13 +233,8 @@ class DataItemIOSchema(BaseSchema):
 
     @post_load
     def make_data_item(self, data):
-        data_item = DataItem(order=data['order'],
-                             attributes=data['attributes'])
-        if 'id' in data:
-            data_item.import_id = data['id']
-        else:
-            data_item.import_id = None
-        return data_item
+        return DataItem(order=data['order'],
+                        attributes=data['attributes'])
 
     class Meta():
         type_ = 'data_items'
@@ -455,116 +256,52 @@ class TransitionIOSchema(BaseSchema):
 
     @post_load
     def make_transition(self, data):
-        transition = Transition(order=data['order'],
-                                attributes=data['attributes'])
-        if 'id' in data:
-            transition.import_id = data['id']
-        else:
-            transition.import_id = None
-        transition.__import_relationships = {'source': data['source'] if 'source' in data else None,
-                                             'target': data['target'] if 'target' in data else None}
-        return transition
-
-    def fix_relationships(self, transition, data):
-        if transition.__import_relationships['source'] is not None:
-            pid = int(transition.__import_relationships['source'])
-            if 'pages' in data and pid in data['pages']:
-                transition.source = data['pages'][pid]
-        if transition.__import_relationships['target'] is not None:
-            pid = int(transition.__import_relationships['target'])
-            if 'pages' in data and pid in data['pages']:
-                transition.target = data['pages'][pid]
-
-    def clear_relationships(self, transition):
-        transition.source = None
-        transition.target = None
+        return Transition(order=data['order'],
+                          attributes=data['attributes'],
+                          source=data['source'] if self.is_sqlalchemy_class(data['source']) else None,
+                          target=data['target'] if self.is_sqlalchemy_class(data['target']) else None)
 
     class Meta():
         type_ = 'transitions'
 
 
-def export_jsonapi(obj, includes=None, processed=None):
-    if processed is None:
-        processed = []
-    data = getattr(sys.modules[__name__], '%sIOSchema' % obj.__class__.__name__)().dump(obj).data
-    if (data['data']['type'], data['data']['id']) in processed:
-        return None
-    processed.append((data['data']['type'], data['data']['id']))
-    included = []
-    if includes:
-        for class_, method in includes:
-            if isinstance(obj, class_):
-                attr = getattr(obj, method)
-                if isinstance(attr, list):
-                    for item in attr:
-                        tmp = export_jsonapi(item, includes, processed)
-                        if tmp is not None:
-                            included.append(tmp['data'])
-                            included.extend(tmp['included'])
-                elif attr is not None:
-                    tmp = export_jsonapi(attr, includes, processed)
-                    if tmp is not None:
-                        included.append(tmp['data'])
-                        included.extend(tmp['included'])
-    return {'data': data['data'], 'included': included}
+def replace_questions(page, dbsession):
+    """Replace all questions of the page with questions in the local installation.
 
+    :param page: The page for which to replace the questions
+    :type page: :class:`~ess.models.Page`
+    :param dbsession: The database session to use for querying for the local questions
+    :type dbsession: :class:`~pywebtools.sqlalchemy.DBSession`
+    """
+    def q_type_hierarchy(question_type):
+        if question_type is None:
+            return []
+        if question_type in dbsession:
+            dbsession.expunge(question_type)
+        hierarchy = [question_type.name]
+        group = question_type.q_type_group
+        while group is not None:
+            if group in dbsession:
+                dbsession.expunge(group)
+            hierarchy.append(group.name)
+            group = group.parent
+        return hierarchy
 
-SCHEMA_MAPPINGS = {'experiments': ExperimentIOSchema(),
-                   'pages': PageIOSchema(),
-                   'questions': QuestionIOSchema(),
-                   'question_types': QuestionTypeIOSchema(),
-                   'question_type_groups': QuestionTypeGroupIOSchema(),
-                   'transitions': TransitionIOSchema(),
-                   'data_sets': DataSetIOSchema(),
-                   'data_items': DataItemIOSchema()}
-
-
-def import_jsonapi(source, dbsession, includes=None, existing=None):
-    if not includes:
-        includes = []
-    if not existing:
-        existing = []
-    source = json.loads(source)
-    objs = {}
-    if isinstance(source['data'], list) and len(source['data']) > 0:
-        objs[source['data'][0]['type']] = {}
-        main_obj, errors = SCHEMA_MAPPINGS[source['data'][0]['type']].load(source, many=True)
-        for part in main_obj:
-            objs[source['data'][0]['type']][part.import_id] = part
-    else:
-        main_obj, errors = SCHEMA_MAPPINGS[source['data']['type']].load(source)
-        objs[source['data']['type']] = {source['data']['id']: main_obj}
-    if errors:
-        raise formencode.Invalid(' '.join('%s: %s' % (e['source']['pointer'], e['detail'])
-                                          if 'source' in e and 'pointer' in e['source']
-                                          else e['detail']
-                                          for e in errors['errors'] if 'detail' in e),
-                                 None, None)
-    if 'included' in source:
-        for include in source['included']:
-            obj, sub_errors = SCHEMA_MAPPINGS[include['type']].load({'data': include})
-            if include['type'] not in objs:
-                objs[include['type']] = {}
-            objs[include['type']][include['id']] = obj
-            errors.update(sub_errors)
-            if errors:
-                raise formencode.Invalid('%s: %s' % (include['type'].replace('_', ' ').title(),
-                                                     ' '.join('%s: %s' % (e['source']['pointer'], e['detail'])
-                                                              if 'source' in e and 'pointer' in e['source']
-                                                              else e['detail']
-                                                              for e in errors['errors'] if 'detail' in e)),
-                                         None, None)
-    for type_, items in objs.items():
-        for obj in items.values():
-            SCHEMA_MAPPINGS[type_].fix_relationships(obj, objs)
-    for type_, items in objs.items():
-        for id_, obj in list(items.items()):
-            if obj.__class__ in existing:
-                items[id_] = SCHEMA_MAPPINGS[type_].load_existing(dbsession, obj, objs)
-    for type_, items in objs.items():
-        for obj in items.values():
-            SCHEMA_MAPPINGS[type_].clear_relationships(obj)
-    for type_, items in objs.items():
-        for obj in items.values():
-            SCHEMA_MAPPINGS[type_].fix_relationships(obj, objs)
-    return main_obj
+    for question in page.questions:
+        hierarchy = q_type_hierarchy(question.q_type)
+        q_type_name = hierarchy[0]
+        hierarchy = hierarchy[1:]
+        parent = None
+        while hierarchy:
+            q_type_group_name = hierarchy.pop()
+            q_type_group = dbsession.query(QuestionTypeGroup).filter(and_(QuestionTypeGroup.name == q_type_group_name,
+                                                                          QuestionTypeGroup.parent == parent)).first()
+            if not q_type_group:
+                raise formencode.Invalid('No question group "%s" in this installation' % q_type_group_name)
+            parent = q_type_group
+        q_type = dbsession.query(QuestionType).filter(and_(QuestionType.name == q_type_name,
+                                                           QuestionType.q_type_group == q_type_group)).first()
+        if q_type:
+            question.q_type = q_type
+        else:
+            raise formencode.Invalid('No question type "%s" in this installation' % q_type_group_name)

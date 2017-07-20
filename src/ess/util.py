@@ -142,7 +142,6 @@ VARIABLE_PATTERN = re.compile('\${([a-z0-9._]+)}', re.IGNORECASE)
 def replace_variables(text, participant, *sources):
     if isinstance(text, str):
         match = re.search(VARIABLE_PATTERN, text)
-        print(match)
         while match is not None:
             replaced = False
             for source in sources:
