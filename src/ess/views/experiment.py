@@ -92,6 +92,7 @@ def import_experiment(request):
                     includes.append('%s.next' % (t1,))
                     includes.append('%s.prev' % (t1,))
                     includes.append('%s.data_set' % (t1,))
+                    includes.append('%s.data_set.items' % (t1,))
                     for t2 in ['next', 'prev']:
                         includes.append('%s.%s.source' % (t1, t2))
                         includes.append('%s.%s.target' % (t1, t2))
@@ -102,7 +103,7 @@ def import_experiment(request):
                             includes.append('%s.%s.%s.questions.q_type.q_type_group' % (t1, t2, t3))
                             includes.append('%s.%s.%s.questions.q_type.q_type_group.parent' % (t1, t2, t3))
                             includes.append('%s.%s.%s.data_set' % (t1, t2, t3))
-                            includes.append('%s.%s.%s.data_set' % (t1, t2, t3))
+                            includes.append('%s.%s.%s.data_set.items' % (t1, t2, t3))
                 experiment, errors = ExperimentIOSchema(include_data=includes).\
                     loads(params['source'].file.read().decode('utf-8'))
                 if errors:
@@ -447,16 +448,16 @@ def actions_duplicate(request):
         if request.method == 'POST':
             try:
                 params = DuplicateSchema().to_python(request.params, State(request=request))
+                data = ExperimentIOSchema(include_data=('pages', 'start', 'data_sets', 'latin_squares',
+                                                        'pages.next', 'pages.prev', 'pages.questions',
+                                                        'pages.data_set', 'data_sets.items', 'latin_squares.items',
+                                                        'pages.questions.q_type', 'pages.questions.q_type.parent',
+                                                        'pages.questions.q_type.q_type_group',
+                                                        'pages.questions.q_type.q_type_group.parent',
+                                                        'pages.next.target', 'pages.prev.target')).\
+                    dump(experiment).data
                 with transaction.manager:
                     dbsession.add(experiment)
-                    data = ExperimentIOSchema(include_data=('pages', 'start', 'data_sets', 'latin_squares',
-                                                            'pages.next', 'pages.prev', 'pages.questions',
-                                                            'pages.data_set', 'data_sets.items', 'latin_squares.items',
-                                                            'pages.questions.q_type', 'pages.questions.q_type.parent',
-                                                            'pages.questions.q_type.q_type_group',
-                                                            'pages.questions.q_type.q_type_group.parent',
-                                                            'pages.next.target', 'pages.prev.target')).\
-                        dump(experiment).data
                     includes = ['data_sets', 'data_sets.items', 'latin_squares', 'latin_squares.items']
                     for t1 in ['pages', 'start']:
                         includes.append('%s.questions' % (t1,))
@@ -484,7 +485,7 @@ def actions_duplicate(request):
                     if errors:
                         raise formencode.Invalid('. '.join(['%s: %s' % (e['source']['pointer'], e['detail'])
                                                             for e in errors['errors']]), None, None)
-                    for page in experiment.pages:
+                    for page in new_experiment.pages:
                         replace_questions(page, dbsession)
                     new_experiment.title = params['title']
                     new_experiment.owner = request.current_user
