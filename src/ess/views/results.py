@@ -63,6 +63,8 @@ def overview(request):
                             Participant.completed == True)):  # noqa: E712
             if answer.question.page.id not in summary:
                 summary[answer.question.page.id] = {'questions': {}}
+            if 'response' not in answer or answer['response'] is None:
+                continue
             if answer.question['frontend', 'display_as'] == 'simple_input':
                 if answer.question.id not in summary[answer.question.page.id]['questions']:
                     summary[answer.question.page.id]['questions'][answer.question.id] = Counter()
@@ -218,6 +220,8 @@ def export_settings(request):
                     for answer in participant.answers:
                         if str(answer.question.id) not in params['question']:
                             continue
+                        if 'response' not in answer or answer['response'] is None:
+                            continue
                         column = '%s.%s' % (answer.question.page.name, answer.question['name'])
                         new_columns = []
                         if answer.question['frontend', 'display_as'] == 'select_simple_choice':
@@ -287,6 +291,8 @@ def export_settings(request):
                             if 'user_agent' in participant['user_agent']:
                                 responses['_user_agent.string'] = participant['user_agent']['user_agent']
                     for answer in participant.answers:
+                        if 'response' not in answer or answer['response'] is None:
+                            continue
                         column = '%s.%s' % (answer.question.page.name, answer.question['name'])
                         if answer.question['frontend', 'display_as'] == 'select_simple_choice':
                             if answer.question['frontend', 'allow_other']:

@@ -5,6 +5,11 @@
 - BUGFIX: Missing variable substitution in multi-question grids
 - BUGFIX: Allow underscores in data substitution variables
 
+1.0.0a10
+--------
+
+- BUGFIX: Handle changes to the experiment in the results
+
 1.0.0a9
 -------
 
