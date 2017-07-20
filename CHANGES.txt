@@ -1,6 +1,7 @@
 1.0.0a11
 --------
 
+- UPDATE: Add support for random answer / sub-question order
 - BUGFIX: Rewritten the import/export functionality
 - BUGFIX: Missing variable substitution in multi-question grids
 - BUGFIX: Allow underscores in data substitution variables

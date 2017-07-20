@@ -278,6 +278,10 @@ class FrontendPageSchema(CSRFSchema):
                         # Single / multi-choice validation
                         values = [replace_variables(answer['value'], participant, question, data_item)
                                   for answer in question['frontend', 'answers']]
+                        if question['frontend', 'randomise_answers']:
+                            di_schema.add_field('%s_answer_order' % question['frontend', 'name'],
+                                                formencode.foreach.ForEach(formencode.validators.UnicodeString(),
+                                                                           use_list=True))
                         if question['frontend', 'allow_multiple']:
                             if question['frontend', 'allow_other']:
                                 di_schema.add_field(question['frontend', 'name'],
@@ -311,6 +315,14 @@ class FrontendPageSchema(CSRFSchema):
                         # Grid-structured single / multi-choice validation
                         values = [replace_variables(answer['value'], participant, question, data_item)
                                   for answer in question['frontend', 'answers']]
+                        if question['frontend', 'randomise_answers']:
+                            di_schema.add_field('%s_answer_order' % question['frontend', 'name'],
+                                                formencode.foreach.ForEach(formencode.validators.UnicodeString(),
+                                                                           use_list=True))
+                        if question['frontend', 'randomise_questions']:
+                            di_schema.add_field('%s_question_order' % question['frontend', 'name'],
+                                                formencode.foreach.ForEach(formencode.validators.UnicodeString(),
+                                                                           use_list=True))
                         sub_schema = DynamicSchema(messages={'missingValue': 'Please answer this question'},
                                                    **default_attrs)
                         for sub_question in question['frontend', 'questions']:
@@ -327,6 +339,10 @@ class FrontendPageSchema(CSRFSchema):
                         # Ranking validation
                         values = [replace_variables(answer['value'], participant, question, data_item)
                                   for answer in question['frontend', 'answers']]
+                        if question['frontend', 'randomise_answers']:
+                            di_schema.add_field('%s_answer_order' % question['frontend', 'name'],
+                                                formencode.foreach.ForEach(formencode.validators.UnicodeString(),
+                                                                           use_list=True))
                         di_schema.add_field(question['frontend', 'name'],
                                             formencode.validators.OneOf(values,
                                                                         testValueList=True,

@@ -242,6 +242,8 @@ def export_settings(request):
                                         new_columns = ['%s.%s' % (column, answer['response'])]
                                 else:
                                     new_columns = [column]
+                            if answer.question['frontend', 'randomise_answers']:
+                                new_columns.append('%s.answer_order' % column)
                         elif answer.question['frontend', 'display_as'] == 'select_grid_choice':
                             for key, value in answer['response'].items():
                                 sub_column = '%s.%s' % (column, key)
@@ -253,9 +255,15 @@ def export_settings(request):
                                 else:
                                     sub_column = [sub_column]
                                 new_columns.extend(sub_column)
+                            if answer.question['frontend', 'randomise_answers']:
+                                new_columns.append('%s.answer_order' % column)
+                            if answer.question['frontend', 'randomise_questions']:
+                                new_columns.append('%s.question_order' % column)
                         elif answer.question['frontend', 'display_as'] == 'ranking':
                             new_columns.extend(['%s.%s' % (column, a['value'])
                                                 for a in answer.question['frontend', 'answers']])
+                            if answer.question['frontend', 'randomise_answers']:
+                                new_columns.append('%s.answer_order' % column)
                         else:
                             if answer.question['frontend', 'allow_multiple']:
                                 if isinstance(answer['response'], list):
@@ -357,6 +365,8 @@ def export_settings(request):
                                         responses['%s.%s' %
                                                   (column, data_item_column_mapper(answer.data_item))] = \
                                             answer['response']
+                            if answer.question['frontend', 'randomise_answers']:
+                                responses['%s.answer_order' % column] = answer['answer_order']
                         elif answer.question['frontend', 'display_as'] == 'select_grid_choice':
                             for key, value in answer['response'].items():
                                 sub_column = '%s.%s' % (column, key)
@@ -385,6 +395,10 @@ def export_settings(request):
                                     else:
                                         responses['%s.%s' % (sub_column,
                                                              data_item_column_mapper(answer.data_item))] = value
+                            if answer.question['frontend', 'randomise_answers']:
+                                responses['%s.answer_order' % column] = answer['answer_order']
+                            if answer.question['frontend', 'randomise_questions']:
+                                responses['%s.question_order' % column] = answer['question_order']
                         elif answer.question['frontend', 'display_as'] == 'ranking':
                             for idx, sub_answer in enumerate(answer['response']):
                                 if answer.data_item_id is None:
@@ -392,6 +406,8 @@ def export_settings(request):
                                 else:
                                     responses['%s.%s.%s' % (column, sub_answer,
                                                             data_item_column_mapper(answer.data_item))] = idx
+                            if answer.question['frontend', 'randomise_answers']:
+                                responses['%s.answer_order' % column] = answer['answer_order']
                         else:
                             if answer.question['frontend', 'allow_multiple']:
                                 for c in columns:
