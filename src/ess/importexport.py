@@ -171,7 +171,8 @@ class QuestionTypeIOSchema(BaseSchema):
                             frontend=data['frontend'],
                             q_type_group=data['q_type_group']
                             if self.is_sqlalchemy_class(data['q_type_group']) else None,
-                            parent=data['parent'] if self.is_sqlalchemy_class(data['parent']) else None)
+                            parent=data['parent']
+                            if 'parent' in data and self.is_sqlalchemy_class(data['parent']) else None)
 
     class Meta():
         type_ = 'question_types'
@@ -196,7 +197,8 @@ class QuestionTypeGroupIOSchema(BaseSchema):
                                  order=data['order'],
                                  enabled=data['enabled'],
                                  name=data['name'],
-                                 parent=data['parent'] if self.is_sqlalchemy_class(data['parent']) else None)
+                                 parent=data['parent']
+                                 if 'parent' in data and self.is_sqlalchemy_class(data['parent']) else None)
 
     class Meta():
         type_ = 'question_type_groups'

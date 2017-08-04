@@ -44,7 +44,8 @@ def initialise_database(args):
         group.permissions.append(Permission(name='experiment.edit', title='Edit all experiments'))
         group.permissions.append(Permission(name='experiment.delete', title='Delete all experiments'))
         dbsession.add(group)
-        question_types = QuestionTypeIOSchema(include_data=('q_type', 'parent', 'q_type.parent')).\
+        question_types = QuestionTypeIOSchema(include_data=('q_type_group', 'parent', 'q_type_group.parent'),
+                                              many=True).\
             loads(resource_string('ess', 'scripts/templates/default_question_types.json').decode('utf-8')).data
         for question_type in question_types:
             dbsession.add(question_type)
