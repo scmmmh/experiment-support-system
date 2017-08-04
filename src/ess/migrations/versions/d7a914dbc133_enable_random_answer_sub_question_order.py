@@ -32,11 +32,16 @@ question_types = sa.Table('question_types', metadata,
 
 
 def upgrade():
-    parent = op.get_bind().execute(question_type_groups.select().where(question_type_groups.c.name == 'ess:builtins')).first()
-    parent = op.get_bind().execute(question_type_groups.select().where(sa.and_(question_type_groups.c.name == 'ess:core',
-                                                                               question_type_groups.c.parent_id == parent[0]))).first()
-    for qt in op.get_bind().execute(question_types.select().where(sa.and_(question_types.c.group_id == parent[0],
-                                                                          question_types.c.name.in_(['select_simple_choice', 'select_grid_choice', 'ranking'])))):
+    parent = op.get_bind().execute(question_type_groups.select().
+                                   where(question_type_groups.c.name == 'ess:builtins')).first()
+    parent = op.get_bind().execute(question_type_groups.select().
+                                   where(sa.and_(question_type_groups.c.name == 'ess:core',
+                                                 question_type_groups.c.parent_id == parent[0]))).first()
+    for qt in op.get_bind().execute(question_types.select().
+                                    where(sa.and_(question_types.c.group_id == parent[0],
+                                                  question_types.c.name.in_(['select_simple_choice',
+                                                                             'select_grid_choice',
+                                                                             'ranking'])))):
         backend = json.loads(qt[3])
         if qt[1] == 'select_grid_choice':
             backend['fields'].append({'title': 'Randomise the question order',
@@ -56,12 +61,18 @@ def upgrade():
 
 
 def downgrade():
-    parent = op.get_bind().execute(question_type_groups.select().where(question_type_groups.c.name == 'ess:builtins')).first()
-    parent = op.get_bind().execute(question_type_groups.select().where(sa.and_(question_type_groups.c.name == 'ess:core',
-                                                                               question_type_groups.c.parent_id == parent[0]))).first()
-    for qt in op.get_bind().execute(question_types.select().where(sa.and_(question_types.c.group_id == parent[0],
-                                                                          question_types.c.name.in_(['select_simple_choice', 'select_grid_choice', 'ranking'])))):
+    parent = op.get_bind().execute(question_type_groups.select().
+                                   where(question_type_groups.c.name == 'ess:builtins')).first()
+    parent = op.get_bind().execute(question_type_groups.select().
+                                   where(sa.and_(question_type_groups.c.name == 'ess:core',
+                                                 question_type_groups.c.parent_id == parent[0]))).first()
+    for qt in op.get_bind().execute(question_types.select().
+                                    where(sa.and_(question_types.c.group_id == parent[0],
+                                                  question_types.c.name.in_(['select_simple_choice',
+                                                                             'select_grid_choice',
+                                                                             'ranking'])))):
         backend = json.loads(qt[3])
-        backend['fields'] = [f for f in backend['fields'] if f['name'] not in ['randomise_questions', 'randomise_answers']]
+        backend['fields'] = [f for f in backend['fields'] if f['name'] not in ['randomise_questions',
+                                                                               'randomise_answers']]
         backend = json.dumps(backend)
         op.get_bind().execute(question_types.update().values(backend=backend).where(question_types.c.id == qt[0]))

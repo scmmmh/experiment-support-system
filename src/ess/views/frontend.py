@@ -291,9 +291,11 @@ def run(request):
                                             data_item_id=data_item.id if data_item.id != -1 else None)
                             answer['response'] = params['d%s' % data_item.id][question['name']]
                             if '%s_answer_order' % question['name'] in params['d%s' % data_item.id]:
-                                answer['answer_order'] = params['d%s' % data_item.id]['%s_answer_order' % question['name']]
+                                answer['answer_order'] = params['d%s' % data_item.id]
+                                ['%s_answer_order' % question['name']]
                             if '%s_question_order' % question['name'] in params['d%s' % data_item.id]:
-                                answer['question_order'] = params['d%s' % data_item.id]['%s_question_order' % question['name']]
+                                answer['question_order'] = params['d%s' % data_item.id]
+                                ['%s_question_order' % question['name']]
                             if isinstance(answer['response'], list) and len(question['frontend', 'answers']) == 1:
                                 answer['response'] = answer['response'][0]
                             dbsession.add(answer)
