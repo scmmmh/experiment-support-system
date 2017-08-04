@@ -5,6 +5,8 @@
 - BUGFIX: Rewritten the import/export functionality
 - BUGFIX: Missing variable substitution in multi-question grids
 - BUGFIX: Allow underscores in data substitution variables
+- BUGFIX: Fixed dependency on marshmallow-jsonapi from
+          https://github.com/scmmmh/marshmallow-jsonapi
 
 1.0.0a10
 --------
