@@ -2,6 +2,7 @@
 --------
 
 - BUGFIX: Fixed initial question type imports
+- BUGFIX: Fixed SQLAlchemy minimum version to avoid initialisation bugs
 
 1.0.0a11
 --------
