@@ -91,7 +91,7 @@ class DateValidator(formencode.FancyValidator):
         if match:
             try:
                 datetime.strptime(value, '%Y-%m-%d')
-            except:
+            except Exception:
                 raise formencode.Invalid(self.message('invalid_date', state), value, state)
         else:
             raise formencode.Invalid(self.message('invalid_format', state), value, state)
@@ -122,7 +122,7 @@ class DateTimeValidator(formencode.FancyValidator):
         if match:
             try:
                 datetime.strptime(value, '%Y-%m-%dT%H:%MZ')
-            except:
+            except Exception:
                 raise formencode.Invalid(self.message('invalid_date', state), value, state)
         else:
             raise formencode.Invalid(self.message('invalid_format', state), value, state)
@@ -141,7 +141,7 @@ class MonthValidator(formencode.FancyValidator):
         if match:
             try:
                 datetime.strptime(value, '%Y-%m')
-            except:
+            except Exception:
                 raise formencode.Invalid(self.message('invalid_month', state), value, state)
         else:
             raise formencode.Invalid(self.message('invalid_format', state), value, state)

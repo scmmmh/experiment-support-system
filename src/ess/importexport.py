@@ -19,7 +19,7 @@ class BaseSchema(Schema):
             return getattr(obj, attr)
         try:
             return obj[attr]
-        except:
+        except Exception:
             return default
 
     def is_sqlalchemy_class(self, obj):
