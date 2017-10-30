@@ -104,7 +104,13 @@
                     <canvas data-chart-type="horizontalBar" data-chart-labels="${json.dumps([l for l, _ in summary[page.id]['questions'][question.id].most_common()])}" data-chart-data="${json.dumps([c for _, c in summary[page.id]['questions'][question.id].most_common()])}" data-chart-hide-legend="true"></canvas>
                   </py:case>
                   <py:case value="'select_grid_choice'">
-                    <canvas py:for="sub_question in question['frontend', 'questions']" data-chart-type="horizontalBar" data-chart-labels="${json.dumps([l for l, _ in summary[page.id]['questions'][question.id][sub_question['name']].most_common()])}" data-chart-data="${json.dumps([c for _, c in summary[page.id]['questions'][question.id][sub_question['name']].most_common()])}" data-chart-title="${sub_question['name']}"></canvas>
+                    <py:for each="sub_question in question['frontend', 'questions']">
+                      <py:if test="sub_question['name'] in summary[page.id]['questions'][question.id]">
+                        <canvas data-chart-type="horizontalBar" data-chart-labels="${json.dumps([l for l, _ in summary[page.id]['questions'][question.id][sub_question['name']].most_common()])}" data-chart-data="${json.dumps([c for _, c in summary[page.id]['questions'][question.id][sub_question['name']].most_common()])}" data-chart-title="${sub_question['name']}"></canvas>
+                      </py:if><py:else>
+                        <p>No responses</p>
+                      </py:else>
+                    </py:for>
                   </py:case>
                   <py:case value="'ranking'">
                     <canvas data-chart-type="horizontalBar" data-chart-labels="${json.dumps([l for l, _ in summary[page.id]['questions'][question.id].most_common()])}" data-chart-data="${json.dumps([c for _, c in summary[page.id]['questions'][question.id].most_common()])}" data-chart-hide-legend="true"></canvas>
