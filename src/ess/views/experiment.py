@@ -8,6 +8,7 @@ from pyramid.view import view_config
 from pywebtools.formencode import CSRFSchema, State
 from pywebtools.pyramid.auth.views import current_user, require_permission
 from pywebtools.sqlalchemy import DBSession
+from pywebtools.pyramid.util import paginate
 from sqlalchemy import func, and_
 
 from ess.importexport import ExperimentIOSchema, replace_questions
@@ -16,6 +17,7 @@ from ess.validators import PageExistsValidator
 
 
 def init(config):
+    config.add_route('experiment.list', '/experiments')
     config.add_route('experiment.create', '/experiments/create')
     config.add_route('experiment.import', '/experiments/import')
     config.add_route('experiment.view', '/experiments/{eid}')
@@ -26,6 +28,28 @@ def init(config):
     config.add_route('experiment.actions.duplicate', '/experiments/{eid}/actions/duplicate')
     config.add_route('experiment.actions.delete', '/experiments/{eid}/actions/delete')
     config.add_route('experiment.status', '/experiments/{eid}/status')
+
+
+@view_config(route_name='experiment.list', renderer='ess:templates/experiment/list.kajiki')
+@current_user()
+@require_permission(permission='experiment.view')
+def list_experiments(request):
+    dbsession = DBSession()
+    experiments = dbsession.query(Experiment)
+    query_params = []
+    if 'q' in request.params and request.params['q'].strip():
+        experiments = experiments.filter(Experiment.title.like('%%%s%%' % request.params['q'].strip()))
+        query_params.append(('q', request.params['q'].strip()))
+    start = 0
+    if 'start' in request.params:
+        try:
+            start = int(request.params['start'])
+        except ValueError:
+            pass
+    experiments = experiments.offset(start).limit(10)
+    pages = paginate(request, 'experiment.list', experiments, start, 10, query_params=query_params)
+    return {'experiments': experiments,
+            'pages': pages}
 
 
 class CreateExperimentSchema(CSRFSchema):

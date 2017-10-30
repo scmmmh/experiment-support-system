@@ -1,0 +1,44 @@
+<py:extends href="ess:templates/layout/backend/no_sidebar.kajiki">
+  <py:block name="title">Experiments</py:block>
+  <py:block name="content">
+    <py:import href="ess:templates/helpers/icon.kajiki" alias="icon"/>
+    <py:import href="pywebtools:kajiki/form.kajiki" alias="form"/>
+    <py:import href="pywebtools:kajiki/navigation.kajiki" alias="nav"/>
+    <?py from ess.human_readable import experiment_status ?>
+    <div class="row expanded">
+      <article class="column small-12">
+        <h1>Experiments</h1>
+        <div class="row expanded" style="margin-top: 2rem;">
+          <div class="column small-12 medium-3">
+            <form action="${request.route_url('experiment.list')}">
+              <div>${form.field('text', 'q', 'Experiment Name', value=request.params['q'] if 'q' in request.params else '')}</div>
+              <div class="text-right">
+                <input type="submit" value="Search" class="button"/>
+              </div>
+            </form>
+          </div>
+          <div class="column small-12 medium-9">
+            <div data-equalizer="" data-equalize-on="medium">
+            <div py:for="experiment in experiments" class="column small-12 end" data-equalizer-watch="">
+              <div class="callout" style="padding-bottom:3rem;">
+                <h2><a href="${request.route_url('experiment.view', eid=experiment.id)}">${experiment.title}</a> <small>${experiment_status(experiment.status)}</small></h2>
+                <p>${experiment.summary}</p>
+                <div class="pos-bottom pos-right padding-bottom">
+                  <ul class="menu simple">
+                    <li><a href="${request.route_url('experiment.settings.general', eid=experiment.id)}">${icon.md('settings', 'Settings')} Settings</a></li>
+                    <li><a href="${request.route_url('experiment.page', eid=experiment.id)}">${icon.md('content_copy', 'Pages')} Pages</a></li>
+                    <li><a href="${request.route_url('experiment.results', eid=experiment.id)}">${icon.md('pie_chart', 'Results')} Results</a></li>
+                  </ul>
+                </div>
+              </div>
+              </div>
+            </div>
+            <div>
+              ${nav.pagination(pages)}
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </py:block>
+</py:extends>
