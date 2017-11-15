@@ -27,12 +27,12 @@ requires = [
     'pycrypto',
     'asset',
     'pywebtools>=1.1.3',
-    'marshmallow_jsonapi==0.15.1-mh',
+    'marshmallow_jsonapi>=0.15.1',
     'marshmallow<3'
     ]
 
 setup(name='ExperimentSupportSystem',
-      version='1.0.0a12',
+      version='1.0.0a13',
       description='Experiment Support System',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
