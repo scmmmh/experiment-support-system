@@ -2,6 +2,7 @@
 --------
 
 - UPDATE: Update marshmallow_jsonapi dependency to 0.16.0 (still needs github version)
+- BUGFIX: Fixed an issue with pages that have data-items drawn from an empty data set
 
 1.0.0a13
 --------
