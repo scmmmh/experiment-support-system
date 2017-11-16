@@ -32,7 +32,7 @@ requires = [
     ]
 
 setup(name='ExperimentSupportSystem',
-      version='1.0.0a13',
+      version='1.0.0a14',
       description='Experiment Support System',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
