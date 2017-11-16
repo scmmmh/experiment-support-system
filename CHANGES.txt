@@ -1,4 +1,10 @@
+1.0.0a14
+--------
+
+- UPDATE: Update marshmallow_jsonapi dependency to 0.16.0 (still needs github version)
+
 1.0.0a13
+--------
 
 - BUGFIX: Remove explicit marshmallow-jsonapi dependency
 
