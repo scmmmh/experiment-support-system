@@ -16,7 +16,7 @@ import pytest
 import transaction
 
 from alembic import config, command
-from pkg_resources import resource_stream
+from pkg_resources import resource_string
 from pyramid.paster import (get_app, get_appsettings, setup_logging)
 from pywebtools.pyramid.auth.models import (User, PermissionGroup, Permission)
 from pywebtools.sqlalchemy import (DBSession, Base)
@@ -24,6 +24,7 @@ from sqlalchemy import engine_from_config, text
 from webtest import TestApp
 
 from ess import models
+from ess.importexport import QuestionTypeIOSchema
 
 dbsession_initialised = False
 
@@ -50,17 +51,18 @@ def database():
     if not dbsession_initialised:
         DBSession.configure(bind=engine)
         dbsession_initialised = True
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     dbsession = DBSession()
 
     # Reset Database Content
-    with transaction.manager:
-        tables = list(Base.metadata.sorted_tables)
-        tables.reverse()
-        for table in tables:
-            dbsession.bind.execute(table.delete())
-        dbsession.flush()
+    #with transaction.manager:
+    #    tables = list(Base.metadata.sorted_tables)
+    #    tables.reverse()
+    #    for table in tables:
+    #        dbsession.bind.execute(table.delete())
+    #    dbsession.flush()
 
     # Create Test Users
     with transaction.manager:
@@ -86,9 +88,10 @@ def database():
         dbsession.add(admin_user)
         dbsession.add(developer_user)
         dbsession.add(content_user)
-        #element = XmlValidator().to_python(resource_stream('pyquest',
-        #                                                   'scripts/templates/default_question_types.xml').read())
-        #dbsession.add(load_q_types_from_xml(dbsession, element, 0))
+        question_types = QuestionTypeIOSchema(include_data=('q_type_group', 'parent', 'q_type_group.parent'),
+                                              many=True).\
+            loads(resource_string('ess', 'scripts/templates/default_question_types.json').decode('utf-8')).data
+        dbsession.add_all(question_types)
 
     # Alembic Stamp
     alembic_config = config.Config('testing.ini', ini_section='app:main')
@@ -108,7 +111,7 @@ class DBTester(object):
     def __init__(self):
         self._dbsession = DBSession()
 
-    def get_model(self, name, query = None):
+    def get_model(self, name, query_params = None):
         """Retrieve a single instance of the model ``name``, filtered by the ``query``.
 
         :param name: The name of the model to get the instance for
@@ -119,8 +122,9 @@ class DBTester(object):
         """
         cls = getattr(models, name)
         query = self._dbsession.query(cls)
-        if query[1] == '==':
-            query = query.filter(getattr(cls, query[0]) == query[2])
+        if query_params:
+            if query_params[1] == '==':
+                query = query.filter(getattr(cls, query_params[0]) == query_params[2])
         return query.first()
 
     def create_model(self, name, params):
@@ -133,12 +137,32 @@ class DBTester(object):
         :return: The new instance
         """
         cls = getattr(models, name)
+        loaded = list(self._dbsession.identity_map.values())
         with transaction.manager:
             model = cls(**params)
             self._dbsession.add(model)
         self._dbsession.add(model)
+        self._dbsession.add_all(loaded)
         return model
 
+    def update(self, obj, **kwargs):
+        """Update the given ``obj`` with the key/value parameters.
+
+        :param obj: The obj to update
+        :type obj: :class:`pywebtools.sqlalchemy.Base`
+        """
+        loaded = list(self._dbsession.identity_map.values())
+        with transaction.manager:
+            self._dbsession.add(obj)
+            for key, value in kwargs.items():
+                if isinstance(value, Base):
+                    self._dbsession.add(value)
+                setattr(obj, key, value)
+        self._dbsession.add_all(loaded)
+
+    def flush(self):
+        """Flush the session."""
+        self._dbsession.flush()
 
 @pytest.yield_fixture
 def database_tester(database):
