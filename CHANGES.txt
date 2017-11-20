@@ -1,3 +1,8 @@
+1.0.0a15
+--------
+
+- BUGFIX: Fixed issues with the "other" option in the simple selection question
+
 1.0.0a13
 
 - BUGFIX: Remove explicit marshmallow-jsonapi dependency

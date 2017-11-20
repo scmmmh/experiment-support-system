@@ -25,7 +25,7 @@
       </div>
     </section>
   </py:def>
-  
+
   <py:def function="text(question, data_item)">
     <?py from ess.util import replace_variables ?>
     <py:if test="('frontend', 'text') in question and question['frontend', 'text']">
@@ -34,12 +34,12 @@
       <p>No text has been provided for this text block.</p>
     </py:else>
   </py:def>
-  
+
   <py:def function="simple_input(question, data_item)">
     <?py from ess.util import replace_variables ?>
     ${form.field(question['frontend', 'input_type'], 'd%s.%s' % (data_item.id, question['name']), replace_variables(question['frontend', 'label'], participant, question, data_item['values']), value=replace_variables(question['frontend', 'value'], participant, question, data_item['values']), error_msg='')}
   </py:def>
-  
+
   <py:def function="select_simple_choice(question, data_item)">
     <?py from ess.util import replace_variables ?>
     <?py from random import sample ?>
@@ -48,15 +48,19 @@
     <py:if test="question['frontend', 'randomise_answers']"><py:for each="a in answers">${form.field('hidden', 'd%s.%s_answer_order' % (data_item.id, question['name']), '', value=replace_variables(a['value'], participant, question, data_item['values']))}</py:for></py:if>
     <py:switch test="question['frontend', 'widget']">
       <py:case value="'select'">
-        ${form.field('select', 'd%s.%s' % (data_item.id, question['name']), '', values=[('', '--- Please select an option ---')] + [(replace_variables(a['value'], participant, question, data_item['values']), replace_variables(a['label'], participant, question, data_item['values'])) for a in answers] + ([('other', 'Other')] if question['frontend', 'allow_other'] else []), extra_attrs={'multiple': 'multiple' if question['frontend', 'allow_multiple'] else None})}
-        <py:if test="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), '', value='_other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}</py:if>
+        <py:if test="question['frontend', 'allow_other']">
+          ${form.field('select', 'd%s.%s.response' % (data_item.id, question['name']), '', values=[('', '--- Please select an option ---')] + [(replace_variables(a['value'], participant, question, data_item['values']), replace_variables(a['label'], participant, question, data_item['values']) if a['label'] else replace_variables(a['value'], participant, question, data_item['values'])) for a in answers] + ([('other', 'Other')] if question['frontend', 'allow_other'] else []), extra_attrs={'multiple': 'multiple' if question['frontend', 'allow_multiple'] else None})}
+          ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}
+        </py:if><py:else>
+          ${form.field('select', 'd%s.%s' % (data_item.id, question['name']), '', values=[('', '--- Please select an option ---')] + [(replace_variables(a['value'], participant, question, data_item['values']), replace_variables(a['label'], participant, question, data_item['values']) if a['label'] else replace_variables(a['value'], participant, question, data_item['values'])) for a in answers] + ([('other', 'Other')] if question['frontend', 'allow_other'] else []), extra_attrs={'multiple': 'multiple' if question['frontend', 'allow_multiple'] else None})}
+        </py:else>
       </py:case>
       <py:case value="'table'">
         <table>
           <thead>
             <tr>
               <th py:if="question['frontend', 'before_label']"></th>
-              <th py:for="answer in answers">${replace_variables(answer['label'], participant, question, data_item['values'])}</th>
+              <th py:for="answer in answers">${replace_variables(answer['label'], participant, question, data_item['values']) if answer['label'] else replace_variables(answer['value'], participant, question, data_item['values'])}</th>
               <th py:if="question['frontend', 'after_label']"></th>
               <th py:if="question['frontend', 'allow_other']">Other</th>
             </tr>
@@ -64,9 +68,15 @@
           <tbody>
             <tr>
               <th py:if="question['frontend', 'before_label']" class="question_label text-right">${replace_variables(question['frontend', 'before_label'], participant, question, data_item['values'])}</th>
-              <td py:for="answer in answers">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), '', value=replace_variables(answer['value'], participant, question, data_item['values']))}</td>
+              <td py:for="answer in answers">
+                <py:if test="question['frontend', 'allow_other']">
+                  ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']), '', value=replace_variables(answer['value'], participant, question, data_item['values']), error_msg='')}
+                </py:if><py:else>
+                  ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), '', value=replace_variables(answer['value'], participant, question, data_item['values']), error_msg='')}
+                </py:else>
+              </td>
               <th py:if="question['frontend', 'after_label']" class="question_label text-left">${replace_variables(question['frontend', 'after_label'], participant, question, data_item['values'])}</th>
-              <th py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), '', value='_other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}</th>
+              <th py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']) if question['frontend', 'allow_other'] else 'd%s.%s' % (data_item.id, question['name']), '', value='other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}</th>
             </tr>
           </tbody>
         </table>
@@ -76,9 +86,9 @@
           <li py:if="question['frontend', 'before_label']" class="question_label">${replace_variables(question['frontend', 'before_label'], participant, question, data_item['values'])}</li>
           <li py:for="answer in answers">
             <py:if test="question['frontend', 'allow_other']">
-              ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']), replace_variables(answer['label'], participant, question, data_item['values']), value=replace_variables(answer['value'], participant, question, data_item['values']), error_msg='')}
+              ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']), replace_variables(answer['label'], participant, question, data_item['values']) if answer['label'] else replace_variables(answer['value'], participant, question, data_item['values']), value=replace_variables(answer['value'], participant, question, data_item['values']), error_msg='')}
             </py:if><py:else>
-              ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), replace_variables(answer['label'], participant, question, data_item['values']), value=replace_variables(answer['value'], participant, question, data_item['values']), error_msg='')}
+              ${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s' % (data_item.id, question['name']), replace_variables(answer['label'], participant, question, data_item['values']) if answer['label'] else replace_variables(answer['value'], participant, question, data_item['values']), value=replace_variables(answer['value'], participant, question, data_item['values']), error_msg='')}
             </py:else>
           </li>
           <li py:if="question['frontend', 'after_label']" class="question_label">${replace_variables(question['frontend', 'after_label'], participant, question, data_item['values'])}</li>
@@ -116,7 +126,7 @@
       </tbody>
     </table>
   </py:def>
-  
+
   <py:def function="ranking(question, data_item)">
     <?py from ess.util import replace_variables ?>
     <?py from random import sample ?>

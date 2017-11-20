@@ -303,9 +303,9 @@ class FrontendPageSchema(CSRFSchema):
                         else:
                             if question['frontend', 'allow_other']:
                                 di_schema.add_field(question['frontend', 'name'],
-                                                    formencode.compound.Any(DynamicSchema([('response', formencode.validators.OneOf(values + ['other'])),  # noqa: E501
+                                                    formencode.compound.Any(DynamicSchema([('response', formencode.validators.OneOf(values + ['other'], **default_attrs)),  # noqa: E501
                                                                                            ('other', formencode.validators.UnicodeString(**default_attrs))]),  # noqa: E501
-                                                                            DynamicSchema([('response', formencode.validators.OneOf(values)),  # noqa: E501
+                                                                            DynamicSchema([('response', formencode.validators.OneOf(values, **default_attrs)),  # noqa: E501
                                                                                            ('other', formencode.validators.OneOf(''))])))  # noqa: E501
                             else:
                                 di_schema.add_field(question['frontend', 'name'],
