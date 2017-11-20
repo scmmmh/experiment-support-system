@@ -188,7 +188,10 @@ def select_data_items(dbsession, participant, page):
                     else:
                         participant['data'][str(page.dataset_id)] = None
                         return None
-                return dbsession.query(DataItem).filter(DataItem.id.in_(participant['data'][str(page.dataset_id)]))
+                if participant['data'][str(page.dataset_id)]:
+                    return dbsession.query(DataItem).filter(DataItem.id.in_(participant['data'][str(page.dataset_id)]))
+                else:
+                    return None
             elif data_set.type == 'latinsquare':
                 if str(page.dataset_id) not in participant['data']:
                     dids = [c[0] for c in data_set['combinations']]
@@ -214,8 +217,11 @@ def select_data_items(dbsession, participant, page):
                     else:
                         participant['data'][str(page.dataset_id)] = None
                         return None
-                return dbsession.query(DataItem).\
-                    filter(DataItem.id == participant['data'][str(page.dataset_id)]['iids'][0])
+                if participant['data'][str(page.dataset_id)]:
+                    return dbsession.query(DataItem).\
+                        filter(DataItem.id == participant['data'][str(page.dataset_id)]['iids'][0])
+                else:
+                    return None
             else:
                 return [DataItem(id=None)]
 
@@ -259,6 +265,16 @@ def run(request):
             raise HTTPFound(request.route_url('experiment.completed', ueid=experiment.external_id))
         else:
             raise HTTPNotFound()
+    else:
+        if not data_items:
+            # If no data_items found, move on to the next page
+            with transaction.manager:
+                dbsession.add(page)
+                dbsession.add(participant)
+                participant['current'] = next_page(dbsession, participant, page, 'more-items')
+            dbsession.add(experiment)
+            raise HTTPFound(request.route_url(request.matched_route.name, ueid=experiment.external_id),
+                            headers=request.response.headerlist)
     if request.method == 'POST':
         try:
             with transaction.manager:

@@ -18,7 +18,7 @@
           <div class="row collapse">
             <div class="column small-12 text-center">
                <div class="progress" role="progressbar" tabindex="0" aria-valuenow="${participant['progress'][0]}" aria-valuemin="0" aria-valuemax="${participant['progress'][1]}" style="height:5px;">
-                 <div class="progress-meter" style="width: ${participant['progress'][0] * 100 / participant['progress'][1]}%;"></div>
+                 <div class="progress-meter" style="width: ${participant['progress'][0] * 100 / participant['progress'][1] if participant['progress'][1] != 0 else 0}%;"></div>
                </div>
             </div>
           </div>
