@@ -50,7 +50,7 @@
       <py:case value="'select'">
         <py:if test="question['frontend', 'allow_other']">
           ${form.field('select', 'd%s.%s.response' % (data_item.id, question['name']), '', values=[('', '--- Please select an option ---')] + [(replace_variables(a['value'], participant, question, data_item['values']), replace_variables(a['label'], participant, question, data_item['values']) if a['label'] else replace_variables(a['value'], participant, question, data_item['values'])) for a in answers] + ([('other', 'Other')] if question['frontend', 'allow_other'] else []), extra_attrs={'multiple': 'multiple' if question['frontend', 'allow_multiple'] else None})}
-          ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}
+          ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '', extra_attrs=[('class', 'other-option-text')])}
         </py:if><py:else>
           ${form.field('select', 'd%s.%s' % (data_item.id, question['name']), '', values=[('', '--- Please select an option ---')] + [(replace_variables(a['value'], participant, question, data_item['values']), replace_variables(a['label'], participant, question, data_item['values']) if a['label'] else replace_variables(a['value'], participant, question, data_item['values'])) for a in answers] + ([('other', 'Other')] if question['frontend', 'allow_other'] else []), extra_attrs={'multiple': 'multiple' if question['frontend', 'allow_multiple'] else None})}
         </py:else>
@@ -76,7 +76,7 @@
                 </py:else>
               </td>
               <th py:if="question['frontend', 'after_label']" class="question_label text-left">${replace_variables(question['frontend', 'after_label'], participant, question, data_item['values'])}</th>
-              <th py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']) if question['frontend', 'allow_other'] else 'd%s.%s' % (data_item.id, question['name']), '', value='other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}</th>
+              <th py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']) if question['frontend', 'allow_other'] else 'd%s.%s' % (data_item.id, question['name']), '', value='other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '', extra_attrs=[('class', 'other-option-text')])}</th>
             </tr>
           </tbody>
         </table>
@@ -92,7 +92,7 @@
             </py:else>
           </li>
           <li py:if="question['frontend', 'after_label']" class="question_label">${replace_variables(question['frontend', 'after_label'], participant, question, data_item['values'])}</li>
-          <li py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']) if question['frontend', 'allow_other'] else 'd%s.%s' % (data_item.id, question['name']), 'Other', value='other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '')}</li>
+          <li py:if="question['frontend', 'allow_other']">${form.field('checkbox' if question['frontend', 'allow_multiple'] else 'radio', 'd%s.%s.response' % (data_item.id, question['name']) if question['frontend', 'allow_other'] else 'd%s.%s' % (data_item.id, question['name']), 'Other', value='other')} ${form.field('text', 'd%s.%s.other' % (data_item.id, question['name']), '', extra_attrs=[('class', 'other-option-text')])}</li>
         </ul>
       </py:else>
     </py:switch>

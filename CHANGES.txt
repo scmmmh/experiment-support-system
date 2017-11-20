@@ -1,6 +1,7 @@
 1.0.0a15
 --------
 
+- UPDATE: Added JavaScript to show/hide the "other" option in the simple selection question
 - BUGFIX: Fixed issues with the "other" option in the simple selection question
 
 1.0.0a14
