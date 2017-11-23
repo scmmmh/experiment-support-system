@@ -1,3 +1,8 @@
+1.0.0a16
+--------
+
+- BUGFIX: Fixed an issue with loading the default question types
+
 1.0.0a15
 --------
 
