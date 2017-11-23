@@ -108,7 +108,6 @@ class PageIOSchema(BaseSchema):
 
     @post_load
     def make_page(self, data):
-        print(data)
         return Page(name=data['name'],
                     title=data['title'],
                     styles=data['styles'],
@@ -299,11 +298,13 @@ def replace_questions(page, dbsession):
             q_type_group = dbsession.query(QuestionTypeGroup).filter(and_(QuestionTypeGroup.name == q_type_group_name,
                                                                           QuestionTypeGroup.parent == parent)).first()
             if not q_type_group:
-                raise formencode.Invalid('No question group "%s" in this installation' % q_type_group_name)
+                raise formencode.Invalid('No question group "%s" in this installation' % q_type_group_name,
+                                         None, None)
             parent = q_type_group
         q_type = dbsession.query(QuestionType).filter(and_(QuestionType.name == q_type_name,
                                                            QuestionType.q_type_group == q_type_group)).first()
         if q_type:
             question.q_type = q_type
         else:
-            raise formencode.Invalid('No question type "%s" in this installation' % q_type_group_name)
+            raise formencode.Invalid('No question type "%s" in this installation' % q_type_name,
+                                     None, None)
