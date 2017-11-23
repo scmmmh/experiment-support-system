@@ -10,7 +10,7 @@ steps to put the Experiment Support System into a state that is ready for the
 update:
 
 1. The first step is to download the latest "requirements.txt" from
-   https://bitbucket.org/mhall/experiment-support-system/src.
+   https://bitbucket.org/mhall/experiment-support-system/raw/default/requirements.txt.
 2. Next stop the Experiment Support System application. How to do this depends
    on how you have deployed it (see :doc:`deployment`).
 3. Finally, make a backup of the database. This will allow you to roll-back the

@@ -6,8 +6,8 @@ Core System
 ===========
 
 To install the Experiment Support System, download the "requirements.txt" from
-https://bitbucket.org/mhall/experiment-support-system/src and install using the
-following command::
+https://bitbucket.org/mhall/experiment-support-system/raw/default/requirements.txt
+and install using the following command::
 
   pip install -r requirements.txt
 
