@@ -11,7 +11,7 @@ from pywebtools.sqlalchemy import DBSession
 from pywebtools.pyramid.util import paginate
 from sqlalchemy import func, and_
 
-from ess.importexport import ExperimentIOSchema, replace_questions
+from ess.importexport import ExperimentIOSchema, replace_questions, fix_transition
 from ess.models import (Experiment, Participant)
 from ess.validators import PageExistsValidator
 
@@ -146,6 +146,9 @@ def import_experiment(request):
                             latin_square['source_a'] = data_set.id
                         elif latin_square['source_b'] == data_set.name:
                             latin_square['source_b'] = data_set.id
+                for page in experiment.pages:
+                    for transition in page.next:
+                        fix_transition(transition, experiment.pages)
             dbsession.add(experiment)
             raise HTTPFound(request.route_url('experiment.view', eid=experiment.id))
         except formencode.Invalid as e:

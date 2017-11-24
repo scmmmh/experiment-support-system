@@ -2,6 +2,7 @@
 --------
 
 - BUGFIX: Fixed an issue with loading the default question types
+- BUGFIX: Fixed an issue with conditional transitions on experiment import
 
 1.0.0a15
 --------

@@ -108,7 +108,7 @@ class PageIOSchema(BaseSchema):
 
     @post_load
     def make_page(self, data):
-        return Page(name=data['name'],
+        page = Page(name=data['name'],
                     title=data['title'],
                     styles=data['styles'],
                     scripts=data['scripts'],
@@ -117,6 +117,8 @@ class PageIOSchema(BaseSchema):
                     next=data['next'] if self.is_sqlalchemy_class(data['next']) else [],
                     prev=data['prev'] if self.is_sqlalchemy_class(data['prev']) else [],
                     data_set=data['data_set'] if self.is_sqlalchemy_class(data['data_set']) else None)
+        page._import_id = data['id']
+        return page
 
     class Meta():
         type_ = 'pages'
@@ -134,9 +136,11 @@ class QuestionIOSchema(BaseSchema):
 
     @post_load
     def make_question(self, data):
-        return Question(order=data['order'],
-                        attributes=data['attributes'],
-                        q_type=data['q_type'] if self.is_sqlalchemy_class(data['q_type']) else None)
+        question = Question(order=data['order'],
+                            attributes=data['attributes'],
+                            q_type=data['q_type'] if self.is_sqlalchemy_class(data['q_type']) else None)
+        question._import_id = data['id']
+        return question
 
     class Meta():
         type_ = 'questions'
@@ -257,6 +261,7 @@ class TransitionIOSchema(BaseSchema):
 
     @post_load
     def make_transition(self, data):
+        print(data['attributes'])
         return Transition(order=data['order'],
                           attributes=data['attributes'],
                           source=data['source'] if self.is_sqlalchemy_class(data['source']) else None,
@@ -264,6 +269,26 @@ class TransitionIOSchema(BaseSchema):
 
     class Meta():
         type_ = 'transitions'
+
+
+def fix_transition(transition, pages):
+    """Fixes any references to a page in the ``transition`` conditions (if set).
+
+    :param transition: The transition to apply the fix to
+    :type transition: :class:`~ess.models.Transition`
+    :param pages: The experiment pages that have been imported
+    :type pages: ``list`` of :class:`~ess.models.Page`
+    """
+    if 'condition' in transition:
+        if transition['condition']['type'] == 'answer':
+            for page in pages:
+                if page._import_id == transition['condition']['page']:
+                    transition['condition']['page'] = page.id
+                    for question in page.questions:
+                        if question._import_id == transition['condition']['question']:
+                            transition['condition']['question'] = question.id
+                            break
+                    break
 
 
 def replace_questions(page, dbsession):
