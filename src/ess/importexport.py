@@ -261,7 +261,6 @@ class TransitionIOSchema(BaseSchema):
 
     @post_load
     def make_transition(self, data):
-        print(data['attributes'])
         return Transition(order=data['order'],
                           attributes=data['attributes'],
                           source=data['source'] if self.is_sqlalchemy_class(data['source']) else None,
