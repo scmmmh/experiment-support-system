@@ -12,8 +12,9 @@ via the fixture :func:`~ess_test.conftest.database_tester`.
 """
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-import pytest
+import json
 import transaction
+import pytest
 
 from alembic import config, command
 from pkg_resources import resource_string
@@ -24,7 +25,7 @@ from sqlalchemy import engine_from_config, text
 from webtest import TestApp
 
 from ess import models
-from ess.importexport import QuestionTypeIOSchema
+from ess.importexport import load, QuestionTypeIOSchema
 
 dbsession_initialised = False
 
@@ -88,9 +89,10 @@ def database():
         dbsession.add(admin_user)
         dbsession.add(developer_user)
         dbsession.add(content_user)
-        question_types = QuestionTypeIOSchema(include_data=('q_type_group', 'parent', 'q_type_group.parent'),
-                                              many=True).\
-            loads(resource_string('ess', 'scripts/templates/default_question_types.json').decode('utf-8')).data
+        question_types = load(QuestionTypeIOSchema(many=True),
+                              json.loads(resource_string('ess',
+                                                         'scripts/templates/default_question_types.json').\
+            decode('utf-8')))
         dbsession.add_all(question_types)
 
     # Alembic Stamp

@@ -156,26 +156,23 @@ class QuestionTypeIOSchema(BaseSchema):
     enabled = fields.Boolean(required=True)
     order = fields.Int(allow_none=True, missing=1)
 
-    parent = fields.Relationship(include_resource_linkage=True,
-                                 type_='question_types',
+    parent = fields.Relationship(type_='question_types',
                                  schema='QuestionTypeIOSchema',
                                  allow_none=True)
-    q_type_group = fields.Relationship(include_resource_linkage=True,
-                                       type_='question_type_groups',
+    q_type_group = fields.Relationship(type_='question_type_groups',
                                        schema='QuestionTypeGroupIOSchema')
 
-    @post_load
-    def make_question_type(self, data):
+    def make_instance(self, data):
         return QuestionType(name=data['name'],
                             order=data['order'],
                             enabled=data['enabled'],
                             title=data['title'],
                             backend=data['backend'],
-                            frontend=data['frontend'],
-                            q_type_group=data['q_type_group']
-                            if self.is_sqlalchemy_class(data['q_type_group']) else None,
-                            parent=data['parent']
-                            if 'parent' in data and self.is_sqlalchemy_class(data['parent']) else None)
+                            frontend=data['frontend'])
+                            #q_type_group=data['q_type_group']
+                            #if self.is_sqlalchemy_class(data['q_type_group']) else None,
+                            #parent=data['parent']
+                            #if 'parent' in data and self.is_sqlalchemy_class(data['parent']) else None)
 
     class Meta():
         type_ = 'question_types'
@@ -189,19 +186,17 @@ class QuestionTypeGroupIOSchema(BaseSchema):
     enabled = fields.Boolean(allow_none=True, missing=True)
     order = fields.Int(allow_none=True, missing=1)
 
-    parent = fields.Relationship(include_resource_linkage=True,
-                                 type_='question_type_groups',
+    parent = fields.Relationship(type_='question_type_groups',
                                  schema='QuestionTypeGroupIOSchema',
                                  allow_none=True)
 
-    @post_load
-    def make_question_type_group(self, data):
+    def make_instance(self, data):
         return QuestionTypeGroup(title=data['title'],
                                  order=data['order'],
                                  enabled=data['enabled'],
-                                 name=data['name'],
-                                 parent=data['parent']
-                                 if 'parent' in data and self.is_sqlalchemy_class(data['parent']) else None)
+                                 name=data['name'])
+                                 #parent=data['parent']
+                                 #if 'parent' in data and self.is_sqlalchemy_class(data['parent']) else None)
 
     class Meta():
         type_ = 'question_type_groups'
@@ -268,6 +263,86 @@ class TransitionIOSchema(BaseSchema):
 
     class Meta():
         type_ = 'transitions'
+
+
+SCHEMAS = dict([(schema.Meta.type_, schema()) for schema in [QuestionTypeIOSchema,
+                                                             QuestionTypeGroupIOSchema]])
+
+def check_valid_jsonapi_obj(data):
+    """Check that the ``data`` is a valid JSONAPI object."""
+    if 'type' not in data:
+        raise Exception('Missing type in object')
+    if 'id' not in data:
+        raise Exception('Missing id in object')
+
+
+def load_object(schema, data):
+    """Load the object's attributes."""
+    check_valid_jsonapi_obj(data)
+    if data['type'] != schema.Meta.type_:
+        raise Exception('Not the expected data type')
+    attributes = data['attributes'] if 'attributes' in data else {}
+    values = {}
+    for field, validator in schema._declared_fields.items():
+        if field != 'id' and not isinstance(validator, fields.Relationship):
+            values[field] = validator.deserialize(attributes[field] if field in attributes else None)
+    obj = schema.make_instance(values)
+    obj._import_source = data
+    return obj
+
+
+def load_relationships(obj, loaded_objs):
+    """Load the relationships defined by this object's schema."""
+    relationships = obj._import_source['relationships'] if 'relationships' in obj._import_source else {}
+    values = {}
+    schema = SCHEMAS[obj._import_source['type']]
+    for field, validator in schema._declared_fields.items():
+        if isinstance(validator, fields.Relationship):
+            if not validator.allow_none and field not in relationships:
+                raise Exception('Relationship cannot be empty')
+            if field in relationships:
+                check_valid_jsonapi_obj(relationships[field]['data'])
+                if relationships[field]['data']['type'] != validator.type_:
+                    raise Exception('Not the expected data type')
+                key = (relationships[field]['data']['type'],  relationships[field]['data']['id'])
+                if key in loaded_objs:
+                    if validator.many:
+                        if field in values:
+                            values[field].append(loaded_objs[key])
+                        else:
+                            values[field] = [loaded_objs[key]]
+                    else:
+                        values[field] = loaded_objs[key]
+                else:
+                    raise Exception('Reference to missing object %s %s' % key)
+    for field, value in values.items():
+        setattr(obj, field, value)
+
+
+def load(schema, data):
+    """Load the given ``schema`` from the JSONAPI ``data``"""
+    if 'data' not in data:
+        raise Exception('Missing data key')  # Todo: Add proper exceptions
+    if isinstance(data['data'], list) and schema.many:
+        result = []
+        loaded_objs = {}
+        for data_part in data['data']:
+            obj = load_object(schema, data_part)
+            loaded_objs[(obj._import_source['type'], obj._import_source['id'])] = obj
+            result.append(obj)
+    elif isinstance(data['data'], dict) and not schema.many:
+        result = load_object(schema, data['data'])
+        loaded_objs = {(result._import_source['type'], result._import_source['id']): result}
+    else:
+        raise Exception('Must be a list with many or a dict without')
+    if 'included' in data:
+        for included_data in data['included']:
+            check_valid_jsonapi_obj(included_data)
+            loaded_obj = load_object(SCHEMAS[included_data['type']], included_data)
+            loaded_objs[(loaded_obj._import_source['type'], loaded_obj._import_source['id'])] = loaded_obj
+    for loaded_obj in loaded_objs.values():
+        load_relationships(loaded_obj, loaded_objs)
+    return result
 
 
 def fix_transition(transition, pages):

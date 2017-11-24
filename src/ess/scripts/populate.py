@@ -1,3 +1,4 @@
+import json
 import transaction
 
 from alembic import config, command
@@ -7,7 +8,7 @@ from pywebtools.sqlalchemy import DBSession, Base
 from pywebtools.pyramid.auth.models import User, PermissionGroup, Permission
 from sqlalchemy import engine_from_config
 
-from ess.importexport import QuestionTypeIOSchema
+from ess.importexport import load, QuestionTypeIOSchema
 
 
 def init(subparsers):
@@ -44,16 +45,11 @@ def initialise_database(args):
         group.permissions.append(Permission(name='experiment.edit', title='Edit all experiments'))
         group.permissions.append(Permission(name='experiment.delete', title='Delete all experiments'))
         dbsession.add(group)
-        question_types = QuestionTypeIOSchema(include_data=('q_type_group',
-                                                            'parent',
-                                                            'q_type_group.parent',
-                                                            'parent.parent',
-                                                            'parent.q_type_group',
-                                                            'parent.q_type_group.parent'),
-                                              many=True).\
-            loads(resource_string('ess', 'scripts/templates/default_question_types.json').decode('utf-8')).data
-        for question_type in question_types:
-            dbsession.add(question_type)
+        question_types = load(QuestionTypeIOSchema(many=True),
+                              json.loads(resource_string('ess',
+                                                         'scripts/templates/default_question_types.json').\
+            decode('utf-8')))
+        dbsession.add_all(question_types)
     alembic_config = config.Config(args.configuration, ini_section='app:main')
     alembic_config.set_section_option('app:main', 'script_location', 'ess:migrations')
     command.stamp(alembic_config, "head")
