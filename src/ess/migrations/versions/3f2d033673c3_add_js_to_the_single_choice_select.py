@@ -40,7 +40,8 @@ NEW_FRONTEND = {'display_as': 'select_simple_choice',
                 'width': 'small-12',
                 'widget': 'list',
                 'answers': [],
-                'javascript': "if(question.find('input.other-option-text').length > 0) {var mode = question.find('select').length > 0 ? 'select' : 'input';function update_other() {if(mode == 'select') {if(question.find('select').val().indexOf('other') >= 0) {question.find('input.other-option-text').parent().show();} else {question.find('input.other-option-text').parent().hide();}} else {if(question.find('input[type=checkbox], input[type=radio]').filter('input[value=other]:checked').length > 0) {question.find('input.other-option-text').parent().show();} else {question.find('input.other-option-text').parent().hide();}}}update_other();question.find('select, input[type=checkbox], input[type=radio]').on('change', update_other);}"}
+                'javascript': "if(question.find('input.other-option-text').length > 0) {var mode = question.find('select').length > 0 ? 'select' : 'input';function update_other() {if(mode == 'select') {if(question.find('select').val().indexOf('other') >= 0) {question.find('input.other-option-text').parent().show();} else {question.find('input.other-option-text').parent().hide();}} else {if(question.find('input[type=checkbox], input[type=radio]').filter('input[value=other]:checked').length > 0) {question.find('input.other-option-text').parent().show();} else {question.find('input.other-option-text').parent().hide();}}}update_other();question.find('select, input[type=checkbox], input[type=radio]').on('change', update_other);}"}  # noqa: E501
+
 
 def upgrade():
     metadata.bind = op.get_bind()
