@@ -526,6 +526,9 @@ def actions_duplicate(request):
                                 latin_square['source_a'] = data_set.id
                             if latin_square['source_b'] == data_set.name:
                                 latin_square['source_b'] = data_set.id
+                    for page in new_experiment.pages:
+                        for transition in page.next:
+                            fix_transition(transition, new_experiment.pages)
                 dbsession.add(new_experiment)
                 raise HTTPFound(request.route_url('experiment.view', eid=new_experiment.id))
             except formencode.Invalid as e:
