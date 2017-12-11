@@ -89,11 +89,11 @@ def database():
         dbsession.add(admin_user)
         dbsession.add(developer_user)
         dbsession.add(content_user)
-        question_types = load(QuestionTypeIOSchema(many=True),
-                              json.loads(resource_string('ess',
-                                                         'scripts/templates/default_question_types.json').\
-            decode('utf-8')))
-        dbsession.add_all(question_types)
+        #question_types = load(QuestionTypeIOSchema(many=True),
+        #                      json.loads(resource_string('ess',
+        #                                                 'scripts/templates/default_question_types.json').\
+        #    decode('utf-8')))
+        #dbsession.add_all(question_types)
 
     # Alembic Stamp
     alembic_config = config.Config('testing.ini', ini_section='app:main')

@@ -3,21 +3,21 @@ from ess.importexport import (load, QuestionTypeIOSchema, QuestionTypeGroupIOSch
 
 def test_question_type_group_import(database):
     """Test importing question type structures"""
-    loaded = load(QuestionTypeGroupIOSchema(),
-                  {'data': {'type': 'question_type_groups',
-                            'id': '2',
-                            'attributes': {'title': 'Core Questions',
-                                           'name': 'ess:core',
-                                           'order': 1,
-                                           'enabled': True},
-                            'relationships': {'parent': {'data': {'type': 'question_type_groups',
-                                                                  'id': '1'}}}},
-                   'included': [{'type': 'question_type_groups',
-                                 'id': '1',
-                                 'attributes': {'title': 'Builtin Questions',
-                                                'name': 'ess:builtin',
-                                                'order': 2,
-                                                'enabled': True}}]})
+    schema = QuestionTypeGroupIOSchema()
+    loaded,errors = schema.load({'data': {'type': 'question_type_groups',
+                                   'id': '2',
+                                   'attributes': {'title': 'Core Questions',
+                                                  'name': 'ess:core',
+                                                  'order': 1,
+                                                  'enabled': True},
+                                   'relationships': {'parent': {'data': {'type': 'question_type_groups',
+                                                                         'id': '1'}}}},
+                          'included': [{'type': 'question_type_groups',
+                                        'id': '1',
+                                        'attributes': {'title': 'Builtin Questions',
+                                                       'name': 'ess:builtin',
+                                                       'order': 2,
+                                                       'enabled': True}}]})
     assert isinstance(loaded, models.QuestionTypeGroup)
     assert loaded.title == 'Core Questions'
     assert loaded.name == 'ess:core'
@@ -32,7 +32,8 @@ def test_question_type_group_import(database):
 
 def test_question_type_import(database):
     """Test importing question types and the groups they belong to."""
-    loaded = load(QuestionTypeIOSchema(many=True),
+    schema = QuestionTypeIOSchema(include_schemas=(QuestionTypeGroupIOSchema,), many=True)
+    loaded = schema.load(
                   {'data': [{'type': 'question_types',
                              'id': '1',
                              'attributes': {'name': 'text',
@@ -66,7 +67,7 @@ def test_question_type_import(database):
                                                         'order': 1,
                                                         'frontend': {'text': '<p>Enter the text to display.</p>'},
                                                         'backend': {'fields': []}},
-                                         'relationships': {'q_type_group': {'data': {'type': 'question_type_groups', 'id': '1'}}}}]})
+                                         'relationships': {'q_type_group': {'data': {'type': 'question_type_groups', 'id': '1'}}}}]}).data
     assert isinstance(loaded, list)
     assert len(loaded) == 2
     assert isinstance(loaded[0], models.QuestionType)

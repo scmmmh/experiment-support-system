@@ -4,8 +4,9 @@
 """
 import formencode
 
-from marshmallow import post_load
-from marshmallow_jsonapi import Schema, fields
+from marshmallow import post_load, fields
+from offline_jsonapi.schema import Schema
+from offline_jsonapi.fields import Relationship
 from pywebtools.sqlalchemy import Base
 from sqlalchemy import and_
 
@@ -45,21 +46,21 @@ class ExperimentIOSchema(BaseSchema):
     language = fields.Str(allow_none=True)
     public = fields.Boolean()
 
-    pages = fields.Relationship(many=True,
-                                include_resource_linkage=True,
-                                type_='pages',
-                                schema='PageIOSchema')
-    start = fields.Relationship(include_resource_linkage=True,
-                                type_='pages',
-                                schema='PageIOSchema')
-    data_sets = fields.Relationship(many=True,
-                                    include_resource_linkage=True,
-                                    type_='data_sets',
-                                    schema='DataSetIOSchema')
-    latin_squares = fields.Relationship(many=True,
-                                        include_resource_linkage=True,
-                                        type_='data_sets',
-                                        schema='DataSetIOSchema')
+    #pages = fields.Relationship(many=True,
+    #                            include_resource_linkage=True,
+    #                            type_='pages',
+    #                            schema='PageIOSchema')
+    #start = fields.Relationship(include_resource_linkage=True,
+    #                            type_='pages',
+    #                            schema='PageIOSchema')
+    #data_sets = fields.Relationship(many=True,
+    #                                include_resource_linkage=True,
+    #                                type_='data_sets',
+    #                                schema='DataSetIOSchema')
+    #latin_squares = fields.Relationship(many=True,
+    #                                    include_resource_linkage=True,
+    #                                    type_='data_sets',
+    #                                    schema='DataSetIOSchema')
 
     @post_load
     def make_experiment(self, data):
@@ -89,22 +90,22 @@ class PageIOSchema(BaseSchema):
     styles = fields.Str(allow_none=True)
     attributes = fields.Dict(allow_none=True)
 
-    questions = fields.Relationship(many=True,
-                                    include_resource_linkage=True,
-                                    type_='questions',
-                                    schema='QuestionIOSchema')
-    next = fields.Relationship(many=True,
-                               include_resource_linkage=True,
-                               type_='transitions',
-                               schema='TransitionIOSchema')
-    prev = fields.Relationship(many=True,
-                               include_resource_linkage=True,
-                               type_='transitions',
-                               schema='TransitionIOSchema')
-    data_set = fields.Relationship(include_resource_linkage=True,
-                                   type_='data_sets',
-                                   schema='DataSetIOSchema',
-                                   allow_none=True)
+    #questions = fields.Relationship(many=True,
+    #                                include_resource_linkage=True,
+    #                                type_='questions',
+    #                                schema='QuestionIOSchema')
+    #next = fields.Relationship(many=True,
+    #                           include_resource_linkage=True,
+    #                           type_='transitions',
+    #                           schema='TransitionIOSchema')
+    #prev = fields.Relationship(many=True,
+    #                           include_resource_linkage=True,
+    #                           type_='transitions',
+    #                           schema='TransitionIOSchema')
+    #data_set = fields.Relationship(include_resource_linkage=True,
+    #                               type_='data_sets',
+    #                               schema='DataSetIOSchema',
+    #                               allow_none=True)
 
     @post_load
     def make_page(self, data):
@@ -130,9 +131,9 @@ class QuestionIOSchema(BaseSchema):
     order = fields.Int(allow_none=True, missing=1)
     attributes = fields.Dict(allow_none=True)
 
-    q_type = fields.Relationship(include_resource_linkage=True,
-                                 type_='question_types',
-                                 schema='QuestionTypeIOSchema')
+    #q_type = fields.Relationship(include_resource_linkage=True,
+    #                             type_='question_types',
+    #                             schema='QuestionTypeIOSchema')
 
     @post_load
     def make_question(self, data):
@@ -156,12 +157,13 @@ class QuestionTypeIOSchema(BaseSchema):
     enabled = fields.Boolean(required=True)
     order = fields.Int(allow_none=True, missing=1)
 
-    parent = fields.Relationship(type_='question_types',
+    parent = Relationship(type_='question_types',
                                  schema='QuestionTypeIOSchema',
                                  allow_none=True)
-    q_type_group = fields.Relationship(type_='question_type_groups',
+    q_type_group = Relationship(type_='question_type_groups',
                                        schema='QuestionTypeGroupIOSchema')
 
+    @post_load()
     def make_instance(self, data):
         return QuestionType(name=data['name'],
                             order=data['order'],
@@ -186,10 +188,11 @@ class QuestionTypeGroupIOSchema(BaseSchema):
     enabled = fields.Boolean(allow_none=True, missing=True)
     order = fields.Int(allow_none=True, missing=1)
 
-    parent = fields.Relationship(type_='question_type_groups',
-                                 schema='QuestionTypeGroupIOSchema',
-                                 allow_none=True)
+    parent = Relationship(type_='question_type_groups',
+                          schema='QuestionTypeGroupIOSchema',
+                          allow_none=True)
 
+    @post_load()
     def make_instance(self, data):
         return QuestionTypeGroup(title=data['title'],
                                  order=data['order'],
@@ -209,10 +212,10 @@ class DataSetIOSchema(BaseSchema):
     type = fields.Str(required=True)
     attributes = fields.Dict(allow_none=True)
 
-    items = fields.Relationship(many=True,
-                                include_resource_linkage=True,
-                                type_='data_items',
-                                schema='DataItemIOSchema')
+    #items = fields.Relationship(many=True,
+    #                            include_resource_linkage=True,
+    #                            type_='data_items',
+    #                            schema='DataItemIOSchema')
 
     @post_load
     def make_data_set(self, data):
@@ -246,13 +249,13 @@ class TransitionIOSchema(BaseSchema):
     order = fields.Int(allow_none=True, missing=1)
     attributes = fields.Dict(allow_none=True)
 
-    source = fields.Relationship(include_resource_linkage=True,
-                                 type_='pages',
-                                 schema='PageIOSchema')
-    target = fields.Relationship(include_resource_linkage=True,
-                                 type_='pages',
-                                 schema='PageIOSchema',
-                                 allow_none=True)
+    #source = fields.Relationship(include_resource_linkage=True,
+    #                             type_='pages',
+    #                             schema='PageIOSchema')
+    #target = fields.Relationship(include_resource_linkage=True,
+    #                             type_='pages',
+    #                             schema='PageIOSchema',
+    #                             allow_none=True)
 
     @post_load
     def make_transition(self, data):
