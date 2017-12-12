@@ -15,15 +15,18 @@ class Schema(ma.Schema):
         """Unwraps a single JSONAPI object into the flatter structure expected
         by marshmallow.
         """
-        unwrapped = {}
-        unwrapped['id'] = data['id']
-        unwrapped['type'] = data['type']
-        if 'attributes' in data:
-            unwrapped.update(data['attributes'])
-        if 'relationships' in data:
-            for key, value in data['relationships'].items():
-                unwrapped[key] = self._unwrap(value, isinstance(value['data'], list))
-        return unwrapped
+        if data is not None:
+            unwrapped = {}
+            unwrapped['id'] = data['id']
+            unwrapped['type'] = data['type']
+            if 'attributes' in data:
+                unwrapped.update(data['attributes'])
+            if 'relationships' in data:
+                for key, value in data['relationships'].items():
+                    unwrapped[key] = self._unwrap(value, isinstance(value['data'], list))
+            return unwrapped
+        else:
+            return None
 
     def _unwrap(self, data, many):
         """Unwraps a single JSONAPI object or JSONAPI collection into the flatter
@@ -85,8 +88,6 @@ class Schema(ma.Schema):
                     if values:
                         if isinstance(values, list):
                             values = [loaded[key] for key in values]
-                            for type_, id_ in values:
-                                pass
                         else:
                             values = loaded[values]
                     if isinstance(item, dict):
@@ -164,8 +165,8 @@ class Schema(ma.Schema):
                                                              many=False,
                                                              dict_class=self.dict_class,
                                                              index_errors=self.opts.index_errors))
-            except ValidationError as error:
-                result = error.data
+            except ValidationError as err:
+                result = err.data
             self._invoke_field_validators(data=result, many=many)
             errors = self._unmarshal.errors
             field_errors = bool(errors)

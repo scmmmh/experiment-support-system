@@ -46,21 +46,21 @@ class ExperimentIOSchema(BaseSchema):
     language = fields.Str(allow_none=True)
     public = fields.Boolean()
 
-    #pages = fields.Relationship(many=True,
-    #                            include_resource_linkage=True,
-    #                            type_='pages',
-    #                            schema='PageIOSchema')
-    #start = fields.Relationship(include_resource_linkage=True,
-    #                            type_='pages',
-    #                            schema='PageIOSchema')
-    #data_sets = fields.Relationship(many=True,
-    #                                include_resource_linkage=True,
-    #                                type_='data_sets',
-    #                                schema='DataSetIOSchema')
-    #latin_squares = fields.Relationship(many=True,
-    #                                    include_resource_linkage=True,
-    #                                    type_='data_sets',
-    #                                    schema='DataSetIOSchema')
+    pages = Relationship(many=True,
+                         include_resource_linkage=True,
+                         type_='pages',
+                         schema='PageIOSchema')
+    start = Relationship(include_resource_linkage=True,
+                         type_='pages',
+                         schema='PageIOSchema')
+    data_sets = Relationship(many=True,
+                             include_resource_linkage=True,
+                             type_='data_sets',
+                             schema='DataSetIOSchema')
+    latin_squares = Relationship(many=True,
+                                 include_resource_linkage=True,
+                                 type_='data_sets',
+                                 schema='DataSetIOSchema')
 
     @post_load
     def make_experiment(self, data):
@@ -70,12 +70,7 @@ class ExperimentIOSchema(BaseSchema):
                           scripts=data['scripts'],
                           status='develop',
                           language=data['language'],
-                          public=data['public'],
-                          pages=data['pages'] if self.is_sqlalchemy_class(data['pages']) else [],
-                          start=data['start'] if self.is_sqlalchemy_class(data['start']) else None,
-                          data_sets=data['data_sets'] if self.is_sqlalchemy_class(data['data_sets']) else [],
-                          latin_squares=data['latin_squares']
-                          if self.is_sqlalchemy_class(data['latin_squares']) else [])
+                          public=data['public'])
 
     class Meta():
         type_ = 'experiments'
@@ -85,27 +80,23 @@ class PageIOSchema(BaseSchema):
 
     id = fields.Int()
     name = fields.Str(required=True, allow_none=False)
-    title = fields.Str(allow_none=True)
-    scripts = fields.Str(allow_none=True)
-    styles = fields.Str(allow_none=True)
-    attributes = fields.Dict(allow_none=True)
+    title = fields.Str(allow_none=True, missing='')
+    scripts = fields.Str(allow_none=True, missing='')
+    styles = fields.Str(allow_none=True, missing='')
+    attributes = fields.Dict(allow_none=True, missing=None)
 
-    #questions = fields.Relationship(many=True,
-    #                                include_resource_linkage=True,
-    #                                type_='questions',
-    #                                schema='QuestionIOSchema')
-    #next = fields.Relationship(many=True,
-    #                           include_resource_linkage=True,
-    #                           type_='transitions',
-    #                           schema='TransitionIOSchema')
-    #prev = fields.Relationship(many=True,
-    #                           include_resource_linkage=True,
-    #                           type_='transitions',
-    #                           schema='TransitionIOSchema')
-    #data_set = fields.Relationship(include_resource_linkage=True,
-    #                               type_='data_sets',
-    #                               schema='DataSetIOSchema',
-    #                               allow_none=True)
+    questions = Relationship(many=True,
+                             type_='questions',
+                             schema='QuestionIOSchema')
+    next = Relationship(many=True,
+                        type_='transitions',
+                        schema='TransitionIOSchema')
+    prev = Relationship(many=True,
+                        type_='transitions',
+                        schema='TransitionIOSchema')
+    data_set = Relationship(type_='data_sets',
+                            schema='DataSetIOSchema',
+                            allow_none=True)
 
     @post_load
     def make_page(self, data):
@@ -113,11 +104,7 @@ class PageIOSchema(BaseSchema):
                     title=data['title'],
                     styles=data['styles'],
                     scripts=data['scripts'],
-                    attributes=data['attributes'],
-                    questions=data['questions'] if self.is_sqlalchemy_class(data['questions']) else [],
-                    next=data['next'] if self.is_sqlalchemy_class(data['next']) else [],
-                    prev=data['prev'] if self.is_sqlalchemy_class(data['prev']) else [],
-                    data_set=data['data_set'] if self.is_sqlalchemy_class(data['data_set']) else None)
+                    attributes=data['attributes'])
         page._import_id = data['id']
         return page
 
@@ -129,17 +116,15 @@ class QuestionIOSchema(BaseSchema):
 
     id = fields.Int()
     order = fields.Int(allow_none=True, missing=1)
-    attributes = fields.Dict(allow_none=True)
+    attributes = fields.Dict()
 
-    #q_type = fields.Relationship(include_resource_linkage=True,
-    #                             type_='question_types',
-    #                             schema='QuestionTypeIOSchema')
+    q_type = Relationship(type_='question_types',
+                          schema='QuestionTypeIOSchema')
 
     @post_load
     def make_question(self, data):
         question = Question(order=data['order'],
-                            attributes=data['attributes'],
-                            q_type=data['q_type'] if self.is_sqlalchemy_class(data['q_type']) else None)
+                            attributes=data['attributes'])
         question._import_id = data['id']
         return question
 
@@ -171,10 +156,6 @@ class QuestionTypeIOSchema(BaseSchema):
                             title=data['title'],
                             backend=data['backend'],
                             frontend=data['frontend'])
-                            #q_type_group=data['q_type_group']
-                            #if self.is_sqlalchemy_class(data['q_type_group']) else None,
-                            #parent=data['parent']
-                            #if 'parent' in data and self.is_sqlalchemy_class(data['parent']) else None)
 
     class Meta():
         type_ = 'question_types'
@@ -198,8 +179,6 @@ class QuestionTypeGroupIOSchema(BaseSchema):
                                  order=data['order'],
                                  enabled=data['enabled'],
                                  name=data['name'])
-                                 #parent=data['parent']
-                                 #if 'parent' in data and self.is_sqlalchemy_class(data['parent']) else None)
 
     class Meta():
         type_ = 'question_type_groups'
@@ -212,17 +191,16 @@ class DataSetIOSchema(BaseSchema):
     type = fields.Str(required=True)
     attributes = fields.Dict(allow_none=True)
 
-    #items = fields.Relationship(many=True,
-    #                            include_resource_linkage=True,
-    #                            type_='data_items',
-    #                            schema='DataItemIOSchema')
+    items = Relationship(many=True,
+                         include_resource_linkage=True,
+                         type_='data_items',
+                         schema='DataItemIOSchema')
 
     @post_load
     def make_data_set(self, data):
         return DataSet(name=data['name'],
                        type=data['type'],
-                       attributes=data['attributes'],
-                       items=data['items'] if self.is_sqlalchemy_class(data['items']) else [])
+                       attributes=data['attributes'])
 
     class Meta():
         type_ = 'data_sets'
@@ -249,13 +227,13 @@ class TransitionIOSchema(BaseSchema):
     order = fields.Int(allow_none=True, missing=1)
     attributes = fields.Dict(allow_none=True)
 
-    #source = fields.Relationship(include_resource_linkage=True,
-    #                             type_='pages',
-    #                             schema='PageIOSchema')
-    #target = fields.Relationship(include_resource_linkage=True,
-    #                             type_='pages',
-    #                             schema='PageIOSchema',
-    #                             allow_none=True)
+    source = Relationship(include_resource_linkage=True,
+                          type_='pages',
+                          schema='PageIOSchema')
+    target = Relationship(include_resource_linkage=True,
+                          type_='pages',
+                          schema='PageIOSchema',
+                          allow_none=True)
 
     @post_load
     def make_transition(self, data):
