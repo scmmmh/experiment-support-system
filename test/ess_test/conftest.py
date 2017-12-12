@@ -25,7 +25,7 @@ from sqlalchemy import engine_from_config, text
 from webtest import TestApp
 
 from ess import models
-from ess.importexport import load, QuestionTypeIOSchema
+from ess.importexport import QuestionTypeIOSchema, QuestionTypeGroupIOSchema
 
 dbsession_initialised = False
 
@@ -57,14 +57,6 @@ def database():
 
     dbsession = DBSession()
 
-    # Reset Database Content
-    #with transaction.manager:
-    #    tables = list(Base.metadata.sorted_tables)
-    #    tables.reverse()
-    #    for table in tables:
-    #        dbsession.bind.execute(table.delete())
-    #    dbsession.flush()
-
     # Create Test Users
     with transaction.manager:
         admin_user = User(email='admin@example.com', display_name='Admin', password='password')
@@ -89,18 +81,17 @@ def database():
         dbsession.add(admin_user)
         dbsession.add(developer_user)
         dbsession.add(content_user)
-        #question_types = load(QuestionTypeIOSchema(many=True),
-        #                      json.loads(resource_string('ess',
-        #                                                 'scripts/templates/default_question_types.json').\
-        #    decode('utf-8')))
-        #dbsession.add_all(question_types)
+        question_types = QuestionTypeIOSchema(include_schemas=(QuestionTypeGroupIOSchema,), many=True).\
+            loads(resource_string('ess','scripts/templates/default_question_types.json'))
+        dbsession.add_all(question_types.data)
 
     # Alembic Stamp
     alembic_config = config.Config('testing.ini', ini_section='app:main')
     alembic_config.set_section_option('app:main', 'script_location', 'ess:migrations')
     command.stamp(alembic_config, "head")
 
-    DBSession.remove()
+    dbsession.close()
+    DBSession.close_all()
 
     yield DBSession
 
