@@ -27,6 +27,15 @@ requires = [
     'marshmallow<3'
     ]
 
+extra_requires = {
+    'testing': [
+        'tox',
+        'pytest',
+        'webtest',
+        'flake8'
+    ]
+}
+
 setup(name='ExperimentSupportSystem',
       version='1.0.0a15',
       description='Experiment Support System',
@@ -47,6 +56,7 @@ setup(name='ExperimentSupportSystem',
       zip_safe=False,
       test_suite='nose.collector',
       install_requires = requires,
+      extras_require = extra_requires,
       entry_points = """\
       [paste.app_factory]
       main = ess:main
