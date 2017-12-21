@@ -1,34 +1,8 @@
-syntax: regexp
-\.db$
-syntax: regexp
-^production\.ini$
-syntax: regexp
-^dist$
-syntax: regexp
-^src/pyquest/l10n/lokalize-scripts$
-syntax: regexp
-^src/pyquest/l10n/pyquest\.lokalize$
-syntax: glob
-*.pyc
-
-docs/user/imp_exp_del_pg
-syntax: regexp
-^development\.ini$
-syntax: regexp
-^docs/_build$
-
-syntax: regexp
-^src/ExperimentSupportSystem\.egg-info$
-
-syntax: regexp
-^\.settings$
-syntax: regexp
-^\.project$
-syntax: regexp
-^\.pydevproject$
-syntax: regexp
-^node_modules$
-syntax: glob
+syntax:glob
+*.db
+*.ini
 .tox
+node_modules
+__pycache__
+*.egg-info
 .cache
-build
