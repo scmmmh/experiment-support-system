@@ -15,7 +15,7 @@ from ess.models import (Experiment, Page, Question, QuestionType, QuestionTypeGr
 
 class BaseSchema(Schema):
 
-    def get_attribute(self, attr, obj, default):
+    def get_attribute(self, obj, attr, default):
         if hasattr(obj, attr):
             return getattr(obj, attr)
         try:
@@ -46,21 +46,13 @@ class ExperimentIOSchema(BaseSchema):
     language = fields.Str(allow_none=True)
     public = fields.Boolean()
 
-    pages = Relationship(many=True,
-                         include_resource_linkage=True,
-                         type_='pages',
-                         schema='PageIOSchema')
-    start = Relationship(include_resource_linkage=True,
-                         type_='pages',
-                         schema='PageIOSchema')
-    data_sets = Relationship(many=True,
-                             include_resource_linkage=True,
-                             type_='data_sets',
-                             schema='DataSetIOSchema')
-    latin_squares = Relationship(many=True,
-                                 include_resource_linkage=True,
-                                 type_='data_sets',
-                                 schema='DataSetIOSchema')
+    pages = Relationship(schema='PageIOSchema',
+                         many=True)
+    start = Relationship(schema='PageIOSchema')
+    data_sets = Relationship(schema='DataSetIOSchema',
+                             many=True)
+    latin_squares = Relationship(schema='DataSetIOSchema',
+                                 many=True)
 
     @post_load
     def make_experiment(self, data):
@@ -85,17 +77,13 @@ class PageIOSchema(BaseSchema):
     styles = fields.Str(allow_none=True, missing='')
     attributes = fields.Dict(allow_none=True, missing=None)
 
-    questions = Relationship(many=True,
-                             type_='questions',
-                             schema='QuestionIOSchema')
-    next = Relationship(many=True,
-                        type_='transitions',
-                        schema='TransitionIOSchema')
-    prev = Relationship(many=True,
-                        type_='transitions',
-                        schema='TransitionIOSchema')
-    data_set = Relationship(type_='data_sets',
-                            schema='DataSetIOSchema',
+    questions = Relationship(schema='QuestionIOSchema',
+                             many=True)
+    next = Relationship(schema='TransitionIOSchema',
+                        many=True)
+    prev = Relationship(schema='TransitionIOSchema',
+                        many=True)
+    data_set = Relationship(schema='DataSetIOSchema',
                             allow_none=True)
 
     @post_load
@@ -118,8 +106,7 @@ class QuestionIOSchema(BaseSchema):
     order = fields.Int(allow_none=True, missing=1)
     attributes = fields.Dict()
 
-    q_type = Relationship(type_='question_types',
-                          schema='QuestionTypeIOSchema')
+    q_type = Relationship(schema='QuestionTypeIOSchema')
 
     @post_load
     def make_question(self, data):
@@ -142,11 +129,9 @@ class QuestionTypeIOSchema(BaseSchema):
     enabled = fields.Boolean(required=True)
     order = fields.Int(allow_none=True, missing=1)
 
-    parent = Relationship(type_='question_types',
-                                 schema='QuestionTypeIOSchema',
-                                 allow_none=True)
-    q_type_group = Relationship(type_='question_type_groups',
-                                       schema='QuestionTypeGroupIOSchema')
+    parent = Relationship(schema='QuestionTypeIOSchema',
+                          allow_none=True)
+    q_type_group = Relationship(schema='QuestionTypeGroupIOSchema')
 
     @post_load()
     def make_instance(self, data):
@@ -169,8 +154,7 @@ class QuestionTypeGroupIOSchema(BaseSchema):
     enabled = fields.Boolean(allow_none=True, missing=True)
     order = fields.Int(allow_none=True, missing=1)
 
-    parent = Relationship(type_='question_type_groups',
-                          schema='QuestionTypeGroupIOSchema',
+    parent = Relationship(schema='QuestionTypeGroupIOSchema',
                           allow_none=True)
 
     @post_load()
@@ -191,16 +175,16 @@ class DataSetIOSchema(BaseSchema):
     type = fields.Str(required=True)
     attributes = fields.Dict(allow_none=True)
 
-    items = Relationship(many=True,
-                         include_resource_linkage=True,
-                         type_='data_items',
-                         schema='DataItemIOSchema')
+    items = Relationship(schema='DataItemIOSchema',
+                         many=True)
 
     @post_load
     def make_data_set(self, data):
-        return DataSet(name=data['name'],
-                       type=data['type'],
-                       attributes=data['attributes'])
+        data_set = DataSet(name=data['name'],
+                           type=data['type'],
+                           attributes=data['attributes'])
+        data_set._import_id = data['id']
+        return data_set
 
     class Meta():
         type_ = 'data_sets'
@@ -214,8 +198,10 @@ class DataItemIOSchema(BaseSchema):
 
     @post_load
     def make_data_item(self, data):
-        return DataItem(order=data['order'],
-                        attributes=data['attributes'])
+        data_item = DataItem(order=data['order'],
+                             attributes=data['attributes'])
+        data_item._import_id = data['id']
+        return data_item
 
     class Meta():
         type_ = 'data_items'
@@ -227,103 +213,21 @@ class TransitionIOSchema(BaseSchema):
     order = fields.Int(allow_none=True, missing=1)
     attributes = fields.Dict(allow_none=True)
 
-    source = Relationship(include_resource_linkage=True,
-                          type_='pages',
-                          schema='PageIOSchema')
-    target = Relationship(include_resource_linkage=True,
-                          type_='pages',
-                          schema='PageIOSchema',
+    source = Relationship(schema='PageIOSchema')
+    target = Relationship(schema='PageIOSchema',
                           allow_none=True)
 
     @post_load
     def make_transition(self, data):
         return Transition(order=data['order'],
-                          attributes=data['attributes'],
-                          source=data['source'] if self.is_sqlalchemy_class(data['source']) else None,
-                          target=data['target'] if self.is_sqlalchemy_class(data['target']) else None)
+                          attributes=data['attributes'])
 
     class Meta():
         type_ = 'transitions'
 
 
-SCHEMAS = dict([(schema.Meta.type_, schema()) for schema in [QuestionTypeIOSchema,
-                                                             QuestionTypeGroupIOSchema]])
-
-def check_valid_jsonapi_obj(data):
-    """Check that the ``data`` is a valid JSONAPI object."""
-    if 'type' not in data:
-        raise Exception('Missing type in object')
-    if 'id' not in data:
-        raise Exception('Missing id in object')
-
-
-def load_object(schema, data):
-    """Load the object's attributes."""
-    check_valid_jsonapi_obj(data)
-    if data['type'] != schema.Meta.type_:
-        raise Exception('Not the expected data type')
-    attributes = data['attributes'] if 'attributes' in data else {}
-    values = {}
-    for field, validator in schema._declared_fields.items():
-        if field != 'id' and not isinstance(validator, fields.Relationship):
-            values[field] = validator.deserialize(attributes[field] if field in attributes else None)
-    obj = schema.make_instance(values)
-    obj._import_source = data
-    return obj
-
-
-def load_relationships(obj, loaded_objs):
-    """Load the relationships defined by this object's schema."""
-    relationships = obj._import_source['relationships'] if 'relationships' in obj._import_source else {}
-    values = {}
-    schema = SCHEMAS[obj._import_source['type']]
-    for field, validator in schema._declared_fields.items():
-        if isinstance(validator, fields.Relationship):
-            if not validator.allow_none and field not in relationships:
-                raise Exception('Relationship cannot be empty')
-            if field in relationships:
-                check_valid_jsonapi_obj(relationships[field]['data'])
-                if relationships[field]['data']['type'] != validator.type_:
-                    raise Exception('Not the expected data type')
-                key = (relationships[field]['data']['type'],  relationships[field]['data']['id'])
-                if key in loaded_objs:
-                    if validator.many:
-                        if field in values:
-                            values[field].append(loaded_objs[key])
-                        else:
-                            values[field] = [loaded_objs[key]]
-                    else:
-                        values[field] = loaded_objs[key]
-                else:
-                    raise Exception('Reference to missing object %s %s' % key)
-    for field, value in values.items():
-        setattr(obj, field, value)
-
-
-def load(schema, data):
-    """Load the given ``schema`` from the JSONAPI ``data``"""
-    if 'data' not in data:
-        raise Exception('Missing data key')  # Todo: Add proper exceptions
-    if isinstance(data['data'], list) and schema.many:
-        result = []
-        loaded_objs = {}
-        for data_part in data['data']:
-            obj = load_object(schema, data_part)
-            loaded_objs[(obj._import_source['type'], obj._import_source['id'])] = obj
-            result.append(obj)
-    elif isinstance(data['data'], dict) and not schema.many:
-        result = load_object(schema, data['data'])
-        loaded_objs = {(result._import_source['type'], result._import_source['id']): result}
-    else:
-        raise Exception('Must be a list with many or a dict without')
-    if 'included' in data:
-        for included_data in data['included']:
-            check_valid_jsonapi_obj(included_data)
-            loaded_obj = load_object(SCHEMAS[included_data['type']], included_data)
-            loaded_objs[(loaded_obj._import_source['type'], loaded_obj._import_source['id'])] = loaded_obj
-    for loaded_obj in loaded_objs.values():
-        load_relationships(loaded_obj, loaded_objs)
-    return result
+all_io_schemas = [ExperimentIOSchema, PageIOSchema, QuestionIOSchema, QuestionTypeIOSchema, QuestionTypeGroupIOSchema,
+                  DataSetIOSchema, DataItemIOSchema, TransitionIOSchema]
 
 
 def fix_transition(transition, pages):
@@ -344,6 +248,26 @@ def fix_transition(transition, pages):
                             transition['condition']['question'] = question.id
                             break
                     break
+
+
+def fix_latin_square(latin_square, data_sets):
+    for data_set in data_sets:
+        if latin_square['source_a'] == data_set._import_id:
+            latin_square['source_a'] = data_set.id
+        elif latin_square['source_b'] == data_set._import_id:
+            latin_square['source_b'] = data_set.id
+    combinations = []
+    # Todo: Combination update does not work
+    for comb_set in latin_square['combinations']:
+        new_comb_set = []
+        for comb_id in comb_set:
+            for data_set in data_sets:
+                for data_item in data_set.items:
+                    if data_item._import_id == comb_id:
+                        new_comb_set.append(data_item.id)
+        combinations.append(new_comb_set)
+    latin_square['combinations'] = combinations
+
 
 
 def replace_questions(page, dbsession):

@@ -2,6 +2,7 @@ import formencode
 import transaction
 import uuid
 
+from copy import deepcopy
 from datetime import datetime, timedelta
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
@@ -11,7 +12,7 @@ from pywebtools.sqlalchemy import DBSession
 from pywebtools.pyramid.util import paginate
 from sqlalchemy import func, and_
 
-from ess.importexport import ExperimentIOSchema, replace_questions, fix_transition
+from ess.importexport import ExperimentIOSchema, replace_questions, fix_latin_square, fix_transition, all_io_schemas
 from ess.models import (Experiment, Participant)
 from ess.validators import PageExistsValidator
 
@@ -106,29 +107,8 @@ def import_experiment(request):
             params = ImportExperimentSchema().to_python(request.params, State(request=request))
             dbsession = DBSession()
             with transaction.manager:
-                includes = ['data_sets', 'data_sets.items', 'latin_squares', 'latin_squares.items']
-                for t1 in ['pages', 'start']:
-                    includes.append('%s.questions' % (t1,))
-                    includes.append('%s.questions.q_type' % (t1,))
-                    includes.append('%s.questions.q_type.parent' % (t1,))
-                    includes.append('%s.questions.q_type.q_type_group' % (t1,))
-                    includes.append('%s.questions.q_type.q_type_group.parent' % (t1,))
-                    includes.append('%s.next' % (t1,))
-                    includes.append('%s.prev' % (t1,))
-                    includes.append('%s.data_set' % (t1,))
-                    includes.append('%s.data_set.items' % (t1,))
-                    for t2 in ['next', 'prev']:
-                        includes.append('%s.%s.source' % (t1, t2))
-                        includes.append('%s.%s.target' % (t1, t2))
-                        for t3 in ['source', 'target']:
-                            includes.append('%s.%s.%s.questions' % (t1, t2, t3))
-                            includes.append('%s.%s.%s.questions.q_type' % (t1, t2, t3))
-                            includes.append('%s.%s.%s.questions.q_type.parent' % (t1, t2, t3))
-                            includes.append('%s.%s.%s.questions.q_type.q_type_group' % (t1, t2, t3))
-                            includes.append('%s.%s.%s.questions.q_type.q_type_group.parent' % (t1, t2, t3))
-                            includes.append('%s.%s.%s.data_set' % (t1, t2, t3))
-                            includes.append('%s.%s.%s.data_set.items' % (t1, t2, t3))
-                experiment, errors = ExperimentIOSchema(include_data=includes).\
+                experiment, errors = ExperimentIOSchema(include_schemas=[s for s in all_io_schemas
+                                                                         if s != ExperimentIOSchema]).\
                     loads(params['source'].file.read().decode('utf-8'))
                 if errors:
                     raise formencode.Invalid('. '.join(['%s: %s' % (e['source']['pointer'], e['detail'])
@@ -141,11 +121,7 @@ def import_experiment(request):
                 dbsession.add(experiment)
                 dbsession.flush()
                 for latin_square in experiment.latin_squares:
-                    for data_set in experiment.data_sets:
-                        if latin_square['source_a'] == data_set.name:
-                            latin_square['source_a'] = data_set.id
-                        elif latin_square['source_b'] == data_set.name:
-                            latin_square['source_b'] = data_set.id
+                    fix_latinsquare(latin_square, experiment.data_sets)
                 for page in experiment.pages:
                     for transition in page.next:
                         fix_transition(transition, experiment.pages)
@@ -430,13 +406,8 @@ def actions_export(request):
                 CSRFSchema().to_python(request.params, State(request=request))
                 request.response.headers['Content-Disposition'] = 'attachment; filename="%s.json"' % experiment.title
                 request.override_renderer = 'json'
-                return ExperimentIOSchema(include_data=('pages', 'start', 'data_sets', 'latin_squares',
-                                                        'pages.next', 'pages.prev', 'pages.questions',
-                                                        'pages.data_set', 'data_sets.items', 'latin_squares.items',
-                                                        'pages.questions.q_type', 'pages.questions.q_type.parent',
-                                                        'pages.questions.q_type.q_type_group',
-                                                        'pages.questions.q_type.q_type_group.parent',
-                                                        'pages.next.target', 'pages.prev.target')).dump(experiment).data
+                return ExperimentIOSchema(include_schemas=[s for s in all_io_schemas if s != ExperimentIOSchema]).\
+                    dump(experiment).data
             except formencode.Invalid:
                 return {'experiment': experiment,
                         'crumbs': [{'title': 'Experiments',
@@ -475,39 +446,13 @@ def actions_duplicate(request):
         if request.method == 'POST':
             try:
                 params = DuplicateSchema().to_python(request.params, State(request=request))
-                data = ExperimentIOSchema(include_data=('pages', 'start', 'data_sets', 'latin_squares',
-                                                        'pages.next', 'pages.prev', 'pages.questions',
-                                                        'pages.data_set', 'data_sets.items', 'latin_squares.items',
-                                                        'pages.questions.q_type', 'pages.questions.q_type.parent',
-                                                        'pages.questions.q_type.q_type_group',
-                                                        'pages.questions.q_type.q_type_group.parent',
-                                                        'pages.next.target', 'pages.prev.target')).\
+                data = ExperimentIOSchema(include_schemas=[s for s in all_io_schemas if s != ExperimentIOSchema]).\
                     dump(experiment).data
+                data = deepcopy(data)
                 with transaction.manager:
                     dbsession.add(experiment)
-                    includes = ['data_sets', 'data_sets.items', 'latin_squares', 'latin_squares.items']
-                    for t1 in ['pages', 'start']:
-                        includes.append('%s.questions' % (t1,))
-                        includes.append('%s.questions.q_type' % (t1,))
-                        includes.append('%s.questions.q_type.parent' % (t1,))
-                        includes.append('%s.questions.q_type.q_type_group' % (t1,))
-                        includes.append('%s.questions.q_type.q_type_group.parent' % (t1,))
-                        includes.append('%s.next' % (t1,))
-                        includes.append('%s.prev' % (t1,))
-                        includes.append('%s.data_set' % (t1,))
-                        includes.append('%s.data_set.items' % (t1,))
-                        for t2 in ['next', 'prev']:
-                            includes.append('%s.%s.source' % (t1, t2))
-                            includes.append('%s.%s.target' % (t1, t2))
-                            for t3 in ['source', 'target']:
-                                includes.append('%s.%s.%s.questions' % (t1, t2, t3))
-                                includes.append('%s.%s.%s.questions.q_type' % (t1, t2, t3))
-                                includes.append('%s.%s.%s.questions.q_type.parent' % (t1, t2, t3))
-                                includes.append('%s.%s.%s.questions.q_type.q_type_group' % (t1, t2, t3))
-                                includes.append('%s.%s.%s.questions.q_type.q_type_group.parent' % (t1, t2, t3))
-                                includes.append('%s.%s.%s.data_set' % (t1, t2, t3))
-                                includes.append('%s.%s.%s.data_set.items' % (t1, t2, t3))
-                    new_experiment, errors = ExperimentIOSchema(include_data=includes).\
+                    new_experiment, errors = ExperimentIOSchema(include_schemas=[s for s in all_io_schemas
+                                                                                 if s != ExperimentIOSchema]).\
                         load(data)
                     if errors:
                         raise formencode.Invalid('. '.join(['%s: %s' % (e['source']['pointer'], e['detail'])
@@ -521,11 +466,7 @@ def actions_duplicate(request):
                     dbsession.add(new_experiment)
                     dbsession.flush()
                     for latin_square in new_experiment.latin_squares:
-                        for data_set in new_experiment.data_sets:
-                            if latin_square['source_a'] == data_set.name:
-                                latin_square['source_a'] = data_set.id
-                            if latin_square['source_b'] == data_set.name:
-                                latin_square['source_b'] = data_set.id
+                        fix_latin_square(latin_square, new_experiment.data_sets)
                     for page in new_experiment.pages:
                         for transition in page.next:
                             fix_transition(transition, new_experiment.pages)

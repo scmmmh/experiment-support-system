@@ -8,7 +8,7 @@ from pywebtools.sqlalchemy import DBSession, Base
 from pywebtools.pyramid.auth.models import User, PermissionGroup, Permission
 from sqlalchemy import engine_from_config
 
-from ess.importexport import load, QuestionTypeIOSchema
+from ess.importexport import QuestionTypeIOSchema
 
 
 def init(subparsers):

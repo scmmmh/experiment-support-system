@@ -130,7 +130,8 @@ def next_page(dbsession, participant, page, action):
                                 return transition.target.id
                     elif transition['condition']['type'] == 'latinsquare':
                         if page.dataset_id is not None:
-                            if str(page.dataset_id) in participant['data']:
+                            if str(page.dataset_id) in participant['data'] and \
+                                    participant['data'][str(page.dataset_id)]:
                                 participant['data'][str(page.dataset_id)]['seen'].\
                                     append(participant['data'][str(page.dataset_id)]['iids'][0])
                                 participant['data'][str(page.dataset_id)]['iids'] = \
@@ -200,6 +201,8 @@ def select_data_items(dbsession, participant, page):
                         filter(and_(DataItem.dataset_id == page.dataset_id, DataItem.id.in_(dids))).\
                         group_by(DataItem.id).\
                         order_by(asc('count'), DataItem.id)
+                    print(data_items)
+                    print(data_set['combinations'])
                     item_ids = []
                     limit_count = None
                     for item_id, count in data_items:
