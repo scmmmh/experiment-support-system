@@ -24,7 +24,7 @@ requires = [
     'asset',
     'pywebtools>=1.1.3',
     'marshmallow_jsonapi>=0.16.0',
-    'marshmallow<3'
+    'marshmallow>=3.0.0a0'
     ]
 
 extra_requires = {
