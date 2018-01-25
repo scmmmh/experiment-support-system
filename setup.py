@@ -23,7 +23,7 @@ requires = [
     'pycrypto',
     'asset',
     'pywebtools>=1.1.3',
-    'marshmallow_jsonapi>=0.16.0',
+    'compound_jsonapi>=1.0.0a1',
     'marshmallow>=3.0.0a0'
     ]
 

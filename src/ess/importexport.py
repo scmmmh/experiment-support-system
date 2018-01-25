@@ -5,8 +5,8 @@
 import formencode
 
 from marshmallow import post_load, fields
-from offline_jsonapi.schema import Schema
-from offline_jsonapi.fields import Relationship
+from compound_jsonapi.schema import Schema
+from compound_jsonapi.fields import Relationship
 from pywebtools.sqlalchemy import Base
 from sqlalchemy import and_
 

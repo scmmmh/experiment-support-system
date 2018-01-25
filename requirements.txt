@@ -15,5 +15,5 @@ pycrypto
 asset
 pywebtools>=1.1.3
 marshmallow
-git+https://github.com/scmmmh/marshmallow-jsonapi
+hg+https://mhall@bitbucket.org/mhall/compound-jsonapi
 hg+https://mhall@bitbucket.org/mhall/experiment-support-system
