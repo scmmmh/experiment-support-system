@@ -330,9 +330,12 @@ def export_settings(request):
                                                 answer['response']['other']
                                 else:
                                     if answer.data_item_id is None:
-                                        responses[column] = answer['response']['response']
-                                        if answer['response']['other']:
-                                            responses['%s.other_response' % column] = answer['response']['other']
+                                        if isinstance(answer['response'], dict):
+                                            responses[column] = answer['response']['response']
+                                            if answer['response']['other']:
+                                                responses['%s.other_response' % column] = answer['response']['other']
+                                        else:
+                                            responses[column] = answer['response']
                                     else:
                                         responses['%s.%s' % (column, data_item_column_mapper(answer.data_item))] = \
                                             answer['response']['response']
