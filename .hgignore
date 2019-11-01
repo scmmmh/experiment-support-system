@@ -1,8 +1,0 @@
-syntax:glob
-*.db
-*.ini
-.tox
-node_modules
-__pycache__
-*.egg-info
-.cache

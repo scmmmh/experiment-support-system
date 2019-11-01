@@ -1,0 +1,3 @@
+[run]
+source = ess
+omit = ess/test*

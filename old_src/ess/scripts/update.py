@@ -2,7 +2,7 @@
 
 .. moduleauthor:: Mark Hall <mark.hall@work.room3b.eu>
 """
-"""
+
 from alembic import config, command
 
 from ess.models import DB_VERSION
@@ -29,4 +29,3 @@ def downgrade_database(args):
     alembic_config.set_section_option('app:main', 'script_location', 'ess:migrations')
     alembic_config.set_section_option('app:main', 'url', 'hm')
     command.downgrade(alembic_config, '-1')
-"""

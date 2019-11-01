@@ -1,0 +1,36 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pyramid-debugtoolbar = "*"
+webtest = ">=1.3.1"
+pytest = "*"
+pytest-cov = "*"
+
+[packages]
+pyramid = "*"
+sqlalchemy = ">=1.1.0"
+alembic = "*"
+transaction = "*"
+pyramid-tm = "*"
+zope-sqlalchemy = "*"
+waitress = "*"
+kajiki = "*"
+babel = "*"
+decorator = "*"
+mimeparse = "*"
+formencode = "*"
+pyramid-beaker = "*"
+pycrypto = "*"
+asset = "*"
+pywebtools = ">=1.1.3"
+marshmallow = "*"
+pyramid-jinja2 = "*"
+experimentsupportsystem = {editable = true,path = "."}
+click = "*"
+pyramid-nacl-session = "*"
+
+[requires]
+python_version = "3.7"

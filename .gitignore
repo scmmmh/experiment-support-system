@@ -1,0 +1,4 @@
+development.ini
+production.ini
+*.sqlite
+*.egg-info

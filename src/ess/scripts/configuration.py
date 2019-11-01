@@ -3,34 +3,37 @@ Script used to generate a configuration file.
 
 .. moduleauthor:: Mark Hall <mark.hall@work.room3b.eu>
 """
+import click
 import uuid
 
-from kajiki import TextTemplate
+from binascii import hexlify
+from jinja2 import Environment, PackageLoader
+from nacl.secret import SecretBox
+from nacl.utils import random
+
 from pkg_resources import resource_string
 
-from .main import get_user_parameter
 
-
-def init(subparsers):
-    parser = subparsers.add_parser('generate-config', help='Generate the Experiment Support System configuration file')
-    parser.add_argument('--filename', default='production.ini', help='Configuration file name')
-    parser.add_argument('--sqla-connection-string', default=None, help='SQLAlchemy database connection string')
-    parser.add_argument('--debug', default=False, action='store_true', help='Set the debug flags in the configuration')
-    parser.set_defaults(func=generate_config)
-
-
-def generate_config(args):
+@click.argument('config-uri', type=click.File('w'))
+@click.option('--title', default='Experiment Support System', help='Experiment Support System')
+@click.option('--sqla-uri', default='sqlite:///%(here)s/ess.sqlite', help='sqlite:///%(here)s/ess.sqlite')
+@click.option('--email-host', default='', help='')
+@click.option('--host', default='127.0.0.1', help='127.0.0.1')
+@click.option('--port', type=int, default=6543, help='6543')
+@click.option('--debug', is_flag=True, default=False, help='false')
+@click.command()
+def generate_config(config_uri, title, sqla_uri, email_host, host, port, debug):
     """Generates a configuration file based on the default_config.txt template.
     """
-    tmpl = TextTemplate(resource_string('ess', 'scripts/templates/default_config.txt').decode('utf-8'))
-    params = {'encrypt_key': uuid.uuid1(),
-              'validate_key': uuid.uuid1(),
-              'debug': args.debug}
-    if args.sqla_connection_string:
-        params['sqlalchemy_url'] = args.sqla_connection_string
-    else:
-        params['sqlalchemy_url'] = get_user_parameter('SQL Alchemy Connection String',
-                                                      'sqlite:///%(here)s/eregisters_test.db')
-
-    with open(args.filename, 'w') as out_f:
-        out_f.write(tmpl(params).render())
+    env = Environment(
+        loader=PackageLoader('ess', 'scripts/templates')
+    )
+    template = env.get_template('default_config.txt')
+    secret = hexlify(random(SecretBox.KEY_SIZE))
+    config_uri.write(template.render(app_title=title,
+                                     sqlalchemy_url=sqla_uri,
+                                     email_host=email_host,
+                                     session_key=secret.decode(),
+                                     host=host,
+                                     port=port,
+                                     debug=debug))
